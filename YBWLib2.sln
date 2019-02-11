@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YBWLib2", "YBWLib2\YBWLib2.vcxproj", "{061E491F-E9BE-4D97-81C4-F05ABCD283E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Debug|x64.ActiveCfg = Debug|x64
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Debug|x64.Build.0 = Debug|x64
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Debug|x86.ActiveCfg = Debug|Win32
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Debug|x86.Build.0 = Debug|Win32
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x64.ActiveCfg = Release|x64
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x64.Build.0 = Release|x64
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x86.ActiveCfg = Release|Win32
+		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB23D1D6-9410-4411-9E7A-36BD54A3CB97}
+	EndGlobalSection
+EndGlobal
