@@ -5,6 +5,7 @@
 #include <mutex>
 #include <ostream>
 #include "Common.h"
+#include "../DynamicType/DynamicType.h"
 
 namespace YBWLib2 {
 	/// <summary>
@@ -13,6 +14,7 @@ namespace YBWLib2 {
 	/// </summary>
 	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
 	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, YBWLIB2_API, "{7536FF9E-DCF7-4B6B-A931-038D39C3A998}");
 		inline virtual ~ReferenceCountedObject() = default;
 		/// <summary>
 		/// Increments the reference count.
@@ -59,6 +61,7 @@ namespace YBWLib2 {
 		: public virtual ::std::enable_shared_from_this<_Concrete_Class_Ty>,
 		public virtual IReferenceCountedObject {
 	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		inline virtual ~SharedPtrReferenceCountedObject() = default;
 		/// <summary>
 		/// Increments the reference count.
@@ -117,8 +120,8 @@ namespace YBWLib2 {
 		struct inc_ref_count_t {};
 		struct adopt_ref_count_t {};
 
-		constexpr inc_ref_count_t inc_ref_count {};
-		constexpr adopt_ref_count_t adopt_ref_count {};
+		static constexpr inc_ref_count_t inc_ref_count {};
+		static constexpr adopt_ref_count_t adopt_ref_count {};
 
 		using element_type = _Element_Ty;
 		constexpr ReferenceCountedObjectHolder() noexcept {}
@@ -258,6 +261,7 @@ namespace YBWLib2 {
 			x.ptr_stored = nullptr;
 			x.ptr_owned = nullptr;
 		}
+		template<typename _Element_From_Ty>
 		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const { return this->ptr_owned < x.ptr_owned; }
 		inline void reset() noexcept {}
 		/// <summary>
@@ -382,9 +386,10 @@ namespace YBWLib2 {
 	template<typename _Ty>
 	class LockableObjectFromSTLWrapper : public virtual ILockableObject {
 	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		using wrapped_type = _Ty;
-		template<typename _Args_Ty...>
-		inline explicit LockableObjectFromSTLWrapper(_Args_Ty... args) : obj(::std::forward<_Args_Ty>(args)...) {}
+		template<typename... _Args_Ty>
+		inline explicit LockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}
 		inline virtual ~LockableObjectFromSTLWrapper() = default;
 		/// <summary>Get a reference to the wrapped object.</summary>
 		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() { return this->obj; }
@@ -399,7 +404,7 @@ namespace YBWLib2 {
 		/// </returns>
 		inline virtual bool TryLock() override { return this->obj.try_lock(); }
 		/// <summary>Unlocks the object.</summary>
-		inline virtual void Unlock() override noexcept { this->obj.unlock(); }
+		inline virtual void Unlock() noexcept override { this->obj.unlock(); }
 	private:
 		_Ty obj;
 	};

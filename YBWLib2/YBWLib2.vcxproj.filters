@@ -66,6 +66,15 @@
     <ClInclude Include="File\File.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleLocal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicType\DynamicTypeModuleLocal.h">
+      <Filter>Header Files\DynamicType</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicType\DynamicTypeInternal.h">
+      <Filter>Header Files\DynamicType</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -85,6 +94,9 @@
     </ClCompile>
     <ClCompile Include="File\File.cpp">
       <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleLocal.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

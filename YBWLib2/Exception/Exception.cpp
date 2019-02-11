@@ -16,7 +16,7 @@ namespace YBWLib2 {
 		: public virtual Exception,
 		public virtual IDoubleExceptionException {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS(DoubleExceptionException, , "{12F7B9FB-928E-4197-8DF7-B33DD0FDABDC}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(DoubleExceptionException, , "{12F7B9FB-928E-4197-8DF7-B33DD0FDABDC}");
 		virtual ~DoubleExceptionException() = default;
 		virtual ExceptionFlags GetExceptionFlags() const noexcept override { return this->Exception::GetExceptionFlags() | ExceptionFlag_DoubleException; }
 	};
@@ -38,14 +38,17 @@ namespace YBWLib2 {
 		}
 		ExceptionHandlingEnvironment& operator=(const ExceptionHandlingEnvironment&) = delete;
 		ExceptionHandlingEnvironment& operator=(ExceptionHandlingEnvironment&&) = delete;
-		inline void* AllocateMemory(size_t size) {
+		inline size_t GetMaxMemorySize() const noexcept {
+			return size_heap_max;
+		}
+		inline void* AllocateMemory(size_t size) noexcept {
 			if (!this->hheap) terminate();
 			if (!size) size = 1;
 			void* ptr = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size);
 			if (!ptr) terminate();
 			return ptr;
 		}
-		inline void FreeMemory(void* ptr) {
+		inline void FreeMemory(void* ptr) noexcept {
 			if (!this->hheap) terminate();
 			if (ptr) if (HeapFree(this->hheap, 0, ptr)) terminate();
 		}
@@ -56,6 +59,8 @@ namespace YBWLib2 {
 	} static exception_handling_environment;
 
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(DoubleExceptionException, , Exception, IDoubleExceptionException);
+
+	YBWLIB2_API size_t YBWLIB2_CALLTYPE ExceptionGetMaxMemorySize() noexcept { return exception_handling_environment.GetMaxMemorySize(); }
 
 	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size) noexcept { return exception_handling_environment.AllocateMemory(size); }
 

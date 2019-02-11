@@ -7,23 +7,30 @@
 #include <utility>
 #include <tuple>
 #include "DynamicType.h"
+#include "DynamicTypeInternal.h"
 
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS_NOBASE(IDynamicTypeObject, YBWLIB2_API);
 
+	YBWLIB2_API wrapper_mtx_dtenv_t wrapper_mtx_dtenv {};
+
 	static INIT_ONCE initonce_dtenv = INIT_ONCE_STATIC_INIT;
-	static ::std::recursive_mutex* mtx_dtenv = nullptr;
+	static ::std::recursive_mutex* impl_mtx_dtenv = nullptr;
 	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj = nullptr;
-	static void dtenv_init() {
+	static void dtenv_init() noexcept {
 		if (!InitOnceExecuteOnce(&initonce_dtenv,
 			[](PINIT_ONCE InitOnce, PVOID Parameter, PVOID* Context)->BOOL {
 				UNREFERENCED_PARAMETER(InitOnce);
 				UNREFERENCED_PARAMETER(Parameter);
 				UNREFERENCED_PARAMETER(Context);
-				mtx_dtenv = new ::std::recursive_mutex();
-				if (!mtx_dtenv) return FALSE;
-				map_dtclassobj = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
-				if (!map_dtclassobj) return FALSE;
+				try {
+					impl_mtx_dtenv = new ::std::recursive_mutex();
+					if (!impl_mtx_dtenv) return FALSE;
+					map_dtclassobj = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
+					if (!map_dtclassobj) return FALSE;
+				} catch (...) {
+					return FALSE;
+				}
 				return TRUE;
 			}
 		, nullptr, nullptr)) terminate();
@@ -147,6 +154,7 @@ namespace YBWLib2 {
 			delete this->pimpl;
 			this->pimpl = nullptr;
 		}
+		if (this->dtclassid == DynamicTypeClassID_Null) terminate();
 		this->pimpl = new _impl_DynamicTypeBaseClassDefObj(this);
 	}
 
@@ -173,12 +181,13 @@ namespace YBWLib2 {
 		}
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeBaseClassDefObj::RealInitialize() const {
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeBaseClassDefObj::RealInitializeGlobal() const {
 		dtenv_init();
 		{
-			::std::lock_guard<::std::recursive_mutex> lock_guard_dtenv(*mtx_dtenv);
+			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = map_dtclassobj->find(this->dtclassid);
 			if (it_dtclassobj == map_dtclassobj->end()) terminate();
+			if (it_dtclassobj->second.IsModuleLocal() != this->is_module_local) terminate();
 			this->dtclassobj = &it_dtclassobj->second;
 		}
 	}
@@ -187,6 +196,10 @@ namespace YBWLib2 {
 		if (this->pimpl) {
 			delete this->pimpl;
 			this->pimpl = nullptr;
+		}
+		if (!this->is_module_local) {
+			for (const DynamicTypeBaseClassDefObj* _it_dtbaseclassdef = _begin_dtbaseclassdef; _it_dtbaseclassdef != _end_dtbaseclassdef; ++_it_dtbaseclassdef)
+				if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) terminate();
 		}
 		this->pimpl = new _impl_DynamicTypeClassObj(this, _begin_dtbaseclassdef, _end_dtbaseclassdef);
 	}
@@ -213,24 +226,36 @@ namespace YBWLib2 {
 		::std::unordered_set<DynamicTypeClassID, hash_DynamicTypeClassID_t> set_dtclassid_baseclass_conflict;
 		dtenv_init();
 		{
-			::std::lock_guard<::std::recursive_mutex> lock_guard_dtenv(*mtx_dtenv);
+			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			for (const DynamicTypeBaseClassDefObj& val_baseclass_direct : this->pimpl->set_baseclass_direct) {
 				const size_t offset_upcast_abs_direct = val_baseclass_direct.GetUpcastOffsetAbs();
 				const bool is_upcast_negative_offset_direct = val_baseclass_direct.IsUpcastNegativeOffset();
 				DynamicTypeClassObj* dtclassobj_baseclass = val_baseclass_direct.GetDynamicTypeClassObject();
 				if (!dtclassobj_baseclass) terminate();
 				dtclassobj_baseclass->Initialize();
-				this->pimpl->map_baseclass_total.emplace(
-					::std::piecewise_construct,
-					::std::forward_as_tuple(val_baseclass_direct.GetDynamicTypeClassID()),
-					::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, size_t, bool, DynamicTypeClassObj&>(
+				if (!set_dtclassid_baseclass_conflict.count(val_baseclass_direct.GetDynamicTypeClassID())) {
+					::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+						::std::piecewise_construct,
+						::std::forward_as_tuple(val_baseclass_direct.GetDynamicTypeClassID()),
+						::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, size_t, bool, DynamicTypeClassObj&>(
+							this->dtclassid,
+							val_baseclass_direct.GetDynamicTypeClassID(),
+							offset_upcast_abs_direct,
+							is_upcast_negative_offset_direct,
+							*dtclassobj_baseclass
+							)
+					);
+					if (!ret_emplace.second && ret_emplace.first->second != DynamicTypeTotalBaseClass(
 						this->dtclassid,
 						val_baseclass_direct.GetDynamicTypeClassID(),
 						offset_upcast_abs_direct,
 						is_upcast_negative_offset_direct,
 						*dtclassobj_baseclass
-						)
-				);
+					)) {
+						set_dtclassid_baseclass_conflict.insert(val_baseclass_direct.GetDynamicTypeClassID());
+						this->pimpl->map_baseclass_total.erase(ret_emplace.first);
+					}
+				}
 				for (const ::std::pair<DynamicTypeClassID, DynamicTypeTotalBaseClass>& val_baseclass_indirect : dtclassobj_baseclass->pimpl->map_baseclass_total) {
 					const size_t offset_upcast_abs_indirect = val_baseclass_indirect.second.offset_upcast_abs;
 					const bool is_upcast_negative_offset_indirect = val_baseclass_indirect.second.is_upcast_negative_offset;
@@ -263,35 +288,57 @@ namespace YBWLib2 {
 							is_upcast_negative_offset_total = false;
 						}
 					}
-					this->pimpl->map_baseclass_total.emplace(
-						::std::piecewise_construct,
-						::std::forward_as_tuple(val_baseclass_indirect.first),
-						::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, size_t, bool, DynamicTypeClassObj&>(
+					if (!set_dtclassid_baseclass_conflict.count(val_baseclass_indirect.first)) {
+						::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+							::std::piecewise_construct,
+							::std::forward_as_tuple(val_baseclass_indirect.first),
+							::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, size_t, bool, DynamicTypeClassObj&>(
+								this->dtclassid,
+								val_baseclass_indirect.first,
+								offset_upcast_abs_total,
+								is_upcast_negative_offset_total,
+								val_baseclass_indirect.second.dtclassobj_baseclass
+								)
+						);
+						if (!ret_emplace.second && ret_emplace.first->second != DynamicTypeTotalBaseClass(
 							this->dtclassid,
 							val_baseclass_indirect.first,
 							offset_upcast_abs_total,
 							is_upcast_negative_offset_total,
 							val_baseclass_indirect.second.dtclassobj_baseclass
-							)
-					);
+						)) {
+							set_dtclassid_baseclass_conflict.insert(val_baseclass_indirect.first);
+							this->pimpl->map_baseclass_total.erase(ret_emplace.first);
+						}
+					}
 				}
 			}
 		}
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::Register() {
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::RegisterGlobal() {
 		dtenv_init();
 		{
-			::std::lock_guard<::std::recursive_mutex> lock_guard_dtenv(*mtx_dtenv);
+			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			if (!map_dtclassobj->emplace(this->dtclassid, *this).second) terminate();
 		}
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::UnRegister() {
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::UnRegisterGlobal() {
 		dtenv_init();
 		{
-			::std::lock_guard<::std::recursive_mutex> lock_guard_dtenv(*mtx_dtenv);
+			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			if (!map_dtclassobj->erase(this->dtclassid)) terminate();
 		}
+	}
+
+	YBWLIB2_API void YBWLIB2_CALLTYPE mtx_dtenv_lock() {
+		dtenv_init();
+		impl_mtx_dtenv->lock();
+	}
+
+	YBWLIB2_API void YBWLIB2_CALLTYPE mtx_dtenv_unlock() {
+		dtenv_init();
+		impl_mtx_dtenv->unlock();
 	}
 }
