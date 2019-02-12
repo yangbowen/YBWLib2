@@ -11,6 +11,7 @@ namespace YBWLib2 {
 	class Exception : public virtual IException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Exception, YBWLIB2_API, "{2C62414A-B7A5-4404-9C0B-504BB02E7644}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Exception);
 		virtual ~Exception() = default;
 		/// <summary>Get the exception flags.</summary>
 		/// <returns>The exception flags.</returns>

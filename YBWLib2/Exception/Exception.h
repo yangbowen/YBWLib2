@@ -108,6 +108,7 @@ namespace YBWLib2 {
 	class IException abstract : public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IException, YBWLIB2_API, "{0A010AD2-24CD-48A4-90C4-EBB66618E7CE}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IException);
 		inline virtual ~IException() = default;
 		static inline void* operator new(size_t size) noexcept {
 			return ExceptionAllocateMemory(size);
@@ -115,14 +116,14 @@ namespace YBWLib2 {
 		static inline void* operator new[](size_t size) noexcept {
 			return ExceptionAllocateMemory(size);
 		}
-		static inline void operator delete(void* ptr) noexcept {
+			static inline void operator delete(void* ptr) noexcept {
 			return ExceptionFreeMemory(ptr);
 		}
 		static inline void operator delete[](void* ptr) noexcept {
 			return ExceptionFreeMemory(ptr);
 		}
-		/// <summary>Gets the exception flags.</summary>
-		/// <returns>The exception flags.</returns>
+			/// <summary>Gets the exception flags.</summary>
+			/// <returns>The exception flags.</returns>
 		virtual ExceptionFlags GetExceptionFlags() const noexcept = 0;
 		/// <summary>
 		/// Gets the additional variable reserved for exception handling routines in applications.
@@ -148,6 +149,7 @@ namespace YBWLib2 {
 	class IDoubleExceptionException abstract : public virtual IException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IDoubleExceptionException, YBWLIB2_API, "{AE163E22-B2EF-4381-A092-025309287D53}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IDoubleExceptionException);
 		inline virtual ~IDoubleExceptionException() = default;
 	};
 
@@ -155,6 +157,7 @@ namespace YBWLib2 {
 	class ISystemAPIFailureException abstract : public virtual IException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISystemAPIFailureException, YBWLIB2_API, "{E921F6A5-62A6-45B7-A517-45C001154FA4}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISystemAPIFailureException);
 		inline virtual ~ISystemAPIFailureException() = default;
 		/// <summary>Gets the address to the system API, if available.</summary>
 		/// <returns>

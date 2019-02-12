@@ -8,11 +8,14 @@
 
 namespace YBWLib2 {
 	struct DynamicTypeClassID;
-	class DynamicTypeBaseClassDef;
+	class DynamicTypeBaseClassDefObj;
 	class DynamicTypeClassObj;
 	class IDynamicTypeObject;
 	class _impl_DynamicTypeBaseClassDefObj;
 	class _impl_DynamicTypeClassObj;
+
+#pragma region DynamicTypeClassID
+	//{ DynamicTypeClassID
 
 	/// <summary>An equal-to comparing function for <c>DynamicTypeClassID</c>.</summary>
 	YBWLIB2_API bool YBWLIB2_CALLTYPE IsEqualTo_DynamicTypeClassID(const DynamicTypeClassID* l, const DynamicTypeClassID* r);
@@ -43,7 +46,7 @@ namespace YBWLib2 {
 	constexpr hash_DynamicTypeClassID_t hash_DynamicTypeClassID {};
 	/// <summary>
 	/// A null <c>DynamicTypeClassID</c>.
-	/// Classes with a null <c>DynamicTypeClassID</c> are not registered and therefore cannot be further inherited from or be dynamically casted to.
+	/// Classes with a null <c>DynamicTypeClassID</c> are not registered and therefore cannot be further inherited from.
 	/// </summary>
 	constexpr DynamicTypeClassID DynamicTypeClassID_Null = { { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } } };
 	/// <summary>Converts a GUID string in the format {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX} to a <c>DynamicTypeClassID</c> identifier at compile time.</summary>
@@ -64,6 +67,12 @@ namespace YBWLib2 {
 		}\
 			} };
 	}
+
+	//}
+#pragma endregion DynamicTypeClassID is used to uniquely identify a dynamic type class. Keep in mind that module-local dynamic type classes can have the same DynamicTypeClassID in different executable modules.
+
+#pragma region Dynamic type class declaration getting templates
+	//{ Dynamic Type declaration getting templates.
 
 	/// <summary>
 	/// Checks whether the specified class type has been (explicitly) declared not a dynamic type class.
@@ -111,6 +120,26 @@ namespace YBWLib2 {
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
 		return _Class_Ty::DynamicTypeThisClassID;
 	}
+	/// <summary>
+	/// Statically casts a pointer from one dynamic type class to another.
+	/// Provide specializations for this template to support classes that implement custom static type cast mechanism.
+	/// The returned value MUST be statically relative to the passed value, and the function MAY NOT access or depend on memory pointed to by the passed value.
+	/// The library does not necessarily pass a valid pointer that points to a <c>_Class_From_Ty</c> object.
+	/// </summary>
+	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	inline constexpr uintptr_t DynamicTypeStaticCast(uintptr_t ptr) {
+		static_assert(::std::is_class_v<_Class_To_Ty>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Class_To_Ty>(), "The specified type is not a dynamic type class.");
+		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified type is not a dynamic type class.");
+		return reinterpret_cast<uintptr_t>(static_cast<_Class_To_Ty*>(reinterpret_cast<_Class_From_Ty*>(ptr)));
+	}
+
+	//}
+#pragma endregion These templates are used for getting various declarations in dynamic type classes.
+
+#pragma region DynamicTypeBaseClassDefObj
+	//{ DynamicTypeBaseClassDefObj
 
 	/// <summary>
 	/// Base class definition object for dynamic type classes.
@@ -224,18 +253,18 @@ namespace YBWLib2 {
 			"The specified derived class type is non-module-local, but the specified base class type is module-local."
 			);
 		inline operator DynamicTypeBaseClassDefObj() const {
-			if (reinterpret_cast<uintptr_t>(static_cast<_Base_Class_Ty*>(reinterpret_cast<_This_Class_Ty*>(&dummy))) < reinterpret_cast<uintptr_t>(&dummy)) {
+			if (DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) < reinterpret_cast<uintptr_t>(&dummy)) {
 				return DynamicTypeBaseClassDefObj(
 					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
 					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
-					reinterpret_cast<uintptr_t>(&dummy) - reinterpret_cast<uintptr_t>(static_cast<_Base_Class_Ty*>(reinterpret_cast<_This_Class_Ty*>(&dummy))),
+					reinterpret_cast<uintptr_t>(&dummy) - DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)),
 					DynamicTypeBaseClassDefObj::upcast_negative_offset
 				);
 			} else {
 				return DynamicTypeBaseClassDefObj(
 					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
 					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
-					reinterpret_cast<uintptr_t>(static_cast<_Base_Class_Ty*>(reinterpret_cast<_This_Class_Ty*>(&dummy))) - reinterpret_cast<uintptr_t>(&dummy)
+					DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) - reinterpret_cast<uintptr_t>(&dummy)
 				);
 			}
 		}
@@ -244,6 +273,12 @@ namespace YBWLib2 {
 	template<typename _This_Class_Ty, typename _Base_Class_Ty>
 	constexpr DynamicTypeBaseClassDef_t<_This_Class_Ty, _Base_Class_Ty> DynamicTypeBaseClassDef {};
 
+	//}
+#pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
+
+#pragma region DynamicTypeClassObj
+	//{ DynamicTypeClassObj
+
 	/// <summary>
 	/// Dynamic type class.
 	/// Only construct this object during executable module initialization and destruct this object during executable module cleanup.
@@ -251,6 +286,18 @@ namespace YBWLib2 {
 	class DynamicTypeClassObj final {
 		friend _impl_DynamicTypeClassObj;
 	public:
+		/// <summary>Finds a registered non-module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier.</summary>
+		/// <returns>
+		/// This function returns a pointer to the found dynamic type class object if successful.
+		/// Otherwise (if there isn't a non-module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
+		/// </returns>
+		static YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid);
+		/// <summary>Finds a registered module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier.</summary>
+		/// <returns>
+		/// This function returns a pointer to the found dynamic type class object if successful.
+		/// Otherwise (if there isn't a module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
+		/// </returns>
+		static DynamicTypeClassObj* FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid);
 		inline DynamicTypeClassObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, ::std::initializer_list<DynamicTypeBaseClassDefObj> _dtbaseclassdef)
 			: dtclassid(_dtclassid), is_module_local(_is_module_local) {
 			this->CreateImplObject(_dtbaseclassdef.begin(), _dtbaseclassdef.end());
@@ -277,6 +324,14 @@ namespace YBWLib2 {
 		/// Do NOT call otherwise.
 		/// </summary>
 		YBWLIB2_API void YBWLIB2_CALLTYPE RealInitialize() const;
+		/// <summary>Finds a dynamic type base class of this class with the specified <c>DynamicTypeClassID</c> identifier.</summary>
+		/// <returns>
+		/// This function returns a pointer to the found dynamic type class object if successful.
+		/// Otherwise (if this class doesn't have a dynamic type base class with the specified identifier), it returns an empty pointer.
+		/// </returns>
+		YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const;
+		/// <summary>Dynamically upcasts a pointer.</summary>
+		YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const;
 	protected:
 		const DynamicTypeClassID dtclassid;
 		const bool is_module_local;
@@ -321,7 +376,14 @@ namespace YBWLib2 {
 	template<typename _This_Class_Ty, typename... _Base_Class_Ty>
 	constexpr DynamicTypeClass_t<_This_Class_Ty, _Base_Class_Ty...> DynamicTypeClass {};
 
+	//}
+#pragma endregion DynamicTypeClassObj is used to represent a dynamic type class.
+
+#pragma region Dynamic type class declaration and implementation macros
+	//{ Dynamic type class declaration and implementation macros.
+
 #ifdef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(classname) \
 static constexpr bool DynamicTypeNoClass = true
 
@@ -353,52 +415,142 @@ static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj DynamicTypeThisClass
 specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>
 
 #ifdef YBWLIB2_EXPORTS
+
 #define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS_NOBASE(classname, specifiers_dtclassobj) \
 specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>
+
 #endif
 
 #endif
+
+	//}
+#pragma endregion These macros are used in declarations and implementations of dynamic type classes.
+
+#pragma region Dynamic type casting intermediates
+	//{ Dynamic type casting
+
+	template<typename _Most_Derived_DT_Class_Ty>
+	inline uintptr_t DynamicTypeDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
+		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
+		return GetDynamicTypeThisClassObject<_Most_Derived_DT_Class_Ty>().DynamicUpcastTo(ptr, dtclassobj_target);
+	}
+
+	//}
+#pragma endregion These declarations do some intermediate work of dynamically casting pointers.
+
+#pragma region IDynamicTypeObject
+	//{ IDynamicTypeObject
 
 	/// <summary>Objects that support getting pointers to various classes in the inheritance hierarchy.</summary>
 	class IDynamicTypeObject abstract {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IDynamicTypeObject, YBWLIB2_API, "{C3AB7BB2-05D8-4B8A-8856-3FE8423063E7}");
 		inline virtual ~IDynamicTypeObject() = default;
-		/// <summary>
-		/// Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.
-		/// </summary>
-		/// <param name="dtclassid">Pointer to a <c>DynamicTypeClassID</c> that identifies the target class.</param>
+		/// <summary>Gets a pointer to the <c>DynamicTypeClassID</c> identifier that identifies the most derived dynamic type class of the object.</summary>
+		/// <returns>
+		/// This function returns the required pointer if successful.
+		/// Otherwise (if the concrete class of the object does not support this operation), it returns an empty pointer.
+		/// </returns>
+		virtual const DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept = 0;
+		/// <summary>Gets a pointer to the <c>DynamicTypeClassObj</c> object that represents the most derived dynamic type class of the object.</summary>
+		/// <returns>
+		/// This function returns the required pointer if successful.
+		/// Otherwise (if the concrete class of the object does not support this operation), it returns an empty pointer.
+		/// </returns>
+		virtual DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept = 0;
+		/// <summary>Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.</summary>
+		/// <param name="dtclassobj_target">Pointer to a <c>DynamicTypeClassObj</c> that represents the target class.</param>
 		/// <returns>
 		/// This function returns the casted pointer, <c>reinterpret_cast</c>ed to a <c>void*</c> pointer, if successful.
-		/// Otherwise (if the specified <c>DynamicTypeClassID</c> does not identify a registered dynamic type class of the object), it returns a null pointer.
+		/// Otherwise (if the specified <c>DynamicTypeClassObj</c> does not represent a registered dynamic type class of the object), it returns an empty pointer.
 		/// </returns>
-		virtual void* DynamicCastTo(const DynamicTypeClassID* dtclassid) = 0;
-		/// <summary>
-		/// Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.
-		/// </summary>
-		/// <param name="dtclassid">Pointer to a <c>DynamicTypeClassID</c> that identifies the target class.</param>
+		virtual void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) = 0;
+		/// <summary>Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.</summary>
+		/// <param name="dtclassobj_target">Pointer to a <c>DynamicTypeClassObj</c> that represents the target class.</param>
 		/// <returns>
 		/// This function returns the casted pointer, <c>reinterpret_cast</c>ed to a <c>const void*</c> pointer, if successful.
-		/// Otherwise (if the specified <c>DynamicTypeClassID</c> does not identify a registered dynamic type class of the object), it returns a null pointer.
+		/// Otherwise (if the specified <c>DynamicTypeClassObj</c> does not represent a registered dynamic type class of the object), it returns an empty pointer.
 		/// </returns>
-		virtual const void* DynamicCastTo(const DynamicTypeClassID* dtclassid) const = 0;
-		/// <summary>
-		/// Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.
-		/// </summary>
-		/// <param name="dtclassid">Pointer to a <c>DynamicTypeClassID</c> that identifies the target class.</param>
+		virtual const void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const = 0;
+		/// <summary>Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.</summary>
+		/// <param name="dtclassobj_target">Pointer to a <c>DynamicTypeClassObj</c> that represents the target class.</param>
 		/// <returns>
 		/// This function returns the casted pointer, <c>reinterpret_cast</c>ed to a <c>volatile void*</c> pointer, if successful.
-		/// Otherwise (if the specified <c>DynamicTypeClassID</c> does not identify a registered dynamic type class of the object), it returns a null pointer.
+		/// Otherwise (if the specified <c>DynamicTypeClassObj</c> does not represent a registered dynamic type class of the object), it returns an empty pointer.
 		/// </returns>
-		virtual volatile void* DynamicCastTo(const DynamicTypeClassID* dtclassid) volatile = 0;
-		/// <summary>
-		/// Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.
-		/// </summary>
-		/// <param name="dtclassid">Pointer to a <c>DynamicTypeClassID</c> that identifies the target class.</param>
+		virtual volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) volatile = 0;
+		/// <summary>Cast to a pointer to the most derived dynamic type class or one of its dynamic type base classes.</summary>
+		/// <param name="dtclassobj_target">Pointer to a <c>DynamicTypeClassObj</c> that represents the target class.</param>
 		/// <returns>
 		/// This function returns the casted pointer, <c>reinterpret_cast</c>ed to a <c>const volatile void*</c> pointer, if successful.
-		/// Otherwise (if the specified <c>DynamicTypeClassID</c> does not identify a registered dynamic type class of the object), it returns a null pointer.
+		/// Otherwise (if the specified <c>DynamicTypeClassObj</c> does not represent a registered dynamic type class of the object), it returns an empty pointer.
 		/// </returns>
-		virtual const volatile void* DynamicCastTo(const DynamicTypeClassID* dtclassid) const volatile = 0;
+		virtual const volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const volatile = 0;
 	};
+
+	/// <summary>Structure template for type casting using dynamic type functionality.</summary>
+	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	struct DynamicTypeCast_t {
+		static_assert(::std::is_class_v<_Class_To_Ty>, "The specified target class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Class_To_Ty>(), "The specified target class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_To_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
+		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified source class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified source class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
+		static_assert(::std::is_convertible_v<typename move_cv_t<void, _Class_From_Ty>::type, typename move_cv_t<void, _Class_To_Ty>::type>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
+		inline _Class_To_Ty* operator()(_Class_From_Ty* ptr) const {
+			reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(&GetDynamicTypeThisClassObject<_Class_To_Ty>()));
+		}
+	};
+	/// <summary>Variable template for type casting using dynamic type functionality.</summary>
+	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	constexpr DynamicTypeCast_t<_Class_To_Ty, _Class_From_Ty> DynamicTypeCast {};
+
+	//}
+#pragma endregion IDynamicTypeObject is used as a virtual base class of other dynamic type classes. This enables casting the object dynamically using information provided by the most derived dynamic type class (often the concrete class).
+
+#pragma region IDynamicTypeObject derived classes declaration and implementation macros
+	//{ IDynamicTypeObject derived classes declaration and implementation macros
+
+#ifdef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+
+#define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_UNSUPPORTED(classname) \
+inline virtual const DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return nullptr; }\
+inline virtual DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return nullptr; }\
+inline virtual void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) override { return nullptr; }\
+inline virtual const void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const override { return nullptr; }\
+inline virtual volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) volatile override { return nullptr; }\
+inline virtual const volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const volatile override { return nullptr; }
+
+#define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(classname)
+
+#define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_DECLARE(classname, specifiers_vfunc) \
+specifiers_vfunc virtual const DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override;\
+specifiers_vfunc virtual DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override;\
+specifiers_vfunc virtual void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) override;\
+specifiers_vfunc virtual const void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const override;\
+specifiers_vfunc virtual volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) volatile override;\
+specifiers_vfunc virtual const volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const volatile override
+
+#define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(classname) \
+inline virtual const DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
+inline virtual DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return &GetDynamicTypeThisClassObject<classname>(); }\
+inline virtual void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) override { return reinterpret_cast<void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+inline virtual const void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const override { return reinterpret_cast<const void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+inline virtual volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) volatile override { return reinterpret_cast<volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+inline virtual const volatile void* DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const volatile override { return reinterpret_cast<const volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }
+
+#define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_IOBJECT(classname, specifiers_vfunc) \
+specifiers_vfunc const DynamicTypeClassID* classname::DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
+specifiers_vfunc DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return &GetDynamicTypeThisClassObject<classname>(); }\
+specifiers_vfunc void* classname::DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) override { return reinterpret_cast<void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+specifiers_vfunc const void* classname::DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const override { return reinterpret_cast<const void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+specifiers_vfunc volatile void* classname::DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) volatile override { return reinterpret_cast<volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
+specifiers_vfunc const volatile void* classname::DynamicTypeRawCastTo(const DynamicTypeClassObj* dtclassobj_target) const volatile override { return reinterpret_cast<const volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }
+
+#endif
+
+	//}
+#pragma endregion These macros are used in dynamic type classes derived from IDynamicTypeObject to support casting the object dynamically using information provided by the most derived dynamic type class (often the concrete class).
 }

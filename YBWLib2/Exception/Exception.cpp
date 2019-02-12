@@ -17,6 +17,7 @@ namespace YBWLib2 {
 		public virtual IDoubleExceptionException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(DoubleExceptionException, , "{12F7B9FB-928E-4197-8DF7-B33DD0FDABDC}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(DoubleExceptionException);
 		virtual ~DoubleExceptionException() = default;
 		virtual ExceptionFlags GetExceptionFlags() const noexcept override { return this->Exception::GetExceptionFlags() | ExceptionFlag_DoubleException; }
 	};

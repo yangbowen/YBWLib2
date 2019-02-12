@@ -15,6 +15,7 @@ namespace YBWLib2 {
 	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, YBWLIB2_API, "{7536FF9E-DCF7-4B6B-A931-038D39C3A998}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
 		inline virtual ~ReferenceCountedObject() = default;
 		/// <summary>
 		/// Increments the reference count.
@@ -62,6 +63,7 @@ namespace YBWLib2 {
 		public virtual IReferenceCountedObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedPtrReferenceCountedObject);
 		inline virtual ~SharedPtrReferenceCountedObject() = default;
 		/// <summary>
 		/// Increments the reference count.
@@ -387,6 +389,7 @@ namespace YBWLib2 {
 	class LockableObjectFromSTLWrapper : public virtual ILockableObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(LockableObjectFromSTLWrapper);
 		using wrapped_type = _Ty;
 		template<typename... _Args_Ty>
 		inline explicit LockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}

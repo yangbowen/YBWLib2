@@ -9,6 +9,7 @@ namespace YBWLib2 {
 	class ISeekableFile abstract : public virtual IReferenceCountedObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISeekableFile, YBWLIB2_API, "{FA943A6B-90B0-47DE-B84F-3E9750B53B01}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISeekableFile);
 		/// <summary>
 		/// Returns a pointer to the <c>ILockableObject</c> object that locks the file position.
 		/// The <c>ILockableObject</c> object shall be declared <c>mutable</c>.
@@ -71,6 +72,7 @@ namespace YBWLib2 {
 	class IInputFile abstract : public virtual ISeekableFile {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IInputFile, YBWLIB2_API, "{41977894-4378-4B81-8857-4157DCE52CAC}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IInputFile);
 		/// <summary>Reads from the current position to the buffer.</summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be read.</param>
@@ -86,6 +88,7 @@ namespace YBWLib2 {
 	class IOutputFile abstract : public virtual ISeekableFile {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IOutputFile, YBWLIB2_API, "{63E3E8AF-A2F1-4CDA-9B44-922E6B1C59BF}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IOutputFile);
 		/// <summary>Writes from the buffer to the current position.</summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be written.</param>

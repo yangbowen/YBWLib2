@@ -12,6 +12,7 @@ namespace YBWLib2 {
 		static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj = nullptr;
 		static void dtenv_init() noexcept {
 			try {
+				dtenv_init_global();
 				::std::call_once(onceflag_dtenv,
 					[]() {
 						try {
@@ -32,10 +33,19 @@ namespace YBWLib2 {
 		ModuleLocal::dtenv_init();
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
-			::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = ModuleLocal::map_dtclassobj->find(this->dtclassid);
-			if (it_dtclassobj == ModuleLocal::map_dtclassobj->end()) terminate();
-			if (it_dtclassobj->second.IsModuleLocal() != this->is_module_local) terminate();
-			this->dtclassobj = &it_dtclassobj->second;
+			this->dtclassobj = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid);
+			if (!this->dtclassobj) terminate();
+			if (this->dtclassobj->IsModuleLocal() != this->is_module_local) terminate();
+		}
+	}
+
+	DynamicTypeClassObj* DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) {
+		if (!_dtclassid || *_dtclassid == DynamicTypeClassID_Null) return nullptr;
+		ModuleLocal::dtenv_init();
+		{
+			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
+			::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = ModuleLocal::map_dtclassobj->find(*_dtclassid);
+			return it_dtclassobj == ModuleLocal::map_dtclassobj->end() ? nullptr : &it_dtclassobj->second;
 		}
 	}
 

@@ -8,6 +8,7 @@ namespace YBWLib2 {
 	class IReferenceCountedObject abstract : public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IReferenceCountedObject, YBWLIB2_API, "{7266C5C6-2238-44A0-B8D7-B8A662591EC7}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IReferenceCountedObject);
 		/// <summary>
 		/// Increments the reference count.
 		/// This function must be thread-safe.
@@ -27,6 +28,7 @@ namespace YBWLib2 {
 	class ILockableObject abstract : public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ILockableObject, YBWLIB2_API, "{E0DEDC23-28AF-48BC-A89F-D254C4389613}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ILockableObject);
 		/// <summary>Locks the object. Blocks if necessary.</summary>
 		virtual void Lock() = 0;
 		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
