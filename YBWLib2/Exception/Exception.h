@@ -1,4 +1,6 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_6D5B340E_F74B_4EDD_83D5_6BAB5945B5D8
+#define _INCLUDE_GUARD_6D5B340E_F74B_4EDD_83D5_6BAB5945B5D8
+
 #include <cstdint>
 #include <type_traits>
 #include <memory>
@@ -6,6 +8,10 @@
 #include "../DynamicType/DynamicType.h"
 
 namespace YBWLib2 {
+
+#pragma region ExceptionFlags
+	//{ ExceptionFlags
+
 	/// <summary>Exception flags.</summary>
 	typedef uint64_t ExceptionFlags;
 
@@ -22,6 +28,12 @@ namespace YBWLib2 {
 	/// <c>ExceptionAllocateMemory</c> and <c>ExceptionFreeMemory</c> may still be used.
 	/// </summary>
 	constexpr ExceptionFlags ExceptionFlag_MemoryAllocFailure = 0x2;
+
+	//}
+#pragma endregion Exception flags are flags that indicate some characteristics of the exception.
+
+#pragma region Exception handling dedicated memory
+	//{ Exception handling dedicated memory
 
 	/// <summary>
 	/// Get the maximum amount of memory that could potentially be allocated by <c>ExceptionAllocateMemory</c>.
@@ -104,27 +116,88 @@ namespace YBWLib2 {
 		}
 	};
 
+	//}
+#pragma endregion These functions and templates can be used to allocate memory from a separate store dedicated to exception handling, which may be used even when the system memory is insufficient.
+
+#pragma region Exception interface classes
+	//{ Exception interface classes
+
 	/// <summary>Exception.</summary>
 	class IException abstract : public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IException, YBWLIB2_API, "{0A010AD2-24CD-48A4-90C4-EBB66618E7CE}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IException);
+		IException(const IException&) = delete;
+		IException(IException&&) = delete;
 		inline virtual ~IException() = default;
+		IException& operator=(const IException&) = delete;
+		IException& operator=(IException&&) = delete;
 		static inline void* operator new(size_t size) noexcept {
 			return ExceptionAllocateMemory(size);
 		}
 		static inline void* operator new[](size_t size) noexcept {
 			return ExceptionAllocateMemory(size);
 		}
-			static inline void operator delete(void* ptr) noexcept {
+		static inline void operator delete(void* ptr) noexcept {
 			return ExceptionFreeMemory(ptr);
 		}
 		static inline void operator delete[](void* ptr) noexcept {
 			return ExceptionFreeMemory(ptr);
 		}
-			/// <summary>Gets the exception flags.</summary>
-			/// <returns>The exception flags.</returns>
+		/// <summary>Gets the exception flags.</summary>
+		/// <returns>The exception flags.</returns>
 		virtual ExceptionFlags GetExceptionFlags() const noexcept = 0;
+		/// <summary>
+		/// Attaches another <c>IException</c> object as the underlying cause of this exception.
+		/// If there's already an exception object attached as the cause, it will be destructed and freed.
+		/// </summary>
+		/// <param name="exception_cause_new">
+		/// The underlying cause of this exception to be attached.
+		/// After returning from this member function (either successfully or unsuccessfully), the object on which this function is called acquires ownership of the object pointed to by this parameter and is responsible for destructing and freeing the object.
+		/// Do NOT pass a pointer to a local object variable or an object already managed by other mechanisms.
+		/// Passing an empty pointer clears the cause stored in this object.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* AttachCause(IException* exception_cause_new) noexcept = 0;
+		/// <summary>Gets a pointer to the <c>IException</c> object that represents the underlying cause of this exception.</summary>
+		/// <param name="exception_cause_ret">
+		/// Pointer to a pointer variable that receives a pointer to the underlying cause of this exception.
+		/// After successfully returning from this member function, <c>*exception_cause</c> will be set to the underlying cause of this exception.
+		/// Any value originally in <c>*exception_cause</c> will be discarded (without destructing or freeing the object pointed to by it, if any).
+		/// The object on which this function is called continues to own the object pointed to by the new <c>*exception_cause</c> after a successful call.
+		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetCause(IException** exception_cause_ret) noexcept = 0;
+		/// <summary>
+		/// Detaches the pointer to the <c>IException</c> object that represents the underlying cause of this exception and gives it to the caller.
+		/// After successfully returning from this function, the object on which this function is called no longer has a exception cause object.
+		/// </summary>
+		/// <param name="exception_cause_ret">
+		/// Pointer to a pointer variable that receives a pointer to the underlying cause of this exception.
+		/// After successfully returning from this member function, <c>*exception_cause</c> will be set to the underlying cause of this exception.
+		/// Any value originally in <c>*exception_cause</c> will be discarded (without destructing or freeing the object pointed to by it, if any).
+		/// The object on which this function is called stops owning the object pointed to by the new <c>*exception_cause</c> after a successful call.
+		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer
+		/// (and the object pointed to by <c>*exception_cause</c>).
+		/// </returns>
+		[[nodiscard]] virtual IException* DetachCause(IException** exception_cause_ret) noexcept = 0;
 		/// <summary>
 		/// Gets the additional variable reserved for exception handling routines in applications.
 		/// Classes that implements this class must provide storage for this variable.
@@ -153,17 +226,154 @@ namespace YBWLib2 {
 		inline virtual ~IDoubleExceptionException() = default;
 	};
 
-	/// <summary>An exception that occurs because of failing to call a system API.</summary>
-	class ISystemAPIFailureException abstract : public virtual IException {
+	/// <summary>An exception that occurs because of failing to call an external API.</summary>
+	class IExternalAPIFailureException abstract : public virtual IException {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISystemAPIFailureException, YBWLIB2_API, "{E921F6A5-62A6-45B7-A517-45C001154FA4}");
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISystemAPIFailureException);
-		inline virtual ~ISystemAPIFailureException() = default;
-		/// <summary>Gets the address to the system API, if available.</summary>
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IExternalAPIFailureException, YBWLIB2_API, "{E921F6A5-62A6-45B7-A517-45C001154FA4}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IExternalAPIFailureException);
+		inline virtual ~IExternalAPIFailureException() = default;
+		/// <summary>Gets the address to the external API, if available.</summary>
 		/// <returns>
-		/// Returns the address to the system API if available.
+		/// Returns the address to the external API if available.
 		/// If no meaningful address can be provided, <c>nullptr</c> is returned.
 		/// </returns>
-		virtual const void* GetSystemAPIAddress() const noexcept = 0;
+		virtual const void* GetExternalAPIAddress() const noexcept = 0;
 	};
+
+	//}
+#pragma endregion Exception classes that may be transferred across executable module boundaries.
+
+#pragma region Exception implementation classes
+	//{ Exception implementation classes
+
+	/// <summary>
+	/// A default implementation of <c>IException</c>.
+	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
+	/// Instead, access by <c>IException</c>.
+	/// </summary>
+	class Exception : public virtual IException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Exception, , "{2C62414A-B7A5-4404-9C0B-504BB02E7644}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Exception);
+		inline virtual ~Exception() = default;
+		/// <summary>Get the exception flags.</summary>
+		/// <returns>The exception flags.</returns>
+		inline virtual ExceptionFlags GetExceptionFlags() const noexcept override { return 0; }
+		/// <summary>
+		/// Attaches another <c>IException</c> object as the underlying cause of this exception.
+		/// If there's already an exception object attached as the cause, it will be destructed and freed.
+		/// </summary>
+		/// <param name="exception_cause_new">
+		/// The underlying cause of this exception to be attached.
+		/// After returning from this member function (either successfully or unsuccessfully), the object on which this function is called acquires ownership of the object pointed to by this parameter and is responsible for destructing and freeing the object.
+		/// Do NOT pass a pointer to a local object variable or an object already managed by other mechanisms.
+		/// Passing an empty pointer clears the cause stored in this object.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* AttachCause(IException* exception_cause_new) noexcept override {
+			if (this->exception_cause) {
+				delete this->exception_cause;
+				this->exception_cause = nullptr;
+			}
+			this->exception_cause = exception_cause_new;
+			return this;
+		}
+		/// <summary>Gets a pointer to the <c>IException</c> object that represents the underlying cause of this exception.</summary>
+		/// <param name="exception_cause_ret">
+		/// Pointer to a pointer variable that receives a pointer to the underlying cause of this exception.
+		/// After successfully returning from this member function, <c>*exception_cause</c> will be set to the underlying cause of this exception.
+		/// Any value originally in <c>*exception_cause</c> will be discarded (without destructing or freeing the object pointed to by it, if any).
+		/// The object on which this function is called continues to own the object pointed to by the new <c>*exception_cause</c> after a successful call.
+		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GetCause(IException** exception_cause_ret) noexcept override {
+			*exception_cause_ret = this->exception_cause;
+			return this;
+		}
+		/// <summary>
+		/// Detaches the pointer to the <c>IException</c> object that represents the underlying cause of this exception and gives it to the caller.
+		/// After successfully returning from this function, the object on which this function is called no longer has a exception cause object.
+		/// </summary>
+		/// <param name="exception_cause_ret">
+		/// Pointer to a pointer variable that receives a pointer to the underlying cause of this exception.
+		/// After successfully returning from this member function, <c>*exception_cause</c> will be set to the underlying cause of this exception.
+		/// Any value originally in <c>*exception_cause</c> will be discarded (without destructing or freeing the object pointed to by it, if any).
+		/// The object on which this function is called stops owning the object pointed to by the new <c>*exception_cause</c> after a successful call.
+		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer
+		/// (and the object pointed to by <c>*exception_cause</c>).
+		/// </returns>
+		[[nodiscard]] inline virtual IException* DetachCause(IException** exception_cause_ret) noexcept override {
+			*exception_cause_ret = this->exception_cause;
+			if (this->exception_cause) {
+				delete this->exception_cause;
+				this->exception_cause = nullptr;
+			}
+			return this;
+		}
+		/// <summary>
+		/// Get the additional variable reserved for exception handling routines in applications.
+		/// Classes that implements this class must provide storage for this variable.
+		/// Library functions must not change this variable, except when required by the application by calling <c>SetUserData</c> on the object.
+		/// Nor can library functions depend on the value of this variable.
+		/// This variable must be initialized to <c>0</c> when constructing the object.
+		/// </summary>
+		/// <returns>The value of the variable.</returns>
+		inline virtual uintptr_t GetUserData() const noexcept override { return this->userdata; }
+		/// <summary>
+		/// Set the additional variable reserved for exception handling routines in applications.
+		/// Classes that implements this class must provide storage for this variable.
+		/// Library functions must not change this variable, except when required by the application by calling <c>SetUserData</c> on the object.
+		/// Nor can library functions depend on the value of this variable.
+		/// This variable must be initialized to <c>0</c> when constructing the object.
+		/// </summary>
+		/// <param name="val_new">The new value of the variable.</param>
+		inline virtual void SetUserData(uintptr_t val_new) noexcept override { this->userdata = val_new; }
+	private:
+		IException* exception_cause = nullptr;
+		uintptr_t userdata = 0;
+	};
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
+	/// <summary>
+	/// A default implementation of <c>IDoubleExceptionException</c>.
+	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
+	/// Instead, access by <c>IDoubleExceptionException</c>.
+	/// </summary>
+	class DoubleExceptionException abstract
+		: public virtual Exception,
+		public virtual IDoubleExceptionException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(DoubleExceptionException, , "{12F7B9FB-928E-4197-8DF7-B33DD0FDABDC}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(DoubleExceptionException);
+		inline virtual ~DoubleExceptionException() = default;
+		inline virtual ExceptionFlags GetExceptionFlags() const noexcept override { return this->Exception::GetExceptionFlags() | ExceptionFlag_DoubleException; }
+	};
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+	//}
+#pragma endregion Exception classes that provide a default implementation but may not be transferred across executable modules without using an exception interface class pointer.
 }
+
+#endif

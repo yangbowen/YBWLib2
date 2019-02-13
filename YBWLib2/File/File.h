@@ -1,4 +1,6 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
+#define _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
+
 #include <cstdint>
 #include "../Exception/Exception.h"
 #include "../Common/Common.h"
@@ -100,3 +102,5 @@ namespace YBWLib2 {
 		[[nodiscard]] virtual IException* Write(void* buf, size_t size) = 0;
 	};
 }
+
+#endif

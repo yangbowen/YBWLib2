@@ -1,4 +1,6 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_30119E3B_9939_4A65_A63A_B13F0B7928DC
+#define _INCLUDE_GUARD_30119E3B_9939_4A65_A63A_B13F0B7928DC
+
 #include <cstdint>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
@@ -41,3 +43,5 @@ namespace YBWLib2 {
 		virtual void Unlock() noexcept = 0;
 	};
 }
+
+#endif

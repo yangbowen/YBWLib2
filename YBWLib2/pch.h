@@ -1,8 +1,10 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_DF5A734C_C5A5_439F_B296_99ED740A188C
+#define _INCLUDE_GUARD_DF5A734C_C5A5_439F_B296_99ED740A188C
 
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <type_traits>
 #include <exception>
 #include <memory>
 #include <mutex>
@@ -10,20 +12,8 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <winsdkver.h>
-#define _WIN32_WINNT 0x601
-#include <sdkddkver.h>
-
-#include <ntstatus.h>
-
-#define WIN32_LEAN_AND_MEAN
-#define WIN32_NO_STATUS
-#include <Windows.h>
-
-typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
-typedef NTSTATUS *PNTSTATUS;
-
-#undef min
-#undef max
-
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#endif
+
+#endif

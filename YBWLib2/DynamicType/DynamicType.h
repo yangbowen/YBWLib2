@@ -1,5 +1,8 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_E66D6F4F_4C99_49DE_8A34_907BDE018263
+#define _INCLUDE_GUARD_E66D6F4F_4C99_49DE_8A34_907BDE018263
+
 #include <cstdint>
+#include <cstdlib>
 #include <type_traits>
 #include <initializer_list>
 #include <guiddef.h>
@@ -57,7 +60,7 @@ namespace YBWLib2 {
 			|| str[19] != '-'
 			|| str[24] != '-'
 			|| str[37] != '}'
-			|| str[38]) terminate();
+			|| str[38]) abort();
 		return DynamicTypeClassID { { \
 			hex_uint32_from_string({ str[1], str[2], str[3], str[4], str[5], str[6], str[7], str[8], 0 }), \
 			hex_uint16_from_string({ str[10], str[11], str[12], str[13], 0 }), \
@@ -554,3 +557,5 @@ specifiers_vfunc const volatile void* classname::DynamicTypeRawCastTo(const Dyna
 	//}
 #pragma endregion These macros are used in dynamic type classes derived from IDynamicTypeObject to support casting the object dynamically using information provided by the most derived dynamic type class (often the concrete class).
 }
+
+#endif

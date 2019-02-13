@@ -1,9 +1,6 @@
-#pragma include_alias("pch.h", "../pch.h")
+﻿#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include <atomic>
-#include <mutex>
-#include <unordered_set>
-#include <unordered_map>
 #include <utility>
 #include <tuple>
 #include "DynamicType.h"
@@ -14,26 +11,22 @@ namespace YBWLib2 {
 
 	YBWLIB2_API wrapper_mtx_dtenv_t wrapper_mtx_dtenv {};
 
-	static INIT_ONCE initonce_dtenv = INIT_ONCE_STATIC_INIT;
+	static ::std::once_flag onceflag_dtenv;
 	static ::std::recursive_mutex* impl_mtx_dtenv = nullptr;
 	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj = nullptr;
 	static void dtenv_init() noexcept {
-		if (!InitOnceExecuteOnce(&initonce_dtenv,
-			[](PINIT_ONCE InitOnce, PVOID Parameter, PVOID* Context)->BOOL {
-				UNREFERENCED_PARAMETER(InitOnce);
-				UNREFERENCED_PARAMETER(Parameter);
-				UNREFERENCED_PARAMETER(Context);
-				try {
+		try {
+			::std::call_once(onceflag_dtenv,
+				[]() {
 					impl_mtx_dtenv = new ::std::recursive_mutex();
-					if (!impl_mtx_dtenv) return FALSE;
+					if (!impl_mtx_dtenv) abort();
 					map_dtclassobj = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
-					if (!map_dtclassobj) return FALSE;
-				} catch (...) {
-					return FALSE;
+					if (!map_dtclassobj) abort();
 				}
-				return TRUE;
-			}
-		, nullptr, nullptr)) terminate();
+			);
+		} catch (...) {
+			abort();
+		}
 	}
 
 	class DynamicTypeTotalBaseClass {
@@ -69,7 +62,7 @@ namespace YBWLib2 {
 	public:
 		/// <summary>Pointer to the declaration object.</summary>
 		DynamicTypeBaseClassDefObj* pdecl = nullptr;
-		INIT_ONCE initonce = INIT_ONCE_STATIC_INIT;
+		mutable ::std::once_flag onceflag;
 		explicit _impl_DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj* _pdecl)
 			: pdecl(_pdecl) {}
 		_impl_DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj* _pdecl, const _impl_DynamicTypeBaseClassDefObj&)
@@ -95,7 +88,7 @@ namespace YBWLib2 {
 		/// This member variable is only modified during the construction and destruction of this object, which is during executable module initialization and cleanup.
 		/// </summary>
 		::std::unordered_set<DynamicTypeBaseClassDefObj, hash_DynamicTypeBaseClassDefObj_t> set_baseclass_direct;
-		INIT_ONCE initonce = INIT_ONCE_STATIC_INIT;
+		mutable ::std::once_flag onceflag;
 		/// <summary>
 		/// The map of unique base classes (direct or indirect) of this class.
 		/// Base classes that share a common offset in this class are considered the same base class.
@@ -165,14 +158,11 @@ namespace YBWLib2 {
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeBaseClassDefObj::Initialize() const {
-		if (!InitOnceExecuteOnce(&this->pimpl->initonce,
-			[](PINIT_ONCE InitOnce, PVOID Parameter, PVOID* Context)->BOOL {
-				UNREFERENCED_PARAMETER(InitOnce);
-				UNREFERENCED_PARAMETER(Context);
-				reinterpret_cast<const DynamicTypeBaseClassDefObj*>(reinterpret_cast<uintptr_t>(Parameter))->RealInitialize();
-				return TRUE;
-			}
-		, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this)), nullptr)) terminate();
+		try {
+			::std::call_once(this->pimpl->onceflag, [this]() { this->RealInitialize(); });
+		} catch (...) {
+			abort();
+		}
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeBaseClassDefObj::CreateImplObject() {
@@ -180,7 +170,7 @@ namespace YBWLib2 {
 			delete this->pimpl;
 			this->pimpl = nullptr;
 		}
-		if (this->dtclassid == DynamicTypeClassID_Null) terminate();
+		if (this->dtclassid == DynamicTypeClassID_Null) abort();
 		this->pimpl = new _impl_DynamicTypeBaseClassDefObj(this);
 	}
 
@@ -212,8 +202,8 @@ namespace YBWLib2 {
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			this->dtclassobj = DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
-			if (!this->dtclassobj) terminate();
-			if (this->dtclassobj->IsModuleLocal() != this->is_module_local) terminate();
+			if (!this->dtclassobj) abort();
+			if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
 		}
 	}
 
@@ -234,7 +224,7 @@ namespace YBWLib2 {
 		}
 		if (!this->is_module_local) {
 			for (const DynamicTypeBaseClassDefObj* _it_dtbaseclassdef = _begin_dtbaseclassdef; _it_dtbaseclassdef != _end_dtbaseclassdef; ++_it_dtbaseclassdef)
-				if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) terminate();
+				if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) abort();
 		}
 		this->pimpl = new _impl_DynamicTypeClassObj(this, _begin_dtbaseclassdef, _end_dtbaseclassdef);
 	}
@@ -247,14 +237,11 @@ namespace YBWLib2 {
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::Initialize() const {
-		if (!InitOnceExecuteOnce(&this->pimpl->initonce,
-			[](PINIT_ONCE InitOnce, PVOID Parameter, PVOID* Context)->BOOL {
-				UNREFERENCED_PARAMETER(InitOnce);
-				UNREFERENCED_PARAMETER(Context);
-				reinterpret_cast<const DynamicTypeClassObj*>(reinterpret_cast<uintptr_t>(Parameter))->RealInitialize();
-				return TRUE;
-			}
-		, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this)), nullptr)) terminate();
+		try {
+			::std::call_once(this->pimpl->onceflag, [this]() { this->RealInitialize(); });
+		} catch (...) {
+			abort();
+		}
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::RealInitialize() const {
@@ -266,7 +253,7 @@ namespace YBWLib2 {
 				const size_t offset_upcast_abs_direct = val_baseclass_direct.GetUpcastOffsetAbs();
 				const bool is_upcast_negative_offset_direct = val_baseclass_direct.IsUpcastNegativeOffset();
 				DynamicTypeClassObj* dtclassobj_baseclass = val_baseclass_direct.GetDynamicTypeClassObject();
-				if (!dtclassobj_baseclass) terminate();
+				if (!dtclassobj_baseclass) abort();
 				dtclassobj_baseclass->Initialize();
 				if (!set_dtclassid_baseclass_conflict.count(val_baseclass_direct.GetDynamicTypeClassID())) {
 					::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
@@ -393,7 +380,7 @@ namespace YBWLib2 {
 		dtenv_init();
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
-			if (!map_dtclassobj->emplace(this->dtclassid, *this).second) terminate();
+			if (!map_dtclassobj->emplace(this->dtclassid, *this).second) abort();
 		}
 	}
 
@@ -401,7 +388,7 @@ namespace YBWLib2 {
 		dtenv_init();
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
-			if (!map_dtclassobj->erase(this->dtclassid)) terminate();
+			if (!map_dtclassobj->erase(this->dtclassid)) abort();
 		}
 	}
 

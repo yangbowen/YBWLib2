@@ -1,5 +1,6 @@
-#define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+﻿#define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 
+#include <cstdlib>
 #include <mutex>
 #include <unordered_set>
 #include <unordered_map>
@@ -15,16 +16,12 @@ namespace YBWLib2 {
 				dtenv_init_global();
 				::std::call_once(onceflag_dtenv,
 					[]() {
-						try {
-							map_dtclassobj = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
-							if (!map_dtclassobj) terminate();
-						} catch (...) {
-							terminate();
-						}
+						map_dtclassobj = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
+						if (!map_dtclassobj) abort();
 					}
 				);
 			} catch (...) {
-				terminate();
+				abort();
 			}
 		}
 	}
@@ -34,8 +31,8 @@ namespace YBWLib2 {
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
 			this->dtclassobj = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid);
-			if (!this->dtclassobj) terminate();
-			if (this->dtclassobj->IsModuleLocal() != this->is_module_local) terminate();
+			if (!this->dtclassobj) abort();
+			if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
 		}
 	}
 
@@ -53,7 +50,7 @@ namespace YBWLib2 {
 		ModuleLocal::dtenv_init();
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
-			if (!ModuleLocal::map_dtclassobj->emplace(this->dtclassid, *this).second) terminate();
+			if (!ModuleLocal::map_dtclassobj->emplace(this->dtclassid, *this).second) abort();
 		}
 	}
 
@@ -61,7 +58,7 @@ namespace YBWLib2 {
 		ModuleLocal::dtenv_init();
 		{
 			::std::lock_guard<wrapper_mtx_dtenv_t> lock_guard_dtenv(wrapper_mtx_dtenv);
-			if (!ModuleLocal::map_dtclassobj->erase(this->dtclassid)) terminate();
+			if (!ModuleLocal::map_dtclassobj->erase(this->dtclassid)) abort();
 		}
 	}
 }

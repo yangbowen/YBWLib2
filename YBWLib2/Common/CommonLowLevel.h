@@ -1,5 +1,8 @@
-#pragma once
+﻿#ifndef _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
+#define _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
+
 #include <cstdint>
+#include <cstdlib>
 #include <type_traits>
 #include "../YBWLib2Api.h"
 
@@ -98,7 +101,7 @@ namespace YBWLib2 {
 			&& (str[1] >= '0' && str[1] <= '9' || str[1] >= 'A' && str[1] <= 'F' || str[1] >= 'a' && str[1] <= 'f');
 	}
 	inline constexpr uint8_t hex_uint8_from_string(const char(&str)[3]) {
-		if (!is_hex_uint8_string(str)) terminate();
+		if (!is_hex_uint8_string(str)) abort();
 		return (str[0] >= '0' && str[0] <= '9' ? str[0] - '0'
 			: str[0] >= 'A' && str[0] <= 'F' ? str[0] - 'A' + 0xA
 			: str[0] - 'a' + 0xA) << 0x4
@@ -116,3 +119,5 @@ namespace YBWLib2 {
 		return ((uint64_t)hex_uint32_from_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) << 0x20) | hex_uint32_from_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
 	}
 }
+
+#endif

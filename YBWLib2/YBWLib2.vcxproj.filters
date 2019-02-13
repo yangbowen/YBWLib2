@@ -60,9 +60,6 @@
     <ClInclude Include="Exception\Exception.h">
       <Filter>Header Files\Exception</Filter>
     </ClInclude>
-    <ClInclude Include="Exception\ExceptionInternal.h">
-      <Filter>Header Files\Exception</Filter>
-    </ClInclude>
     <ClInclude Include="File\File.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
@@ -74,6 +71,24 @@
     </ClInclude>
     <ClInclude Include="DynamicType\DynamicTypeInternal.h">
       <Filter>Header Files\DynamicType</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\CommonModuleLocal.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\ExceptionModuleLocal.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\ExceptionWindows.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleLocalWindows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\ExceptionModuleLocalWindows.h">
+      <Filter>Header Files\Exception</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +111,12 @@
       <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="ModuleLocal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Exception\ExceptionWindows.cpp">
+      <Filter>Source Files\Exception</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleLocalWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
