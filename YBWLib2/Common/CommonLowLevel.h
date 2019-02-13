@@ -7,6 +7,16 @@
 #include "../YBWLib2Api.h"
 
 namespace YBWLib2 {
+
+#define YBWLIB2_STRINGIZE_HELPER(x) #x
+#define YBWLIB2_STRINGIZE(x) YBWLIB2_STRINGIZE_HELPER(x)
+
+#define YBWLIB2_CONCATENATE_HELPER(l, r) a ## b
+#define YBWLIB2_CONCATENATE(l, r) YBWLIB2_CONCATENATE_HELPER(l, r)
+
+#define YBWLIB2_TO_UTF8_HELPER(s) u8 ## s
+#define YBWLIB2_TO_UTF8(s) YBWLIB2_TO_UTF8_HELPER(s)
+
 	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
 	template<typename _Ty, typename _Cv_Ty>
 	struct move_cv_t {

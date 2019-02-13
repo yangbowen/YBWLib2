@@ -5,14 +5,14 @@
 #include "ExceptionWindows.h"
 
 namespace YBWLib2 {
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithLastErrorException, , IExternalAPIFailureWithLastErrorException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithLastErrorException, , ExternalAPIFailureException, IExternalAPIFailureWithLastErrorException);
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithWSALastErrorException, , IExternalAPIFailureWithWSALastErrorException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithWSALastErrorException, , ExternalAPIFailureException, IExternalAPIFailureWithWSALastErrorException);
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithNTSTATUSException, , IExternalAPIFailureWithNTSTATUSException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithNTSTATUSException, , ExternalAPIFailureException, IExternalAPIFailureWithNTSTATUSException);
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, , IExternalAPIFailureWithHRESULTException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, , ExternalAPIFailureException, IExternalAPIFailureWithHRESULTException);
 #endif
 }

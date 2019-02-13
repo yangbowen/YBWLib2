@@ -5,13 +5,17 @@
 #error This header file is only to be used when you're targeting Microsoft Windows. If you are, set the targetted windows version before including this header file.
 #endif
 
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#define _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_7FE57E16_A6C7_4720_BBEF_D96F80AAAD3E
+#define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#endif
+
 #include <minwindef.h>
 #include "../YBWLib2Api.h"
 #include "../DynamicType/DynamicType.h"
 #include "Exception.h"
 
 namespace YBWLib2 {
-
 #pragma region Exception interface classes
 	//{ Exception interface classes
 
@@ -64,18 +68,41 @@ namespace YBWLib2 {
 #pragma region Exception implementation classes
 	//{ Exception implementation classes
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
 	/// <summary>
 	/// A default implementation of <c>IExternalAPIFailureWithLastErrorException</c>.
 	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
 	/// Instead, access by <c>IExternalAPIFailureWithLastErrorException</c>.
 	/// </summary>
-	class ExternalAPIFailureWithLastErrorException abstract : public virtual IExternalAPIFailureWithLastErrorException {
+	class ExternalAPIFailureWithLastErrorException
+		: public virtual ExternalAPIFailureException,
+		public virtual IExternalAPIFailureWithLastErrorException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithLastErrorException, , "{EFCB915B-E2AD-4213-A220-B365FB8E91A1}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithLastErrorException);
+		/// <summary>Constructs an <c>ExternalAPIFailureWithLastErrorException</c> object.</summary>
+		/// <param name="_name_api">
+		/// The name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_api">
+		/// The size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The address to the external API, if available.
+		/// If no meaningful address can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_lasterr">The last-error code.</param>
+		inline ExternalAPIFailureWithLastErrorException(const char* _name_api, size_t _size_name_api, const void* _address_api, DWORD _lasterr) noexcept
+			: ExternalAPIFailureException(_name_api, _size_name_api, _address_api),
+			lasterr(_lasterr) {}
 		inline virtual ~ExternalAPIFailureWithLastErrorException() = default;
 		/// <summary>Gets the last-error code.</summary>
-		inline virtual DWORD GetLastErrorCode() const noexcept override {}
+		inline virtual DWORD GetLastErrorCode() const noexcept override { return this->lasterr; }
 	private:
 		const DWORD lasterr;
 	};
@@ -85,13 +112,32 @@ namespace YBWLib2 {
 	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
 	/// Instead, access by <c>IExternalAPIFailureWithWSALastErrorException</c>.
 	/// </summary>
-	class ExternalAPIFailureWithWSALastErrorException abstract : public virtual IExternalAPIFailureWithWSALastErrorException {
+	class ExternalAPIFailureWithWSALastErrorException
+		: public virtual ExternalAPIFailureException,
+		public virtual IExternalAPIFailureWithWSALastErrorException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithWSALastErrorException, , "{69E14602-A67E-4D57-8B99-2CB350D4DA39}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithWSALastErrorException);
+		/// <summary>Constructs an <c>ExternalAPIFailureWithWSALastErrorException</c> object.</summary>
+		/// <param name="_name_api">
+		/// The name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_api">
+		/// The size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The address to the external API, if available.
+		/// If no meaningful address can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_wsalasterr">The WSA last-error code.</param>
+		inline ExternalAPIFailureWithWSALastErrorException(const char* _name_api, size_t _size_name_api, const void* _address_api, int _wsalasterr) noexcept
+			: ExternalAPIFailureException(_name_api, _size_name_api, _address_api),
+			wsalasterr(_wsalasterr) {}
 		inline virtual ~ExternalAPIFailureWithWSALastErrorException() = default;
 		/// <summary>Gets the WSA last-error code.</summary>
-		inline virtual int GetWSALastErrorCode() const noexcept override {}
+		inline virtual int GetWSALastErrorCode() const noexcept override { return this->wsalasterr; }
 	private:
 		const int wsalasterr;
 	};
@@ -102,13 +148,32 @@ namespace YBWLib2 {
 	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
 	/// Instead, access by <c>IExternalAPIFailureWithNTSTATUSException</c>.
 	/// </summary>
-	class ExternalAPIFailureWithNTSTATUSException abstract : public virtual IExternalAPIFailureWithNTSTATUSException {
+	class ExternalAPIFailureWithNTSTATUSException
+		: public virtual ExternalAPIFailureException,
+		public virtual IExternalAPIFailureWithNTSTATUSException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithNTSTATUSException, , "{239EBDCB-7427-4EED-9C62-409613D9E343}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithNTSTATUSException);
+		/// <summary>Constructs an <c>ExternalAPIFailureWithNTSTATUSException</c> object.</summary>
+		/// <param name="_name_api">
+		/// The name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_api">
+		/// The size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The address to the external API, if available.
+		/// If no meaningful address can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_ntstatus">The NTSTATUS code.</param>
+		inline ExternalAPIFailureWithNTSTATUSException(const char* _name_api, size_t _size_name_api, const void* _address_api, NTSTATUS _ntstatus) noexcept
+			: ExternalAPIFailureException(_name_api, _size_name_api, _address_api),
+			ntstatus(_ntstatus) {}
 		inline virtual ~ExternalAPIFailureWithNTSTATUSException() = default;
 		/// <summary>Gets the NTSTATUS code.</summary>
-		inline virtual NTSTATUS GetNTSTATUSCode() const noexcept override {}
+		inline virtual NTSTATUS GetNTSTATUSCode() const noexcept override { return this->ntstatus; }
 	private:
 		const NTSTATUS ntstatus;
 	};
@@ -119,21 +184,73 @@ namespace YBWLib2 {
 	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
 	/// Instead, access by <c>IExternalAPIFailureWithHRESULTException</c>.
 	/// </summary>
-	class ExternalAPIFailureWithHRESULTException abstract : public virtual IExternalAPIFailureWithHRESULTException {
+	class ExternalAPIFailureWithHRESULTException
+		: public virtual ExternalAPIFailureException,
+		public virtual IExternalAPIFailureWithHRESULTException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithHRESULTException, , "{2B458D1D-4D35-4C5F-9414-6DE007BEFCD4}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithHRESULTException);
+		/// <summary>Constructs an <c>ExternalAPIFailureWithHRESULTException</c> object.</summary>
+		/// <param name="_name_api">
+		/// The name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_api">
+		/// The size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The address to the external API, if available.
+		/// If no meaningful address can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_hresult">The HRESULT code.</param>
+		inline ExternalAPIFailureWithHRESULTException(const char* _name_api, size_t _size_name_api, const void* _address_api, HRESULT _hresult) noexcept
+			: ExternalAPIFailureException(_name_api, _size_name_api, _address_api),
+			hresult(_hresult) {}
 		inline virtual ~ExternalAPIFailureWithHRESULTException() = default;
 		/// <summary>Gets the HRESULT code.</summary>
-		inline virtual HRESULT GetHRESULTCode() const noexcept override {}
+		inline virtual HRESULT GetHRESULTCode() const noexcept override { return this->hresult; }
 	private:
 		const HRESULT hresult;
 	};
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif
 
 	//}
 #pragma endregion Exception classes that provide a default implementation but may not be transferred across executable modules without using an exception interface class pointer.
 
+#pragma region Default exception implementation objects creating macros
+	//{ Default exception implementation objects creating macros
+
+#ifdef YBWLIB2_EXCEPTION_MACROS_ENABLED
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(apiname) (new ExternalAPIFailureWithLastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), GetLastError()))
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_WSA_LAST_ERROR_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_WSA_LAST_ERROR_EXCEPTION(apiname) (new ExternalAPIFailureWithWSALastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), WSAGetLastError()))
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(apiname, ntstatus) (new ExternalAPIFailureWithLastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (ntstatus)))
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION(apiname, hresult) (new ExternalAPIFailureWithLastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (hresult)))
+#endif
+
+#endif
+
+	//}
+#pragma endregion These macros are used to create exception objects with the above default implementation.
 }
+
+#ifdef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_7FE57E16_A6C7_4720_BBEF_D96F80AAAD3E
+#undef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#undef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_7FE57E16_A6C7_4720_BBEF_D96F80AAAD3E
+#endif
 
 #endif

@@ -1,14 +1,19 @@
 ﻿#ifndef _INCLUDE_GUARD_6D5B340E_F74B_4EDD_83D5_6BAB5945B5D8
 #define _INCLUDE_GUARD_6D5B340E_F74B_4EDD_83D5_6BAB5945B5D8
 
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#define _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_32EC34B6_5BCE_48CC_B1F7_BEDFC08A5774
+#define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#endif
+
 #include <cstdint>
 #include <type_traits>
 #include <memory>
 #include "../YBWLib2Api.h"
+#include "../Common/CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 
 namespace YBWLib2 {
-
 #pragma region ExceptionFlags
 	//{ ExceptionFlags
 
@@ -127,6 +132,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IException, YBWLIB2_API, "{0A010AD2-24CD-48A4-90C4-EBB66618E7CE}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IException);
+		IException() noexcept = default;
 		IException(const IException&) = delete;
 		IException(IException&&) = delete;
 		inline virtual ~IException() = default;
@@ -232,10 +238,22 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IExternalAPIFailureException, YBWLIB2_API, "{E921F6A5-62A6-45B7-A517-45C001154FA4}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IExternalAPIFailureException);
 		inline virtual ~IExternalAPIFailureException() = default;
+		/// <summary>Gets the name of the external API, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		virtual const char* GetExternalAPIName() const noexcept = 0;
+		/// <summary>Gets the size of the name of the external API, if available.</summary>
+		/// <returns>
+		/// Returns the size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		virtual size_t GetExternalAPINameSize() const noexcept = 0;
 		/// <summary>Gets the address to the external API, if available.</summary>
 		/// <returns>
-		/// Returns the address to the external API if available.
-		/// If no meaningful address can be provided, <c>nullptr</c> is returned.
+		/// Returns the address to the external API, if available.
+		/// If no meaningful address can be provided, an empty pointer is returned.
 		/// </returns>
 		virtual const void* GetExternalAPIAddress() const noexcept = 0;
 	};
@@ -255,7 +273,13 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Exception, , "{2C62414A-B7A5-4404-9C0B-504BB02E7644}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Exception);
-		inline virtual ~Exception() = default;
+		inline Exception() noexcept {}
+		inline virtual ~Exception() {
+			if (this->exception_cause) {
+				delete this->exception_cause;
+				this->exception_cause = nullptr;
+			}
+		}
 		/// <summary>Get the exception flags.</summary>
 		/// <returns>The exception flags.</returns>
 		inline virtual ExceptionFlags GetExceptionFlags() const noexcept override { return 0; }
@@ -359,14 +383,82 @@ namespace YBWLib2 {
 	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
 	/// Instead, access by <c>IDoubleExceptionException</c>.
 	/// </summary>
-	class DoubleExceptionException abstract
+	class DoubleExceptionException
 		: public virtual Exception,
 		public virtual IDoubleExceptionException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(DoubleExceptionException, , "{12F7B9FB-928E-4197-8DF7-B33DD0FDABDC}");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(DoubleExceptionException);
+		inline DoubleExceptionException() noexcept = default;
 		inline virtual ~DoubleExceptionException() = default;
 		inline virtual ExceptionFlags GetExceptionFlags() const noexcept override { return this->Exception::GetExceptionFlags() | ExceptionFlag_DoubleException; }
+	};
+
+	/// <summary>
+	/// A default implementation of <c>IExternalAPIFailureException</c>.
+	/// One executable module should NOT be allowed to access objects using this type created by other executable modules.
+	/// Instead, access by <c>IExternalAPIFailureException</c>.
+	/// </summary>
+	class ExternalAPIFailureException
+		: public virtual Exception,
+		public virtual IExternalAPIFailureException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureException, , "{960E5785-6CE2-4EBE-BAB4-BB43B540AF22}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureException);
+		/// <summary>Constructs an <c>ExternalAPIFailureException</c> object.</summary>
+		/// <param name="_name_api">
+		/// The name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_api">
+		/// The size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The address to the external API, if available.
+		/// If no meaningful address can be provided, pass an empty pointer.
+		/// </param>
+		inline ExternalAPIFailureException(const char* _name_api, size_t _size_name_api, const void* _address_api) noexcept {
+			if (_name_api && _size_name_api) {
+				this->size_name_api = _size_name_api;
+				this->name_api = new char[this->size_name_api]();
+			}
+			if (_address_api) this->address_api = _address_api;
+		}
+		inline virtual ~ExternalAPIFailureException() {
+			if (this->name_api) {
+				delete[] this->name_api;
+				this->name_api = nullptr;
+			}
+		}
+		/// <summary>Gets the name of the external API, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		inline virtual const char* GetExternalAPIName() const noexcept override {
+			return this->name_api && this->size_name_api ? this->name_api : nullptr;
+		}
+		/// <summary>Gets the size of the name of the external API, if available.</summary>
+		/// <returns>
+		/// Returns the size of the name, in UTF-8, of the external API, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		inline virtual size_t GetExternalAPINameSize() const noexcept override {
+			return this->name_api && this->size_name_api ? this->size_name_api : 0;
+		}
+		/// <summary>Gets the address to the external API, if available.</summary>
+		/// <returns>
+		/// Returns the address to the external API, if available.
+		/// If no meaningful address can be provided, an empty pointer is returned.
+		/// </returns>
+		inline virtual const void* GetExternalAPIAddress() const noexcept override {
+			return this->address_api ? this->address_api : nullptr;
+		}
+	private:
+		char* name_api = nullptr;
+		size_t size_name_api = 0;
+		const void* address_api = nullptr;
 	};
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -374,6 +466,33 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion Exception classes that provide a default implementation but may not be transferred across executable modules without using an exception interface class pointer.
+
+#pragma region Default exception implementation objects creating macros
+	//{ Default exception implementation objects creating macros
+
+#ifdef YBWLIB2_EXCEPTION_MACROS_ENABLED
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXCEPTION() (new Exception())
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION() (new DoubleExceptionException())
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_EXCEPTION
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_EXCEPTION(apiname) (new ExternalAPIFailureException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname)))
+#endif
+
+#endif
+
+	//}
+#pragma endregion These macros are used to create exception objects with the above default implementation.
 }
+
+#ifdef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_32EC34B6_5BCE_48CC_B1F7_BEDFC08A5774
+#undef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#undef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_32EC34B6_5BCE_48CC_B1F7_BEDFC08A5774
+#endif
 
 #endif
