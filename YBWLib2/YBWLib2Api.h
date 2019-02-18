@@ -8,5 +8,6 @@
 #endif
 
 #define YBWLIB2_CALLTYPE __stdcall
+#define YBWLIB2_CALLTYPE_VARARG __cdecl
 
 #endif

@@ -37,6 +37,12 @@
     <Filter Include="Source Files\File">
       <UniqueIdentifier>{0f783717-01d3-4692-9014-3fbbd4d8a840}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\UserInterface">
+      <UniqueIdentifier>{936a5070-8b3c-47c7-a601-05537f56b7db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UserInterface">
+      <UniqueIdentifier>{6141191e-4b59-4882-88fc-5a3790bbce51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -90,6 +96,15 @@
     <ClInclude Include="Exception\ExceptionModuleLocalWindows.h">
       <Filter>Header Files\Exception</Filter>
     </ClInclude>
+    <ClInclude Include="UserInterface\UserInterface.h">
+      <Filter>Header Files\UserInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInterface\UserInterfaceModuleLocal.h">
+      <Filter>Header Files\UserInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h">
+      <Filter>Header Files\DynamicType</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -119,5 +134,13 @@
     <ClCompile Include="ModuleLocalWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserInterface\UserInterface.cpp">
+      <Filter>Source Files\UserInterface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Exception\ExceptionMacroUndef.h">
+      <Filter>Header Files\Exception</Filter>
+    </None>
   </ItemGroup>
 </Project>

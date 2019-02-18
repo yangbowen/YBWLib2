@@ -6,7 +6,28 @@
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IException, YBWLIB2_API, IDynamicTypeObject);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDoubleExceptionException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInvalidParameterException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInsufficientBufferException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IMemoryAllocFailureException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IUnhandledUnknownExceptionException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISTLExceptionException, YBWLIB2_API, IException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureException, YBWLIB2_API, IException);
+
+	YBWLIB2_API rawallocator_t rawallocator_exception(
+		[](size_t size, uintptr_t context) noexcept->void* {
+			static_cast<void>(context);
+			return ExceptionAllocateMemory(size);
+		},
+		[](void* ptr, size_t size, uintptr_t context) noexcept->bool {
+			static_cast<void>(size);
+			static_cast<void>(context);
+			ExceptionFreeMemory(ptr);
+			return true;
+		},
+		[](uintptr_t context) noexcept->size_t {
+			static_cast<void>(context);
+			return ExceptionGetMaxMemorySize();
+		});
 
 	/// <summary>The global environment for exception handling.</summary>
 	class ExceptionHandlingEnvironment final {
@@ -53,7 +74,7 @@ namespace YBWLib2 {
 			if (ptr) if (HeapFree(this->hheap, 0, ptr)) abort();
 		}
 	private:
-		static constexpr size_t size_heap_initial = 0x400000;
+		static constexpr size_t size_heap_initial = 0x1000000;
 		static constexpr size_t size_heap_max = 0x4000000;
 		mutable ::std::once_flag onceflag;
 		HANDLE hheap = nullptr;
@@ -64,8 +85,6 @@ namespace YBWLib2 {
 			exception_handling_environment.Initialize();
 		}
 	} static exception_handling_environment_init;
-
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(DoubleExceptionException, , Exception, IDoubleExceptionException);
 
 	YBWLIB2_API size_t YBWLIB2_CALLTYPE ExceptionGetMaxMemorySize() noexcept { return exception_handling_environment.GetMaxMemorySize(); }
 

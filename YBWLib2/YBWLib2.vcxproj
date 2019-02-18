@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -25,6 +25,7 @@
     <ClInclude Include="Common\CommonSTLHelper.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
     <ClInclude Include="DynamicType\DynamicTypeInternal.h" />
+    <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h" />
     <ClInclude Include="DynamicType\DynamicTypeModuleLocal.h" />
     <ClInclude Include="Exception\Exception.h" />
     <ClInclude Include="Exception\ExceptionModuleLocal.h" />
@@ -34,6 +35,8 @@
     <ClInclude Include="ModuleLocal.h" />
     <ClInclude Include="ModuleLocalWindows.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="UserInterface\UserInterface.h" />
+    <ClInclude Include="UserInterface\UserInterfaceModuleLocal.h" />
     <ClInclude Include="Windows.h" />
     <ClInclude Include="YBWLib2Api.h" />
   </ItemGroup>
@@ -66,6 +69,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="UserInterface\UserInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Exception\ExceptionMacroUndef.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -127,17 +134,21 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)rapidjson/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)rapidjson/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)rapidjson/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)rapidjson/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

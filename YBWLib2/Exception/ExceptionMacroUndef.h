@@ -1,0 +1,63 @@
+﻿// This header file undefines previously-defined macros controlled by YBWLIB2_EXCEPTION_MACROS_ENABLED,
+// if and only if YBWLIB2_EXCEPTION_MACROS_ENABLED is not defined.
+// Include this header file after undefining YBWLIB2_EXCEPTION_MACROS_ENABLED to undo YBWLIB2_EXCEPTION_MACROS_ENABLED.
+
+// Include guard omitted intentionally.
+
+#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
+
+#ifdef YBWLIB2_EXCEPTION_MACROS_DEFINED
+
+#pragma region Default exception implementation objects creating macros
+//{ Default exception implementation objects creating macros
+
+#undef YBWLIB2_EXCEPTION_CREATE_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS
+
+#undef YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS
+
+#undef YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION
+
+#undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_EXCEPTION
+
+//}
+#pragma endregion These macros are used to create exception objects with the above default implementation.
+
+#undef YBWLIB2_EXCEPTION_MACROS_DEFINED
+#endif
+
+#ifdef YBWLIB2_EXCEPTION_MACROS_DEFINED_WINDOWS
+
+#pragma region Default exception implementation objects creating macros
+//{ Default exception implementation objects creating macros
+
+#undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_WSA_LAST_ERROR_EXCEPTION
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION
+#endif
+
+//}
+#pragma endregion These macros are used to create exception objects with the above default implementation.
+
+#undef YBWLIB2_EXCEPTION_MACROS_DEFINED_WINDOWS
+#endif
+
+#endif

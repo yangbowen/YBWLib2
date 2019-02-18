@@ -4,9 +4,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <type_traits>
+#include <utility>
+#include <new>
 #include "../YBWLib2Api.h"
 
 namespace YBWLib2 {
+	struct UUID;
 
 #define YBWLIB2_STRINGIZE_HELPER(x) #x
 #define YBWLIB2_STRINGIZE(x) YBWLIB2_STRINGIZE_HELPER(x)
@@ -128,6 +131,250 @@ namespace YBWLib2 {
 	inline constexpr uint64_t hex_uint64_from_string(const char(&str)[17]) {
 		return ((uint64_t)hex_uint32_from_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) << 0x20) | hex_uint32_from_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
 	}
+
+#pragma region UUID
+	//{ UUID
+
+	/// <summary>Universally unique identifier.</summary>
+	struct UUID {
+		/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
+		static inline bool IsEqualTo(const UUID* l, const UUID* r) noexcept {
+			if constexpr (sizeof(UUID) % sizeof(uintptr_t)) {
+				for (size_t i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) if (l->data[i] != r->data[i]) return false;
+				return true;
+			} else {
+				for (size_t i = 0; i < sizeof(UUID) / sizeof(uintptr_t); ++i) if (reinterpret_cast<const uintptr_t*>(l)[i] != reinterpret_cast<const uintptr_t*>(r)[i]) return false;
+				return true;
+			}
+		}
+		/// <summary>
+		/// A less-than comparing function for <c>UUID</c>.
+		/// The behaviour is equivalent to comparing the binary representation of the <c>UUID</c> from byte to byte lexicographically.
+		/// </summary>
+		static inline bool IsLessThan(const UUID* l, const UUID* r) noexcept {
+			for (int i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) {
+				if (reinterpret_cast<const uint8_t*>(l)[i] < reinterpret_cast<const uint8_t*>(r)[i]) return true;
+				if (reinterpret_cast<const uint8_t*>(l)[i] != reinterpret_cast<const uint8_t*>(r)[i]) return false;
+			}
+			return false;
+		}
+		/// <summary>A secure version of <c>IsEqualTo_UUID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+		static inline bool SecureIsEqualTo(const UUID* l, const UUID* r) noexcept {
+			if constexpr (sizeof(UUID) % sizeof(uintptr_t)) {
+				uint8_t x = 0;
+				for (size_t i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) x |= l->data[i] ^ r->data[i];
+				return !x;
+			} else {
+				uintptr_t x = 0;
+				for (size_t i = 0; i < sizeof(UUID) / sizeof(uintptr_t); ++i) x |= reinterpret_cast<const uintptr_t*>(l)[i] ^ reinterpret_cast<const uintptr_t*>(r)[i];
+				return !x;
+			}
+		}
+		uint8_t data[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		inline bool operator==(const UUID& r) const { return UUID::IsEqualTo(this, &r); }
+		inline bool operator!=(const UUID& r) const { return !UUID::IsEqualTo(this, &r); }
+		inline bool operator<(const UUID& r) const { return UUID::IsLessThan(this, &r); }
+		inline bool operator<=(const UUID& r) const { return !UUID::IsLessThan(&r, this); }
+		inline bool operator>(const UUID& r) const { return UUID::IsLessThan(&r, this); }
+		inline bool operator>=(const UUID& r) const { return !UUID::IsLessThan(this, &r); }
+		inline size_t hash() const { return hash_trivially_copyable_t<UUID, size_t>()(*this); }
+	};
+	/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
+	inline bool IsEqualTo_UUID(const UUID* l, const UUID* r) noexcept { return UUID::IsEqualTo(l, r); }
+	/// <summary>
+	/// A less-than comparing function for <c>UUID</c>.
+	/// The behaviour is equivalent to comparing the binary representation of the <c>UUID</c> from byte to byte lexicographically.
+	/// </summary>
+	inline bool IsLessThan_UUID(const UUID* l, const UUID* r) { return UUID::IsLessThan(l, r); }
+	/// <summary>A secure version of <c>IsEqualTo_UUID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+	inline bool SecureIsEqualTo_UUID(const UUID* l, const UUID* r) { return UUID::SecureIsEqualTo(l, r); }
+
+	struct hash_UUID_t {
+		inline size_t operator()(const UUID& t) const {
+			return t.hash();
+		}
+	};
+	constexpr hash_UUID_t hash_UUID {};
+	/// <summary>A null <c>UUID</c>.</summary>
+	constexpr UUID UUID_Null = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>UUID</c> identifier at compile time.</summary>
+	inline constexpr UUID UUIDFromUUIDString_CompileTime(const char(&str)[37]) {
+		if (str[8] != '-'
+			|| str[13] != '-'
+			|| str[18] != '-'
+			|| str[23] != '-'
+			|| str[36]) abort();
+		return UUID {
+			hex_uint8_from_string({ str[0], str[1], 0 }), hex_uint8_from_string({ str[2], str[3], 0 }), hex_uint8_from_string({ str[4], str[5], 0 }), hex_uint8_from_string({ str[6], str[7], 0 }),
+			hex_uint8_from_string({ str[9], str[10], 0 }), hex_uint8_from_string({ str[11], str[12], 0 }), hex_uint8_from_string({ str[14], str[15], 0 }), hex_uint8_from_string({ str[16], str[17], 0 }),
+			hex_uint8_from_string({ str[19], str[20], 0 }), hex_uint8_from_string({ str[21], str[22], 0 }), hex_uint8_from_string({ str[24], str[25], 0 }), hex_uint8_from_string({ str[26], str[27], 0 }),
+			hex_uint8_from_string({ str[28], str[29], 0 }), hex_uint8_from_string({ str[30], str[31], 0 }), hex_uint8_from_string({ str[32], str[33], 0 }), hex_uint8_from_string({ str[34], str[35], 0 })
+		};
+	}
+
+	//}
+#pragma endregion Universally unique identifier.
+
+	/// <summary>An allocator for allocating raw memory.</summary>
+	struct rawallocator_t final {
+		/// <summary>Function pointer type for allocating raw memory.</summary>
+		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
+		/// <returns>
+		/// If the call has succeeded, a pointer to the allocated memory is returned.
+		/// Otherwise, an empty pointer is returned.
+		/// </returns>
+		typedef void* (YBWLIB2_CALLTYPE* fnptr_allocate_t)(size_t size, uintptr_t context) noexcept;
+		/// <summary>Function pointer type for deallocating raw memory.</summary>
+		/// <param name="ptr">
+		/// A pointer to some memory previously allocated by the same <c>IRawAllocator</c> object and not deallocated yet.
+		/// If an empty pointer is passed, this function succeeds without doing anything.
+		/// </param>
+		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
+		/// <returns>Whether the call has succeeded.</returns>
+		typedef bool (YBWLIB2_CALLTYPE* fnptr_deallocate_t)(void* ptr, size_t size, uintptr_t context) noexcept;
+		/// <summary>Function pointer type for getting the maximum amount of memory that could potentially be allocated by this raw memory allocator.</summary>
+		/// <returns>
+		/// The maximum amount of memory that could potentially be allocated by this raw memory allocator.
+		/// Memory allocations within this limit can still fail.
+		/// </returns>
+		typedef size_t(YBWLIB2_CALLTYPE* fnptr_get_max_size_t)(uintptr_t context) noexcept;
+		fnptr_allocate_t fnptr_allocate = nullptr;
+		fnptr_deallocate_t fnptr_deallocate = nullptr;
+		fnptr_get_max_size_t fnptr_get_max_size = nullptr;
+		uintptr_t context = 0;
+		inline constexpr rawallocator_t(fnptr_allocate_t _fnptr_allocate, fnptr_deallocate_t _fnptr_deallocate, fnptr_get_max_size_t _fnptr_get_max_size, uintptr_t _context = 0) noexcept
+			: fnptr_allocate(_fnptr_allocate), fnptr_deallocate(_fnptr_deallocate), fnptr_get_max_size(_fnptr_get_max_size), context(_context) {}
+		/// <summary>Allocates some memory.</summary>
+		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <returns>
+		/// If the call has succeeded, a pointer to the allocated memory is returned.
+		/// Otherwise, an empty pointer is returned.
+		/// </returns>
+		[[nodiscard]] inline void* Allocate(size_t size) const noexcept { return this->fnptr_allocate ? (*this->fnptr_allocate)(size, this->context) : nullptr; }
+		/// <summary>Deallocates some memory.</summary>
+		/// <param name="ptr">
+		/// A pointer to some memory previously allocated by the same <c>IRawAllocator</c> object and not deallocated yet.
+		/// If an empty pointer is passed, this function succeeds without doing anything.
+		/// </param>
+		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <returns>Whether the call has succeeded.</returns>
+		inline bool Deallocate(void* ptr, size_t size) const noexcept { return this->fnptr_deallocate ? (*this->fnptr_deallocate)(ptr, size, this->context) : false; }
+		/// <summary>Gets the maximum amount of memory that could potentially be allocated by this raw memory allocator.</summary>
+		/// <returns>
+		/// The maximum amount of memory that could potentially be allocated by this raw memory allocator.
+		/// Memory allocations within this limit can still fail.
+		/// </returns>
+		inline size_t GetMaxSize() const noexcept { return this->fnptr_get_max_size ? (*this->fnptr_get_max_size)(this->context) : 0; }
+	};
+
+	/// <summary>Allocator template structure for allocating memory using a <c>rawallocator_t</c> object.</summary>
+	template<typename _Ty>
+	struct allocator_rawallocator_t {
+		typedef _Ty value_type;
+		typedef _Ty* pointer;
+		typedef const _Ty* const_pointer;
+		typedef _Ty& reference;
+		typedef const _Ty& const_reference;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
+		template<typename _Rebind_Ty>
+		struct rebind {
+			using other = allocator_rawallocator_t<_Rebind_Ty>;
+		};
+		using propagate_on_container_copy_assignment = ::std::true_type;
+		using propagate_on_container_move_assignment = ::std::true_type;
+		using propagate_on_container_swap = ::std::true_type;
+		using is_always_equal = ::std::false_type;
+		const rawallocator_t* const rawallocator;
+		inline constexpr allocator_rawallocator_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {
+			if (!_rawallocator) abort();
+		}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_Ty>
+		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
+		template<typename _Allocator_Ty>
+		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
+		template<typename _Element_Ty>
+		inline bool operator==(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator == r.rawallocator; }
+		template<typename _Allocator_Ty>
+		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
+		template<typename _Element_Ty>
+		inline bool operator!=(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator != r.rawallocator; }
+		inline pointer address(reference ref) const noexcept { return ::std::addressof(ref); }
+		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
+		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept(false) {
+			static_cast<void>(hint);
+			pointer ptr = reinterpret_cast<pointer>(this->rawallocator->Allocate(count * sizeof(value_type)));
+			if (!ptr) throw(::std::bad_alloc());
+			return reinterpret_cast<pointer>(ptr);
+		}
+		inline void deallocate(pointer ptr, size_type count) const noexcept {
+			static_cast<void>(count);
+			if (!this->rawallocator->Deallocate(ptr, count * sizeof(value_type))) abort();
+		}
+		inline size_type max_size() const noexcept { return this->rawallocator->GetMaxSize(); }
+		template<typename _Element_Ty, typename... _Args_Ty>
+		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		}
+		template<typename _Element_Ty>
+		inline void destroy(_Element_Ty* ptr) {
+			ptr->~_Element_Ty();
+		}
+		inline constexpr allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
+	};
+	/// <summary>Allocator template structure for allocating memory using a <c>rawallocator_t</c> object.</summary>
+	template<>
+	struct allocator_rawallocator_t<void> {
+		typedef void value_type;
+		typedef void* pointer;
+		typedef const void* const_pointer;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
+		template<typename _Rebind_Ty>
+		struct rebind {
+			using other = allocator_rawallocator_t<_Rebind_Ty>;
+		};
+		using propagate_on_container_copy_assignment = ::std::true_type;
+		using propagate_on_container_move_assignment = ::std::true_type;
+		using propagate_on_container_swap = ::std::true_type;
+		using is_always_equal = ::std::false_type;
+		const rawallocator_t* const rawallocator;
+		inline constexpr allocator_rawallocator_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {
+			if (!_rawallocator) abort();
+		}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_Ty>
+		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
+		template<typename _Allocator_Ty>
+		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
+		template<typename _Element_Ty>
+		inline bool operator==(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator == r.rawallocator; }
+		template<typename _Allocator_Ty>
+		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
+		template<typename _Element_Ty>
+		inline bool operator!=(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator != r.rawallocator; }
+		template<typename _Element_Ty, typename... _Args_Ty>
+		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty...>(args...));
+		}
+		template<typename _Element_Ty>
+		inline void destroy(_Element_Ty* ptr) {
+			ptr->~_Element_Ty();
+		}
+		inline constexpr allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
+	};
+
+	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions.</summary>
+	extern YBWLIB2_API rawallocator_t rawallocator_crt;
 }
 
 #endif

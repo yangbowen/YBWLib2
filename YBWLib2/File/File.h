@@ -1,10 +1,10 @@
-﻿#ifndef _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
-#define _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
-
-#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
-#define _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
+﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
+
+#ifndef _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
+#define _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
 
 #include <cstdint>
 #include "../Exception/Exception.h"
@@ -15,7 +15,7 @@ namespace YBWLib2 {
 	/// <summary>A file that supports seeking.</summary>
 	class ISeekableFile abstract : public virtual IReferenceCountedObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISeekableFile, YBWLIB2_API, "{FA943A6B-90B0-47DE-B84F-3E9750B53B01}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISeekableFile, YBWLIB2_API, "cfc42a4e-a1f6-4684-93d1-f27d998aafa4");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISeekableFile);
 		/// <summary>
 		/// Returns a pointer to the <c>ILockableObject</c> object that locks the file position.
@@ -78,7 +78,7 @@ namespace YBWLib2 {
 	/// <summary>A file for reading.</summary>
 	class IInputFile abstract : public virtual ISeekableFile {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IInputFile, YBWLIB2_API, "{41977894-4378-4B81-8857-4157DCE52CAC}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IInputFile, YBWLIB2_API, "1bff7b77-8bcb-42a4-8ccf-bd5e297a351e");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IInputFile);
 		/// <summary>Reads from the current position to the buffer.</summary>
 		/// <param name="buf">Pointer to the buffer.</param>
@@ -94,7 +94,7 @@ namespace YBWLib2 {
 	/// <summary>A file for writing.</summary>
 	class IOutputFile abstract : public virtual ISeekableFile {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IOutputFile, YBWLIB2_API, "{63E3E8AF-A2F1-4CDA-9B44-922E6B1C59BF}");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IOutputFile, YBWLIB2_API, "4d104398-ff0f-4a4c-934a-0cf1bbcfc4ce");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IOutputFile);
 		/// <summary>Writes from the buffer to the current position.</summary>
 		/// <param name="buf">Pointer to the buffer.</param>
@@ -108,9 +108,10 @@ namespace YBWLib2 {
 	};
 }
 
-#ifdef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
-#undef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
-#undef _MACRO_UNDEF_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
 #endif
 
+#ifdef _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
+#undef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#include "../DynamicType/DynamicTypeMacroUndef.h"
+#undef _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
 #endif
