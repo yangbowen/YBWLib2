@@ -4,7 +4,12 @@
 
 // Include guard omitted intentionally.
 
+#include "YBWLib2InitModuleLocal.h"
+#include "Common/CommonLowLevelModuleLocal.h"
 #include "DynamicType/DynamicTypeModuleLocal.h"
-#include "Common/CommonModuleLocal.h"
 #include "Exception/ExceptionModuleLocal.h"
+#ifdef _WIN32_WINNT
+#include "Exception/ExceptionModuleLocalWindows.h"
+#endif
+#include "Common/CommonModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"

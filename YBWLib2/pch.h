@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <exception>
 #include <memory>
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <unordered_set>

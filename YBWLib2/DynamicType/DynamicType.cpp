@@ -430,5 +430,10 @@ namespace YBWLib2 {
 			abort();
 		}
 	}
+
+	void YBWLIB2_CALLTYPE DynamicType_RealInitGlobal() noexcept {}
+
+	void YBWLIB2_CALLTYPE DynamicType_RealUnInitGlobal() noexcept {}
 }
 // TODO: Initialize dynamic type stuff after all global constructors are called.
+// TODO: Ensure ordering of global constructors.

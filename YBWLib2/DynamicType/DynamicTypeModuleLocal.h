@@ -84,4 +84,8 @@ namespace YBWLib2 {
 			abort();
 		}
 	}
+
+	void YBWLIB2_CALLTYPE DynamicType_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE DynamicType_RealUnInitModuleLocal() noexcept {}
 }

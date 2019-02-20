@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <utility>
 #include <new>
+#include <typeinfo>
 #include "../YBWLib2Api.h"
 
 namespace YBWLib2 {
@@ -27,7 +28,7 @@ namespace YBWLib2 {
 			typename ::std::conditional_t<::std::is_const_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
 		>, typename ::std::remove_volatile_t<
 			typename ::std::conditional_t<::std::is_volatile_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
-		>>;
+			>>;
 	};
 
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
@@ -107,6 +108,7 @@ namespace YBWLib2 {
 	};
 
 	struct dummy_t {};
+	static_assert(::std::is_pod_v<dummy_t>, "dummy_t is not POD.");
 	extern YBWLIB2_API dummy_t dummy;
 
 	inline constexpr bool is_hex_uint8_string(const char(&str)[3]) {
@@ -179,6 +181,7 @@ namespace YBWLib2 {
 		inline bool operator>=(const UUID& r) const { return !UUID::IsLessThan(this, &r); }
 		inline size_t hash() const { return hash_trivially_copyable_t<UUID, size_t>()(*this); }
 	};
+	static_assert(::std::is_standard_layout_v<UUID>, "UUID is not standard-layout.");
 	/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
 	inline bool IsEqualTo_UUID(const UUID* l, const UUID* r) noexcept { return UUID::IsEqualTo(l, r); }
 	/// <summary>
@@ -268,6 +271,7 @@ namespace YBWLib2 {
 		/// </returns>
 		inline size_t GetMaxSize() const noexcept { return this->fnptr_get_max_size ? (*this->fnptr_get_max_size)(this->context) : 0; }
 	};
+	static_assert(::std::is_standard_layout_v<rawallocator_t>, "rawallocator_t is not standard-layout.");
 
 	/// <summary>Allocator template structure for allocating memory using a <c>rawallocator_t</c> object.</summary>
 	template<typename _Ty>
@@ -374,7 +378,158 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions.</summary>
-	extern YBWLIB2_API rawallocator_t rawallocator_crt;
+	extern YBWLIB2_API rawallocator_t* rawallocator_crt;
+
+	/// <summary>
+	/// A structure for storing executable module information.
+	/// One executable module that uses functionalities provided by this library corresponds to exactly one instance of this structure.
+	/// As a result, this structure is not copy-constructible, move-constructible, copy-assignable or move-assignable.
+	/// Comparisons of objects of this type is done by comparing pointers to them.
+	/// As a result, the order of the objects may change between different runs of the same program.
+	/// </summary>
+	struct module_info_t final {
+		inline constexpr module_info_t() noexcept = default;
+		module_info_t(const module_info_t&) = delete;
+		module_info_t(module_info_t&&) = delete;
+		inline ~module_info_t() noexcept = default;
+		module_info_t& operator=(const module_info_t&) = delete;
+		module_info_t& operator=(module_info_t&&) = delete;
+		inline bool operator==(const module_info_t& r) const noexcept { return this == &r; }
+		inline bool operator!=(const module_info_t& r) const noexcept { return this != &r; }
+		inline bool operator<(const module_info_t& r) const noexcept { return this < &r; }
+		inline bool operator<=(const module_info_t& r) const noexcept { return this <= &r; }
+		inline bool operator>(const module_info_t& r) const noexcept { return this > &r; }
+		inline bool operator>=(const module_info_t& r) const noexcept { return this >= &r; }
+	};
+	static_assert(::std::is_standard_layout_v<module_info_t>, "module_info_t is not standard-layout.");
+
+	/// <summary>A pointer to the <c>module_info_t</c> object that represents the executable module that contains this reference to this variable.</summary>
+	extern module_info_t* module_info_current;
+
+	/// <summary>A wrapper for <c>::std::type_info</c> that may be used across executable module boundaries.</summary>
+	struct wrapper_type_info_t final {
+		/// <summary>
+		/// Checks type equivalence.
+		/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+		/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+		/// </summary>
+		/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+		/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+		/// <returns>Whether the type represented by <c>*l</c> is considered equivalent to the type represented by <c>*r</c>.</returns>
+		static inline bool IsEqualTo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept {
+			if (!l || !r) return !l && !r;
+			if (l->module_info != r->module_info) return false;
+			if (l->fnptr_is_equal_to)
+				return (*l->fnptr_is_equal_to)(l, r);
+			else if (r->fnptr_is_equal_to)
+				return (*r->fnptr_is_equal_to)(l, r);
+			else if (l->fnptr_is_less_than)
+				return !(*l->fnptr_is_less_than)(l, r) && !(*l->fnptr_is_less_than)(r, l);
+			else if (r->fnptr_is_less_than)
+				return !(*r->fnptr_is_less_than)(l, r) && !(*r->fnptr_is_less_than)(r, l);
+			else
+				return l->context == r->context;
+		}
+		/// <summary>
+		/// Checks type precedence.
+		/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+		/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+		/// If 2 <c>wrapper_type_info_t</c> objects are associated with different executable modules,
+		/// one precedes another IF AND ONLY IF the <c>module_info_t</c> POINTER associated with the former one precedes the <c>module_info_t</c> POINTER associated with the later one.
+		/// <c>wrapper_type_info_t</c> objects associated with the same executable module are grouped together,
+		/// i.e., if <c>a</c> precedes <c>c</c> and <c>a</c> is associated with the same executable module as <c>c</c>,
+		/// there will not be an object <c>b</c> associated with a different executable module such that <c>a</c> precedes <c>b</c> and <c>b</c> precedes <c>c</c>.
+		/// </summary>
+		/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+		/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+		/// <returns>Whether the type represented by <c>*l</c> is considered to precede the type represented by <c>*r</c>.</returns>
+		static inline bool IsLessThan(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept {
+			if (!l || !r) return r;
+			if (l->module_info != r->module_info) return l->module_info < r->module_info;
+			if (l->fnptr_is_less_than)
+				return (*l->fnptr_is_less_than)(l, r);
+			else if (r->fnptr_is_less_than)
+				return (*r->fnptr_is_less_than)(l, r);
+			else
+				return l->context < r->context;
+		}
+		/// <summary>
+		/// Function pointer type for checking type equivalence.
+		/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+		/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+		/// </summary>
+		/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+		/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+		/// <returns>Whether the type represented by <c>*l</c> is considered equivalent to the type represented by <c>*r</c>.</returns>
+		typedef bool(YBWLIB2_CALLTYPE* fnptr_is_equal_to_t)(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+		/// <summary>
+		/// Function pointer type for checking type precedence.
+		/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+		/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+		/// If 2 <c>wrapper_type_info_t</c> objects are associated with different executable modules,
+		/// one precedes another IF AND ONLY IF the <c>module_info_t</c> POINTER associated with the former one precedes the <c>module_info_t</c> POINTER associated with the later one.
+		/// <c>wrapper_type_info_t</c> objects associated with the same executable module are grouped together,
+		/// i.e., if <c>a</c> precedes <c>c</c> and <c>a</c> is associated with the same executable module as <c>c</c>,
+		/// there will not be an object <c>b</c> associated with a different executable module such that <c>a</c> precedes <c>b</c> and <c>b</c> precedes <c>c</c>.
+		/// </summary>
+		/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+		/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+		/// <returns>Whether the type represented by <c>*l</c> is considered to precede the type represented by <c>*r</c>.</returns>
+		typedef bool(YBWLIB2_CALLTYPE* fnptr_is_less_than_t)(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+		fnptr_is_equal_to_t fnptr_is_equal_to = nullptr;
+		fnptr_is_less_than_t fnptr_is_less_than = nullptr;
+		const module_info_t* module_info = nullptr;
+		uintptr_t context = 0;
+		inline constexpr wrapper_type_info_t(
+			fnptr_is_equal_to_t _fnptr_is_equal_to,
+			fnptr_is_less_than_t _fnptr_is_less_than,
+			const module_info_t* _module_info,
+			uintptr_t _context
+		) noexcept
+			: fnptr_is_equal_to(_fnptr_is_equal_to),
+			fnptr_is_less_than(_fnptr_is_less_than),
+			module_info(_module_info),
+			context(_context) {}
+		inline wrapper_type_info_t(const ::std::type_info& val_type_info) noexcept
+			: fnptr_is_equal_to(wrapper_type_info_t::IsEqualTo_TypeInfo),
+			fnptr_is_less_than(wrapper_type_info_t::IsLessThan_TypeInfo),
+			module_info(module_info_current),
+			context(reinterpret_cast<uintptr_t>(&val_type_info)) {}
+	protected:
+		/// <summary>Checks type equivalence for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
+		static bool YBWLIB2_CALLTYPE IsEqualTo_TypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+		/// <summary>Checks type precedence for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
+		static bool YBWLIB2_CALLTYPE IsLessThan_TypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+	};
+	static_assert(::std::is_standard_layout_v<wrapper_type_info_t>, "wrapper_type_info_t is not standard-layout.");
+	/// <summary>
+	/// Checks type equivalence.
+	/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+	/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+	/// </summary>
+	/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+	/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+	/// <returns>Whether the type represented by <c>*l</c> is considered equivalent to the type represented by <c>*r</c>.</returns>
+	inline bool IsEqualTo_WrapperTypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept { return wrapper_type_info_t::IsEqualTo(l, r); }
+	/// <summary>
+	/// Checks type precedence.
+	/// <c>wrapper_type_info_t</c> objects associated with different executable modules are never equivalent,
+	/// even if the types represented have the same name and are binary-compatible (for example, if the types are interface classes with the same declaration).
+	/// If 2 <c>wrapper_type_info_t</c> objects are associated with different executable modules,
+	/// one precedes another IF AND ONLY IF the <c>module_info_t</c> POINTER associated with the former one precedes the <c>module_info_t</c> POINTER associated with the later one.
+	/// <c>wrapper_type_info_t</c> objects associated with the same executable module are grouped together,
+	/// i.e., if <c>a</c> precedes <c>c</c> and <c>a</c> is associated with the same executable module as <c>c</c>,
+	/// there will not be an object <c>b</c> associated with a different executable module such that <c>a</c> precedes <c>b</c> and <c>b</c> precedes <c>c</c>.
+	/// </summary>
+	/// <param name="l">Pointer to the <c>wrapper_type_info_t</c> object on the left side of the comparison operator.</param>
+	/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
+	/// <returns>Whether the type represented by <c>*l</c> is considered to precede the type represented by <c>*r</c>.</returns>
+	inline bool IsLessThan_WrapperTypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept { return wrapper_type_info_t::IsLessThan(l, r); }
+
+	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

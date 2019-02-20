@@ -10,4 +10,8 @@
 
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ReferenceCountedObject, , IReferenceCountedObject);
+
+	void YBWLIB2_CALLTYPE Common_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE Common_RealUnInitModuleLocal() noexcept {}
 }

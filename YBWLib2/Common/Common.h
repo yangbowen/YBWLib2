@@ -47,6 +47,11 @@ namespace YBWLib2 {
 		/// <summary>Unlocks the object.</summary>
 		virtual void Unlock() noexcept = 0;
 	};
+
+	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE Common_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE Common_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

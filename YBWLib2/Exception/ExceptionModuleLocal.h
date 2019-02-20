@@ -13,7 +13,13 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(InvalidParameterException, , Exception, IInvalidParameterException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(InsufficientBufferException, , Exception, IInsufficientBufferException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(MemoryAllocFailureException, , Exception, IMemoryAllocFailureException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(KeyAlreadyExistException, , Exception, IKeyAlreadyExistException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(KeyNotExistException, , Exception, IKeyNotExistException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(UnhandledUnknownExceptionException, , Exception, IUnhandledUnknownExceptionException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(STLExceptionException, , Exception, ISTLExceptionException);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureException, , Exception, IExternalAPIFailureException);
+
+	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE Exception_RealUnInitModuleLocal() noexcept {}
 }

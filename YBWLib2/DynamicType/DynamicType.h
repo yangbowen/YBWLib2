@@ -300,12 +300,12 @@ namespace YBWLib2 {
 		}
 		DynamicTypeClassObj(const DynamicTypeClassObj&) = delete;
 		DynamicTypeClassObj(DynamicTypeClassObj&&) = delete;
-		DynamicTypeClassObj& operator=(const DynamicTypeClassObj&) = delete;
-		DynamicTypeClassObj& operator=(DynamicTypeClassObj&&) = delete;
 		inline ~DynamicTypeClassObj() {
 			if (this->dtclassid != DynamicTypeClassID_Null) this->UnRegister();
 			this->DestroyImplObject();
 		}
+		DynamicTypeClassObj& operator=(const DynamicTypeClassObj&) = delete;
+		DynamicTypeClassObj& operator=(DynamicTypeClassObj&&) = delete;
 		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
 		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
 		/// <summary>
@@ -373,6 +373,11 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion DynamicTypeClassObj is used to represent a dynamic type class.
+
+	void YBWLIB2_CALLTYPE DynamicType_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE DynamicType_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE DynamicType_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE DynamicType_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

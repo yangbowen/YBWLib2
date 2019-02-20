@@ -19,4 +19,8 @@ namespace YBWLib2 {
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, , ExternalAPIFailureException, IExternalAPIFailureWithHRESULTException);
 #endif
+
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept {}
 }

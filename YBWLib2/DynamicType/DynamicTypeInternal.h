@@ -5,7 +5,6 @@
 #include "DynamicType.h"
 
 namespace YBWLib2 {
-	YBWLIB2_API void YBWLIB2_CALLTYPE dtenv_init_global();
 	YBWLIB2_API void YBWLIB2_CALLTYPE mtx_dtenv_lock();
 	YBWLIB2_API void YBWLIB2_CALLTYPE mtx_dtenv_unlock();
 

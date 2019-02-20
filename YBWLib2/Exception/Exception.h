@@ -417,6 +417,22 @@ namespace YBWLib2 {
 		inline virtual ~IMemoryAllocFailureException() = default;
 	};
 
+	/// <summary>An exception that occurs because of attempting to insert an entry into a data structure that doesn't allow multiple equivalent keys and already has an entry with an equivalent key.</summary>
+	class IKeyAlreadyExistException abstract : public virtual IException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IKeyAlreadyExistException, YBWLIB2_API, "c2f221a3-3955-4611-bdc2-2064b486381d");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IKeyAlreadyExistException);
+		inline virtual ~IKeyAlreadyExistException() = default;
+	};
+
+	/// <summary>An exception that occurs because of referencing to a non-existent key in a data structure.</summary>
+	class IKeyNotExistException abstract : public virtual IException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IKeyNotExistException, YBWLIB2_API, "932a411b-94b7-4492-a47e-89c8fbf59683");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IKeyNotExistException);
+		inline virtual ~IKeyNotExistException() = default;
+	};
+
 	/// <summary>An exception that occurs because of an unhandled and unknown C++ exception.</summary>
 	class IUnhandledUnknownExceptionException abstract : public virtual IException {
 	public:
@@ -639,7 +655,10 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] inline virtual IException* GetDescriptionSingleLevel(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
+			// TODO: Implement GetDescriptionSingleLevel.
+			return nullptr;
+		}
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The full chain of underlying causes is included.
@@ -669,7 +688,10 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionTotal(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] inline virtual IException* GetDescriptionTotal(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
+			// TODO: Implement GetDescriptionTotal.
+			return nullptr;
+		}
 	protected:
 		IException* exception_cause = nullptr;
 		uintptr_t userdata = 0;
@@ -843,6 +865,36 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>
+	/// A default implementation of <c>IKeyAlreadyExistException</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>IKeyAlreadyExistException</c>.
+	/// </summary>
+	class KeyAlreadyExistException
+		: public virtual Exception,
+		public virtual IKeyAlreadyExistException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(KeyAlreadyExistException, , "7f492596-20cd-430c-8ebb-8a63b03f648a");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(KeyAlreadyExistException);
+		inline KeyAlreadyExistException() noexcept = default;
+		inline virtual ~KeyAlreadyExistException() = default;
+	};
+
+	/// <summary>
+	/// A default implementation of <c>IKeyNotExistException</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>IKeyNotExistException</c>.
+	/// </summary>
+	class KeyNotExistException
+		: public virtual Exception,
+		public virtual IKeyNotExistException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(KeyNotExistException, , "41af914c-4067-4088-8c87-0da29e4f3b28");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(KeyNotExistException);
+		inline KeyNotExistException() noexcept = default;
+		inline virtual ~KeyNotExistException() = default;
+	};
+
+	/// <summary>
 	/// A default implementation of <c>IUnhandledUnknownExceptionException</c>.
 	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
 	/// Instead, access by <c>IUnhandledUnknownExceptionException</c>.
@@ -971,6 +1023,11 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion Exception classes that provide a default implementation but may not be transferred across executable modules without using an exception interface class pointer.
+
+	void YBWLIB2_CALLTYPE Exception_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE Exception_RealUnInitModuleLocal() noexcept;
 }
 
 #endif
@@ -993,6 +1050,10 @@ namespace YBWLib2 {
 #define YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION(bufferaddr) (new ::YBWLib2::InsufficientBufferException(bufferaddr))
 
 #define YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION() (new ::YBWLib2::MemoryAllocFailureException())
+
+#define YBWLIB2_EXCEPTION_CREATE_KEY_ALREADY_EXIST_EXCEPTION() (new ::YBWLib2::KeyAlreadyExistException())
+
+#define YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION() (new ::YBWLib2::KeyNotExistException())
 
 #define YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION() (new ::YBWLib2::UnhandledUnknownExceptionException())
 

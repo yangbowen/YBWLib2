@@ -106,6 +106,11 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] virtual IException* Write(void* buf, size_t size) = 0;
 	};
+
+	void YBWLIB2_CALLTYPE File_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE File_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE File_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE File_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

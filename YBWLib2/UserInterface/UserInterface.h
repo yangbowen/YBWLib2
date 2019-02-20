@@ -586,7 +586,7 @@ namespace YBWLib2 {
 				size_t size_name_parameter = _parameter->GetParameterNameSize();
 				if (!name_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, AddParameter);
 				if (!this->map_parameter->emplace(string_name_parameter_t(name_parameter, size_name_parameter, this->map_parameter->get_allocator()), _parameter).second)
-					return YBWLIB2_EXCEPTION_CREATE_EXCEPTION()/*TODO*/;
+					return YBWLIB2_EXCEPTION_CREATE_KEY_ALREADY_EXIST_EXCEPTION();
 			} catch (::std::bad_alloc&) {
 				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
 			} catch (::std::exception& err) {
@@ -630,7 +630,7 @@ namespace YBWLib2 {
 			try {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 				if (!this->map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator))))
-					return YBWLIB2_EXCEPTION_CREATE_EXCEPTION()/*TODO*/;
+					return YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION();
 			} catch (::std::bad_alloc&) {
 				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
 			} catch (::std::exception& err) {
@@ -710,6 +710,11 @@ namespace YBWLib2 {
 	protected:
 		const rawallocator_t* const rawallocator;
 	};
+
+	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE UserInterface_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE UserInterface_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

@@ -220,6 +220,11 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion Exception classes that provide a default implementation but may not be transferred across executable modules without using an exception interface class pointer.
+
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

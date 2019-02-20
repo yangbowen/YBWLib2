@@ -107,4 +107,8 @@ namespace YBWLib2 {
 		va_end(arglist);
 		return exception;
 	}
+
+	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {}
+
+	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {}
 }

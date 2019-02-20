@@ -6,4 +6,8 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISeekableFile, YBWLIB2_API, IReferenceCountedObject);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInputFile, YBWLIB2_API, ISeekableFile);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IOutputFile, YBWLIB2_API, ISeekableFile);
+
+	void YBWLIB2_CALLTYPE File_RealInitGlobal() noexcept {}
+
+	void YBWLIB2_CALLTYPE File_RealUnInitGlobal() noexcept {}
 }
