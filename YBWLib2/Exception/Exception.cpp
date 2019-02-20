@@ -4,16 +4,16 @@
 #include "Exception.h"
 
 namespace YBWLib2 {
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IException, YBWLIB2_API, IDynamicTypeObject);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDoubleExceptionException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInvalidParameterException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInsufficientBufferException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IMemoryAllocFailureException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IKeyAlreadyExistException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IKeyNotExistException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IUnhandledUnknownExceptionException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISTLExceptionException, YBWLIB2_API, IException);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureException, YBWLIB2_API, IException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDoubleExceptionException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInvalidParameterException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInsufficientBufferException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IMemoryAllocFailureException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IKeyAlreadyExistException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IKeyNotExistException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IUnhandledUnknownExceptionException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISTLExceptionException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureException, YBWLIB2_API);
 
 	YBWLIB2_API rawallocator_t rawallocator_exception(
 		[](size_t size, uintptr_t context) noexcept->void* {
@@ -94,7 +94,29 @@ namespace YBWLib2 {
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept { exception_handling_environment.FreeMemory(ptr); }
 
-	void YBWLIB2_CALLTYPE Exception_RealInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE Exception_RealInitGlobal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IException, IDynamicTypeObject);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IDoubleExceptionException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IInvalidParameterException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IInsufficientBufferException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IMemoryAllocFailureException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IKeyAlreadyExistException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IKeyNotExistException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IUnhandledUnknownExceptionException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ISTLExceptionException, IException);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureException, IException);
+	}
 
-	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ISTLExceptionException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IUnhandledUnknownExceptionException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IKeyNotExistException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IKeyAlreadyExistException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IMemoryAllocFailureException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IInsufficientBufferException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IInvalidParameterException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IDoubleExceptionException);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IException);
+	}
 }

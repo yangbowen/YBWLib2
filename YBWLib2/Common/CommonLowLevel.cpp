@@ -4,10 +4,10 @@
 
 namespace YBWLib2 {
 	YBWLIB2_API dummy_t dummy;
-	YBWLIB2_API rawallocator_t* rawallocator_crt = nullptr;
+	YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2 = nullptr;
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept {
-		rawallocator_crt = new rawallocator_t(
+		rawallocator_crt_YBWLib2 = new rawallocator_t(
 			[](size_t size, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
 				if (!size) size = 1;
@@ -26,7 +26,7 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept {
-		delete rawallocator_crt;
-		rawallocator_crt = nullptr;
+		delete rawallocator_crt_YBWLib2;
+		rawallocator_crt_YBWLib2 = nullptr;
 	}
 }

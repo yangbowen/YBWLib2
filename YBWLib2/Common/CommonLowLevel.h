@@ -377,8 +377,101 @@ namespace YBWLib2 {
 		inline constexpr allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
 	};
 
-	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions.</summary>
-	extern YBWLIB2_API rawallocator_t* rawallocator_crt;
+	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of the executable module that contains this reference to this variable.</summary>
+	extern rawallocator_t* rawallocator_crt_module_local;
+	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of YBWLib2.</summary>
+	extern YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2;
+
+	/// <summary>A wrapper for objects that satisfy the requirement <c>BasicLockable</c>.</summary>
+	struct wrapper_basic_lockable_t final {
+		/// <summary>Function pointer type for blocking if necessary and locking the object.</summary>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_lock_t)(uintptr_t context);
+		/// <summary>Function pointer type for unlocking the object.</summary>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_unlock_t)(uintptr_t context) noexcept;
+		fnptr_lock_t fnptr_lock = nullptr;
+		fnptr_unlock_t fnptr_unlock = nullptr;
+		uintptr_t context = 0;
+		inline constexpr wrapper_basic_lockable_t(fnptr_lock_t _fnptr_lock, fnptr_unlock_t _fnptr_unlock, uintptr_t _context = 0) noexcept
+			: fnptr_lock(_fnptr_lock), fnptr_unlock(_fnptr_unlock), context(_context) {}
+		/// <summary>Blocks if necessary and locks the object.</summary>
+		inline void lock() const {
+			if (!this->fnptr_lock) abort();
+			(*this->fnptr_lock)(this->context);
+		}
+		/// <summary>Unlocks the object.</summary>
+		inline void unlock() const noexcept {
+			if (!this->fnptr_unlock) abort();
+			(*this->fnptr_unlock)(this->context);
+		}
+	};
+	static_assert(::std::is_standard_layout_v<wrapper_basic_lockable_t>, "wrapper_basic_lockable_t is not standard-layout.");
+
+	template<typename _Class_BasicLockable_Ty>
+	inline wrapper_basic_lockable_t WrapBasicLockable(_Class_BasicLockable_Ty& _obj) {
+		return wrapper_basic_lockable_t(
+			[](uintptr_t context)->void {
+				_Class_BasicLockable_Ty* obj = reinterpret_cast<_Class_BasicLockable_Ty*>(context);
+				obj->lock();
+			},
+			[](uintptr_t context) noexcept->void {
+				_Class_BasicLockable_Ty* obj = reinterpret_cast<_Class_BasicLockable_Ty*>(context);
+				obj->unlock();
+			},
+			reinterpret_cast<uintptr_t>(&_obj)
+			);
+	}
+
+	/// <summary>A wrapper for objects that satisfy the requirement <c>Lockable</c>.</summary>
+	struct wrapper_lockable_t final {
+		/// <summary>Function pointer type for blocking if necessary and locking the object.</summary>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_lock_t)(uintptr_t context);
+		/// <summary>Function pointer type for unlocking the object.</summary>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_unlock_t)(uintptr_t context) noexcept;
+		/// <summary>Function pointer type for attempting to lock the object without blocking.</summary>
+		typedef bool(YBWLIB2_CALLTYPE* fnptr_try_lock_t)(uintptr_t context);
+		fnptr_lock_t fnptr_lock = nullptr;
+		fnptr_unlock_t fnptr_unlock = nullptr;
+		fnptr_try_lock_t fnptr_try_lock = nullptr;
+		uintptr_t context = 0;
+		inline constexpr wrapper_lockable_t(fnptr_lock_t _fnptr_lock, fnptr_unlock_t _fnptr_unlock, fnptr_try_lock_t _fnptr_try_lock, uintptr_t _context = 0) noexcept
+			: fnptr_lock(_fnptr_lock), fnptr_unlock(_fnptr_unlock), fnptr_try_lock(_fnptr_try_lock), context(_context) {}
+		inline operator wrapper_basic_lockable_t() const noexcept { return wrapper_basic_lockable_t(this->fnptr_lock, this->fnptr_unlock, this->context); }
+		/// <summary>Blocks if necessary and locks the object.</summary>
+		inline void lock() const {
+			if (!this->fnptr_lock) abort();
+			(*this->fnptr_lock)(this->context);
+		}
+		/// <summary>Unlocks the object.</summary>
+		inline void unlock() const noexcept {
+			if (!this->fnptr_unlock) abort();
+			(*this->fnptr_unlock)(this->context);
+		}
+		/// <summary>Attempts to lock the object without blocking.</summary>
+		inline bool try_lock() const {
+			if (!this->fnptr_try_lock) abort();
+			(*this->fnptr_try_lock)(this->context);
+		}
+	};
+	static_assert(::std::is_standard_layout_v<wrapper_lockable_t>, "wrapper_lockable_t is not standard-layout.");
+
+	template<typename _Class_Lockable_Ty>
+	inline wrapper_lockable_t WrapLockable(_Class_Lockable_Ty& _obj) {
+		return wrapper_lockable_t(
+			[](uintptr_t context)->void {
+				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				obj->lock();
+			},
+			[](uintptr_t context) noexcept->void {
+				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				obj->unlock();
+			},
+			[](uintptr_t context)->bool {
+				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				return obj->try_lock();
+			},
+			reinterpret_cast<uintptr_t>(&_obj)
+			);
+	}
 
 	/// <summary>
 	/// A structure for storing executable module information.
@@ -388,7 +481,8 @@ namespace YBWLib2 {
 	/// As a result, the order of the objects may change between different runs of the same program.
 	/// </summary>
 	struct module_info_t final {
-		inline constexpr module_info_t() noexcept = default;
+		const void* addr_module_base = nullptr;
+		inline constexpr module_info_t(const void* _addr_module_base) noexcept : addr_module_base(_addr_module_base) {}
 		module_info_t(const module_info_t&) = delete;
 		module_info_t(module_info_t&&) = delete;
 		inline ~module_info_t() noexcept = default;

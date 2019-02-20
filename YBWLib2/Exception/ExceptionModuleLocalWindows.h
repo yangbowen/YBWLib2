@@ -9,18 +9,40 @@
 #include "ExceptionWindows.h"
 
 namespace YBWLib2 {
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithLastErrorException, , ExternalAPIFailureException, IExternalAPIFailureWithLastErrorException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithLastErrorException, );
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithWSALastErrorException, , ExternalAPIFailureException, IExternalAPIFailureWithWSALastErrorException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithWSALastErrorException, );
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithNTSTATUSException, , ExternalAPIFailureException, IExternalAPIFailureWithNTSTATUSException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithNTSTATUSException, );
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, , ExternalAPIFailureException, IExternalAPIFailureWithHRESULTException);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, );
 #endif
 
-	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, IExternalAPIFailureWithLastErrorException);
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, IExternalAPIFailureWithWSALastErrorException);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, IExternalAPIFailureWithNTSTATUSException);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, IExternalAPIFailureWithHRESULTException);
+#endif
+	}
 
-	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithHRESULTException);
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithNTSTATUSException);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithWSALastErrorException);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithLastErrorException);
+#endif
+	}
 }

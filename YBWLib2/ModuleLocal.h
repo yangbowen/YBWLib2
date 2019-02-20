@@ -13,3 +13,4 @@
 #endif
 #include "Common/CommonModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
+#include "File/FileModuleLocal.h"

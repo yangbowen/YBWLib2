@@ -5,15 +5,15 @@
 #include <cstdlib>
 #include <type_traits>
 #include <initializer_list>
+#include <mutex>
 #include "../YBWLib2Api.h"
 #include "../Common/CommonLowLevel.h"
 
 namespace YBWLib2 {
 	struct DynamicTypeClassID;
-	class DynamicTypeBaseClassDefObj;
 	class DynamicTypeClassObj;
+	class DynamicTypeBaseClassDefObj;
 	class IDynamicTypeObject;
-	class _impl_DynamicTypeBaseClassDefObj;
 	class _impl_DynamicTypeClassObj;
 
 #pragma region DynamicTypeClassID
@@ -66,6 +66,9 @@ namespace YBWLib2 {
 	//}
 #pragma endregion DynamicTypeClassID is used to uniquely identify a dynamic type class. Keep in mind that module-local dynamic type classes can have the same DynamicTypeClassID in different executable modules.
 
+	/// <summary><c>wrapper_lockable_t</c> object that controls the dynamic type environment.</summary>
+	extern YBWLIB2_API wrapper_lockable_t* wrapper_lockable_dtenv;
+
 #pragma region Dynamic type class declaration getting templates
 	//{ Dynamic Type declaration getting templates.
 
@@ -93,12 +96,12 @@ namespace YBWLib2 {
 		return _Class_Ty::DynamicTypeModuleLocalClass;
 	}
 	/// <summary>
-	/// Gets a reference to the <c>DynamicTypeClassObj</c> object that represents the specified class type.
+	/// Gets a pointer to the <c>DynamicTypeClassObj</c> object that represents the specified class type.
 	/// Use this template function instead of directly referencing the <c>DynamicTypeThisClassObject</c> static member variable.
-	/// Provide specializations for this template to support classes that do not declare the <c>DynamicTypeClassObj</c> object as the static member variable <c>DynamicTypeThisClassObject</c>.
+	/// Provide specializations for this template to support classes that do not declare the pointer to the <c>DynamicTypeClassObj</c> object as the static member variable <c>DynamicTypeThisClassObject</c>.
 	/// </summary>
 	template<typename _Class_Ty>
-	inline constexpr DynamicTypeClassObj& GetDynamicTypeThisClassObject() {
+	inline constexpr DynamicTypeClassObj* GetDynamicTypeThisClassObject() {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
 		return _Class_Ty::DynamicTypeThisClassObject;
@@ -132,144 +135,6 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion These templates are used for getting various declarations in dynamic type classes.
-
-#pragma region DynamicTypeBaseClassDefObj
-	//{ DynamicTypeBaseClassDefObj
-
-	/// <summary>
-	/// Base class definition object for dynamic type classes.
-	/// Only construct this object during executable module initialization and destruct this object during executable module cleanup.
-	/// </summary>
-	class DynamicTypeBaseClassDefObj final {
-		friend _impl_DynamicTypeBaseClassDefObj;
-	public:
-		// Upcast Offset Sign Properties:
-		struct upcast_negative_offset_t {};
-
-		// Upcast Offset Sign Properties:
-		static constexpr upcast_negative_offset_t upcast_negative_offset {};
-
-		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, size_t offset_upcast)
-			: dtclassid(_dtclassid), is_module_local(_is_module_local), offset_upcast_abs(offset_upcast), is_upcast_negative_offset(false) {
-			this->CreateImplObject();
-			// Doesn't call Initialize here because this constructor may be called before corresponding DynamicTypeClassObj objects are constructed and registered.
-		}
-		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, size_t offset_upcast_neg, upcast_negative_offset_t)
-			: dtclassid(_dtclassid), is_module_local(_is_module_local), offset_upcast_abs(offset_upcast_neg), is_upcast_negative_offset(true) {
-			this->CreateImplObject();
-			// Doesn't call Initialize here because this constructor may be called before corresponding DynamicTypeClassObj objects are constructed and registered.
-		}
-		inline DynamicTypeBaseClassDefObj(const DynamicTypeBaseClassDefObj& x)
-			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), offset_upcast_abs(x.offset_upcast_abs), is_upcast_negative_offset(x.is_upcast_negative_offset) {
-			this->CopyCreateImplObject(&x);
-			// Doesn't call Initialize here because this constructor may be called before corresponding DynamicTypeClassObj objects are constructed and registered.
-		}
-		inline DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj&& x)
-			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), offset_upcast_abs(x.offset_upcast_abs), is_upcast_negative_offset(x.is_upcast_negative_offset) {
-			this->MoveCreateImplObject(&x);
-			// Doesn't call Initialize here because this constructor may be called before corresponding DynamicTypeClassObj objects are constructed and registered.
-		}
-		inline ~DynamicTypeBaseClassDefObj() {
-			this->DestroyImplObject();
-		}
-		inline DynamicTypeBaseClassDefObj& operator=(const DynamicTypeBaseClassDefObj&) = delete;
-		inline DynamicTypeBaseClassDefObj& operator=(DynamicTypeBaseClassDefObj&&) = delete;
-		inline bool operator==(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid == r.dtclassid; }
-		inline bool operator!=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid != r.dtclassid; }
-		inline bool operator<(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid < r.dtclassid; }
-		inline bool operator<=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid <= r.dtclassid; }
-		inline bool operator>(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid > r.dtclassid; }
-		inline bool operator>=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid >= r.dtclassid; }
-		inline size_t hash() const { return this->dtclassid.hash(); }
-		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
-		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
-		inline size_t GetUpcastOffsetAbs() const noexcept { return this->offset_upcast_abs; }
-		inline bool IsUpcastNegativeOffset() const noexcept { return this->is_upcast_negative_offset; }
-		inline DynamicTypeClassObj* GetDynamicTypeClassObject() const {
-			this->Initialize();
-			return this->dtclassobj;
-		}
-		/// <summary>
-		/// Does one-time initialization of some members when called on the object for the first time.
-		/// Returns directly for subsequent calls.
-		/// </summary>
-		YBWLIB2_API void YBWLIB2_CALLTYPE Initialize() const;
-		/// <summary>
-		/// Does one-time initialization.
-		/// Declared public to allow calls by internal intermediate non-member functions.
-		/// Do NOT call otherwise.
-		/// This is the global version which is defind and exported in the library.
-		/// </summary>
-		YBWLIB2_API void YBWLIB2_CALLTYPE RealInitializeGlobal() const;
-		/// <summary>
-		/// Does one-time initialization.
-		/// Declared public to allow calls by internal intermediate non-member functions.
-		/// Do NOT call otherwise.
-		/// This is the module local version which is defined in individual executable modules.
-		/// </summary>
-		void RealInitializeModuleLocal() const;
-		inline void RealInitialize() const {
-			if (this->is_module_local)
-				this->RealInitializeModuleLocal();
-			else
-				this->RealInitializeGlobal();
-		}
-	protected:
-		const DynamicTypeClassID dtclassid;
-		const bool is_module_local;
-		const size_t offset_upcast_abs;
-		const bool is_upcast_negative_offset;
-		mutable DynamicTypeClassObj* dtclassobj = nullptr;
-		/// <summary>Pointer to the implementation object.</summary>
-		_impl_DynamicTypeBaseClassDefObj* pimpl = nullptr;
-	private:
-		YBWLIB2_API void YBWLIB2_CALLTYPE CreateImplObject();
-		YBWLIB2_API void YBWLIB2_CALLTYPE CopyCreateImplObject(const DynamicTypeBaseClassDefObj* x);
-		YBWLIB2_API void YBWLIB2_CALLTYPE MoveCreateImplObject(DynamicTypeBaseClassDefObj* x);
-		YBWLIB2_API void YBWLIB2_CALLTYPE DestroyImplObject();
-	};
-
-	struct hash_DynamicTypeBaseClassDefObj_t {
-		inline size_t operator()(const DynamicTypeBaseClassDefObj& t) const {
-			return t.hash();
-		}
-	};
-	constexpr hash_DynamicTypeBaseClassDefObj_t hash_DynamicTypeBaseClassDefObj {};
-
-	/// <summary>Base class definition structure template for dynamic type classes.</summary>
-	template<typename _This_Class_Ty, typename _Base_Class_Ty>
-	struct DynamicTypeBaseClassDef_t {
-		static_assert(::std::is_class_v<_This_Class_Ty>, "The specified derived class type is not a class.");
-		static_assert(::std::is_class_v<_Base_Class_Ty>, "The specified base class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_This_Class_Ty>(), "The specified derived class type is not a dynamic type class.");
-		static_assert(!IsDynamicTypeNoClass<_Base_Class_Ty>(), "The specified base class type is not a dynamic type class.");
-		static_assert(
-			IsDynamicTypeModuleLocalClass<_This_Class_Ty>() || !IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
-			"The specified derived class type is non-module-local, but the specified base class type is module-local."
-			);
-		inline operator DynamicTypeBaseClassDefObj() const {
-			if (DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) < reinterpret_cast<uintptr_t>(&dummy)) {
-				return DynamicTypeBaseClassDefObj(
-					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
-					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
-					reinterpret_cast<uintptr_t>(&dummy) - DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)),
-					DynamicTypeBaseClassDefObj::upcast_negative_offset
-				);
-			} else {
-				return DynamicTypeBaseClassDefObj(
-					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
-					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
-					DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) - reinterpret_cast<uintptr_t>(&dummy)
-				);
-			}
-		}
-	};
-	/// <summary>Base class definition variable template for dynamic type classes.</summary>
-	template<typename _This_Class_Ty, typename _Base_Class_Ty>
-	constexpr DynamicTypeBaseClassDef_t<_This_Class_Ty, _Base_Class_Ty> DynamicTypeBaseClassDef {};
-
-	//}
-#pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
 
 #pragma region DynamicTypeClassObj
 	//{ DynamicTypeClassObj
@@ -308,17 +173,6 @@ namespace YBWLib2 {
 		DynamicTypeClassObj& operator=(DynamicTypeClassObj&&) = delete;
 		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
 		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
-		/// <summary>
-		/// Does one-time initialization of some members when called on the object for the first time.
-		/// Returns directly for subsequent calls.
-		/// </summary>
-		YBWLIB2_API void YBWLIB2_CALLTYPE Initialize() const;
-		/// <summary>
-		/// Does one-time initialization.
-		/// Declared public to allow calls by internal intermediate non-member functions.
-		/// Do NOT call otherwise.
-		/// </summary>
-		YBWLIB2_API void YBWLIB2_CALLTYPE RealInitialize() const;
 		/// <summary>Finds a dynamic type base class of this class with the specified <c>DynamicTypeClassID</c> identifier.</summary>
 		/// <returns>
 		/// This function returns a pointer to the found dynamic type class object if successful.
@@ -352,15 +206,195 @@ namespace YBWLib2 {
 				this->UnRegisterGlobal();
 		}
 	};
+	static_assert(::std::is_standard_layout_v<DynamicTypeClassObj>, "DynamicTypeClassObj is not standard-layout.");
+
+	//}
+#pragma endregion DynamicTypeClassObj is used to represent a dynamic type class.
+
+#pragma region DynamicTypeBaseClassDefObj
+	//{ DynamicTypeBaseClassDefObj
+
+	/// <summary>
+	/// Base class definition object for dynamic type classes.
+	/// Only construct this object during executable module initialization and destruct this object during executable module cleanup.
+	/// </summary>
+	class DynamicTypeBaseClassDefObj final {
+	public:
+		// Upcast Offset Sign Properties:
+		struct upcast_negative_offset_t {};
+
+		// Upcast Offset Sign Properties:
+		static constexpr upcast_negative_offset_t upcast_negative_offset {};
+
+		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, size_t offset_upcast)
+			: dtclassid(_dtclassid), is_module_local(_is_module_local), offset_upcast_abs(offset_upcast), is_upcast_negative_offset(false) {
+			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			try {
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				this->dtclassobj =
+					this->IsModuleLocal()
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
+				if (!this->dtclassobj) abort();
+				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
+			} catch (...) {
+				abort();
+			}
+		}
+		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, size_t offset_upcast_neg, upcast_negative_offset_t)
+			: dtclassid(_dtclassid), is_module_local(_is_module_local), offset_upcast_abs(offset_upcast_neg), is_upcast_negative_offset(true) {
+			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			try {
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				this->dtclassobj =
+					this->IsModuleLocal()
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
+				if (!this->dtclassobj) abort();
+				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
+			} catch (...) {
+				abort();
+			}
+		}
+		inline DynamicTypeBaseClassDefObj(const DynamicTypeBaseClassDefObj& x)
+			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), offset_upcast_abs(x.offset_upcast_abs), is_upcast_negative_offset(x.is_upcast_negative_offset) {
+			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			try {
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				this->dtclassobj =
+					this->IsModuleLocal()
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
+				if (!this->dtclassobj) abort();
+				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
+			} catch (...) {
+				abort();
+			}
+		}
+		inline DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj&& x)
+			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), offset_upcast_abs(x.offset_upcast_abs), is_upcast_negative_offset(x.is_upcast_negative_offset) {
+			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			try {
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				this->dtclassobj =
+					this->IsModuleLocal()
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
+				if (!this->dtclassobj) abort();
+				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
+			} catch (...) {
+				abort();
+			}
+		}
+		inline ~DynamicTypeBaseClassDefObj() = default;
+		inline DynamicTypeBaseClassDefObj& operator=(const DynamicTypeBaseClassDefObj&) = delete;
+		inline DynamicTypeBaseClassDefObj& operator=(DynamicTypeBaseClassDefObj&&) = delete;
+		inline bool operator==(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid == r.dtclassid; }
+		inline bool operator!=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid != r.dtclassid; }
+		inline bool operator<(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid < r.dtclassid; }
+		inline bool operator<=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid <= r.dtclassid; }
+		inline bool operator>(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid > r.dtclassid; }
+		inline bool operator>=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid >= r.dtclassid; }
+		inline size_t hash() const { return this->dtclassid.hash(); }
+		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
+		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
+		inline size_t GetUpcastOffsetAbs() const noexcept { return this->offset_upcast_abs; }
+		inline bool IsUpcastNegativeOffset() const noexcept { return this->is_upcast_negative_offset; }
+		inline DynamicTypeClassObj* GetDynamicTypeClassObject() const { return this->dtclassobj; }
+	protected:
+		const DynamicTypeClassID dtclassid;
+		const bool is_module_local;
+		const size_t offset_upcast_abs;
+		const bool is_upcast_negative_offset;
+		DynamicTypeClassObj* dtclassobj = nullptr;
+	};
+	static_assert(::std::is_standard_layout_v<DynamicTypeBaseClassDefObj>, "DynamicTypeBaseClassDefObj is not standard-layout.");
+
+	struct hash_DynamicTypeBaseClassDefObj_t {
+		inline size_t operator()(const DynamicTypeBaseClassDefObj& t) const {
+			return t.hash();
+		}
+	};
+	constexpr hash_DynamicTypeBaseClassDefObj_t hash_DynamicTypeBaseClassDefObj {};
+
+	//}
+#pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
+
+#pragma region Dynamic type class declarations, implementations and initializations helper templates
+	//{ Dynamic type class declarations, implementations and initializations helper templates
+
+	/// <summary>Base class definition structure template for dynamic type classes.</summary>
+	template<typename _This_Class_Ty, typename _Base_Class_Ty>
+	struct DynamicTypeBaseClassDef_t {
+		static_assert(::std::is_class_v<_This_Class_Ty>, "The specified derived class type is not a class.");
+		static_assert(::std::is_class_v<_Base_Class_Ty>, "The specified base class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_This_Class_Ty>(), "The specified derived class type is not a dynamic type class.");
+		static_assert(!IsDynamicTypeNoClass<_Base_Class_Ty>(), "The specified base class type is not a dynamic type class.");
+		static_assert(
+			IsDynamicTypeModuleLocalClass<_This_Class_Ty>() || !IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
+			"The specified derived class type is non-module-local, but the specified base class type is module-local."
+			);
+		inline operator DynamicTypeBaseClassDefObj() const {
+			if (DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) < reinterpret_cast<uintptr_t>(&dummy)) {
+				return DynamicTypeBaseClassDefObj(
+					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
+					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
+					reinterpret_cast<uintptr_t>(&dummy) - DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)),
+					DynamicTypeBaseClassDefObj::upcast_negative_offset
+				);
+			} else {
+				return DynamicTypeBaseClassDefObj(
+					GetDynamicTypeThisClassID<_Base_Class_Ty>(),
+					IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
+					DynamicTypeStaticCast<_Base_Class_Ty, _This_Class_Ty>(reinterpret_cast<uintptr_t>(&dummy)) - reinterpret_cast<uintptr_t>(&dummy)
+				);
+			}
+		}
+	};
+	/// <summary>Base class definition variable template for dynamic type classes.</summary>
+	template<typename _This_Class_Ty, typename _Base_Class_Ty>
+	constexpr DynamicTypeBaseClassDef_t<_This_Class_Ty, _Base_Class_Ty> DynamicTypeBaseClassDef {};
 
 	/// <summary>Class definition structure template for dynamic type classes.</summary>
-	template<typename _This_Class_Ty, typename ... _Base_Class_Ty>
+	template<typename _This_Class_Ty, typename... _Base_Class_Ty>
 	struct DynamicTypeClass_t {
 		static_assert(::std::is_class_v<_This_Class_Ty>, "The specified derived class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_This_Class_Ty>(), "The specified derived class type is not a dynamic type class.");
 		//static_assert(... && ::std::is_class_v<_Base_Class_Ty>, "At least one of the specified base class types is not a class.");
-		inline operator DynamicTypeClassObj() const {
-			return DynamicTypeClassObj(
+		inline DynamicTypeClassObj* CreateDynamicTypeClassObject() const {
+			return new DynamicTypeClassObj(
+				GetDynamicTypeThisClassID<_This_Class_Ty>(),
+				IsDynamicTypeModuleLocalClass<_This_Class_Ty>(),
+				{ DynamicTypeBaseClassDef<_This_Class_Ty, _Base_Class_Ty>... }
+			);
+		}
+		template<typename _Arg1_New_Ty>
+		inline DynamicTypeClassObj* Placement1CreateDynamicTypeClassObject(_Arg1_New_Ty arg1_new) const {
+			return new(::std::forward(arg1_new)) DynamicTypeClassObj(
+				GetDynamicTypeThisClassID<_This_Class_Ty>(),
+				IsDynamicTypeModuleLocalClass<_This_Class_Ty>(),
+				{ DynamicTypeBaseClassDef<_This_Class_Ty, _Base_Class_Ty>... }
+			);
+		}
+		template<typename _Arg1_New_Ty, typename _Arg2_New_Ty>
+		inline DynamicTypeClassObj* Placement2CreateDynamicTypeClassObject(_Arg1_New_Ty arg1_new, _Arg2_New_Ty arg2_new) const {
+			return new(::std::forward(arg1_new), ::std::forward(arg2_new)) DynamicTypeClassObj(
+				GetDynamicTypeThisClassID<_This_Class_Ty>(),
+				IsDynamicTypeModuleLocalClass<_This_Class_Ty>(),
+				{ DynamicTypeBaseClassDef<_This_Class_Ty, _Base_Class_Ty>... }
+			);
+		}
+		template<typename _Arg1_New_Ty, typename _Arg2_New_Ty, typename _Arg3_New_Ty>
+		inline DynamicTypeClassObj* Placement3CreateDynamicTypeClassObject(_Arg1_New_Ty arg1_new, _Arg2_New_Ty arg2_new, _Arg3_New_Ty arg3_new) const {
+			return new(::std::forward(arg1_new), ::std::forward(arg2_new), ::std::forward(arg3_new)) DynamicTypeClassObj(
+				GetDynamicTypeThisClassID<_This_Class_Ty>(),
+				IsDynamicTypeModuleLocalClass<_This_Class_Ty>(),
+				{ DynamicTypeBaseClassDef<_This_Class_Ty, _Base_Class_Ty>... }
+			);
+		}
+		template<typename _Arg1_New_Ty, typename _Arg2_New_Ty, typename _Arg3_New_Ty, typename _Arg4_New_Ty>
+		inline DynamicTypeClassObj* Placement4CreateDynamicTypeClassObject(_Arg1_New_Ty arg1_new, _Arg2_New_Ty arg2_new, _Arg3_New_Ty arg3_new, _Arg4_New_Ty arg4_new) const {
+			return new(::std::forward(arg1_new), ::std::forward(arg2_new), ::std::forward(arg3_new), ::std::forward(arg4_new)) DynamicTypeClassObj(
 				GetDynamicTypeThisClassID<_This_Class_Ty>(),
 				IsDynamicTypeModuleLocalClass<_This_Class_Ty>(),
 				{ DynamicTypeBaseClassDef<_This_Class_Ty, _Base_Class_Ty>... }
@@ -372,7 +406,7 @@ namespace YBWLib2 {
 	constexpr DynamicTypeClass_t<_This_Class_Ty, _Base_Class_Ty...> DynamicTypeClass {};
 
 	//}
-#pragma endregion DynamicTypeClassObj is used to represent a dynamic type class.
+#pragma endregion These templates aid in the declarations, implementations and initializations of dynamic type classes.
 
 	void YBWLIB2_CALLTYPE DynamicType_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE DynamicType_RealUnInitGlobal() noexcept;
@@ -396,31 +430,67 @@ static constexpr bool DynamicTypeNoClass = true
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = false;\
 static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassIDFromUUIDString_CompileTime(string_dtclassid);\
-static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj DynamicTypeThisClassObject
+static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_NULL_ID_GLOBAL(classname, specifiers_dtclassobj) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = false;\
 static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassID_Null;\
-static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj DynamicTypeThisClassObject
+static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(classname, specifiers_dtclassobj, string_dtclassid) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = true;\
 static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassIDFromUUIDString_CompileTime(string_dtclassid);\
-static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj DynamicTypeThisClassObject
+static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_NULL_ID_MODULE_LOCAL(classname, specifiers_dtclassobj) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = true;\
 static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassID_Null;\
-static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj DynamicTypeThisClassObject
+static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
-#define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(classname, specifiers_dtclassobj, ...) \
-specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>
+#define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(classname, specifiers_dtclassobj) \
+specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeThisClassObject = nullptr
 
-#define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS_NOBASE(classname, specifiers_dtclassobj) \
-specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(classname, ...) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>.CreateDynamicTypeClassObject()
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_NOBASE(classname) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>.CreateDynamicTypeClassObject()
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_PLACEMENT1(classname, arg1_new, ...) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>.Placement1CreateDynamicTypeClassObject(arg1_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_NOBASE_PLACEMENT1(classname, arg1_new) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>.Placement1CreateDynamicTypeClassObject(arg1_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_PLACEMENT2(classname, arg1_new, arg2_new, ...) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>.Placement2CreateDynamicTypeClassObject(arg1_new, arg2_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_NOBASE_PLACEMENT2(classname, arg1_new, arg2_new) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>.Placement2CreateDynamicTypeClassObject(arg1_new, arg2_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_PLACEMENT3(classname, arg1_new, arg2_new, arg3_new, ...) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>.Placement3CreateDynamicTypeClassObject(arg1_new, arg2_new, arg3_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_NOBASE_PLACEMENT3(classname, arg1_new, arg2_new, arg3_new) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>.Placement3CreateDynamicTypeClassObject(arg1_new, arg2_new, arg3_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_PLACEMENT4(classname, arg1_new, arg2_new, arg3_new, arg4_new, ...) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname, __VA_ARGS__>.Placement3CreateDynamicTypeClassObject(arg1_new, arg2_new, arg3_new, arg4_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS_NOBASE_PLACEMENT4(classname, arg1_new, arg2_new, arg3_new, arg4_new) \
+classname::DynamicTypeThisClassObject = ::YBWLib2::DynamicTypeClass<classname>.Placement3CreateDynamicTypeClassObject(arg1_new, arg2_new, arg3_new, arg4_new)
+
+#define YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(classname) \
+delete classname::DynamicTypeThisClassObject;\
+classname::DynamicTypeThisClassObject = nullptr
+
+#define YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS_NOFREE(classname, lvrefname_ptr) \
+(lvrefname_ptr) = classname::DynamicTypeThisClassObject;\
+classname::DynamicTypeThisObject->~::YBWLib2::DynamicTypeClassObj();\
+classname::DynamicTypeThisClassObject = nullptr
 
 //}
 #pragma endregion These macros are used in declarations and implementations of dynamic type classes.
@@ -448,7 +518,9 @@ namespace YBWLib2 {
 	inline uintptr_t DynamicTypeDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
 		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
-		return GetDynamicTypeThisClassObject<_Most_Derived_DT_Class_Ty>().DynamicUpcastTo(ptr, dtclassobj_target);
+		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeThisClassObject<_Most_Derived_DT_Class_Ty>();
+		if (!dtclassobj) abort();
+		return dtclassobj->DynamicUpcastTo(ptr, dtclassobj_target);
 	}
 
 	//}
@@ -515,7 +587,7 @@ namespace YBWLib2 {
 		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
 		static_assert(::std::is_convertible_v<typename move_cv_t<void, _Class_From_Ty>::type, typename move_cv_t<void, _Class_To_Ty>::type>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
 		inline _Class_To_Ty* operator()(_Class_From_Ty* ptr) const {
-			reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(&GetDynamicTypeThisClassObject<_Class_To_Ty>()));
+			reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>()));
 		}
 	};
 	/// <summary>Variable template for type casting using dynamic type functionality.</summary>
@@ -561,7 +633,7 @@ specifiers_vfunc virtual const volatile void* DynamicTypeRawCastTo(const ::YBWLi
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(classname) \
 inline virtual const DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
-inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return &GetDynamicTypeThisClassObject<classname>(); }\
+inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return GetDynamicTypeThisClassObject<classname>(); }\
 inline virtual void* DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) override { return reinterpret_cast<void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
 inline virtual const void* DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const override { return reinterpret_cast<const void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
 inline virtual volatile void* DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) volatile override { return reinterpret_cast<volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
@@ -569,7 +641,7 @@ inline virtual const volatile void* DynamicTypeRawCastTo(const ::YBWLib2::Dynami
 
 #define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_IOBJECT(classname, specifiers_vfunc) \
 specifiers_vfunc const DynamicTypeClassID* classname::DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
-specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return &GetDynamicTypeThisClassObject<classname>(); }\
+specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return GetDynamicTypeThisClassObject<classname>(); }\
 specifiers_vfunc void* classname::DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) override { return reinterpret_cast<void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
 specifiers_vfunc const void* classname::DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const override { return reinterpret_cast<const void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\
 specifiers_vfunc volatile void* classname::DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) volatile override { return reinterpret_cast<volatile void*>(DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(this), dtclassobj_target)); }\

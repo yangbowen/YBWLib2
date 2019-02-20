@@ -27,9 +27,9 @@
 #define YBWLIB2_EXCEPTION_MACROS_ENABLED
 
 namespace YBWLib2 {
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameter, YBWLIB2_API, IDynamicTypeObject);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameterList, YBWLIB2_API, IDynamicTypeObject);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplate, YBWLIB2_API, IDynamicTypeObject);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameter, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameterList, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplate, YBWLIB2_API);
 
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE utf8_vsnprintf(
 		const rawallocator_t* rawallocator,
@@ -108,7 +108,15 @@ namespace YBWLib2 {
 		return exception;
 	}
 
-	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplateParameter, IDynamicTypeObject);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplateParameterList, IDynamicTypeObject);
+		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplate, IDynamicTypeObject);
+	}
 
-	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplate);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplateParameterList);
+		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplateParameter);
+	}
 }
