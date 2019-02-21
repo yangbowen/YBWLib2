@@ -1,4 +1,5 @@
-﻿// Include guard omitted intentionally.
+﻿#ifndef _INCLUDE_GUARD_9F152DB0_9C4B_4804_BFF3_EF102AC3D6C9
+#define _INCLUDE_GUARD_9F152DB0_9C4B_4804_BFF3_EF102AC3D6C9
 
 #include <atomic>
 #include <mutex>
@@ -70,3 +71,5 @@ namespace YBWLib2 {
 		}
 	}
 }
+
+#endif

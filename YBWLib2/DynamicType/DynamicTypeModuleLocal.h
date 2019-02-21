@@ -1,4 +1,5 @@
-﻿// Include guard omitted intentionally.
+﻿#ifndef _INCLUDE_GUARD_A2BDBA5D_2D6E_480E_9BB6_7DB0B35F05E2
+#define _INCLUDE_GUARD_A2BDBA5D_2D6E_480E_9BB6_7DB0B35F05E2
 
 #ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
@@ -63,3 +64,5 @@ namespace YBWLib2 {
 		map_dtclassobj_module_local = nullptr;
 	}
 }
+
+#endif

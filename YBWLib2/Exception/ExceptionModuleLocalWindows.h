@@ -1,4 +1,5 @@
-﻿// Include guard omitted intentionally.
+﻿#ifndef _INCLUDE_GUARD_93ABD222_7D79_4F3D_BB9E_E853F4015CD8
+#define _INCLUDE_GUARD_93ABD222_7D79_4F3D_BB9E_E853F4015CD8
 
 #ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
@@ -46,3 +47,5 @@ namespace YBWLib2 {
 #endif
 	}
 }
+
+#endif

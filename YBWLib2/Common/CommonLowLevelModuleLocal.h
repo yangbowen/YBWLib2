@@ -1,4 +1,5 @@
-﻿// Include guard omitted intentionally.
+﻿#ifndef _INCLUDE_GUARD_AF5FE342_E198_4EEE_972C_9077EE5E9919
+#define _INCLUDE_GUARD_AF5FE342_E198_4EEE_972C_9077EE5E9919
 
 #include <cstdlib>
 #include <typeinfo>
@@ -51,3 +52,5 @@ namespace YBWLib2 {
 		rawallocator_crt_module_local = nullptr;
 	}
 }
+
+#endif
