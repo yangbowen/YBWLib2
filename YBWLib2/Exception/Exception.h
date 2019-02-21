@@ -65,7 +65,7 @@ namespace YBWLib2 {
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept;
 
 	/// <summary>An allocator for allocating exception handling dedicated raw memory.</summary>
-	extern YBWLIB2_API rawallocator_t rawallocator_exception;
+	extern YBWLIB2_API rawallocator_t* rawallocator_exception;
 
 	/// <summary>Allocator template structure for allocating memory for exception handling.</summary>
 	template<typename _Ty>
