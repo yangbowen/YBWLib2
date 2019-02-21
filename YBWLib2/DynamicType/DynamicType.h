@@ -292,6 +292,7 @@ namespace YBWLib2 {
 		inline size_t hash() const { return this->dtclassid.hash(); }
 		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
 		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
+		inline DynamicTypeBaseClassFlags GetDynamicTypeBaseClassFlags() const noexcept { return this->dtbaseclassflags; }
 		inline DynamicTypeClassObj* GetDynamicTypeClassObject() const { return this->dtclassobj; }
 		inline fnptr_dynamic_type_upcast_t GetDynamicTypeStaticCastFnptr() const noexcept { return this->fnptr_dynamic_type_static_upcast; }
 	protected:
