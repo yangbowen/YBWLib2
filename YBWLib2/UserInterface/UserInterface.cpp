@@ -109,14 +109,26 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplateParameter, IDynamicTypeObject);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplateParameterList, IDynamicTypeObject);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IStringTemplate, IDynamicTypeObject);
+		IStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IStringTemplateParameter>(),
+			IsDynamicTypeModuleLocalClass<IStringTemplateParameter>(),
+			{ DynamicTypeBaseClassDef<IStringTemplateParameter, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		IStringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IStringTemplateParameterList>(),
+			IsDynamicTypeModuleLocalClass<IStringTemplateParameterList>(),
+			{ DynamicTypeBaseClassDef<IStringTemplateParameterList, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		IStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IStringTemplate>(),
+			IsDynamicTypeModuleLocalClass<IStringTemplate>(),
+			{ DynamicTypeBaseClassDef<IStringTemplate, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplate);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplateParameterList);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IStringTemplateParameter);
+		delete IStringTemplate::DynamicTypeThisClassObject;
+		IStringTemplate::DynamicTypeThisClassObject = nullptr;
+		delete IStringTemplateParameterList::DynamicTypeThisClassObject;
+		IStringTemplateParameterList::DynamicTypeThisClassObject = nullptr;
+		delete IStringTemplateParameter::DynamicTypeThisClassObject;
+		IStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 	}
 }

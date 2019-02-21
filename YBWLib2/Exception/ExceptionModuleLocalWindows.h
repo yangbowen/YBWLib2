@@ -22,28 +22,56 @@ namespace YBWLib2 {
 #endif
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, IExternalAPIFailureWithLastErrorException);
+		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ExternalAPIFailureWithLastErrorException>(),
+			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithLastErrorException>(),
+			{
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, IExternalAPIFailureWithLastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
+			});
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, IExternalAPIFailureWithWSALastErrorException);
+		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ExternalAPIFailureWithWSALastErrorException>(),
+			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithWSALastErrorException>(),
+			{
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureWithWSALastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
+			});
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, IExternalAPIFailureWithNTSTATUSException);
+		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ExternalAPIFailureWithNTSTATUSException>(),
+			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithNTSTATUSException>(),
+			{
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureWithNTSTATUSException, DynamicTypeBaseClassFlag_VirtualBase>
+			});
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, IExternalAPIFailureWithHRESULTException);
+		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ExternalAPIFailureWithHRESULTException>(),
+			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithHRESULTException>(),
+			{
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, IExternalAPIFailureWithHRESULTException, DynamicTypeBaseClassFlag_VirtualBase>
+			});
 #endif
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithHRESULTException);
+		delete ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject;
+		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = nullptr;
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithNTSTATUSException);
+		delete ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject;
+		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = nullptr;
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithWSALastErrorException);
+		delete ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject;
+		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ExternalAPIFailureWithLastErrorException);
+		delete ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject;
+		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
 	}
 }

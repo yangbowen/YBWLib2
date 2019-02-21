@@ -8,12 +8,20 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ILockableObject, YBWLIB2_API);
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IReferenceCountedObject, IDynamicTypeObject);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ILockableObject, IDynamicTypeObject);
+		IReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IReferenceCountedObject>(),
+			IsDynamicTypeModuleLocalClass<IReferenceCountedObject>(),
+			{ DynamicTypeBaseClassDef<IReferenceCountedObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		ILockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ILockableObject>(),
+			IsDynamicTypeModuleLocalClass<ILockableObject>(),
+			{ DynamicTypeBaseClassDef<ILockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ILockableObject);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IReferenceCountedObject);
+		delete ILockableObject::DynamicTypeThisClassObject;
+		ILockableObject::DynamicTypeThisClassObject = nullptr;
+		delete IReferenceCountedObject::DynamicTypeThisClassObject;
+		IReferenceCountedObject::DynamicTypeThisClassObject = nullptr;
 	}
 }

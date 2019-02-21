@@ -13,11 +13,16 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ReferenceCountedObject, );
 
 	void YBWLIB2_CALLTYPE Common_RealInitModuleLocal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ReferenceCountedObject, IReferenceCountedObject);
+		ReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ReferenceCountedObject>(),
+			IsDynamicTypeModuleLocalClass<ReferenceCountedObject>(),
+			{ DynamicTypeBaseClassDef<ReferenceCountedObject, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> }
+		);
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealUnInitModuleLocal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ReferenceCountedObject);
+		delete ReferenceCountedObject::DynamicTypeThisClassObject;
+		ReferenceCountedObject::DynamicTypeThisClassObject = nullptr;
 	}
 }
 

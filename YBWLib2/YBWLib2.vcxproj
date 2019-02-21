@@ -25,7 +25,6 @@
     <ClInclude Include="Common\CommonModuleLocal.h" />
     <ClInclude Include="Common\CommonSTLHelper.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
-    <ClInclude Include="DynamicType\DynamicTypeInternal.h" />
     <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h" />
     <ClInclude Include="DynamicType\DynamicTypeModuleLocal.h" />
     <ClInclude Include="Exception\Exception.h" />

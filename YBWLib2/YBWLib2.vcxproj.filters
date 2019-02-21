@@ -75,9 +75,6 @@
     <ClInclude Include="DynamicType\DynamicTypeModuleLocal.h">
       <Filter>Header Files\DynamicType</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicType\DynamicTypeInternal.h">
-      <Filter>Header Files\DynamicType</Filter>
-    </ClInclude>
     <ClInclude Include="Common\CommonModuleLocal.h">
       <Filter>Header Files\Common</Filter>
     </ClInclude>

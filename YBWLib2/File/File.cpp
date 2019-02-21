@@ -8,14 +8,26 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IOutputFile, YBWLIB2_API);
 
 	void YBWLIB2_CALLTYPE File_RealInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ISeekableFile, IReferenceCountedObject);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IInputFile, ISeekableFile);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IOutputFile, ISeekableFile);
+		ISeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ISeekableFile>(),
+			IsDynamicTypeModuleLocalClass<ISeekableFile>(),
+			{ DynamicTypeBaseClassDef<ISeekableFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		IInputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IInputFile>(),
+			IsDynamicTypeModuleLocalClass<IInputFile>(),
+			{ DynamicTypeBaseClassDef<IInputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> });
+		IOutputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IOutputFile>(),
+			IsDynamicTypeModuleLocalClass<IOutputFile>(),
+			{ DynamicTypeBaseClassDef<IOutputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> });
 	}
 
 	void YBWLIB2_CALLTYPE File_RealUnInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IOutputFile);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IInputFile);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ISeekableFile);
+		delete IOutputFile::DynamicTypeThisClassObject;
+		IOutputFile::DynamicTypeThisClassObject = nullptr;
+		delete IInputFile::DynamicTypeThisClassObject;
+		IInputFile::DynamicTypeThisClassObject = nullptr;
+		delete ISeekableFile::DynamicTypeThisClassObject;
+		ISeekableFile::DynamicTypeThisClassObject = nullptr;
 	}
 }

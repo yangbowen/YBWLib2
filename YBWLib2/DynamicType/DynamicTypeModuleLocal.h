@@ -10,7 +10,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "DynamicType.h"
-#include "DynamicTypeInternal.h"
 
 namespace YBWLib2 {
 	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj_module_local = nullptr;

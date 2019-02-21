@@ -88,29 +88,69 @@ namespace YBWLib2 {
 				return ExceptionGetMaxMemorySize();
 			});
 		if (!rawallocator_exception) abort();
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IException, IDynamicTypeObject);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IDoubleExceptionException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IInvalidParameterException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IInsufficientBufferException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IMemoryAllocFailureException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IKeyAlreadyExistException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IKeyNotExistException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IUnhandledUnknownExceptionException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(ISTLExceptionException, IException);
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureException, IException);
+		IException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IException>(),
+			IsDynamicTypeModuleLocalClass<IException>(),
+			{ DynamicTypeBaseClassDef<IException, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		IDoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IDoubleExceptionException>(),
+			IsDynamicTypeModuleLocalClass<IDoubleExceptionException>(),
+			{ DynamicTypeBaseClassDef<IDoubleExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IInvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IInvalidParameterException>(),
+			IsDynamicTypeModuleLocalClass<IInvalidParameterException>(),
+			{ DynamicTypeBaseClassDef<IInvalidParameterException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IInsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IInsufficientBufferException>(),
+			IsDynamicTypeModuleLocalClass<IInsufficientBufferException>(),
+			{ DynamicTypeBaseClassDef<IInsufficientBufferException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IMemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IMemoryAllocFailureException>(),
+			IsDynamicTypeModuleLocalClass<IMemoryAllocFailureException>(),
+			{ DynamicTypeBaseClassDef<IMemoryAllocFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IKeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IKeyAlreadyExistException>(),
+			IsDynamicTypeModuleLocalClass<IKeyAlreadyExistException>(),
+			{ DynamicTypeBaseClassDef<IKeyAlreadyExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IKeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IKeyNotExistException>(),
+			IsDynamicTypeModuleLocalClass<IKeyNotExistException>(),
+			{ DynamicTypeBaseClassDef<IKeyNotExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IUnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IUnhandledUnknownExceptionException>(),
+			IsDynamicTypeModuleLocalClass<IUnhandledUnknownExceptionException>(),
+			{ DynamicTypeBaseClassDef<IUnhandledUnknownExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		ISTLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ISTLExceptionException>(),
+			IsDynamicTypeModuleLocalClass<ISTLExceptionException>(),
+			{ DynamicTypeBaseClassDef<ISTLExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IExternalAPIFailureException>(),
+			IsDynamicTypeModuleLocalClass<IExternalAPIFailureException>(),
+			{ DynamicTypeBaseClassDef<IExternalAPIFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(ISTLExceptionException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IUnhandledUnknownExceptionException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IKeyNotExistException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IKeyAlreadyExistException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IMemoryAllocFailureException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IInsufficientBufferException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IInvalidParameterException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IDoubleExceptionException);
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IException);
+		delete IExternalAPIFailureException::DynamicTypeThisClassObject;
+		IExternalAPIFailureException::DynamicTypeThisClassObject = nullptr;
+		delete ISTLExceptionException::DynamicTypeThisClassObject;
+		ISTLExceptionException::DynamicTypeThisClassObject = nullptr;
+		delete IUnhandledUnknownExceptionException::DynamicTypeThisClassObject;
+		IUnhandledUnknownExceptionException::DynamicTypeThisClassObject = nullptr;
+		delete IKeyNotExistException::DynamicTypeThisClassObject;
+		IKeyNotExistException::DynamicTypeThisClassObject = nullptr;
+		delete IKeyAlreadyExistException::DynamicTypeThisClassObject;
+		IKeyAlreadyExistException::DynamicTypeThisClassObject = nullptr;
+		delete IMemoryAllocFailureException::DynamicTypeThisClassObject;
+		IMemoryAllocFailureException::DynamicTypeThisClassObject = nullptr;
+		delete IInsufficientBufferException::DynamicTypeThisClassObject;
+		IInsufficientBufferException::DynamicTypeThisClassObject = nullptr;
+		delete IInvalidParameterException::DynamicTypeThisClassObject;
+		IInvalidParameterException::DynamicTypeThisClassObject = nullptr;
+		delete IDoubleExceptionException::DynamicTypeThisClassObject;
+		IDoubleExceptionException::DynamicTypeThisClassObject = nullptr;
+		delete IException::DynamicTypeThisClassObject;
+		IException::DynamicTypeThisClassObject = nullptr;
 		delete rawallocator_exception;
 		rawallocator_exception = nullptr;
 		delete exception_handling_environment;

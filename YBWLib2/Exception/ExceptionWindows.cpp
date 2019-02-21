@@ -18,28 +18,44 @@ namespace YBWLib2 {
 #endif
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureWithLastErrorException, IExternalAPIFailureException);
+		IExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IExternalAPIFailureWithLastErrorException>(),
+			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithLastErrorException>(),
+			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithLastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> });
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureException);
+		IExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IExternalAPIFailureWithWSALastErrorException>(),
+			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithWSALastErrorException>(),
+			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> });
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureException);
+		IExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IExternalAPIFailureWithNTSTATUSException>(),
+			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithNTSTATUSException>(),
+			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> });
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-		YBWLIB2_DYNAMIC_TYPE_REALINIT_CLASS(IExternalAPIFailureWithHRESULTException, IExternalAPIFailureException);
+		IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IExternalAPIFailureWithHRESULTException>(),
+			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithHRESULTException>(),
+			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithHRESULTException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> });
 #endif
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitGlobal() noexcept {
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureWithHRESULTException);
+		delete IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject;
+		IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = nullptr;
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureWithNTSTATUSException);
+		delete IExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject;
+		IExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = nullptr;
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureWithWSALastErrorException);
+		delete IExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject;
+		IExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-		YBWLIB2_DYNAMIC_TYPE_REALUNINIT_CLASS(IExternalAPIFailureWithLastErrorException);
+		delete IExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject;
+		IExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
 	}
 }
