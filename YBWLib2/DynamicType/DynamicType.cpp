@@ -31,56 +31,16 @@ namespace YBWLib2 {
 		const DynamicTypeClassID dtclassid_thisclass;
 		const DynamicTypeClassID dtclassid_baseclass;
 		DynamicTypeClassObj& dtclassobj_baseclass;
-		upcast_step_t* arr_upcast_step = nullptr;
-		size_t size_arr_upcast_step = 0;
+		::std::vector<upcast_step_t> vec_upcast_step;
 		inline DynamicTypeTotalBaseClass(
 			const DynamicTypeClassID& _dtclassid_thisclass,
 			const DynamicTypeClassID& _dtclassid_baseclass,
 			DynamicTypeClassObj& _dtclassobj_baseclass,
-			upcast_step_t* _arr_upcast_step,
-			size_t _size_arr_upcast_step) noexcept
+			::std::vector<upcast_step_t>&& _vec_upcast_step)
 			: dtclassid_thisclass(_dtclassid_thisclass),
 			dtclassid_baseclass(_dtclassid_baseclass),
 			dtclassobj_baseclass(_dtclassobj_baseclass),
-			arr_upcast_step(_arr_upcast_step),
-			size_arr_upcast_step(_size_arr_upcast_step) {
-			if (this->size_arr_upcast_step && !this->arr_upcast_step) abort();
-		}
-		inline DynamicTypeTotalBaseClass(const DynamicTypeTotalBaseClass& x)
-			: dtclassid_thisclass(x.dtclassid_thisclass),
-			dtclassid_baseclass(x.dtclassid_baseclass),
-			dtclassobj_baseclass(x.dtclassobj_baseclass),
-			size_arr_upcast_step(x.size_arr_upcast_step) {
-			if (x.arr_upcast_step) {
-				this->arr_upcast_step = reinterpret_cast<upcast_step_t*>(rawallocator_crt_YBWLib2->Allocate(this->size_arr_upcast_step * sizeof(upcast_step_t)));
-				for (size_t i = 0; i < this->size_arr_upcast_step; ++i)
-					new(this->arr_upcast_step + i) upcast_step_t(x.arr_upcast_step[i]);
-				this->arr_upcast_step = ::std::launder(this->arr_upcast_step);
-			}
-		}
-		inline DynamicTypeTotalBaseClass(DynamicTypeTotalBaseClass&& x) noexcept
-			: dtclassid_thisclass(x.dtclassid_thisclass),
-			dtclassid_baseclass(x.dtclassid_baseclass),
-			dtclassobj_baseclass(x.dtclassobj_baseclass),
-			size_arr_upcast_step(x.size_arr_upcast_step) {
-			if (x.arr_upcast_step) {
-				this->arr_upcast_step = x.arr_upcast_step;
-				x.arr_upcast_step = nullptr;
-			}
-			x.size_arr_upcast_step = 0;
-		}
-		inline ~DynamicTypeTotalBaseClass() {
-			if (this->arr_upcast_step) {
-				for (size_t i = 0; i < this->size_arr_upcast_step; ++i)
-					this->arr_upcast_step[i].~upcast_step_t();
-				this->arr_upcast_step = ::std::launder(this->arr_upcast_step);
-				if (!rawallocator_crt_YBWLib2->Deallocate(this->arr_upcast_step, this->size_arr_upcast_step * sizeof(upcast_step_t))) abort();
-				this->arr_upcast_step = nullptr;
-			}
-			this->size_arr_upcast_step = 0;
-		}
-		DynamicTypeTotalBaseClass& operator=(const DynamicTypeTotalBaseClass& x) = delete;
-		DynamicTypeTotalBaseClass& operator=(DynamicTypeTotalBaseClass&& x) = delete;
+			vec_upcast_step(_vec_upcast_step) {}
 	};
 
 	class _impl_DynamicTypeClassObj {
@@ -187,89 +147,41 @@ namespace YBWLib2 {
 					DynamicTypeClassObj* dtclassobj_baseclass = val_baseclass_direct.GetDynamicTypeClassObject();
 					if (!dtclassobj_baseclass) abort();
 					if (!set_dtclassid_baseclass_conflict.count(val_baseclass_direct.GetDynamicTypeClassID())) {
-						DynamicTypeTotalBaseClass::upcast_step_t* arr_upcast_step =
-							reinterpret_cast<DynamicTypeTotalBaseClass::upcast_step_t*>(rawallocator_crt_YBWLib2->Allocate(1 * sizeof(DynamicTypeTotalBaseClass::upcast_step_t)));
-						if (!arr_upcast_step) abort();
-						new(arr_upcast_step) DynamicTypeTotalBaseClass::upcast_step_t(upcast_step_direct);
-						arr_upcast_step = ::std::launder(arr_upcast_step);
-						try {
-							::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
-								::std::piecewise_construct,
-								::std::forward_as_tuple(val_baseclass_direct.GetDynamicTypeClassID()),
-								::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeTotalBaseClass::upcast_step_t*, size_t>(
-									this->dtclassid,
-									val_baseclass_direct.GetDynamicTypeClassID(),
-									*dtclassobj_baseclass,
-									arr_upcast_step,
-									1
-									)
-							);
-							if (ret_emplace.second) {
-								arr_upcast_step = nullptr;
-							} else {
-								arr_upcast_step->~upcast_step_t();
-								arr_upcast_step = ::std::launder(arr_upcast_step);
-								if (!rawallocator_crt_YBWLib2->Deallocate(arr_upcast_step, 1 * sizeof(DynamicTypeTotalBaseClass::upcast_step_t))) abort();
-								arr_upcast_step = nullptr;
-								set_dtclassid_baseclass_conflict.insert(val_baseclass_direct.GetDynamicTypeClassID());
-								this->pimpl->map_baseclass_total.erase(ret_emplace.first);
-							}
-						} catch (...) {
-							if (arr_upcast_step) {
-								arr_upcast_step->~upcast_step_t();
-								arr_upcast_step = ::std::launder(arr_upcast_step);
-								if (!rawallocator_crt_YBWLib2->Deallocate(arr_upcast_step, 1 * sizeof(DynamicTypeTotalBaseClass::upcast_step_t))) abort();
-								arr_upcast_step = nullptr;
-							}
-							throw;
+						::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+							::std::piecewise_construct,
+							::std::forward_as_tuple(val_baseclass_direct.GetDynamicTypeClassID()),
+							::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>&&>(
+								this->dtclassid,
+								val_baseclass_direct.GetDynamicTypeClassID(),
+								*dtclassobj_baseclass,
+								::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>(1, upcast_step_direct)
+								)
+						);
+						if (!ret_emplace.second) {
+							set_dtclassid_baseclass_conflict.insert(val_baseclass_direct.GetDynamicTypeClassID());
+							this->pimpl->map_baseclass_total.erase(ret_emplace.first);
 						}
 					}
 					for (const ::std::pair<DynamicTypeClassID, DynamicTypeTotalBaseClass>& val_baseclass_indirect : dtclassobj_baseclass->pimpl->map_baseclass_total) {
-						const DynamicTypeTotalBaseClass::upcast_step_t* arr_upcast_step_indirect = val_baseclass_indirect.second.arr_upcast_step;
-						size_t size_arr_upcast_step_indirect = val_baseclass_indirect.second.size_arr_upcast_step;
-						if (size_arr_upcast_step_indirect && !arr_upcast_step_indirect) abort();
 						if (!set_dtclassid_baseclass_conflict.count(val_baseclass_indirect.first)) {
-							size_t size_arr_upcast_step_total = size_arr_upcast_step_indirect + 1;
-							DynamicTypeTotalBaseClass::upcast_step_t* arr_upcast_step_total =
-								reinterpret_cast<DynamicTypeTotalBaseClass::upcast_step_t*>(rawallocator_crt_YBWLib2->Allocate(size_arr_upcast_step_total * sizeof(DynamicTypeTotalBaseClass::upcast_step_t)));
-							if (!arr_upcast_step_total) abort();
-							new(arr_upcast_step_total + 0) DynamicTypeTotalBaseClass::upcast_step_t(upcast_step_direct);
-							for (size_t i = 0; i < size_arr_upcast_step_indirect; ++i)
-								new(arr_upcast_step_total + 1 + i) DynamicTypeTotalBaseClass::upcast_step_t(arr_upcast_step_indirect[i]);
-							arr_upcast_step_total = ::std::launder(arr_upcast_step_total);
-							try {
-								::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
-									::std::piecewise_construct,
-									::std::forward_as_tuple(val_baseclass_indirect.first),
-									::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeTotalBaseClass::upcast_step_t*, size_t>(
-										this->dtclassid,
-										val_baseclass_indirect.first,
-										val_baseclass_indirect.second.dtclassobj_baseclass,
-										arr_upcast_step_total,
-										size_arr_upcast_step_total
-										)
-								);
-								if (ret_emplace.second) {
-									arr_upcast_step_total = nullptr;
-								} else {
-									for (size_t i = 0; i < size_arr_upcast_step_total; ++i)
-										arr_upcast_step_total[i].~upcast_step_t();
-									arr_upcast_step_total = ::std::launder(arr_upcast_step_total);
-									if (!rawallocator_crt_YBWLib2->Deallocate(arr_upcast_step_total, size_arr_upcast_step_total * sizeof(DynamicTypeTotalBaseClass::upcast_step_t))) abort();
-									arr_upcast_step_total = nullptr;
-									set_dtclassid_baseclass_conflict.insert(val_baseclass_indirect.first);
-									this->pimpl->map_baseclass_total.erase(ret_emplace.first);
-									// TODO: Handle virtual base class case.
-								}
-							} catch (...) {
-								if (arr_upcast_step_total) {
-									for (size_t i = 0; i < size_arr_upcast_step_total; ++i)
-										arr_upcast_step_total[i].~upcast_step_t();
-									arr_upcast_step_total = ::std::launder(arr_upcast_step_total);
-									if (!rawallocator_crt_YBWLib2->Deallocate(arr_upcast_step_total, size_arr_upcast_step_total * sizeof(DynamicTypeTotalBaseClass::upcast_step_t))) abort();
-									arr_upcast_step_total = nullptr;
-								}
-								throw;
+							::std::vector<DynamicTypeTotalBaseClass::upcast_step_t> vec_upcast_step_total(1, upcast_step_direct);
+							vec_upcast_step_total.reserve(1 + val_baseclass_indirect.second.vec_upcast_step.size());
+							for (const DynamicTypeTotalBaseClass::upcast_step_t& val_upcast_step_indirect : val_baseclass_indirect.second.vec_upcast_step)
+								vec_upcast_step_total.push_back(val_upcast_step_indirect);
+							::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+								::std::piecewise_construct,
+								::std::forward_as_tuple(val_baseclass_indirect.first),
+								::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>>(
+									this->dtclassid,
+									val_baseclass_indirect.first,
+									val_baseclass_indirect.second.dtclassobj_baseclass,
+									vec_upcast_step_total
+									)
+							);
+							if (!ret_emplace.second) {
+								set_dtclassid_baseclass_conflict.insert(val_baseclass_indirect.first);
+								this->pimpl->map_baseclass_total.erase(ret_emplace.first);
+								// TODO: Handle virtual base class case.
 							}
 						}
 					}
@@ -315,16 +227,11 @@ namespace YBWLib2 {
 						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 						const DynamicTypeTotalBaseClass* dttotalbaseclassobj_target_found = this->pimpl->FindTotalBaseClass(dtclassid_target);
 						if (dttotalbaseclassobj_target_found && &dttotalbaseclassobj_target_found->dtclassobj_baseclass == dtclassobj_target) {
-							if (dttotalbaseclassobj_target_found->size_arr_upcast_step && !dttotalbaseclassobj_target_found->arr_upcast_step) abort();
 							ret = ptr_obj;
-							for (
-								const DynamicTypeTotalBaseClass::upcast_step_t* upcast_step = dttotalbaseclassobj_target_found->arr_upcast_step;
-								upcast_step != dttotalbaseclassobj_target_found->arr_upcast_step + dttotalbaseclassobj_target_found->size_arr_upcast_step;
-								++upcast_step
-								) {
-								if (!upcast_step->fnptr_dynamic_type_upcast) abort();
+							for (const DynamicTypeTotalBaseClass::upcast_step_t& val_upcast_step : dttotalbaseclassobj_target_found->vec_upcast_step) {
+								if (!val_upcast_step.fnptr_dynamic_type_upcast) abort();
 								if (!ret) break;
-								ret = (*upcast_step->fnptr_dynamic_type_upcast)(ret, upcast_step->dtclassobj_from, upcast_step->dtbaseclassdef);
+								ret = (*val_upcast_step.fnptr_dynamic_type_upcast)(ret, val_upcast_step.dtclassobj_from, val_upcast_step.dtbaseclassdef);
 							}
 						}
 					}

@@ -10,6 +10,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 
