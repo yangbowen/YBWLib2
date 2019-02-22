@@ -19,6 +19,7 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(UnhandledUnknownExceptionException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(STLExceptionException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureException, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(UnexpectedExceptionException, );
 
 	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept {
 		Exception::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -88,9 +89,18 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>
 			});
+		UnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<UnexpectedExceptionException>(),
+			IsDynamicTypeModuleLocalClass<UnexpectedExceptionException>(),
+			{
+				DynamicTypeBaseClassDef<UnexpectedExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<UnexpectedExceptionException, IUnexpectedExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
+			});
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealUnInitModuleLocal() noexcept {
+		delete UnexpectedExceptionException::DynamicTypeThisClassObject;
+		UnexpectedExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete ExternalAPIFailureException::DynamicTypeThisClassObject;
 		ExternalAPIFailureException::DynamicTypeThisClassObject = nullptr;
 		delete STLExceptionException::DynamicTypeThisClassObject;

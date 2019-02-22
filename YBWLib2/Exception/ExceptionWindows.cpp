@@ -5,6 +5,8 @@
 #include "Exception.h"
 #include "ExceptionWindows.h"
 
+#include "../UserInterface/UserInterface.h"
+
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureWithLastErrorException, YBWLIB2_API);
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
@@ -15,6 +17,17 @@ namespace YBWLib2 {
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureWithHRESULTException, YBWLIB2_API);
+#endif
+
+	YBWLIB2_API IStringTemplate* ExternalAPIFailureWithLastErrorException::strtmpl_description = nullptr;
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+	YBWLIB2_API IStringTemplate* ExternalAPIFailureWithWSALastErrorException::strtmpl_description = nullptr;
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+	YBWLIB2_API IStringTemplate* ExternalAPIFailureWithNTSTATUSException::strtmpl_description = nullptr;
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+	YBWLIB2_API IStringTemplate* ExternalAPIFailureWithHRESULTException::strtmpl_description = nullptr;
 #endif
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitGlobal() noexcept {
@@ -40,9 +53,35 @@ namespace YBWLib2 {
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithHRESULTException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithHRESULTException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> });
 #endif
+
+		ExternalAPIFailureWithLastErrorException::strtmpl_description = nullptr;// TODO: Implement.
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		ExternalAPIFailureWithWSALastErrorException::strtmpl_description = nullptr;// TODO: Implement.
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		ExternalAPIFailureWithNTSTATUSException::strtmpl_description = nullptr;// TODO: Implement.
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		ExternalAPIFailureWithHRESULTException::strtmpl_description = nullptr;// TODO: Implement.
+#endif
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitGlobal() noexcept {
+		delete ExternalAPIFailureWithHRESULTException::strtmpl_description;
+		ExternalAPIFailureWithHRESULTException::strtmpl_description = nullptr;
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		delete ExternalAPIFailureWithNTSTATUSException::strtmpl_description;
+		ExternalAPIFailureWithNTSTATUSException::strtmpl_description = nullptr;
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		delete ExternalAPIFailureWithWSALastErrorException::strtmpl_description;
+		ExternalAPIFailureWithWSALastErrorException::strtmpl_description = nullptr;
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		delete ExternalAPIFailureWithLastErrorException::strtmpl_description;
+		ExternalAPIFailureWithLastErrorException::strtmpl_description = nullptr;
+#endif
+
 		delete IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject;
 		IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = nullptr;
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA

@@ -23,7 +23,19 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
+		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept : ref_count(1) {
+			static_cast<void>(x);
+		}
+		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept : ref_count(1) {
+			static_cast<void>(x);
+		}
 		inline virtual ~ReferenceCountedObject() = default;
+		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+		}
+		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+		}
 		/// <summary>
 		/// Increments the reference count.
 		/// This function is thread-safe.
@@ -72,7 +84,25 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(SharedPtrReferenceCountedObject, , string_dtclassid);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedPtrReferenceCountedObject);
+		inline SharedPtrReferenceCountedObject(const SharedPtrReferenceCountedObject& x) noexcept
+			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x)),
+			mtx_this(),
+			ref_count(0),
+			ptr() {}
+		inline SharedPtrReferenceCountedObject(SharedPtrReferenceCountedObject&& x) noexcept
+			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x))),
+			mtx_this(),
+			ref_count(0),
+			ptr() {}
 		inline virtual ~SharedPtrReferenceCountedObject() = default;
+		inline SharedPtrReferenceCountedObject& operator=(const SharedPtrReferenceCountedObject& x) noexcept {
+			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x);
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+		}
+		inline SharedPtrReferenceCountedObject& operator=(SharedPtrReferenceCountedObject&& x) noexcept {
+			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x));
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+		}
 		/// <summary>
 		/// Increments the reference count.
 		/// This function is thread-safe.
@@ -404,7 +434,15 @@ namespace YBWLib2 {
 		using wrapped_type = _Ty;
 		template<typename... _Args_Ty>
 		inline explicit LockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}
+		inline LockableObjectFromSTLWrapper(const LockableObjectFromSTLWrapper& x) noexcept : obj(x.obj) {}
+		inline LockableObjectFromSTLWrapper(LockableObjectFromSTLWrapper&& x) noexcept : obj(::std::move(x.obj)) {}
 		inline virtual ~LockableObjectFromSTLWrapper() = default;
+		inline LockableObjectFromSTLWrapper& operator=(const LockableObjectFromSTLWrapper& x) noexcept {
+			static_cast<ILockableObject&>(*this) = static_cast<const ILockableObject&>(x);
+		}
+		inline LockableObjectFromSTLWrapper& operator=(LockableObjectFromSTLWrapper&& x) noexcept {
+			static_cast<ILockableObject&>(*this) = static_cast<ILockableObject&&>(::std::move(x));
+		}
 		/// <summary>Get a reference to the wrapped object.</summary>
 		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() { return this->obj; }
 		/// <summary>Get a reference to the wrapped object.</summary>

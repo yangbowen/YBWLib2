@@ -3,6 +3,8 @@
 #include "../Windows.h"
 #include "Exception.h"
 
+#include "../UserInterface/UserInterface.h"
+
 namespace YBWLib2 {
 	/// <summary>The global environment for exception handling.</summary>
 	class ExceptionHandlingEnvironment final {
@@ -60,6 +62,19 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IUnhandledUnknownExceptionException, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISTLExceptionException, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExternalAPIFailureException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IUnexpectedExceptionException, YBWLIB2_API);
+
+	YBWLIB2_API IStringTemplate* Exception::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* DoubleExceptionException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* InvalidParameterException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* InsufficientBufferException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* MemoryAllocFailureException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* KeyAlreadyExistException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* KeyNotExistException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* UnhandledUnknownExceptionException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* STLExceptionException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* ExternalAPIFailureException::strtmpl_description = nullptr;
+	YBWLIB2_API IStringTemplate* UnexpectedExceptionException::strtmpl_description = nullptr;
 
 	static ExceptionHandlingEnvironment* exception_handling_environment = nullptr;
 
@@ -83,11 +98,12 @@ namespace YBWLib2 {
 				ExceptionFreeMemory(ptr);
 				return true;
 			},
-			[](uintptr_t context) noexcept->size_t {
+				[](uintptr_t context) noexcept->size_t {
 				static_cast<void>(context);
 				return ExceptionGetMaxMemorySize();
 			});
 		if (!rawallocator_exception) abort();
+
 		IException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IException>(),
 			IsDynamicTypeModuleLocalClass<IException>(),
@@ -128,9 +144,50 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<IExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+		IUnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IUnexpectedExceptionException>(),
+			IsDynamicTypeModuleLocalClass<IUnexpectedExceptionException>(),
+			{ DynamicTypeBaseClassDef<IUnexpectedExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+
+		Exception::strtmpl_description = nullptr;// TODO: Implement.
+		DoubleExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		InvalidParameterException::strtmpl_description = nullptr;// TODO: Implement.
+		InsufficientBufferException::strtmpl_description = nullptr;// TODO: Implement.
+		MemoryAllocFailureException::strtmpl_description = nullptr;// TODO: Implement.
+		KeyAlreadyExistException::strtmpl_description = nullptr;// TODO: Implement.
+		KeyNotExistException::strtmpl_description = nullptr;// TODO: Implement.
+		UnhandledUnknownExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		STLExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		ExternalAPIFailureException::strtmpl_description = nullptr;// TODO: Implement.
+		UnexpectedExceptionException::strtmpl_description = nullptr;// TODO: Implement.
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept {
+		delete UnexpectedExceptionException::strtmpl_description;
+		UnexpectedExceptionException::strtmpl_description = nullptr;
+		delete ExternalAPIFailureException::strtmpl_description;
+		ExternalAPIFailureException::strtmpl_description = nullptr;
+		delete STLExceptionException::strtmpl_description;
+		STLExceptionException::strtmpl_description = nullptr;
+		delete UnhandledUnknownExceptionException::strtmpl_description;
+		UnhandledUnknownExceptionException::strtmpl_description = nullptr;
+		delete KeyNotExistException::strtmpl_description;
+		KeyNotExistException::strtmpl_description = nullptr;
+		delete KeyAlreadyExistException::strtmpl_description;
+		KeyAlreadyExistException::strtmpl_description = nullptr;
+		delete MemoryAllocFailureException::strtmpl_description;
+		MemoryAllocFailureException::strtmpl_description = nullptr;
+		delete InsufficientBufferException::strtmpl_description;
+		InsufficientBufferException::strtmpl_description = nullptr;
+		delete InvalidParameterException::strtmpl_description;
+		InvalidParameterException::strtmpl_description = nullptr;
+		delete DoubleExceptionException::strtmpl_description;
+		DoubleExceptionException::strtmpl_description = nullptr;
+		delete Exception::strtmpl_description;
+		Exception::strtmpl_description = nullptr;
+
+		delete IUnexpectedExceptionException::DynamicTypeThisClassObject;
+		IUnexpectedExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete IExternalAPIFailureException::DynamicTypeThisClassObject;
 		IExternalAPIFailureException::DynamicTypeThisClassObject = nullptr;
 		delete ISTLExceptionException::DynamicTypeThisClassObject;
@@ -151,6 +208,7 @@ namespace YBWLib2 {
 		IDoubleExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete IException::DynamicTypeThisClassObject;
 		IException::DynamicTypeThisClassObject = nullptr;
+
 		delete rawallocator_exception;
 		rawallocator_exception = nullptr;
 		delete exception_handling_environment;

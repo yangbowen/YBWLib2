@@ -33,6 +33,8 @@
 
 #undef YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_EXCEPTION
 
+#undef YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION
+
 //}
 #pragma endregion These macros are used to create exception objects with the above default implementation.
 

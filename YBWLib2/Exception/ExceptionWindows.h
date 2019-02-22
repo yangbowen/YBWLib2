@@ -15,6 +15,8 @@
 #include "../DynamicType/DynamicType.h"
 #include "Exception.h"
 
+#include "../UserInterface/UserInterface.h"
+
 namespace YBWLib2 {
 #pragma region Exception interface classes
 	//{ Exception interface classes
@@ -83,6 +85,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithLastErrorException, , "fead69a8-4bff-4eaf-95a9-c235784a827d");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithLastErrorException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>ExternalAPIFailureWithLastErrorException</c> object.</summary>
 		/// <param name="_name_api">
 		/// The name, in UTF-8, of the external API, if available.
@@ -118,6 +121,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithWSALastErrorException, , "c341f9cf-e4f5-411f-b983-cdf780406870");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithWSALastErrorException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>ExternalAPIFailureWithWSALastErrorException</c> object.</summary>
 		/// <param name="_name_api">
 		/// The name, in UTF-8, of the external API, if available.
@@ -154,6 +158,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithNTSTATUSException, , "74ddcd1a-b4b4-403e-a868-fb8f0be9c1e1");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithNTSTATUSException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>ExternalAPIFailureWithNTSTATUSException</c> object.</summary>
 		/// <param name="_name_api">
 		/// The name, in UTF-8, of the external API, if available.
@@ -190,6 +195,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureWithHRESULTException, , "6b2bb9f9-4db4-4f3f-83a2-14d03f6d5ae9");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureWithHRESULTException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>ExternalAPIFailureWithHRESULTException</c> object.</summary>
 		/// <param name="_name_api">
 		/// The name, in UTF-8, of the external API, if available.

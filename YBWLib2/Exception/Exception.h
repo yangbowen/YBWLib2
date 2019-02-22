@@ -14,6 +14,8 @@
 #include "../Common/CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 
+#include "../UserInterface/UserInterface.h"
+
 namespace YBWLib2 {
 #pragma region ExceptionFlags
 	//{ ExceptionFlags
@@ -300,7 +302,9 @@ namespace YBWLib2 {
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
 		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
-		// TODO: Ownership.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
@@ -322,7 +326,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The full chain of underlying causes is included.
@@ -330,7 +334,9 @@ namespace YBWLib2 {
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
 		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
-		// TODO: Ownership.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
@@ -352,7 +358,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionTotal(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
 	};
 
 	/// <summary>An exception that occurs when handling another exception.</summary>
@@ -481,6 +487,32 @@ namespace YBWLib2 {
 		virtual const void* GetExternalAPIAddress() const noexcept = 0;
 	};
 
+	/// <summary>An unexpected exception.</summary>
+	class IUnexpectedExceptionException abstract : public virtual IException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IUnexpectedExceptionException, YBWLIB2_API, "99ce058f-4074-4ef9-8e34-661121b7754c");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IUnexpectedExceptionException);
+		inline virtual ~IUnexpectedExceptionException() = default;
+		/// <summary>Gets the filename of the source code file in which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, an empty pointer is returned.
+		/// </returns>
+		virtual const char* GetSourceCodeFileName() const noexcept = 0;
+		/// <summary>Gets the size (in <c>char</c>s) of the filename of the source code file in which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, <c>0</c> is returned.
+		/// </returns>
+		virtual size_t GetSourceCodeFileNameSize() const noexcept = 0;
+		/// <summary>Gets the line number of the source code at which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the line number of the source code at which the exception has occured, if available.
+		/// If no meaningful line number can be provided, <c>-1</c> is returned.
+		/// </returns>
+		virtual int GetSourceCodeLineNumber() const noexcept = 0;
+	};
+
 	//}
 #pragma endregion Exception classes that may be transferred across executable module boundaries.
 
@@ -496,6 +528,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Exception, , "ae07f679-f0a1-4f24-9e1b-2e7ad8f59f6d");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Exception);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline Exception() noexcept {}
 		inline virtual ~Exception() {
 			if (this->exception_cause) {
@@ -633,7 +666,9 @@ namespace YBWLib2 {
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
 		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
-		// TODO: Ownership.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
@@ -655,7 +690,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetDescriptionSingleLevel(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
+		[[nodiscard]] inline virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
 			// TODO: Implement GetDescriptionSingleLevel.
 			return nullptr;
 		}
@@ -666,7 +701,9 @@ namespace YBWLib2 {
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
 		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
-		// TODO: Ownership.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
@@ -688,7 +725,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetDescriptionTotal(const char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
+		[[nodiscard]] inline virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
 			// TODO: Implement GetDescriptionTotal.
 			return nullptr;
 		}
@@ -712,6 +749,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(DoubleExceptionException, , "3e8fb777-36a8-4484-8dfc-c0c1d0769921");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(DoubleExceptionException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline DoubleExceptionException() noexcept = default;
 		inline virtual ~DoubleExceptionException() = default;
 		/// <summary>
@@ -736,6 +774,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(InvalidParameterException, , "64bcf888-15dc-4a20-95ec-d11ea4511e08");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(InvalidParameterException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>InvalidParameterException</c> object.</summary>
 		/// <param name="_name_function">
 		/// The name, in UTF-8, of the function, if available.
@@ -770,10 +809,12 @@ namespace YBWLib2 {
 				ExceptionFreeMemory(this->name_function);
 				this->name_function = nullptr;
 			}
+			this->size_name_function = 0;
 			if (this->name_class_member_function) {
 				ExceptionFreeMemory(this->name_class_member_function);
 				this->name_class_member_function = nullptr;
 			}
+			this->size_name_class_member_function = 0;
 		}
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
@@ -825,6 +866,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(InsufficientBufferException, , "58050bd3-cd5e-4501-b717-ee9603a31e77");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(InsufficientBufferException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>InsufficientBufferException</c> object.</summary>
 		/// <param name="_address_buffer_insufficient">
 		/// The address to the insufficient buffer, if available.
@@ -857,6 +899,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(MemoryAllocFailureException, , "5b87c2db-b7e8-4f02-928e-76fdc457d1a3");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(MemoryAllocFailureException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline MemoryAllocFailureException() noexcept = default;
 		inline virtual ~MemoryAllocFailureException() = default;
 		inline virtual ExceptionFlags GetExceptionFlagsSingleLevel() const noexcept override {
@@ -875,6 +918,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(KeyAlreadyExistException, , "7f492596-20cd-430c-8ebb-8a63b03f648a");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(KeyAlreadyExistException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline KeyAlreadyExistException() noexcept = default;
 		inline virtual ~KeyAlreadyExistException() = default;
 	};
@@ -890,6 +934,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(KeyNotExistException, , "41af914c-4067-4088-8c87-0da29e4f3b28");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(KeyNotExistException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline KeyNotExistException() noexcept = default;
 		inline virtual ~KeyNotExistException() = default;
 	};
@@ -905,6 +950,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(UnhandledUnknownExceptionException, , "394df091-137c-4214-9a74-1e3f8ef7601a");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(UnhandledUnknownExceptionException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline UnhandledUnknownExceptionException() noexcept = default;
 		inline virtual ~UnhandledUnknownExceptionException() = default;
 	};
@@ -920,6 +966,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(STLExceptionException, , "6bfb4f69-92fb-4b8f-b9b0-439243fdc80d");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(STLExceptionException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>STLExceptionException</c> object.</summary>
 		/// <param name="_str_what_stlexception">
 		/// The <c>what</c> string of the STL exception, if available.
@@ -961,6 +1008,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ExternalAPIFailureException, , "e1c1550b-2b64-48c8-8904-0013c4469f24");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ExternalAPIFailureException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>ExternalAPIFailureException</c> object.</summary>
 		/// <param name="_name_api">
 		/// The name, in UTF-8, of the external API, if available.
@@ -987,6 +1035,7 @@ namespace YBWLib2 {
 				ExceptionFreeMemory(this->name_api);
 				this->name_api = nullptr;
 			}
+			this->size_name_api = 0;
 		}
 		/// <summary>Gets the name of the external API, if available.</summary>
 		/// <returns>
@@ -1016,6 +1065,77 @@ namespace YBWLib2 {
 		char* name_api = nullptr;
 		size_t size_name_api = 0;
 		const void* address_api = nullptr;
+	};
+
+	/// <summary>
+	/// A default implementation of <c>IUnexpectedExceptionException</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>IUnexpectedExceptionException</c>.
+	/// </summary>
+	class UnexpectedExceptionException
+		: public virtual Exception,
+		public virtual IUnexpectedExceptionException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(UnexpectedExceptionException, , "a7f160c0-3ccc-45ab-aa5a-3172469faf64");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(UnexpectedExceptionException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
+		/// <summary>Constructs an <c>UnexpectedExceptionException</c> object.</summary>
+		/// <param name="_filename_source_code">
+		/// The filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_filename_source_code">
+		/// The size (in <c>char</c>s) of the filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_address_api">
+		/// The line number of the source code at which the exception has occured, if available.
+		/// If no meaningful line number can be provided, pass <c>-1</c>.
+		/// </param>
+		inline UnexpectedExceptionException(const char* _filename_source_code, size_t _size_filename_source_code, int _linenumber_source_code) noexcept {
+			if (_filename_source_code && _size_filename_source_code) {
+				this->size_filename_source_code = _size_filename_source_code;
+				this->filename_source_code = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_filename_source_code * sizeof(char)));
+				memcpy(this->filename_source_code, _filename_source_code, this->size_filename_source_code * sizeof(char));
+			}
+			if (_linenumber_source_code != -1) this->linenumber_source_code = _linenumber_source_code;
+		}
+		inline virtual ~UnexpectedExceptionException() {
+			if (this->filename_source_code) {
+				ExceptionFreeMemory(this->filename_source_code);
+				this->filename_source_code = nullptr;
+			}
+			this->size_filename_source_code = 0;
+			this->linenumber_source_code = -1;
+		}
+		/// <summary>Gets the filename of the source code file in which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, an empty pointer is returned.
+		/// </returns>
+		inline virtual const char* GetSourceCodeFileName() const noexcept override {
+			return this->filename_source_code && this->size_filename_source_code ? this->filename_source_code : nullptr;
+		}
+		/// <summary>Gets the size (in <c>char</c>s) of the filename of the source code file in which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the filename, in UTF-8, of the source code file in which the exception has occured, if available.
+		/// If no meaningful filename can be provided, <c>0</c> is returned.
+		/// </returns>
+		inline virtual size_t GetSourceCodeFileNameSize() const noexcept override {
+			return this->filename_source_code && this->size_filename_source_code ? this->size_filename_source_code : 0;
+		}
+		/// <summary>Gets the line number of the source code at which the exception has occured, if available.</summary>
+		/// <returns>
+		/// Returns the line number of the source code at which the exception has occured, if available.
+		/// If no meaningful line number can be provided, <c>-1</c> is returned.
+		/// </returns>
+		inline virtual int GetSourceCodeLineNumber() const noexcept override {
+			return this->linenumber_source_code != -1 ? this->linenumber_source_code : -1;
+		}
+	protected:
+		char* filename_source_code = nullptr;
+		size_t size_filename_source_code = 0;
+		int linenumber_source_code = -1;
 	};
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -1060,6 +1180,8 @@ namespace YBWLib2 {
 #define YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(stlexceptionname) (new ::YBWLib2::STLExceptionException((stlexceptionname).what()))
 
 #define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_EXCEPTION(apiname) (new ::YBWLib2::ExternalAPIFailureException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname)))
+
+#define YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION() (new ::YBWLib2::UnexpectedExceptionException(YBWLIB2_TO_UTF8(__FILE__), (sizeof(YBWLIB2_TO_UTF8(__FILE__)) / sizeof(char)) - 1, __LINE__))
 
 //}
 #pragma endregion These macros are used to create exception objects with the above default implementation.
