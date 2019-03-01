@@ -25,6 +25,18 @@ namespace YBWLib2 {
 		return val_type_info_l->before(*val_type_info_r);
 	}
 
+	size_t YBWLIB2_CALLTYPE wrapper_type_info_t::GetHashCode_TypeInfo(const wrapper_type_info_t* x) noexcept {
+		if (!x || x->module_info != module_info_current) return x->GetHashCode();
+		const ::std::type_info* val_type_info_x = reinterpret_cast<const ::std::type_info*>(x->context);
+		return val_type_info_x->hash_code();
+	}
+
+	const char* YBWLIB2_CALLTYPE wrapper_type_info_t::GetName_TypeInfo(const wrapper_type_info_t* x) noexcept {
+		if (!x || x->module_info != module_info_current) return x->GetName();
+		const ::std::type_info* val_type_info_x = reinterpret_cast<const ::std::type_info*>(x->context);
+		return val_type_info_x->name();
+	}
+
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitModuleLocal() noexcept {
 		rawallocator_crt_module_local = new rawallocator_t(
 			[](size_t size, uintptr_t context) noexcept->void* {

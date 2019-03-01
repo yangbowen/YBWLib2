@@ -570,30 +570,70 @@ namespace YBWLib2 {
 		/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
 		/// <returns>Whether the type represented by <c>*l</c> is considered to precede the type represented by <c>*r</c>.</returns>
 		typedef bool(YBWLIB2_CALLTYPE* fnptr_is_less_than_t)(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+		/// <summary>Function pointer type for getting the implementation-defined hash code of the type.</summary>
+		/// <returns>Returns the implementation-defined hash code of the type.</returns>
+		typedef size_t(YBWLIB2_CALLTYPE* fnptr_get_hash_code_t)(const wrapper_type_info_t* x) noexcept;
+		/// <summary>Function pointer type for getting the implementation-defined null-terminated name of the type, if available.</summary>
+		/// <returns>
+		/// Returns the implementation-defined null-terminated name, in UTF-8, of the type, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		typedef const char*(YBWLIB2_CALLTYPE* fnptr_get_name_t)(const wrapper_type_info_t* x) noexcept;
 		fnptr_is_equal_to_t fnptr_is_equal_to = nullptr;
 		fnptr_is_less_than_t fnptr_is_less_than = nullptr;
+		fnptr_get_hash_code_t fnptr_get_hash_code = nullptr;
+		fnptr_get_name_t fnptr_get_name = nullptr;
 		const module_info_t* module_info = nullptr;
 		uintptr_t context = 0;
 		inline constexpr wrapper_type_info_t(
 			fnptr_is_equal_to_t _fnptr_is_equal_to,
 			fnptr_is_less_than_t _fnptr_is_less_than,
+			fnptr_get_hash_code_t _fnptr_get_hash_code,
+			fnptr_get_name_t _fnptr_get_name,
 			const module_info_t* _module_info,
 			uintptr_t _context
 		) noexcept
 			: fnptr_is_equal_to(_fnptr_is_equal_to),
 			fnptr_is_less_than(_fnptr_is_less_than),
+			fnptr_get_hash_code(_fnptr_get_hash_code),
+			fnptr_get_name(_fnptr_get_name),
 			module_info(_module_info),
 			context(_context) {}
 		inline wrapper_type_info_t(const ::std::type_info& val_type_info) noexcept
-			: fnptr_is_equal_to(wrapper_type_info_t::IsEqualTo_TypeInfo),
-			fnptr_is_less_than(wrapper_type_info_t::IsLessThan_TypeInfo),
+			: fnptr_is_equal_to(&wrapper_type_info_t::IsEqualTo_TypeInfo),
+			fnptr_is_less_than(&wrapper_type_info_t::IsLessThan_TypeInfo),
+			fnptr_get_hash_code(&wrapper_type_info_t::GetHashCode_TypeInfo),
+			fnptr_get_name(&wrapper_type_info_t::GetName_TypeInfo),
 			module_info(module_info_current),
 			context(reinterpret_cast<uintptr_t>(&val_type_info)) {}
+		/// <summary>Gets the implementation-defined hash code of the type.</summary>
+		/// <returns>Returns the implementation-defined hash code of the type.</returns>
+		inline size_t GetHashCode() const noexcept {
+			if (!this || !this->fnptr_get_hash_code)
+				return 0;
+			else
+				return (*this->fnptr_get_hash_code)(this);
+		}
+		/// <summary>Gets the implementation-defined null-terminated name of the type, if available.</summary>
+		/// <returns>
+		/// Returns the implementation-defined null-terminated name, in UTF-8, of the type, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		inline const char* GetName() const noexcept {
+			if (!this || !this->fnptr_get_name)
+				return nullptr;
+			else
+				return (*this->fnptr_get_name)(this);
+		}
 	protected:
 		/// <summary>Checks type equivalence for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
 		static bool YBWLIB2_CALLTYPE IsEqualTo_TypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
 		/// <summary>Checks type precedence for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
 		static bool YBWLIB2_CALLTYPE IsLessThan_TypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept;
+		/// <summary>Gets the implementation-defined hash code of the type for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
+		static size_t YBWLIB2_CALLTYPE GetHashCode_TypeInfo(const wrapper_type_info_t* x) noexcept;
+		/// <summary>Gets the implementation-defined null-terminated name of the type for <c>wrapper_type_info_t</c> objects constructed using <c>const ::std::type_info&</c>.</summary>
+		static const char* YBWLIB2_CALLTYPE GetName_TypeInfo(const wrapper_type_info_t* x) noexcept;
 	};
 	static_assert(::std::is_standard_layout_v<wrapper_type_info_t>, "wrapper_type_info_t is not standard-layout.");
 	/// <summary>

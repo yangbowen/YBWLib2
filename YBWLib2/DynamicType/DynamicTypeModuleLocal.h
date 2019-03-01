@@ -21,7 +21,7 @@ namespace YBWLib2 {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = map_dtclassobj_module_local->find(*_dtclassid);
-					ret = it_dtclassobj == map_dtclassobj_module_local->end() ? nullptr : &it_dtclassobj->second;
+					if (it_dtclassobj != map_dtclassobj_module_local->end()) ret = &it_dtclassobj->second;
 				}
 			}
 		} catch (...) {
@@ -55,9 +55,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE DynamicType_RealInitModuleLocal() noexcept {
 		map_dtclassobj_module_local = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
 		if (!map_dtclassobj_module_local) abort();
+		GetDynamicTypeThisClassObject<IDynamicTypeObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDynamicTypeObject)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE DynamicType_RealUnInitModuleLocal() noexcept {
+		GetDynamicTypeThisClassObject<IDynamicTypeObject>()->UnRegisterTypeInfoWrapper(module_info_current);
 		if (!map_dtclassobj_module_local->empty()) abort();
 		delete map_dtclassobj_module_local;
 		map_dtclassobj_module_local = nullptr;

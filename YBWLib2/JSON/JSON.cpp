@@ -24,6 +24,8 @@
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IJSONException, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IParseErrorJSONException, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IJSONSAXHandler, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IJSONSAXGenerator, YBWLIB2_API);
 
 	void YBWLIB2_CALLTYPE JSON_RealInitGlobal() noexcept {
 		IJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -38,9 +40,15 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<IJSONSAXHandler>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXHandler>(),
 			{ DynamicTypeBaseClassDef<IJSONSAXHandler, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+		IJSONSAXGenerator::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IJSONSAXGenerator>(),
+			IsDynamicTypeModuleLocalClass<IJSONSAXGenerator>(),
+			{ DynamicTypeBaseClassDef<IJSONSAXGenerator, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
 	}
 
 	void YBWLIB2_CALLTYPE JSON_RealUnInitGlobal() noexcept {
+		delete IJSONSAXGenerator::DynamicTypeThisClassObject;
+		IJSONSAXGenerator::DynamicTypeThisClassObject = nullptr;
 		delete IJSONSAXHandler::DynamicTypeThisClassObject;
 		IJSONSAXHandler::DynamicTypeThisClassObject = nullptr;
 		delete IParseErrorJSONException::DynamicTypeThisClassObject;

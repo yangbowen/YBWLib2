@@ -9,9 +9,17 @@
 #include "File.h"
 
 namespace YBWLib2 {
-	void YBWLIB2_CALLTYPE File_RealInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE File_RealInitModuleLocal() noexcept {
+		GetDynamicTypeThisClassObject<ISeekableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ISeekableFile)), module_info_current);
+		GetDynamicTypeThisClassObject<IInputFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInputFile)), module_info_current);
+		GetDynamicTypeThisClassObject<IOutputFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IOutputFile)), module_info_current);
+	}
 
-	void YBWLIB2_CALLTYPE File_RealUnInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE File_RealUnInitModuleLocal() noexcept {
+		GetDynamicTypeThisClassObject<IOutputFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<IInputFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<ISeekableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+	}
 }
 
 #endif

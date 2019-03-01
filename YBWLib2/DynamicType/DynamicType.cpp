@@ -60,6 +60,8 @@ namespace YBWLib2 {
 		/// This member variable is only modified during the construction and destruction of this object.
 		/// </summary>
 		DynamicTypeClassObj* pdecl = nullptr;
+		/// <summary>The map of <c></c> objects that represents the type of this class.</summary>
+		::std::unordered_map<const module_info_t*, wrapper_type_info_t> map_wrapper_type_info;
 		/// <summary>
 		/// The set of direct base classes of this class.
 		/// This member variable is only modified during the construction and destruction of this object.
@@ -123,7 +125,7 @@ namespace YBWLib2 {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
-					ret = it_dtclassobj == map_dtclassobj_global->end() ? nullptr : &it_dtclassobj->second;
+					if (it_dtclassobj != map_dtclassobj_global->end()) ret = &it_dtclassobj->second;
 				}
 			}
 		} catch (...) {
@@ -132,17 +134,99 @@ namespace YBWLib2 {
 		return ret;
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::CreateImplObject(const DynamicTypeBaseClassDefObj* _begin_dtbaseclassdef, const DynamicTypeBaseClassDefObj* _end_dtbaseclassdef) {
-		if (this->pimpl) {
-			delete this->pimpl;
-			this->pimpl = nullptr;
-		}
-		if (!this->is_module_local) {
-			for (const DynamicTypeBaseClassDefObj* _it_dtbaseclassdef = _begin_dtbaseclassdef; _it_dtbaseclassdef != _end_dtbaseclassdef; ++_it_dtbaseclassdef)
-				if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) abort();
-		}
-		this->pimpl = new _impl_DynamicTypeClassObj(this, _begin_dtbaseclassdef, _end_dtbaseclassdef);
+	YBWLIB2_API const wrapper_type_info_t* YBWLIB2_CALLTYPE DynamicTypeClassObj::GetTypeInfoWrapper(const module_info_t* _module_info) const noexcept {
+		const wrapper_type_info_t* ret = nullptr;
 		try {
+			if (_module_info) {
+				{
+					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+					::std::unordered_map<const module_info_t*, wrapper_type_info_t>::const_iterator it_wrapper_type_info = this->pimpl->map_wrapper_type_info.find(_module_info);
+					if (it_wrapper_type_info != this->pimpl->map_wrapper_type_info.cend()) ret = &it_wrapper_type_info->second;
+				}
+			}
+		} catch (...) {
+			abort();
+		}
+		return ret;
+	}
+
+	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const {
+		DynamicTypeClassObj* ret = nullptr;
+		try {
+			if (dtclassid_base && *dtclassid_base != DynamicTypeClassID_Null) {
+				{
+					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+					::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::const_iterator it_baseclass_total = this->pimpl->map_baseclass_total.find(*dtclassid_base);
+					if (it_baseclass_total != this->pimpl->map_baseclass_total.cend()) ret = &it_baseclass_total->second.dtclassobj_baseclass;
+				}
+			}
+		} catch (...) {
+			abort();
+		}
+		return ret;
+	}
+
+	YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicTypeClassObj::DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const {
+		uintptr_t ret = 0;
+		try {
+			if (dtclassobj_target && (!dtclassobj_target->IsModuleLocal() || this->IsModuleLocal())) {
+				if (dtclassobj_target == this) {
+					ret = ptr_obj;
+				} else {
+					const DynamicTypeClassID* dtclassid_target = &dtclassobj_target->GetDynamicTypeClassID();
+					{
+						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+						const DynamicTypeTotalBaseClass* dttotalbaseclassobj_target_found = this->pimpl->FindTotalBaseClass(dtclassid_target);
+						if (dttotalbaseclassobj_target_found && &dttotalbaseclassobj_target_found->dtclassobj_baseclass == dtclassobj_target) {
+							ret = ptr_obj;
+							for (const DynamicTypeTotalBaseClass::upcast_step_t& val_upcast_step : dttotalbaseclassobj_target_found->vec_upcast_step) {
+								if (!val_upcast_step.fnptr_dynamic_type_upcast) abort();
+								if (!ret) break;
+								ret = (*val_upcast_step.fnptr_dynamic_type_upcast)(ret, val_upcast_step.dtclassobj_from, val_upcast_step.dtbaseclassdef);
+							}
+						}
+					}
+				}
+			}
+		} catch (...) {
+			abort();
+		}
+		return ret;
+	}
+
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::RegisterTypeInfoWrapper(const wrapper_type_info_t* _wrapper_type_info, const module_info_t* _module_info) noexcept {
+		try {
+			{
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				if (!this->pimpl->map_wrapper_type_info.emplace(_module_info, *_wrapper_type_info).second) abort();
+			}
+		} catch (...) {
+			abort();
+		}
+	}
+
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::UnRegisterTypeInfoWrapper(const module_info_t* _module_info) noexcept {
+		try {
+			{
+				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+				if (!this->pimpl->map_wrapper_type_info.erase(_module_info)) abort();
+			}
+		} catch (...) {
+			abort();
+		}
+	}
+
+	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::CreateImplObject(const DynamicTypeBaseClassDefObj* _begin_dtbaseclassdef, const DynamicTypeBaseClassDefObj* _end_dtbaseclassdef) {
+		try {
+			if (this->pimpl) {
+				delete this->pimpl;
+				this->pimpl = nullptr;
+			}
+			if (!this->is_module_local) {
+				for (const DynamicTypeBaseClassDefObj* _it_dtbaseclassdef = _begin_dtbaseclassdef; _it_dtbaseclassdef != _end_dtbaseclassdef; ++_it_dtbaseclassdef)
+					if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) abort();
+			}
+			this->pimpl = new _impl_DynamicTypeClassObj(this, _begin_dtbaseclassdef, _end_dtbaseclassdef);
 			::std::unordered_set<DynamicTypeClassID, hash_DynamicTypeClassID_t> set_dtclassid_baseclass_conflict;
 			{
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
@@ -253,54 +337,14 @@ namespace YBWLib2 {
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::DestroyImplObject() {
-		if (this->pimpl) {
-			delete this->pimpl;
-			this->pimpl = nullptr;
-		}
-	}
-
-	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const {
-		DynamicTypeClassObj* ret = nullptr;
 		try {
-			if (dtclassid_base && *dtclassid_base != DynamicTypeClassID_Null) {
-				{
-					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-					::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::const_iterator it_baseclass_total = this->pimpl->map_baseclass_total.find(*dtclassid_base);
-					if (it_baseclass_total != this->pimpl->map_baseclass_total.cend()) ret = &it_baseclass_total->second.dtclassobj_baseclass;
-				}
+			if (this->pimpl) {
+				delete this->pimpl;
+				this->pimpl = nullptr;
 			}
 		} catch (...) {
 			abort();
 		}
-		return ret;
-	}
-
-	YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicTypeClassObj::DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const {
-		uintptr_t ret = 0;
-		try {
-			if (dtclassobj_target && (!dtclassobj_target->IsModuleLocal() || this->IsModuleLocal())) {
-				if (dtclassobj_target == this) {
-					ret = ptr_obj;
-				} else {
-					const DynamicTypeClassID* dtclassid_target = &dtclassobj_target->GetDynamicTypeClassID();
-					{
-						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-						const DynamicTypeTotalBaseClass* dttotalbaseclassobj_target_found = this->pimpl->FindTotalBaseClass(dtclassid_target);
-						if (dttotalbaseclassobj_target_found && &dttotalbaseclassobj_target_found->dtclassobj_baseclass == dtclassobj_target) {
-							ret = ptr_obj;
-							for (const DynamicTypeTotalBaseClass::upcast_step_t& val_upcast_step : dttotalbaseclassobj_target_found->vec_upcast_step) {
-								if (!val_upcast_step.fnptr_dynamic_type_upcast) abort();
-								if (!ret) break;
-								ret = (*val_upcast_step.fnptr_dynamic_type_upcast)(ret, val_upcast_step.dtclassobj_from, val_upcast_step.dtbaseclassdef);
-							}
-						}
-					}
-				}
-			}
-		} catch (...) {
-			abort();
-		}
-		return ret;
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::RegisterGlobal() {

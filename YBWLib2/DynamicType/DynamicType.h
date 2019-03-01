@@ -178,6 +178,13 @@ namespace YBWLib2 {
 		DynamicTypeClassObj& operator=(DynamicTypeClassObj&&) = delete;
 		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
 		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
+		/// <summary>Gets a pointer to the <c>wrapper_type_info_t</c> object that represents the type of this dynamic type class in the specified module.</summary>
+		/// <param name="_module_info">Pointer to the <c>module_info</c> object that represents the specified module.</param>
+		/// <returns>
+		/// This function returns a pointer to the <c>wrapper_type_info_t</c> object if successful.
+		/// Otherwise (if this class doesn't have a <c>wrapper_type_info_t</c> object registered in the specified module), it returns an empty pointer.
+		/// </returns>
+		YBWLIB2_API const wrapper_type_info_t* YBWLIB2_CALLTYPE GetTypeInfoWrapper(const module_info_t* _module_info) const noexcept;
 		/// <summary>Finds a dynamic type base class of this class with the specified <c>DynamicTypeClassID</c> identifier.</summary>
 		/// <returns>
 		/// This function returns a pointer to the found dynamic type class object if successful.
@@ -186,6 +193,17 @@ namespace YBWLib2 {
 		YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const;
 		/// <summary>Dynamically upcasts a pointer.</summary>
 		YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const;
+		/// <summary>Registers a <c>wrapper_type_info_t</c> object that represents the type of this dynamic type class in the specified module.</summary>
+		/// <param name="_wrapper_type_info">Pointer to a <c>wrapper_type_info_t</c> object that represents the type.</param>
+		/// <param name="_module_info">Pointer to the <c>module_info</c> object that represents the specified module.</param>
+		YBWLIB2_API void YBWLIB2_CALLTYPE RegisterTypeInfoWrapper(const wrapper_type_info_t* _wrapper_type_info, const module_info_t* _module_info) noexcept;
+		/// <summary>Registers a <c>wrapper_type_info_t</c> object that represents the type of this dynamic type class in the specified module.</summary>
+		/// <param name="_wrapper_type_info">Reference to a <c>wrapper_type_info_t</c> object that represents the type.</param>
+		/// <param name="_module_info">Pointer to the <c>module_info</c> object that represents the specified module.</param>
+		inline void RegisterTypeInfoWrapper(const wrapper_type_info_t& _wrapper_type_info, const module_info_t* _module_info) noexcept { this->RegisterTypeInfoWrapper(&_wrapper_type_info, _module_info); }
+		/// <summary>Unregisters the <c>wrapper_type_info_t</c> object that represents the type of this dynamic type class in the specified module.</summary>
+		/// <param name="_module_info">Pointer to the <c>module_info</c> object that represents the specified module.</param>
+		YBWLIB2_API void YBWLIB2_CALLTYPE UnRegisterTypeInfoWrapper(const module_info_t* _module_info) noexcept;
 	protected:
 		const DynamicTypeClassID dtclassid;
 		const bool is_module_local;

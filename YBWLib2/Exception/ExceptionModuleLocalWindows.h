@@ -22,6 +22,16 @@ namespace YBWLib2 {
 #endif
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithLastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureWithLastErrorException)), module_info_current);
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithWSALastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureWithWSALastErrorException)), module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithNTSTATUSException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureWithNTSTATUSException)), module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithHRESULTException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureWithHRESULTException)), module_info_current);
+#endif
 		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ExternalAPIFailureWithLastErrorException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithLastErrorException>(),
@@ -56,23 +66,53 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, IExternalAPIFailureWithHRESULTException, DynamicTypeBaseClassFlag_VirtualBase>
 			});
 #endif
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithLastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithLastErrorException)), module_info_current);
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithWSALastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithWSALastErrorException)), module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithNTSTATUSException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithNTSTATUSException)), module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithHRESULTException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithHRESULTException)), module_info_current);
+#endif
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept {
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithHRESULTException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithNTSTATUSException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithWSALastErrorException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#endif
+		GetDynamicTypeThisClassObject<ExternalAPIFailureWithLastErrorException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		delete ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject;
 		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = nullptr;
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		delete ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject;
 		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		delete ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject;
 		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		delete ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject;
 		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = nullptr;
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithHRESULTException>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithNTSTATUSException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithWSALastErrorException>()->UnRegisterTypeInfoWrapper(module_info_current);
+#endif
+		GetDynamicTypeThisClassObject<IExternalAPIFailureWithLastErrorException>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitModuleLocal() noexcept {}
