@@ -76,6 +76,8 @@ namespace YBWLib2 {
 	YBWLIB2_API IStringTemplate* ExternalAPIFailureException::strtmpl_description = nullptr;
 	YBWLIB2_API IStringTemplate* UnexpectedExceptionException::strtmpl_description = nullptr;
 
+	static const char str_strtmpl_description_default_Exception[] = "An exception has occurred.";
+
 	static ExceptionHandlingEnvironment* exception_handling_environment = nullptr;
 
 	YBWLIB2_API size_t YBWLIB2_CALLTYPE ExceptionGetMaxMemorySize() noexcept { return exception_handling_environment->GetMaxMemorySize(); }
@@ -148,44 +150,9 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<IUnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IUnexpectedExceptionException>(),
 			{ DynamicTypeBaseClassDef<IUnexpectedExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
-
-		Exception::strtmpl_description = nullptr;// TODO: Implement.
-		DoubleExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		InvalidParameterException::strtmpl_description = nullptr;// TODO: Implement.
-		InsufficientBufferException::strtmpl_description = nullptr;// TODO: Implement.
-		MemoryAllocFailureException::strtmpl_description = nullptr;// TODO: Implement.
-		KeyAlreadyExistException::strtmpl_description = nullptr;// TODO: Implement.
-		KeyNotExistException::strtmpl_description = nullptr;// TODO: Implement.
-		UnhandledUnknownExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		STLExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		ExternalAPIFailureException::strtmpl_description = nullptr;// TODO: Implement.
-		UnexpectedExceptionException::strtmpl_description = nullptr;// TODO: Implement.
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept {
-		delete UnexpectedExceptionException::strtmpl_description;
-		UnexpectedExceptionException::strtmpl_description = nullptr;
-		delete ExternalAPIFailureException::strtmpl_description;
-		ExternalAPIFailureException::strtmpl_description = nullptr;
-		delete STLExceptionException::strtmpl_description;
-		STLExceptionException::strtmpl_description = nullptr;
-		delete UnhandledUnknownExceptionException::strtmpl_description;
-		UnhandledUnknownExceptionException::strtmpl_description = nullptr;
-		delete KeyNotExistException::strtmpl_description;
-		KeyNotExistException::strtmpl_description = nullptr;
-		delete KeyAlreadyExistException::strtmpl_description;
-		KeyAlreadyExistException::strtmpl_description = nullptr;
-		delete MemoryAllocFailureException::strtmpl_description;
-		MemoryAllocFailureException::strtmpl_description = nullptr;
-		delete InsufficientBufferException::strtmpl_description;
-		InsufficientBufferException::strtmpl_description = nullptr;
-		delete InvalidParameterException::strtmpl_description;
-		InvalidParameterException::strtmpl_description = nullptr;
-		delete DoubleExceptionException::strtmpl_description;
-		DoubleExceptionException::strtmpl_description = nullptr;
-		delete Exception::strtmpl_description;
-		Exception::strtmpl_description = nullptr;
-
 		delete IUnexpectedExceptionException::DynamicTypeThisClassObject;
 		IUnexpectedExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete IExternalAPIFailureException::DynamicTypeThisClassObject;
@@ -213,5 +180,44 @@ namespace YBWLib2 {
 		rawallocator_exception = nullptr;
 		delete exception_handling_environment;
 		exception_handling_environment = nullptr;
+	}
+
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitGlobal() noexcept {
+		Exception::strtmpl_description = new FixedStringTemplate(rawallocator_crt_YBWLib2, str_strtmpl_description_default_Exception, (sizeof(str_strtmpl_description_default_Exception) / sizeof(char)) - 1);
+		DoubleExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		InvalidParameterException::strtmpl_description = nullptr;// TODO: Implement.
+		InsufficientBufferException::strtmpl_description = nullptr;// TODO: Implement.
+		MemoryAllocFailureException::strtmpl_description = nullptr;// TODO: Implement.
+		KeyAlreadyExistException::strtmpl_description = nullptr;// TODO: Implement.
+		KeyNotExistException::strtmpl_description = nullptr;// TODO: Implement.
+		UnhandledUnknownExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		STLExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		ExternalAPIFailureException::strtmpl_description = nullptr;// TODO: Implement.
+		UnexpectedExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+	}
+
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitGlobal() noexcept {
+		delete UnexpectedExceptionException::strtmpl_description;
+		UnexpectedExceptionException::strtmpl_description = nullptr;
+		delete ExternalAPIFailureException::strtmpl_description;
+		ExternalAPIFailureException::strtmpl_description = nullptr;
+		delete STLExceptionException::strtmpl_description;
+		STLExceptionException::strtmpl_description = nullptr;
+		delete UnhandledUnknownExceptionException::strtmpl_description;
+		UnhandledUnknownExceptionException::strtmpl_description = nullptr;
+		delete KeyNotExistException::strtmpl_description;
+		KeyNotExistException::strtmpl_description = nullptr;
+		delete KeyAlreadyExistException::strtmpl_description;
+		KeyAlreadyExistException::strtmpl_description = nullptr;
+		delete MemoryAllocFailureException::strtmpl_description;
+		MemoryAllocFailureException::strtmpl_description = nullptr;
+		delete InsufficientBufferException::strtmpl_description;
+		InsufficientBufferException::strtmpl_description = nullptr;
+		delete InvalidParameterException::strtmpl_description;
+		InvalidParameterException::strtmpl_description = nullptr;
+		delete DoubleExceptionException::strtmpl_description;
+		DoubleExceptionException::strtmpl_description = nullptr;
+		delete Exception::strtmpl_description;
+		Exception::strtmpl_description = nullptr;
 	}
 }

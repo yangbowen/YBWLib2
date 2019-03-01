@@ -231,6 +231,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept;
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealUnInitModuleLocal() noexcept;
+
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

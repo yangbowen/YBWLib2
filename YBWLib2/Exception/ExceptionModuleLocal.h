@@ -122,6 +122,10 @@ namespace YBWLib2 {
 		delete Exception::DynamicTypeThisClassObject;
 		Exception::DynamicTypeThisClassObject = nullptr;
 	}
+
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitModuleLocal() noexcept {}
 }
 
 #endif

@@ -18,13 +18,17 @@
 #include <memory>
 #include <exception>
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include "../YBWLib2Api.h"
 #include "../Common/CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
+#include "../JSON/JSON.h"
 
 namespace YBWLib2 {
+	class SubstitutionStringTemplateConstructorJSONSAXHandler;
+
 	/// <summary>
 	/// Format data into a UTF-8 string.
 	/// Works like the C library function <c>vsnprintf</c>, except that the output string and format string are in UTF-8.
@@ -364,12 +368,12 @@ namespace YBWLib2 {
 			this->size_name_parameter = 0;
 		}
 		inline StringTemplateParameter& operator=(const StringTemplateParameter& x) noexcept(false) {
-			static_cast<IStringTemplateParameter&>(*this) = static_cast<const IStringTemplateParameter&>(x);
 			if (this->name_parameter) {
 				if (!this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char))) abort();
 				this->name_parameter = nullptr;
 			}
 			this->size_name_parameter = 0;
+			static_cast<IStringTemplateParameter&>(*this) = static_cast<const IStringTemplateParameter&>(x);
 			this->rawallocator = x.rawallocator;
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_name_parameter = x.size_name_parameter;
@@ -379,12 +383,12 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline StringTemplateParameter& operator=(StringTemplateParameter&& x) noexcept(false) {
-			static_cast<IStringTemplateParameter&>(*this) = static_cast<IStringTemplateParameter&&>(::std::move(x));
 			if (this->name_parameter) {
 				if (!this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char))) abort();
 				this->name_parameter = nullptr;
 			}
 			this->size_name_parameter = 0;
+			static_cast<IStringTemplateParameter&>(*this) = static_cast<IStringTemplateParameter&&>(::std::move(x));
 			this->rawallocator = x.rawallocator;
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->name_parameter = x.name_parameter;
@@ -514,12 +518,12 @@ namespace YBWLib2 {
 			this->size_str_value = 0;
 		}
 		inline StringStringTemplateParameter& operator=(const StringStringTemplateParameter& x) noexcept(false) {
-			static_cast<StringTemplateParameter&>(*this) = static_cast<const StringTemplateParameter&>(x);
 			if (this->size_str_value) {
 				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
+			static_cast<StringTemplateParameter&>(*this) = static_cast<const StringTemplateParameter&>(x);
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
 			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
@@ -528,12 +532,12 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline StringStringTemplateParameter& operator=(StringStringTemplateParameter&& x) noexcept(false) {
-			static_cast<StringTemplateParameter&>(*this) = static_cast<StringTemplateParameter&&>(::std::move(x));
 			if (this->size_str_value) {
 				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
+			static_cast<StringTemplateParameter&>(*this) = static_cast<StringTemplateParameter&&>(::std::move(x));
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->str_value = x.str_value;
 			this->size_str_value = x.size_str_value;
@@ -592,9 +596,9 @@ namespace YBWLib2 {
 			const rawallocator_t* _rawallocator = nullptr
 		) const noexcept override {
 			static_cast<void>(str_options);
-			if (size_str_options) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
-			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
-			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
+			if (size_str_options) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
 			*str_out_ret = nullptr;
 			*size_str_out_ret = 0;
 			try {
@@ -685,14 +689,15 @@ namespace YBWLib2 {
 		/// No deep copies will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
 		inline StringTemplateParameterList& operator=(const StringTemplateParameterList& x) noexcept(false) {
-			static_cast<IStringTemplateParameterList&>(*this) = static_cast<const IStringTemplateParameterList&>(x);
 			if (this->map_parameter) {
 				this->map_parameter->~map_parameter_t();
 			}
-			if (this->map_parameter && !x.map_parameter) {
+			if (this->map_parameter && (!x.map_parameter || this->rawallocator != x.rawallocator)) {
 				if (!this->rawallocator->Deallocate(this->map_parameter, sizeof(map_parameter_t))) abort();
 				this->map_parameter = nullptr;
-			} else if (!this->map_parameter && x.map_parameter) {
+			}
+			static_cast<IStringTemplateParameterList&>(*this) = static_cast<const IStringTemplateParameterList&>(x);
+			if (!this->map_parameter && x.map_parameter) {
 				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
 				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
@@ -709,14 +714,15 @@ namespace YBWLib2 {
 		/// No deep moves will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
 		inline StringTemplateParameterList& operator=(StringTemplateParameterList&& x) noexcept(false) {
-			static_cast<IStringTemplateParameterList&>(*this) = static_cast<IStringTemplateParameterList&&>(::std::move(x));
 			if (this->map_parameter) {
 				this->map_parameter->~map_parameter_t();
 			}
-			if (this->map_parameter && !x.map_parameter) {
+			if (this->map_parameter && (!x.map_parameter || this->rawallocator != x.rawallocator)) {
 				if (!this->rawallocator->Deallocate(this->map_parameter, sizeof(map_parameter_t))) abort();
 				this->map_parameter = nullptr;
-			} else if (!this->map_parameter && x.map_parameter) {
+			}
+			static_cast<IStringTemplateParameterList&>(*this) = static_cast<IStringTemplateParameterList&&>(::std::move(x));
+			if (!this->map_parameter && x.map_parameter) {
 				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
 				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
@@ -773,7 +779,8 @@ namespace YBWLib2 {
 			*parameter_ret = nullptr;
 			try {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				map_parameter_t::const_iterator it_map_parameter = this->map_parameter->find(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator)));
+				allocator_rawallocator_t<string_name_parameter_t::value_type> allocator_name_parameter(_rawallocator);
+				map_parameter_t::const_iterator it_map_parameter = this->map_parameter->find(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_name_parameter));
 				if (it_map_parameter != this->map_parameter->cend()) *parameter_ret = it_map_parameter->second;
 			} catch (::std::bad_alloc&) {
 				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
@@ -845,7 +852,7 @@ namespace YBWLib2 {
 			size_t _size_name_parameter,
 			const rawallocator_t* _rawallocator = nullptr
 		) noexcept override {
-			if (!_name_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, GetParameterByName);
+			if (!_name_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, RemoveParameterByName);
 			try {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 				if (!this->map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator))))
@@ -955,6 +962,8 @@ namespace YBWLib2 {
 		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
 		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
 		/// </param>
+		/// <param name="_str_value">The fixed string, in UTF-8, to be generated by this string template.</param>
+		/// <param name="_size_str_value">The size (in <c>char</c>s) of the fixed string, in UTF-8, to be generated by this string template.</param>
 		inline FixedStringTemplate(
 			const rawallocator_t* _rawallocator,
 			const char* _str_value = nullptr,
@@ -988,12 +997,12 @@ namespace YBWLib2 {
 			this->size_str_value = 0;
 		}
 		inline FixedStringTemplate& operator=(const FixedStringTemplate& x) noexcept(false) {
-			static_cast<StringTemplate&>(*this) = static_cast<const StringTemplate&>(x);
 			if (this->size_str_value) {
 				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
+			static_cast<StringTemplate&>(*this) = static_cast<const StringTemplate&>(x);
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
 			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
@@ -1002,12 +1011,12 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline FixedStringTemplate& operator=(FixedStringTemplate&& x) noexcept(false) {
-			static_cast<StringTemplate&>(*this) = static_cast<StringTemplate&&>(::std::move(x));
 			if (this->size_str_value) {
 				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
+			static_cast<StringTemplate&>(*this) = static_cast<StringTemplate&&>(::std::move(x));
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->str_value = x.str_value;
 			this->size_str_value = x.size_str_value;
@@ -1053,8 +1062,8 @@ namespace YBWLib2 {
 			const rawallocator_t* _rawallocator = nullptr
 		) const noexcept override {
 			static_cast<void>(parameter_list);
-			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
-			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
+			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
 			*str_out_ret = nullptr;
 			*size_str_out_ret = 0;
 			try {
@@ -1081,6 +1090,511 @@ namespace YBWLib2 {
 	protected:
 		char* str_value = nullptr;
 		size_t size_str_value = 0;
+	};
+
+	/// <summary>
+	/// A default implementation of a string template that generates a string, optionally with elements in it substituted by the string template parameter(s).
+	/// </summary>
+	class SubstitutionStringTemplate : public virtual StringTemplate {
+		friend SubstitutionStringTemplateConstructorJSONSAXHandler;
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(SubstitutionStringTemplate, , "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(SubstitutionStringTemplate);
+		/// <summary>Constructs an <c>SubstitutionStringTemplate</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="jsonsaxgenerator">A pointer to a JSON SAX generator that provides a JSON that corresponds to this string template.</param>
+		SubstitutionStringTemplate(
+			const rawallocator_t* _rawallocator,
+			IJSONSAXGenerator* jsonsaxgenerator
+		) noexcept(false);
+		inline SubstitutionStringTemplate(const SubstitutionStringTemplate& x) noexcept(false) : StringTemplate(static_cast<const StringTemplate&>(x)) {
+			if (x.vec_element) {
+				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
+				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				try {
+					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(*x.vec_element));
+				} catch (::std::exception& err) {
+					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
+				}
+			}
+		}
+		inline SubstitutionStringTemplate(SubstitutionStringTemplate&& x) noexcept(false) : StringTemplate(static_cast<StringTemplate&&>(::std::move(x))) {
+			if (x.vec_element) {
+				this->vec_element = x.vec_element;
+				x.vec_element = nullptr;
+			}
+		}
+		inline virtual ~SubstitutionStringTemplate() {
+			if (this->vec_element) {
+				this->vec_element->~vec_element_t();
+				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
+				this->vec_element = nullptr;
+			}
+		}
+		inline SubstitutionStringTemplate& operator=(const SubstitutionStringTemplate& x) noexcept(false) {
+			if (this->vec_element) {
+				this->vec_element->~vec_element_t();
+			}
+			if (this->vec_element && (!x.vec_element || this->rawallocator != x.rawallocator)) {
+				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
+				this->vec_element = nullptr;
+			}
+			static_cast<StringTemplate&>(*this) = static_cast<const StringTemplate&>(x);
+			if (!this->vec_element && x.vec_element) {
+				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
+				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			}
+			if (x.vec_element) {
+				try {
+					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(*x.vec_element, allocator_rawallocator_t<element_t>(this->rawallocator)));
+				} catch (::std::exception& err) {
+					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
+				}
+			}
+			return *this;
+		}
+		inline SubstitutionStringTemplate& operator=(SubstitutionStringTemplate&& x) noexcept(false) {
+			if (this->vec_element) {
+				this->vec_element->~vec_element_t();
+			}
+			if (this->vec_element && (!x.vec_element || this->rawallocator != x.rawallocator)) {
+				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
+				this->vec_element = nullptr;
+			}
+			static_cast<StringTemplate&>(*this) = static_cast<StringTemplate&&>(::std::move(x));
+			if (!this->vec_element && x.vec_element) {
+				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
+				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			}
+			if (x.vec_element) {
+				try {
+					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(::std::move(*x.vec_element), allocator_rawallocator_t<element_t>(this->rawallocator)));
+					x.vec_element->~vec_element_t();
+					if (!x.rawallocator->Deallocate(x.vec_element, sizeof(vec_element_t))) abort();
+					x.vec_element = nullptr;
+				} catch (::std::exception& err) {
+					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
+				}
+			}
+			return *this;
+		}
+		/// <summary>Generates a string using this string template and the specified parameter list.</summary>
+		/// <param name="parameter_list">
+		/// Pointer to a parameter list that may decide the string generation behaviour.
+		/// This type of string template ignores the parameter list.
+		/// </param>
+		/// <param name="str_out_ret">
+		/// Pointer to a pointer variable that receives a pointer to the generated string, in UTF-8.
+		/// After successfully returning from this member function, <c>*str_out_ret</c> will be set to the generated string.
+		/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*str_out_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+		/// If <paramref name="_rawallocator" /> is specified and not empty, the buffer for the part of the generated string will be allocated using <paramref name="_rawallocator" />.
+		/// Otherwise, the buffer for the part of the generated string will be allocated using the raw allocator returned by <c>this->GetRawAllocator()</c>.
+		/// </param>
+		/// <param name="size_str_out_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the generated string, in UTF-8, including the terminating null character, if any.
+		/// After successfully returning from this member function, <c>*size_str_out_ret</c> will be set to the size (in <c>char</c>s) of the generated string.
+		/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+		/// </param>
+		/// <param name="should_null_terminate">Whether a terminating null character should be added to the end of the generated string.</param>
+		/// <param name="_rawallocator">
+		/// An optional pointer to a <c>rawallocator_t</c> object for allocating memory used by this function, including the memory for <c>*str_out_ret</c>.
+		/// If not specified or empty, <c>this->GetRawAllocator()</c> will be used instead.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator <paramref name="_rawallocator" /> or the one returned by <c>this->GetRawAllocator()</c>.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GenerateString(
+			const IStringTemplateParameterList* parameter_list,
+			char** str_out_ret,
+			size_t* size_str_out_ret,
+			bool should_null_terminate,
+			const rawallocator_t* _rawallocator = nullptr
+		) const noexcept override {
+			static_cast<void>(parameter_list);
+			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate, GenerateString);
+			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate, GenerateString);
+			*str_out_ret = nullptr;
+			*size_str_out_ret = 0;
+			try {
+				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
+				using string_str_out_element_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
+				using vec_str_out_element_t = ::std::vector<string_str_out_element_t, allocator_rawallocator_t<string_str_out_element_t>>;
+				allocator_rawallocator_t<string_str_out_element_t> allocator_vec_vec_str_out_element(_rawallocator);
+				vec_str_out_element_t vec_str_out_element(allocator_vec_vec_str_out_element);
+				vec_str_out_element.reserve(this->vec_element->size());
+				for (const element_t& val_element : *this->vec_element) {
+					char* str_out_element = nullptr;
+					size_t size_str_out_element = 0;
+					try {
+						IException* err = val_element.GenerateString(parameter_list, &str_out_element, &size_str_out_element, _rawallocator);
+						if (err) throw(err);
+						vec_str_out_element.emplace_back(str_out_element, size_str_out_element,allocator_rawallocator_t<string_str_out_element_t::value_type>(_rawallocator));
+						if (str_out_element) {
+							if (!_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char))) abort();
+							str_out_element = nullptr;
+						}
+						size_str_out_element = 0;
+					} catch (...) {
+						if (str_out_element) {
+							if (!_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char))) abort();
+							str_out_element = nullptr;
+						}
+						size_str_out_element = 0;
+					}
+				}
+				for (const string_str_out_element_t& val_str_out_element : vec_str_out_element) {
+					*size_str_out_ret += val_str_out_element.size();
+				}
+				if (should_null_terminate)
+					++*size_str_out_ret;
+				if (*size_str_out_ret) {
+					*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					if (!*str_out_ret) return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+					*size_str_out_ret = 0;
+					for (const string_str_out_element_t& val_str_out_element : vec_str_out_element) {
+						memcpy(*str_out_ret + *size_str_out_ret, val_str_out_element.data(), val_str_out_element.size() * sizeof(char));
+						*size_str_out_ret += val_str_out_element.size();
+					}
+					if (should_null_terminate) {
+						(*str_out_ret)[*size_str_out_ret] = 0;
+						++*size_str_out_ret;
+					}
+				}
+			} catch (::std::bad_alloc&) {
+				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+			} catch (::std::exception& err) {
+				return YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err);
+			} catch (IException* err) {
+				return err;
+			} catch (...) {
+				return YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION();
+			}
+			return nullptr;
+		}
+	protected:
+		enum ElementType : uint32_t {
+			ElementType_Raw = 0,
+			ElementType_Substitute
+		};
+		class element_t final {
+		public:
+			ElementType type_element;
+			const rawallocator_t* rawallocator = nullptr;
+			union {
+				struct {
+					char* str_value;
+					size_t size_str_value;
+				} content_raw;
+				struct {
+					char* name_parameter;
+					size_t size_name_parameter;
+					char* str_options;
+					size_t size_str_options;
+				} content_substitute;
+			};
+			inline element_t(const rawallocator_t* _rawallocator, const char* _str_value, size_t _size_str_value) noexcept(false)
+				: type_element(ElementType_Raw), rawallocator(_rawallocator) {
+				if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
+				this->content_raw.size_str_value = _size_str_value;
+				this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+				if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, _str_value, this->content_raw.size_str_value * sizeof(char));
+			}
+			inline element_t(const rawallocator_t* _rawallocator, char* _name_parameter, size_t _size_name_parameter, char* _str_options, size_t _size_str_options) noexcept(false)
+				: type_element(ElementType_Substitute), rawallocator(_rawallocator) {
+				if (_size_name_parameter && !_name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
+				if (_size_str_options && !_str_options) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
+				{
+					this->content_substitute.size_name_parameter = _size_name_parameter;
+					this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+					if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+					if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, _name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
+				}
+				{
+					this->content_substitute.size_str_options = _size_str_options;
+					this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+					if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+					if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, _str_options, this->content_substitute.size_str_options * sizeof(char));
+				}
+			}
+			inline element_t(const element_t& x) noexcept(false) : type_element(x.type_element), rawallocator(x.rawallocator) {
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->content_raw.size_str_value = x.content_raw.size_str_value;
+					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+					if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+					if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, x.content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
+						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+						if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+						if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, x.content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
+					}
+					{
+						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
+						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+						if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+						if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, x.content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+			}
+			inline element_t(element_t&& x) noexcept(false) : type_element(x.type_element), rawallocator(x.rawallocator) {
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->content_raw.str_value = x.content_raw.str_value;
+					this->content_raw.size_str_value = x.content_raw.size_str_value;
+					x.content_raw.str_value = nullptr;
+					x.content_raw.size_str_value = 0;
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.name_parameter = x.content_substitute.name_parameter;
+						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
+						x.content_substitute.name_parameter = nullptr;
+						x.content_substitute.size_name_parameter = 0;
+					}
+					{
+						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.str_options = x.content_substitute.str_options;
+						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
+						x.content_substitute.str_options = nullptr;
+						x.content_substitute.size_str_options = 0;
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+			}
+			inline ~element_t() {
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (this->content_raw.size_str_value) {
+						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->content_raw.str_value = nullptr;
+					}
+					this->content_raw.size_str_value = 0;
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (this->content_substitute.size_name_parameter) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->content_substitute.name_parameter = nullptr;
+						}
+						this->content_substitute.size_name_parameter = 0;
+					}
+					{
+						if (this->content_substitute.size_str_options) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->content_substitute.str_options = nullptr;
+						}
+						this->content_substitute.size_str_options = 0;
+					}
+					break;
+				}
+				}
+			}
+			inline element_t& operator=(const element_t& x) noexcept(false) {
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (this->content_raw.size_str_value) {
+						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->content_raw.str_value = nullptr;
+					}
+					this->content_raw.size_str_value = 0;
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (this->content_substitute.size_name_parameter) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->content_substitute.name_parameter = nullptr;
+						}
+						this->content_substitute.size_name_parameter = 0;
+					}
+					{
+						if (this->content_substitute.size_str_options) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->content_substitute.str_options = nullptr;
+						}
+						this->content_substitute.size_str_options = 0;
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+				this->type_element = x.type_element;
+				this->rawallocator = x.rawallocator;
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->content_raw.size_str_value = x.content_raw.size_str_value;
+					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+					if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+					if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, x.content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
+						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+						if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+						if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, x.content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
+					}
+					{
+						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
+						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+						if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+						if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, x.content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+				return *this;
+			}
+			inline element_t& operator=(element_t&& x) noexcept(false) {
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (this->content_raw.size_str_value) {
+						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->content_raw.str_value = nullptr;
+					}
+					this->content_raw.size_str_value = 0;
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (this->content_substitute.size_name_parameter) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->content_substitute.name_parameter = nullptr;
+						}
+						this->content_substitute.size_name_parameter = 0;
+					}
+					{
+						if (this->content_substitute.size_str_options) {
+							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->content_substitute.str_options = nullptr;
+						}
+						this->content_substitute.size_str_options = 0;
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+				this->type_element = x.type_element;
+				this->rawallocator = x.rawallocator;
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->content_raw.str_value = x.content_raw.str_value;
+					this->content_raw.size_str_value = x.content_raw.size_str_value;
+					x.content_raw.str_value = nullptr;
+					x.content_raw.size_str_value = 0;
+					break;
+				}
+				case ElementType_Substitute: {
+					{
+						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.name_parameter = x.content_substitute.name_parameter;
+						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
+						x.content_substitute.name_parameter = nullptr;
+						x.content_substitute.size_name_parameter = 0;
+					}
+					{
+						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+						this->content_substitute.str_options = x.content_substitute.str_options;
+						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
+						x.content_substitute.str_options = nullptr;
+						x.content_substitute.size_str_options = 0;
+					}
+					break;
+				}
+				default: {
+					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				}
+				}
+				return *this;
+			}
+			[[nodiscard]] IException* GenerateString(
+				const IStringTemplateParameterList* parameter_list,
+				char** str_out_ret,
+				size_t* size_str_out_ret,
+				const rawallocator_t* _rawallocator
+			) const noexcept {
+				if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
+				if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
+				*str_out_ret = nullptr;
+				*size_str_out_ret = 0;
+				switch (this->type_element) {
+				case ElementType_Raw: {
+					static_cast<void>(parameter_list);
+					try {
+						if (!_rawallocator) _rawallocator = this->rawallocator;
+						*size_str_out_ret = this->content_raw.size_str_value;
+						*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+						if (!*str_out_ret) return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+						if (this->content_raw.size_str_value) {
+							if (!this->content_raw.str_value) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+							memcpy(*str_out_ret, this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
+						}
+					} catch (::std::bad_alloc&) {
+						return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+					} catch (::std::exception& err) {
+						return YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err);
+					} catch (IException* err) {
+						return err;
+					} catch (...) {
+						return YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION();
+					}
+					return nullptr;
+				}
+				case ElementType_Substitute: {
+					const IStringTemplateParameter* parameter = nullptr;
+					IException* err = parameter_list->GetParameterByName(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter, &parameter, _rawallocator);
+					if (err) return err;
+					if (!parameter) return YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION();
+					return parameter->GenerateString(this->content_substitute.str_options, this->content_substitute.size_str_options, str_out_ret, size_str_out_ret, false, _rawallocator);
+				}
+				default:
+					return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+				}
+			}
+		};
+		using vec_element_t = ::std::vector<element_t, allocator_rawallocator_t<element_t>>;
+		vec_element_t* vec_element = nullptr;
 	};
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept;

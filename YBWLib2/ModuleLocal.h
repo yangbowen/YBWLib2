@@ -13,6 +13,7 @@
 #include "Exception/ExceptionModuleLocalWindows.h"
 #endif
 #include "Common/CommonModuleLocal.h"
+#include "JSON/JSONModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
 #include "File/FileModuleLocal.h"
 

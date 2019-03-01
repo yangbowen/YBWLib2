@@ -12,6 +12,7 @@
 #include "Exception/ExceptionWindows.h"
 #endif
 #include "Common/Common.h"
+#include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
 #include "File/File.h"
 
@@ -30,7 +31,12 @@ namespace YBWLib2 {
 			ExceptionWindows_RealInitModuleLocal();
 #endif
 			Common_RealInitModuleLocal();
+			JSON_RealInitModuleLocal();
 			UserInterface_RealInitModuleLocal();
+			ExceptionUserInterface_RealInitModuleLocal();
+#ifdef _WIN32_WINNT
+			ExceptionWindowsUserInterface_RealInitModuleLocal();
+#endif
 			File_RealInitModuleLocal();
 		} catch (...) {
 			abort();
@@ -40,7 +46,12 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept {
 		try {
 			File_RealUnInitModuleLocal();
+#ifdef _WIN32_WINNT
+			ExceptionWindowsUserInterface_RealUnInitModuleLocal();
+#endif
+			ExceptionUserInterface_RealUnInitModuleLocal();
 			UserInterface_RealUnInitModuleLocal();
+			JSON_RealUnInitModuleLocal();
 			Common_RealUnInitModuleLocal();
 #ifdef _WIN32_WINNT
 			ExceptionWindows_RealUnInitModuleLocal();

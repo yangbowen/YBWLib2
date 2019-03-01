@@ -74,6 +74,10 @@ namespace YBWLib2 {
 		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = nullptr;
 #endif
 	}
+
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitModuleLocal() noexcept {}
+
+	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealUnInitModuleLocal() noexcept {}
 }
 
 #endif

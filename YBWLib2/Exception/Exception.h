@@ -14,9 +14,11 @@
 #include "../Common/CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 
-#include "../UserInterface/UserInterface.h"
-
 namespace YBWLib2 {
+	class IStringTemplateParameter;
+	class IStringTemplateParameterList;
+	class IStringTemplate;
+
 #pragma region ExceptionFlags
 	//{ ExceptionFlags
 
@@ -970,7 +972,7 @@ namespace YBWLib2 {
 		/// <summary>Constructs an <c>STLExceptionException</c> object.</summary>
 		/// <param name="_str_what_stlexception">
 		/// The <c>what</c> string of the STL exception, if available.
-		/// If no meaningful name can be provided, pass an empty pointer.
+		/// If no meaningful <c>what</c> string can be provided, pass an empty pointer.
 		/// </param>
 		inline STLExceptionException(const char* _str_what_stlexception) noexcept {
 			if (_str_what_stlexception) {
@@ -1148,6 +1150,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE Exception_RealUnInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept;
 	void YBWLIB2_CALLTYPE Exception_RealUnInitModuleLocal() noexcept;
+
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitGlobal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitModuleLocal() noexcept;
+	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

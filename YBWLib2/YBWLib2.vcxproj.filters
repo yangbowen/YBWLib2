@@ -43,6 +43,12 @@
     <Filter Include="Source Files\UserInterface">
       <UniqueIdentifier>{6141191e-4b59-4882-88fc-5a3790bbce51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\JSON">
+      <UniqueIdentifier>{96e10c3b-60df-4292-9b31-4e572f734113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\JSON">
+      <UniqueIdentifier>{6f8d4b68-db15-4666-9432-080254b97d39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -111,6 +117,12 @@
     <ClInclude Include="File\FileModuleLocal.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="JSON\JSON.h">
+      <Filter>Header Files\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="JSON\JSONModuleLocal.h">
+      <Filter>Header Files\JSON</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -142,6 +154,9 @@
     </ClCompile>
     <ClCompile Include="YBWLib2Init.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JSON\JSON.cpp">
+      <Filter>Source Files\JSON</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

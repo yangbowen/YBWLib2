@@ -5,21 +5,6 @@
 #include "../Windows.h"
 #include <strsafe.h>
 #include "../Common/CommonLowLevel.h"
-
-#ifndef RAPIDJSON_ERROR_CHARTYPE
-#define RAPIDJSON_ERROR_CHARTYPE char
-#endif
-#ifndef RAPIDJSON_ERROR_STRING
-#define RAPIDJSON_ERROR_STRING(x) YBWLIB2_TO_UTF8(x)
-#endif
-#if defined(_M_IX86_FP) && _M_IX86_FP >= 2 || defined(_M_X64)
-#ifndef RAPIDJSON_SSE2
-#define RAPIDJSON_SSE2
-#endif
-#endif
-#include <rapidjson/error/en.h>
-#include <rapidjson/document.h>
-
 #include "../Exception/Exception.h"
 #include "../Exception/ExceptionWindows.h"
 #include "UserInterface.h"
