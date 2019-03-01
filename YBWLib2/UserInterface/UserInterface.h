@@ -697,6 +697,7 @@ namespace YBWLib2 {
 				this->map_parameter = nullptr;
 			}
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<const IStringTemplateParameterList&>(x);
+			this->rawallocator = x.rawallocator;
 			if (!this->map_parameter && x.map_parameter) {
 				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
 				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
@@ -722,6 +723,8 @@ namespace YBWLib2 {
 				this->map_parameter = nullptr;
 			}
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<IStringTemplateParameterList&&>(::std::move(x));
+			this->rawallocator = x.rawallocator;
+			x.rawallocator = nullptr;
 			if (!this->map_parameter && x.map_parameter) {
 				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
 				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
@@ -805,7 +808,7 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator returned by <c>this->GetRawAllocator()</c>.
 		/// </returns>
-		[[nodiscard]] virtual IException* AddParameter(const IStringTemplateParameter* _parameter) noexcept override {
+		[[nodiscard]] inline virtual IException* AddParameter(const IStringTemplateParameter* _parameter) noexcept override {
 			if (!_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, AddParameter);
 			try {
 				const char* name_parameter = _parameter->GetParameterName();
@@ -847,7 +850,7 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator <paramref name="_rawallocator" /> or the one returned by <c>this->GetRawAllocator()</c>.
 		/// </returns>
-		[[nodiscard]] virtual IException* RemoveParameterByName(
+		[[nodiscard]] inline virtual IException* RemoveParameterByName(
 			const char* _name_parameter,
 			size_t _size_name_parameter,
 			const rawallocator_t* _rawallocator = nullptr

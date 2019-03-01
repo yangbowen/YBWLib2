@@ -34,14 +34,38 @@ namespace YBWLib2 {
 		SubstitutionStringTemplateConstructorJSONSAXHandler& operator=(const SubstitutionStringTemplateConstructorJSONSAXHandler&) = delete;
 		SubstitutionStringTemplateConstructorJSONSAXHandler& operator=(SubstitutionStringTemplateConstructorJSONSAXHandler&&) = delete;
 		inline virtual bool Null() override { return false; }
-		inline virtual bool Bool(bool value) override { return false; }
-		inline virtual bool Int(int value) override { return false; }
-		inline virtual bool Uint(unsigned value) override { return false; }
-		inline virtual bool Int64(int64_t value) override { return false; }
-		inline virtual bool Uint64(uint64_t value) override { return false; }
-		inline virtual bool Double(double value) override { return false; }
-		inline virtual bool RawNumber(const char* value, size_t size_value, bool should_copy) override { return false; }
+		inline virtual bool Bool(bool value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool Int(int value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool Uint(unsigned value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool Int64(int64_t value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool Uint64(uint64_t value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool Double(double value) override {
+			static_cast<void>(value);
+			return false;
+		}
+		inline virtual bool RawNumber(const char* value, size_t size_value, bool should_copy) override {
+			static_cast<void>(value);
+			static_cast<void>(size_value);
+			static_cast<void>(should_copy);
+			return false;
+		}
 		inline virtual bool String(const char* value, size_t size_value, bool should_copy) override {
+			static_cast<void>(should_copy);
 			try {
 				switch (this->state) {
 				case State_InElementArray: {
@@ -78,6 +102,7 @@ namespace YBWLib2 {
 			} else return false;
 		}
 		inline virtual bool Key(const char* value, size_t size_value, bool should_copy) override {
+			static_cast<void>(should_copy);
 			if (this->state == State_InSubstituteElementObject) {
 				if (size_value == sizeof(key_name_parameter) / sizeof(char) - 1 && !strncmp(value, key_name_parameter, size_value)) {
 					this->state = State_AwaitingParameterNameValueInSubstituteElementObject;
@@ -89,6 +114,7 @@ namespace YBWLib2 {
 			} else return false;
 		}
 		inline virtual bool EndObject(size_t count_member) override {
+			static_cast<void>(count_member);
 			try {
 				if (this->state == State_InSubstituteElementObject) {
 					this->vec_element->emplace_back(

@@ -29,7 +29,7 @@ namespace YBWLib2 {
 		/// The behaviour is equivalent to comparing the binary representation of the <c>DynamicTypeClassID</c> from byte to byte lexicographically.
 		/// </summary>
 		static inline bool IsLessThan(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return IsLessThan_UUID(&l->uuid, &r->uuid); }
-		/// <summary>A secure version of <c>IsEqualTo_DynamicTypeClassID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
 		static inline bool SecureIsEqualTo(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return SecureIsEqualTo_UUID(&l->uuid, &r->uuid); }
 		inline bool operator==(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsEqualTo(this, &r); }
 		inline bool operator!=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsEqualTo(this, &r); }

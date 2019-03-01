@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <utility>
 #include <new>
+#include <unordered_map>
 #include <typeinfo>
 #include "../YBWLib2Api.h"
 
@@ -160,7 +161,7 @@ namespace YBWLib2 {
 			}
 			return false;
 		}
-		/// <summary>A secure version of <c>IsEqualTo_UUID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
 		static inline bool SecureIsEqualTo(const UUID* l, const UUID* r) noexcept {
 			if constexpr (sizeof(UUID) % sizeof(uintptr_t)) {
 				uint8_t x = 0;
@@ -659,6 +660,169 @@ namespace YBWLib2 {
 	/// <param name="r">Pointer to the <c>wrapper_type_info_t</c> object on the right side of the comparison operator.</param>
 	/// <returns>Whether the type represented by <c>*l</c> is considered to precede the type represented by <c>*r</c>.</returns>
 	inline bool IsLessThan_WrapperTypeInfo(const wrapper_type_info_t* l, const wrapper_type_info_t* r) noexcept { return wrapper_type_info_t::IsLessThan(l, r); }
+
+#pragma region IndexedDataStore
+	//{ IndexedDataStore
+
+	/// <summary>Unique identifier used to identify an indexed data entry.</summary>
+	struct IndexedDataEntryID {
+		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+		/// <summary>An equal-to comparing function for <c>IndexedDataEntryID</c>.</summary>
+		static inline bool IsEqualTo(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IsEqualTo_UUID(&l->uuid, &r->uuid); }
+		/// <summary>
+		/// A less-than comparing function for <c>IndexedDataEntryID</c>.
+		/// The behaviour is equivalent to comparing the binary representation of the <c>IndexedDataEntryID</c> from byte to byte lexicographically.
+		/// </summary>
+		static inline bool IsLessThan(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IsLessThan_UUID(&l->uuid, &r->uuid); }
+		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+		static inline bool SecureIsEqualTo(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return SecureIsEqualTo_UUID(&l->uuid, &r->uuid); }
+		inline bool operator==(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsEqualTo(this, &r); }
+		inline bool operator!=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsEqualTo(this, &r); }
+		inline bool operator<(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(this, &r); }
+		inline bool operator<=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(&r, this); }
+		inline bool operator>(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(&r, this); }
+		inline bool operator>=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(this, &r); }
+		inline size_t hash() const { return this->uuid.hash(); }
+	};
+	/// <summary>An equal-to comparing function for <c>IndexedDataEntryID</c>.</summary>
+	inline bool IsEqualTo_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::IsEqualTo(l, r); }
+	/// <summary>
+	/// A less-than comparing function for <c>IndexedDataEntryID</c>.
+	/// The behaviour is equivalent to comparing the binary representation of the <c>IndexedDataEntryID</c> from byte to byte lexicographically.
+	/// </summary>
+	inline bool IsLessThan_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::IsLessThan(l, r); }
+	/// <summary>A secure version of <c>IsEqualTo_IndexedDataEntryID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+	inline bool SecureIsEqualTo_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::SecureIsEqualTo(l, r); }
+
+	struct hash_IndexedDataEntryID_t {
+		inline size_t operator()(const IndexedDataEntryID& t) const {
+			return t.hash();
+		}
+	};
+	constexpr hash_IndexedDataEntryID_t hash_IndexedDataEntryID {};
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>IndexedDataEntryID</c> identifier at compile time.</summary>
+	inline constexpr IndexedDataEntryID IndexedDataEntryIDFromUUIDString_CompileTime(const char(&str)[37]) { return { UUIDFromUUIDString_CompileTime(str) }; }
+
+	/// <summary>A raw value in an indexed data entry.</summary>
+	struct IndexedDataRawValue final {
+		/// <summary>Function pointer type for cleaning up the raw value before it's destructed.</summary>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_cleanup_t)(IndexedDataRawValue* x) noexcept;
+		fnptr_cleanup_t fnptr_cleanup = nullptr;
+		uintptr_t context = 0;
+		inline constexpr IndexedDataRawValue(
+			fnptr_cleanup_t _fnptr_cleanup,
+			uintptr_t _context
+		) noexcept
+			: fnptr_cleanup(_fnptr_cleanup),
+			context(_context) {}
+		IndexedDataRawValue(const IndexedDataRawValue&) = delete;
+		IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(x.fnptr_cleanup), context(x.context) {
+			x.fnptr_cleanup = nullptr;
+			x.context = 0;
+		}
+		inline ~IndexedDataRawValue() {
+			if (this->fnptr_cleanup)
+				(*fnptr_cleanup)(this);
+			this->fnptr_cleanup = nullptr;
+			this->context = 0;
+		}
+		IndexedDataRawValue& operator=(const IndexedDataRawValue&) = delete;
+		IndexedDataRawValue& operator=(IndexedDataRawValue&& x) noexcept {
+			if (this->fnptr_cleanup)
+				(*fnptr_cleanup)(this);
+			this->fnptr_cleanup = x.fnptr_cleanup;
+			this->context = x.context;
+			x.fnptr_cleanup = nullptr;
+			x.context = 0;
+		}
+	};
+	static_assert(::std::is_standard_layout_v<IndexedDataRawValue>, "IndexedDataRawValue is not standard-layout.");
+
+	class IndexedDataStore final {
+	public:
+		/// <summary>Constructs an <c>IndexedDataStore</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		inline IndexedDataStore(const rawallocator_t* _rawallocator) noexcept { this->ConstructWithRawAllocator(_rawallocator); }
+		/// <summary>Move-constructs the indexed data store.</summary>
+		inline IndexedDataStore(IndexedDataStore&& x) noexcept { this->MoveConstruct(&x); }
+		inline ~IndexedDataStore() { this->Destruct(); }
+		/// <summary>Move-assigns the indexed data store.</summary>
+		inline IndexedDataStore& operator=(IndexedDataStore&& x) noexcept {
+			this->MoveAssign(&x);
+			return *this;
+		}
+		/// <summary>
+		/// Gets a pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object will survive for at least the lifetime of this object.
+		/// </summary>
+		inline const rawallocator_t* GetRawAllocator() const noexcept { return this->rawallocator; }
+		/// <summary>Gets a pointer to the raw value of the entry with the specified identifier in this store.</summary>
+		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
+		/// <returns>
+		/// Returns a pointer to the raw value of the entry with the specified identifier.
+		/// If there wasn't an entry with the specified identifier in this store, an empty pointer will be returned.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		inline const IndexedDataRawValue* GetRawValueByEntryID(const IndexedDataEntryID& _entryid) const noexcept { return this->GetRawValueByEntryID(&_entryid); }
+		/// <summary>Gets a pointer to the raw value of the entry with the specified identifier in this store.</summary>
+		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
+		/// <returns>
+		/// Returns a pointer to the raw value of the entry with the specified identifier.
+		/// If there wasn't an entry with the specified identifier in this store, an empty pointer will be returned.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		inline IndexedDataRawValue* GetRawValueByEntryID(const IndexedDataEntryID& _entryid) noexcept { return this->GetRawValueByEntryID(&_entryid); }
+		/// <summary>Gets a pointer to the raw value of the entry with the specified identifier in this store.</summary>
+		/// <param name="_entryid">Pointer to the indexed data entry ID.</param>
+		/// <returns>
+		/// Returns a pointer to the raw value of the entry with the specified identifier.
+		/// If there wasn't an entry with the specified identifier in this store, an empty pointer will be returned.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		YBWLIB2_API const IndexedDataRawValue* YBWLIB2_CALLTYPE GetRawValueByEntryID(const IndexedDataEntryID* _entryid) const noexcept;
+		/// <summary>Gets a pointer to the raw value of the entry with the specified identifier in this store.</summary>
+		/// <param name="_entryid">Pointer to the indexed data entry ID.</param>
+		/// <returns>
+		/// Returns a pointer to the raw value of the entry with the specified identifier.
+		/// If there wasn't an entry with the specified identifier in this store, an empty pointer will be returned.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		YBWLIB2_API IndexedDataRawValue* YBWLIB2_CALLTYPE GetRawValueByEntryID(const IndexedDataEntryID* _entryid) noexcept;
+		/// <summary>Adds an entry into this store.</summary>
+		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
+		/// <param name="_rawval">Reference to the raw value of the entry to be added.</param>
+		inline void AddEntry(const IndexedDataEntryID& _entryid, IndexedDataRawValue&& _rawval) noexcept { this->AddEntry(&_entryid, &_rawval); }
+		/// <summary>Adds an entry into this store.</summary>
+		/// <param name="_entryid">Pointer to the indexed data entry ID.</param>
+		/// <param name="_rawval">
+		/// Pointer to the raw value of the entry to be added.
+		/// This function does NOT own the object pointed to by this pointer.
+		/// However, this function move-constructs an object from the object pointed to by this pointer.
+		/// </param>
+		YBWLIB2_API void YBWLIB2_CALLTYPE AddEntry(const IndexedDataEntryID* _entryid, IndexedDataRawValue* _rawval) noexcept;
+		/// <summary>Destructs and removes the entry with the specified identifier from this store.</summary>
+		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
+		inline void RemoveEntryByEntryID(const IndexedDataEntryID& _entryid) noexcept { this->RemoveEntryByEntryID(&_entryid); }
+		/// <summary>Destructs and removes the entry with the specified identifier from this store.</summary>
+		/// <param name="_entryid">Pointer to the indexed data entry ID.</param>
+		YBWLIB2_API void YBWLIB2_CALLTYPE RemoveEntryByEntryID(const IndexedDataEntryID* _entryid) noexcept;
+	private:
+		using value_map_entry_t = ::std::pair<const IndexedDataEntryID, IndexedDataRawValue>;
+		using map_entry_t = ::std::unordered_map<IndexedDataEntryID, IndexedDataRawValue, hash_IndexedDataEntryID_t, ::std::equal_to<IndexedDataEntryID>, allocator_rawallocator_t<value_map_entry_t>>;
+		const rawallocator_t* rawallocator = nullptr;
+		map_entry_t* map_entry = nullptr;
+		YBWLIB2_API void YBWLIB2_CALLTYPE ConstructWithRawAllocator(const rawallocator_t* _rawallocator) noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE MoveConstruct(IndexedDataStore* x) noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE Destruct() noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE MoveAssign(IndexedDataStore* x) noexcept;
+	};
+	static_assert(::std::is_standard_layout_v<IndexedDataStore>, "IndexedDataStore is not standard-layout.");
+
+	//}
+#pragma endregion Entries in IndexedDataStore have unique identifiers, so that custom entries may be added without changing the declaration or definition of the data store.
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept;
