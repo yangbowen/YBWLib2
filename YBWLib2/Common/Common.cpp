@@ -11,11 +11,13 @@ namespace YBWLib2 {
 		IReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IReferenceCountedObject>(),
 			IsDynamicTypeModuleLocalClass<IReferenceCountedObject>(),
-			{ DynamicTypeBaseClassDef<IReferenceCountedObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IReferenceCountedObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IReferenceCountedObject));
 		ILockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ILockableObject>(),
 			IsDynamicTypeModuleLocalClass<ILockableObject>(),
-			{ DynamicTypeBaseClassDef<ILockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<ILockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(ILockableObject));
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept {

@@ -25,6 +25,7 @@ namespace YBWLib2 {
 		try {
 			YBWLib2_InitDLL();
 			CommonLowLevel_RealInitModuleLocal();
+			ExceptionLowLevel_RealInitModuleLocal();
 			DynamicType_RealInitModuleLocal();
 			Exception_RealInitModuleLocal();
 #ifdef _WIN32_WINNT
@@ -58,6 +59,7 @@ namespace YBWLib2 {
 #endif
 			Exception_RealUnInitModuleLocal();
 			DynamicType_RealUnInitModuleLocal();
+			ExceptionLowLevel_RealUnInitModuleLocal();
 			CommonLowLevel_RealUnInitModuleLocal();
 			YBWLib2_UnInitDLL();
 		} catch (...) {

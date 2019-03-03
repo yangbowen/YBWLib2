@@ -22,6 +22,8 @@ namespace YBWLib2 {
 		try {
 			CommonLowLevel_RealInitGlobal();
 			CommonLowLevel_RealInitModuleLocal();
+			ExceptionLowLevel_RealInitGlobal();
+			ExceptionLowLevel_RealInitModuleLocal();
 			DynamicType_RealInitGlobal();
 			DynamicType_RealInitModuleLocal();
 			Exception_RealInitGlobal();
@@ -73,6 +75,8 @@ namespace YBWLib2 {
 			Exception_RealUnInitGlobal();
 			DynamicType_RealUnInitModuleLocal();
 			DynamicType_RealUnInitGlobal();
+			ExceptionLowLevel_RealUnInitModuleLocal();
+			ExceptionLowLevel_RealUnInitGlobal();
 			CommonLowLevel_RealUnInitModuleLocal();
 			CommonLowLevel_RealUnInitGlobal();
 		} catch (...) {

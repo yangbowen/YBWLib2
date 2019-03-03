@@ -197,21 +197,21 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(JSONSAXHandlerWrapper);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(JSONSAXHandlerWrapper);
 		explicit JSONSAXHandlerWrapper(_Wrapped_Ty& _wrapped) : wrapped(&_wrapped) {}
-		inline virtual ~JSONSAXHandlerWrapper() { wrapped = nullptr; }
-		virtual bool Null() override { return wrapped->Null(); }
-		virtual bool Bool(bool value) override { return wrapped->Bool(value); }
-		virtual bool Int(int value) override { return wrapped->Int(value); }
-		virtual bool Uint(unsigned value) override { return wrapped->Uint(value); }
-		virtual bool Int64(int64_t value) override { return wrapped->Int64(value); }
-		virtual bool Uint64(uint64_t value) override { return wrapped->Uint64(value); }
-		virtual bool Double(double value) override { return wrapped->Double(value); }
-		virtual bool RawNumber(const char* value, size_t size_value, bool should_copy) override { return wrapped->RawNumber(value, size_value, should_copy); }
-		virtual bool String(const char* value, size_t size_value, bool should_copy) override { return wrapped->String(value, size_value, should_copy); }
-		virtual bool StartObject() override { return wrapped->StartObject(); }
-		virtual bool Key(const char* value, size_t size_value, bool should_copy) override { return wrapped->Key(value, size_value, should_copy); }
-		virtual bool EndObject(size_t count_member) override { return wrapped->EndObject(count_member); }
-		virtual bool StartArray() override { return wrapped->StartArray(); }
-		virtual bool EndArray(size_t count_element) override { return wrapped->EndArray(count_element); }
+		inline virtual ~JSONSAXHandlerWrapper() { this->wrapped = nullptr; }
+		virtual bool Null() override { return this->wrapped->Null(); }
+		virtual bool Bool(bool value) override { return this->wrapped->Bool(value); }
+		virtual bool Int(int value) override { return this->wrapped->Int(value); }
+		virtual bool Uint(unsigned value) override { return this->wrapped->Uint(value); }
+		virtual bool Int64(int64_t value) override { return this->wrapped->Int64(value); }
+		virtual bool Uint64(uint64_t value) override { return this->wrapped->Uint64(value); }
+		virtual bool Double(double value) override { return this->wrapped->Double(value); }
+		virtual bool RawNumber(const char* value, size_t size_value, bool should_copy) override { return this->wrapped->RawNumber(value, size_value, should_copy); }
+		virtual bool String(const char* value, size_t size_value, bool should_copy) override { return this->wrapped->String(value, size_value, should_copy); }
+		virtual bool StartObject() override { return this->wrapped->StartObject(); }
+		virtual bool Key(const char* value, size_t size_value, bool should_copy) override { return this->wrapped->Key(value, size_value, should_copy); }
+		virtual bool EndObject(size_t count_member) override { return this->wrapped->EndObject(count_member); }
+		virtual bool StartArray() override { return this->wrapped->StartArray(); }
+		virtual bool EndArray(size_t count_element) override { return this->wrapped->EndArray(count_element); }
 	protected:
 		_Wrapped_Ty* wrapped;
 	};
@@ -231,8 +231,12 @@ namespace YBWLib2 {
 			_Stream_Input_Ty& _stream_input,
 			_Fn_Get_Parse_Error_Ty& _fn_get_parse_error,
 			bool _is_iterative
-			) : wrapped(&_wrapped), stream_input(&_stream_input), fn_get_parse_error(&_fn_get_parse_error), is_iterative(_is_iterative) {}
-		inline virtual ~ReaderJSONSAXGeneratorWrapper() { wrapped = nullptr; }
+		) : wrapped(&_wrapped), stream_input(&_stream_input), fn_get_parse_error(&_fn_get_parse_error), is_iterative(_is_iterative) {}
+		inline virtual ~ReaderJSONSAXGeneratorWrapper() {
+			this->wrapped = nullptr;
+			this->stream_input = nullptr;
+			this->fn_get_parse_error = nullptr;
+		}
 		/// <summary>Whether this generator generates JSON SAX events one at a time.</summary>
 		inline virtual bool IsIterative() const noexcept override { return this->is_iterative; }
 		/// <summary>
@@ -248,25 +252,44 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* Generate(IJSONSAXHandler* jsonsaxhandler) override {
 			IException* err_inner = nullptr;
-			try {
-				if (!wrapped->Parse<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*stream_input, *jsonsaxhandler))
-					err_inner = new ParseErrorJSONException(wrapped->GetErrorOffset(), (*fn_get_parse_error)(wrapped->GetParseErrorCode()));
-			} catch (::std::bad_alloc&) {
-				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
-			} catch (::std::exception& err) {
-				return YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err);
-			} catch (IException* err) {
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &jsonsaxhandler, &err_inner]()->void {
+					if (!this->wrapped->Parse<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
+						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
 				return err;
-			} catch (...) {
-				return YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION();
+			} else {
+				return err_inner;
 			}
-			return err_inner;
 		}
 		/// <summary>
 		/// Whether there're no more events to be generated by this generator.
 		/// Only allowed when <c>this->IsIterative()</c> returns <c>true</c>.
 		/// </summary>
-		inline virtual bool IsIterativeComplete() const noexcept override { return wrapped->IterativeParseComplete(); }
+		inline virtual bool IsIterativeComplete() const noexcept override {
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &err_inner]()->void {
+					static_cast<void>(err_inner);
+					return this->wrapped->IterativeParseComplete();
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			} else {
+				return err_inner;
+			}
+		}
 		/// <summary>
 		/// Generates a single event and dispatches it to <paramref name="jsonsaxhandler" />.
 		/// Only allowed when <c>this->IsIterative()</c> returns <c>true</c>.
@@ -280,19 +303,22 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* GenerateIterativeNext(IJSONSAXHandler* jsonsaxhandler) override {
 			IException* err_inner = nullptr;
-			try {
-				if (!wrapped->IterativeParseNext<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*stream_input, *jsonsaxhandler))
-					err_inner = new ParseErrorJSONException(wrapped->GetErrorOffset(), (*fn_get_parse_error)(wrapped->GetParseErrorCode()));
-			} catch (::std::bad_alloc&) {
-				return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
-			} catch (::std::exception& err) {
-				return YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err);
-			} catch (IException* err) {
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &jsonsaxhandler, &err_inner]()->void {
+					if (!this->wrapped->IterativeParseNext<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
+						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
 				return err;
-			} catch (...) {
-				return YBWLIB2_EXCEPTION_CREATE_UNHANDLED_UNKNOWN_EXCEPTION_EXCEPTION();
+			} else {
+				return err_inner;
 			}
-			return err_inner;
 		}
 	protected:
 		_Wrapped_Ty* wrapped;

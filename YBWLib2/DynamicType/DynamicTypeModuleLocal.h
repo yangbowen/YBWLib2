@@ -5,11 +5,16 @@
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
 
+#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
+#define YBWLIB2_EXCEPTION_MACROS_ENABLED
+#endif
+
 #include <cstdlib>
 #include <mutex>
 #include <unordered_set>
 #include <unordered_map>
 #include "DynamicType.h"
+#include "../Exception/Exception.h"
 
 namespace YBWLib2 {
 	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj_module_local = nullptr;
@@ -28,6 +33,87 @@ namespace YBWLib2 {
 			abort();
 		}
 		return ret;
+	}
+
+	uintptr_t DynamicTypeClassObj::CreateObject(const DynamicTypeClassObj* _dtclassobj_base, IndexedDataStore& _indexeddatastore_parameters) const noexcept {
+		if (!_dtclassobj_base || !this->fnptr_create_object) abort();
+		bool has_parameter_ptr_obj_from = false;
+		uintptr_t ptr_obj_from_base = 0;
+		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
+			has_parameter_ptr_obj_from = true;
+			static_assert(sizeof(uint8_t) == 1, "");
+			uint8_t buf_indexeddataentry_parameter_ptr_obj_from[sizeof(ObjectPointerFromParameterIndexedDataEntry)];
+			ObjectPointerFromParameterIndexedDataEntry* indexeddataentry_parameter_ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, buf_indexeddataentry_parameter_ptr_obj_from);
+			if (!indexeddataentry_parameter_ptr_obj_from) abort();
+			ptr_obj_from_base = indexeddataentry_parameter_ptr_obj_from->uintptr_ptr_obj;
+			if (!ptr_obj_from_base) abort();
+			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+			if (!ptr_obj_from_iobject) abort();
+			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
+			if (!ptr_obj_from_derived) abort();
+			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
+			indexeddataentry_parameter_ptr_obj_from->~ObjectPointerFromParameterIndexedDataEntry();
+			indexeddataentry_parameter_ptr_obj_from = nullptr;
+		}
+		uintptr_t ptr_obj_derived = (*this->fnptr_create_object)(this, &_indexeddatastore_parameters);
+		uintptr_t ret = 0;
+		if (ptr_obj_derived) {
+			uintptr_t ptr_obj_base = this->DynamicUpcastTo(ptr_obj_derived, _dtclassobj_base);
+			if (!ptr_obj_base) abort();
+			ret = ptr_obj_base;
+		}
+		if (has_parameter_ptr_obj_from) {
+			if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
+				ObjectPointerFromParameterIndexedDataEntry::RemoveFromStore(_indexeddatastore_parameters);
+				ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_base));
+			}
+		}
+		return ret;
+	}
+
+	uintptr_t DynamicTypeClassObj::PlacementCreateObject(const DynamicTypeClassObj* _dtclassobj_base, void* _ptr_placement, IndexedDataStore& _indexeddatastore_parameters) const noexcept {
+		if (!_dtclassobj_base || !this->fnptr_placement_create_object) abort();
+		bool has_parameter_ptr_obj_from = false;
+		uintptr_t ptr_obj_from_base = 0;
+		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
+			has_parameter_ptr_obj_from = true;
+			static_assert(sizeof(uint8_t) == 1, "");
+			uint8_t buf_indexeddataentry_parameter_ptr_obj_from[sizeof(ObjectPointerFromParameterIndexedDataEntry)];
+			ObjectPointerFromParameterIndexedDataEntry* indexeddataentry_parameter_ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, buf_indexeddataentry_parameter_ptr_obj_from);
+			if (!indexeddataentry_parameter_ptr_obj_from) abort();
+			ptr_obj_from_base = indexeddataentry_parameter_ptr_obj_from->uintptr_ptr_obj;
+			if (!ptr_obj_from_base) abort();
+			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+			if (!ptr_obj_from_iobject) abort();
+			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
+			if (!ptr_obj_from_derived) abort();
+			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
+			indexeddataentry_parameter_ptr_obj_from->~ObjectPointerFromParameterIndexedDataEntry();
+			indexeddataentry_parameter_ptr_obj_from = nullptr;
+		}
+		uintptr_t ptr_obj_derived = (*this->fnptr_placement_create_object)(this, _ptr_placement, &_indexeddatastore_parameters);
+		uintptr_t ret = 0;
+		if (ptr_obj_derived) {
+			uintptr_t ptr_obj_base = this->DynamicUpcastTo(ptr_obj_derived, _dtclassobj_base);
+			if (!ptr_obj_base) abort();
+			ret = ptr_obj_base;
+		}
+		if (has_parameter_ptr_obj_from) {
+			if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
+				ObjectPointerFromParameterIndexedDataEntry::RemoveFromStore(_indexeddatastore_parameters);
+				ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_base));
+			}
+		}
+		return ret;
+	}
+
+	void DynamicTypeClassObj::DeleteObject(const DynamicTypeClassObj* _dtclassobj_base, uintptr_t _ptr_obj) const noexcept {
+		if (!_dtclassobj_base || !this->fnptr_delete_object) abort();
+		IDynamicTypeObject* ptr_obj_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(_ptr_obj, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+		if (!ptr_obj_iobject) abort();
+		void* ptr_obj_derived = ptr_obj_iobject->DynamicTypeRawCastTo(this);
+		if (!ptr_obj_derived) abort();
+		(*this->fnptr_delete_object)(this, reinterpret_cast<uintptr_t>(ptr_obj_derived));
 	}
 
 	void DynamicTypeClassObj::RegisterModuleLocal() {
@@ -49,6 +135,46 @@ namespace YBWLib2 {
 			}
 		} catch (...) {
 			abort();
+		}
+	}
+
+	ConstructorIDParameterIndexedDataEntry ConstructorIDParameterIndexedDataEntry::CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false) {
+		const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			return ConstructorIDParameterIndexedDataEntry(*_indexeddatarawvalue);
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
+	ConstructorIDParameterIndexedDataEntry ConstructorIDParameterIndexedDataEntry::MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false) {
+		IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			ConstructorIDParameterIndexedDataEntry ret(ConstructorIDParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue)));
+			_indexeddatastore.RemoveEntryByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+			return ret;
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
+	ObjectPointerFromParameterIndexedDataEntry ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false) {
+		const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			return ObjectPointerFromParameterIndexedDataEntry(*_indexeddatarawvalue);
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
+	ObjectPointerFromParameterIndexedDataEntry ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false) {
+		IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			ObjectPointerFromParameterIndexedDataEntry ret(ObjectPointerFromParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue)));
+			_indexeddatastore.RemoveEntryByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+			return ret;
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
 		}
 	}
 

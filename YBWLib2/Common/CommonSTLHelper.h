@@ -188,6 +188,7 @@ namespace YBWLib2 {
 			if (p) {
 				this->ptr_stored = p;
 				this->ptr_owned = p;
+				p = nullptr;
 			}
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
@@ -342,6 +343,7 @@ namespace YBWLib2 {
 			if (p) {
 				this->ptr_stored = p;
 				this->ptr_owned = p;
+				p = nullptr;
 			}
 		}
 		inline void swap(ReferenceCountedObjectHolder& x) noexcept {

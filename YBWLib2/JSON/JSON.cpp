@@ -31,19 +31,23 @@ namespace YBWLib2 {
 		IJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IJSONException>(),
 			IsDynamicTypeModuleLocalClass<IJSONException>(),
-			{ DynamicTypeBaseClassDef<IJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IJSONException));
 		IParseErrorJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IParseErrorJSONException>(),
 			IsDynamicTypeModuleLocalClass<IParseErrorJSONException>(),
-			{ DynamicTypeBaseClassDef<IParseErrorJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IParseErrorJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IParseErrorJSONException));
 		IJSONSAXHandler::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IJSONSAXHandler>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXHandler>(),
-			{ DynamicTypeBaseClassDef<IJSONSAXHandler, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IJSONSAXHandler, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IJSONSAXHandler));
 		IJSONSAXGenerator::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IJSONSAXGenerator>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXGenerator>(),
-			{ DynamicTypeBaseClassDef<IJSONSAXGenerator, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IJSONSAXGenerator, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IJSONSAXGenerator));
 	}
 
 	void YBWLIB2_CALLTYPE JSON_RealUnInitGlobal() noexcept {

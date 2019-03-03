@@ -97,15 +97,18 @@ namespace YBWLib2 {
 		IStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameter>(),
-			{ DynamicTypeBaseClassDef<IStringTemplateParameter, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IStringTemplateParameter, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IStringTemplateParameter));
 		IStringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IStringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameterList>(),
-			{ DynamicTypeBaseClassDef<IStringTemplateParameterList, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IStringTemplateParameterList, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IStringTemplateParameterList));
 		IStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplate>(),
-			{ DynamicTypeBaseClassDef<IStringTemplate, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IStringTemplate, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IStringTemplate));
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {

@@ -38,7 +38,8 @@ namespace YBWLib2 {
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, IExternalAPIFailureWithLastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(ExternalAPIFailureWithLastErrorException));
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ExternalAPIFailureWithWSALastErrorException>(),
@@ -46,7 +47,8 @@ namespace YBWLib2 {
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureWithWSALastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(ExternalAPIFailureWithWSALastErrorException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -55,7 +57,8 @@ namespace YBWLib2 {
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureWithNTSTATUSException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(ExternalAPIFailureWithNTSTATUSException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -64,7 +67,8 @@ namespace YBWLib2 {
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, IExternalAPIFailureWithHRESULTException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(ExternalAPIFailureWithHRESULTException));
 #endif
 		GetDynamicTypeThisClassObject<ExternalAPIFailureWithLastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithLastErrorException)), module_info_current);
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA

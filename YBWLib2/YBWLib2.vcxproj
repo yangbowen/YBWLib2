@@ -25,9 +25,12 @@
     <ClInclude Include="Common\CommonModuleLocal.h" />
     <ClInclude Include="Common\CommonSTLHelper.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
+    <ClInclude Include="DynamicType\DynamicTypeHighLevel.h" />
     <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h" />
     <ClInclude Include="DynamicType\DynamicTypeModuleLocal.h" />
     <ClInclude Include="Exception\Exception.h" />
+    <ClInclude Include="Exception\ExceptionLowLevel.h" />
+    <ClInclude Include="Exception\ExceptionLowLevelModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionModuleLocalWindows.h" />
     <ClInclude Include="Exception\ExceptionWindows.h" />
@@ -49,6 +52,7 @@
     <ClCompile Include="Common\CommonLowLevel.cpp" />
     <ClCompile Include="DynamicType\DynamicType.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />
+    <ClCompile Include="Exception\ExceptionLowLevel.cpp" />
     <ClCompile Include="Exception\ExceptionWindows.cpp" />
     <ClCompile Include="File\File.cpp" />
     <ClCompile Include="JSON\JSON.cpp" />

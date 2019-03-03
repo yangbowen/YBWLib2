@@ -66,34 +66,50 @@ namespace YBWLib2 {
 		}
 		inline virtual bool String(const char* value, size_t size_value, bool should_copy) override {
 			static_cast<void>(should_copy);
-			try {
-				switch (this->state) {
-				case State_InElementArray: {
-					this->vec_element->emplace_back(this->rawallocator, value, size_value);
-					return true;
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &value, &size_value, &err_inner]()->void {
+					switch (this->state) {
+					case State_InElementArray: {
+						this->vec_element->emplace_back(this->rawallocator, value, size_value);
+						return;
+					}
+					case State_AwaitingParameterNameValueInSubstituteElementObject: {
+						if (size_value && !value) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, String); return; }
+						this->size_name_parameter_value_temp_element_substitute = size_value;
+						this->name_parameter_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter_value_temp_element_substitute * sizeof(char)));
+						if (!this->name_parameter_value_temp_element_substitute) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+						if (this->size_name_parameter_value_temp_element_substitute) memcpy(this->name_parameter_value_temp_element_substitute, value, this->size_name_parameter_value_temp_element_substitute * sizeof(char));
+						return;
+					}
+					case State_AwaitingOptionsValueInSubstituteElementObject: {
+						if (size_value && !value) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, String); return; }
+						this->size_str_options_value_temp_element_substitute = size_value;
+						this->str_options_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_options_value_temp_element_substitute * sizeof(char)));
+						if (!this->str_options_value_temp_element_substitute) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+						if (this->size_str_options_value_temp_element_substitute) memcpy(this->str_options_value_temp_element_substitute, value, this->size_str_options_value_temp_element_substitute * sizeof(char));
+						return;
+					}
+					default:
+					{
+						err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, String);
+						return;
+					}
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
 				}
-				case State_AwaitingParameterNameValueInSubstituteElementObject: {
-					if (size_value && !value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
-					this->size_name_parameter_value_temp_element_substitute = size_value;
-					this->name_parameter_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter_value_temp_element_substitute * sizeof(char)));
-					if (!this->name_parameter_value_temp_element_substitute) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-					if (this->size_name_parameter_value_temp_element_substitute) memcpy(this->name_parameter_value_temp_element_substitute, value, this->size_name_parameter_value_temp_element_substitute * sizeof(char));
-					return true;
-				}
-				case State_AwaitingOptionsValueInSubstituteElementObject: {
-					if (size_value && !value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
-					this->size_str_options_value_temp_element_substitute = size_value;
-					this->str_options_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_options_value_temp_element_substitute * sizeof(char)));
-					if (!this->str_options_value_temp_element_substitute) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-					if (this->size_str_options_value_temp_element_substitute) memcpy(this->str_options_value_temp_element_substitute, value, this->size_str_options_value_temp_element_substitute * sizeof(char));
-					return true;
-				}
-				default:
-					return false;
-				}
-			} catch (...) {
+				delete err;
+				err = nullptr;
 				return false;
-			}
+			} else if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+				return false;
+			} else return true;
 		}
 		inline virtual bool StartObject() override {
 			if (this->state == State_InElementArray) {
@@ -115,42 +131,87 @@ namespace YBWLib2 {
 		}
 		inline virtual bool EndObject(size_t count_member) override {
 			static_cast<void>(count_member);
-			try {
-				if (this->state == State_InSubstituteElementObject) {
-					this->vec_element->emplace_back(
-						this->rawallocator,
-						this->name_parameter_value_temp_element_substitute,
-						this->size_name_parameter_value_temp_element_substitute,
-						this->str_options_value_temp_element_substitute,
-						this->size_str_options_value_temp_element_substitute
-					);
-					this->state = State_InElementArray;
-					return true;
-				} else return false;
-			} catch (...) {
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &err_inner]()->void {
+					if (this->state == State_InSubstituteElementObject) {
+						this->vec_element->emplace_back(
+							this->rawallocator,
+							this->name_parameter_value_temp_element_substitute,
+							this->size_name_parameter_value_temp_element_substitute,
+							this->str_options_value_temp_element_substitute,
+							this->size_str_options_value_temp_element_substitute
+						);
+						this->state = State_InElementArray;
+					} else {
+						err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, EndObject);
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				delete err;
+				err = nullptr;
 				return false;
-			}
+			} else if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+				return false;
+			} else return true;
 		}
 		inline virtual bool StartArray() override {
-			try {
-				if (this->state == State_Initial) {
-					this->state = State_InElementArray;
-					this->vec_element->clear();
-					return true;
-				} else return false;
-			} catch (...) {
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &err_inner]()->void {
+					if (this->state == State_Initial) {
+						this->state = State_InElementArray;
+						this->vec_element->clear();
+					} else {
+						err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, StartArray);
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				delete err;
+				err = nullptr;
 				return false;
-			}
+			} else if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+				return false;
+			} else return true;
 		}
 		inline virtual bool EndArray(size_t count_element) override {
-			try {
-				if (this->state == State_InElementArray && this->vec_element->size() == count_element) {
-					this->state = State_Complete;
-					return true;
-				} else return false;
-			} catch (...) {
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &count_element, &err_inner]()->void {
+					if (this->state == State_InElementArray && this->vec_element->size() == count_element) {
+						this->state = State_Complete;
+					} else {
+						err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, EndArray);
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				delete err;
+				err = nullptr;
 				return false;
-			}
+			} else if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+				return false;
+			} else return true;
 		}
 		inline bool IsComplete() const noexcept { return this->state == State_Complete; }
 	private:
@@ -217,27 +278,39 @@ namespace YBWLib2 {
 		StringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameter>(),
-			{ DynamicTypeBaseClassDef<StringTemplateParameter, IStringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<StringTemplateParameter, IStringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(StringTemplateParameter));
 		StringStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringStringTemplateParameter>(),
-			{ DynamicTypeBaseClassDef<StringStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<StringStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(StringStringTemplateParameter));
 		StringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameterList>(),
-			{ DynamicTypeBaseClassDef<StringTemplateParameterList, IStringTemplateParameterList, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<StringTemplateParameterList, IStringTemplateParameterList, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(StringTemplateParameterList));
 		StringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringTemplate>(),
 			IsDynamicTypeModuleLocalClass<StringTemplate>(),
-			{ DynamicTypeBaseClassDef<StringTemplate, IStringTemplate, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<StringTemplate, IStringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(StringTemplate));
 		FixedStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<FixedStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<FixedStringTemplate>(),
-			{ DynamicTypeBaseClassDef<FixedStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<FixedStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(FixedStringTemplate),
+			DynamicTypeGetCreateObjectFnptr<FixedStringTemplate>(il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.end()),
+			DynamicTypeGetPlacementCreateObjectFnptr<FixedStringTemplate>(il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.end()),
+			DynamicTypeGetDefaultDeleteObjectFnptr<FixedStringTemplate>());
 		SubstitutionStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<SubstitutionStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<SubstitutionStringTemplate>(),
-			{ DynamicTypeBaseClassDef<SubstitutionStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<SubstitutionStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(SubstitutionStringTemplate),
+			DynamicTypeGetCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
+			DynamicTypeGetPlacementCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
+			DynamicTypeGetDefaultDeleteObjectFnptr<SubstitutionStringTemplate>());
 		GetDynamicTypeThisClassObject<StringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameter)), module_info_current);
 		GetDynamicTypeThisClassObject<StringStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringStringTemplateParameter)), module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameterList)), module_info_current);

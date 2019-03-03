@@ -4,10 +4,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <type_traits>
+#include <new>
 #include <initializer_list>
 #include <mutex>
 #include "../YBWLib2Api.h"
 #include "../Common/CommonLowLevel.h"
+#include "../Exception/ExceptionLowLevel.h"
 
 namespace YBWLib2 {
 	struct DynamicTypeClassID;
@@ -23,31 +25,22 @@ namespace YBWLib2 {
 	struct DynamicTypeClassID {
 		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 		/// <summary>An equal-to comparing function for <c>DynamicTypeClassID</c>.</summary>
-		static inline bool IsEqualTo(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return IsEqualTo_UUID(&l->uuid, &r->uuid); }
+		static inline bool IsEqualTo(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
 		/// <summary>
 		/// A less-than comparing function for <c>DynamicTypeClassID</c>.
 		/// The behaviour is equivalent to comparing the binary representation of the <c>DynamicTypeClassID</c> from byte to byte lexicographically.
 		/// </summary>
-		static inline bool IsLessThan(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return IsLessThan_UUID(&l->uuid, &r->uuid); }
+		static inline bool IsLessThan(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
 		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return SecureIsEqualTo_UUID(&l->uuid, &r->uuid); }
-		inline bool operator==(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsEqualTo(this, &r); }
-		inline bool operator!=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsEqualTo(this, &r); }
-		inline bool operator<(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(this, &r); }
-		inline bool operator<=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(&r, this); }
-		inline bool operator>(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(&r, this); }
-		inline bool operator>=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(this, &r); }
+		static inline bool SecureIsEqualTo(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
+		inline bool operator==(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsEqualTo(*this, r); }
+		inline bool operator!=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsEqualTo(*this, r); }
+		inline bool operator<(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(*this, r); }
+		inline bool operator<=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(r, *this); }
+		inline bool operator>(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(r, *this); }
+		inline bool operator>=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(*this, r); }
 		inline size_t hash() const { return this->uuid.hash(); }
 	};
-	/// <summary>An equal-to comparing function for <c>DynamicTypeClassID</c>.</summary>
-	inline bool IsEqualTo_DynamicTypeClassID(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return DynamicTypeClassID::IsEqualTo(l, r); }
-	/// <summary>
-	/// A less-than comparing function for <c>DynamicTypeClassID</c>.
-	/// The behaviour is equivalent to comparing the binary representation of the <c>DynamicTypeClassID</c> from byte to byte lexicographically.
-	/// </summary>
-	inline bool IsLessThan_DynamicTypeClassID(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return DynamicTypeClassID::IsLessThan(l, r); }
-	/// <summary>A secure version of <c>IsEqualTo_DynamicTypeClassID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-	inline bool SecureIsEqualTo_DynamicTypeClassID(const DynamicTypeClassID* l, const DynamicTypeClassID* r) noexcept { return DynamicTypeClassID::SecureIsEqualTo(l, r); }
 
 	struct hash_DynamicTypeClassID_t {
 		inline size_t operator()(const DynamicTypeClassID& t) const {
@@ -151,6 +144,38 @@ namespace YBWLib2 {
 	class DynamicTypeClassObj final {
 		friend _impl_DynamicTypeClassObj;
 	public:
+		/// <summary>Function pointer type for dynamically creating object.</summary>
+		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
+		/// <param name="_indexeddatastore_parameters">
+		/// A pointer to an indexed data store that contains creation parameters.
+		/// Dynamic type classes may define parameters to be used.
+		/// </param>
+		/// <returns>
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
+		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </returns>
+		typedef uintptr_t(YBWLIB2_CALLTYPE* fnptr_create_object_t)(const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept;
+		/// <summary>Function pointer type for dynamically placement-creating object.</summary>
+		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
+		/// <param name="_ptr_placement">A pointer to the memory position at which the object is requested to be placement-created.</param>
+		/// <param name="_indexeddatastore_parameters">
+		/// A pointer to an indexed data store that contains creation parameters.
+		/// Dynamic type classes may define parameters to be used.
+		/// </param>
+		/// <returns>
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
+		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </returns>
+		typedef uintptr_t(YBWLIB2_CALLTYPE* fnptr_placement_create_object_t)(const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept;
+		/// <summary>Function pointer type for dynamically deleting object.</summary>
+		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
+		/// <param name="_ptr_obj">
+		/// A pointer to the object that is requested to be deleted, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
+		/// </param>
+		typedef void(YBWLIB2_CALLTYPE* fnptr_delete_object_t)(const DynamicTypeClassObj* _dtclassobj, uintptr_t _ptr_obj) noexcept;
 		/// <summary>Finds a registered non-module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier.</summary>
 		/// <returns>
 		/// This function returns a pointer to the found dynamic type class object if successful.
@@ -163,8 +188,23 @@ namespace YBWLib2 {
 		/// Otherwise (if there isn't a module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
 		/// </returns>
 		static DynamicTypeClassObj* FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid);
-		inline DynamicTypeClassObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, ::std::initializer_list<DynamicTypeBaseClassDefObj> _dtbaseclassdef)
-			: dtclassid(_dtclassid), is_module_local(_is_module_local) {
+		inline DynamicTypeClassObj(
+			const DynamicTypeClassID& _dtclassid,
+			bool _is_module_local,
+			::std::initializer_list<DynamicTypeBaseClassDefObj> _dtbaseclassdef,
+			size_t _extent_before,
+			size_t _extent_after,
+			fnptr_create_object_t _fnptr_create_object = nullptr,
+			fnptr_placement_create_object_t _fnptr_placement_create_object = nullptr,
+			fnptr_delete_object_t _fnptr_delete_object = nullptr
+		)
+			: dtclassid(_dtclassid),
+			is_module_local(_is_module_local),
+			extent_before(_extent_before),
+			extent_after(_extent_after),
+			fnptr_create_object(_fnptr_create_object),
+			fnptr_placement_create_object(_fnptr_placement_create_object),
+			fnptr_delete_object(_fnptr_delete_object) {
 			this->CreateImplObject(_dtbaseclassdef.begin(), _dtbaseclassdef.end());
 			if (this->dtclassid != DynamicTypeClassID_Null) this->Register();
 		}
@@ -193,6 +233,56 @@ namespace YBWLib2 {
 		YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const;
 		/// <summary>Dynamically upcasts a pointer.</summary>
 		YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const;
+		/// <summary>
+		/// Returns the size (in bytes) of the part of the memory that the object occupies before the position pointed to by the pointer to the object.
+		/// This is usually <c>0</c>. But don't assume it's <c>0</c> unless guranteed by other means.
+		/// If <c>ptr</c> points to the object, the object occupies [ <c>ptr - this->GetExtentBefore()</c>, <c>ptr + this->GetExtentAfter()</c> ).
+		/// </summary>
+		inline size_t GetExtentBefore() const noexcept { return this->extent_before; }
+		/// <summary>
+		/// Returns the size (in bytes) of the part of the memory that the object occupies after the position pointed to by the pointer to the object.
+		/// This is usually the value returned by the <c>sizeof</c> operator used on the type.
+		/// If <c>ptr</c> points to the object, the object occupies [ <c>ptr - this->GetExtentBefore()</c>, <c>ptr + this->GetExtentAfter()</c> ).
+		/// </summary>
+		inline size_t GetExtentAfter() const noexcept { return this->extent_after; }
+		/// <summary>Dynamically creates object of this class.</summary>
+		/// <param name="_dtclassobj_base">A pointer to the <c>DynamicTypeClassObj</c> object that represents the base class the pointer to which is passed.</param>
+		/// <param name="_indexeddatastore_parameters">
+		/// A pointer to an indexed data store that contains creation parameters.
+		/// Dynamic type classes may define parameters to be used.
+		/// The constructor is identified by a <c>ConstructorID</c> passed as an entry using <c>ConstructorIDParameterIndexedDataEntry</c>.
+		/// If an exception has occurred during object creation, it's returned as an entry using <c>ExceptionReturnParameterIndexedDataEntry</c>.
+		/// If the entry represented by <c>ObjectPointerFromParameterIndexedDataEntry</c> exists, its value (the pointer) will be temporarily casted to a pointer to the derived object.
+		/// </param>
+		/// <returns>
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj_base" />.
+		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </returns>
+		uintptr_t CreateObject(const DynamicTypeClassObj* _dtclassobj_base, IndexedDataStore& _indexeddatastore_parameters) const noexcept;
+		/// <summary>Dynamically placement-creates object of this class.</summary>
+		/// <param name="_dtclassobj_base">A pointer to the <c>DynamicTypeClassObj</c> object that represents the base class the pointer to which is passed.</param>
+		/// <param name="_ptr_placement">A pointer to the memory position at which the object is requested to be placement-created.</param>
+		/// <param name="_indexeddatastore_parameters">
+		/// A pointer to an indexed data store that contains creation parameters.
+		/// Dynamic type classes may define parameters to be used.
+		/// The constructor is identified by a <c>ConstructorID</c> passed as an entry using <c>ConstructorIDParameterIndexedDataEntry</c>.
+		/// If an exception has occurred during object creation, it's returned as an entry using <c>ExceptionReturnParameterIndexedDataEntry</c>.
+		/// If the entry represented by <c>ObjectPointerFromParameterIndexedDataEntry</c> exists, its value (the pointer) will be temporarily casted to a pointer to the derived object.
+		/// </param>
+		/// <returns>
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj_base" />.
+		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </returns>
+		uintptr_t PlacementCreateObject(const DynamicTypeClassObj* _dtclassobj_base, void* _ptr_placement, IndexedDataStore& _indexeddatastore_parameters) const noexcept;
+		/// <summary>Dynamically deletes object of this class.</summary>
+		/// <param name="_dtclassobj_base">A pointer to the <c>DynamicTypeClassObj</c> object that represents the base class the pointer to which is passed.</param>
+		/// <param name="_ptr_obj">
+		/// A pointer to the object that is requested to be deleted, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
+		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj_base" />.
+		/// </param>
+		void DeleteObject(const DynamicTypeClassObj* _dtclassobj_base, uintptr_t _ptr_obj) const noexcept;
 		/// <summary>Registers a <c>wrapper_type_info_t</c> object that represents the type of this dynamic type class in the specified module.</summary>
 		/// <param name="_wrapper_type_info">Pointer to a <c>wrapper_type_info_t</c> object that represents the type.</param>
 		/// <param name="_module_info">Pointer to the <c>module_info</c> object that represents the specified module.</param>
@@ -209,6 +299,21 @@ namespace YBWLib2 {
 		const bool is_module_local;
 		/// <summary>Pointer to the implementation object.</summary>
 		_impl_DynamicTypeClassObj* pimpl = nullptr;
+		/// <summary>
+		/// The size (in bytes) of the part of the memory that the object occupies before the position pointed to by the pointer to the object.
+		/// This is usually <c>0</c>. But don't assume it's <c>0</c> unless guranteed by other means.
+		/// If <c>ptr</c> points to the object, the object occupies [ <c>ptr - this->extent_before</c>, <c>ptr + this->extent_after</c> ).
+		/// </summary>
+		size_t extent_before;
+		/// <summary>
+		/// The size (in bytes) of the part of the memory that the object occupies after the position pointed to by the pointer to the object.
+		/// This is usually the value returned by the <c>sizeof</c> operator used on the type.
+		/// If <c>ptr</c> points to the object, the object occupies [ <c>ptr - this->extent_before</c>, <c>ptr + this->extent_after</c> ).
+		/// </summary>
+		size_t extent_after;
+		fnptr_create_object_t fnptr_create_object = nullptr;
+		fnptr_placement_create_object_t fnptr_placement_create_object = nullptr;
+		fnptr_delete_object_t fnptr_delete_object = nullptr;
 	private:
 		YBWLIB2_API void YBWLIB2_CALLTYPE CreateImplObject(const DynamicTypeBaseClassDefObj* _begin_dtbaseclassdef, const DynamicTypeBaseClassDefObj* _end_dtbaseclassdef);
 		YBWLIB2_API void YBWLIB2_CALLTYPE DestroyImplObject();
@@ -331,6 +436,175 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
+
+#pragma region Dynamic object creation
+	//{ Dynamic object creation
+
+	/// <summary>
+	/// Unique identifier used to identify a constructor.
+	/// Constructors in different classes may have the same constructor ID.
+	/// </summary>
+	struct ConstructorID {
+		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+		/// <summary>An equal-to comparing function for <c>ConstructorID</c>.</summary>
+		static inline bool IsEqualTo(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
+		/// <summary>
+		/// A less-than comparing function for <c>ConstructorID</c>.
+		/// The behaviour is equivalent to comparing the binary representation of the <c>ConstructorID</c> from byte to byte lexicographically.
+		/// </summary>
+		static inline bool IsLessThan(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
+		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
+		static inline bool SecureIsEqualTo(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
+		inline bool operator==(const ConstructorID& r) const { return ConstructorID::IsEqualTo(*this, r); }
+		inline bool operator!=(const ConstructorID& r) const { return !ConstructorID::IsEqualTo(*this, r); }
+		inline bool operator<(const ConstructorID& r) const { return ConstructorID::IsLessThan(*this, r); }
+		inline bool operator<=(const ConstructorID& r) const { return !ConstructorID::IsLessThan(r, *this); }
+		inline bool operator>(const ConstructorID& r) const { return ConstructorID::IsLessThan(r, *this); }
+		inline bool operator>=(const ConstructorID& r) const { return !ConstructorID::IsLessThan(*this, r); }
+		inline size_t hash() const { return this->uuid.hash(); }
+	};
+
+	struct hash_ConstructorID_t {
+		inline size_t operator()(const ConstructorID& t) const {
+			return t.hash();
+		}
+	};
+	constexpr hash_ConstructorID_t hash_ConstructorID {};
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>ConstructorID</c> identifier at compile time.</summary>
+	inline constexpr ConstructorID ConstructorIDFromUUIDString_CompileTime(const char(&str)[37]) { return { UUIDFromUUIDString_CompileTime(str) }; }
+
+	/// <summary>
+	/// Default constructor.
+	/// No additional parameters are defined.
+	/// </summary>
+	constexpr ConstructorID ConstructorID_Default = ConstructorIDFromUUIDString_CompileTime("47b6f6f3-0981-4475-85b6-72c9ea1ed269");
+	/// <summary>
+	/// Copy constructor.
+	/// The pointer to the object to be copied from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
+	/// </summary>
+	constexpr ConstructorID ConstructorID_Copy = ConstructorIDFromUUIDString_CompileTime("c3cee6f1-891a-4a77-85bf-47e3eaf06ee2");
+	/// <summary>
+	/// Move constructor.
+	/// The pointer to the object to be moved from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
+	/// </summary>
+	constexpr ConstructorID ConstructorID_Move = ConstructorIDFromUUIDString_CompileTime("d554cab4-ecc4-43f6-9171-bb4ba483de05");
+
+	class ConstructorIDParameterIndexedDataEntry final {
+	public:
+		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("1ad0e374-8406-40c9-86f5-1f686ca45a03");
+		inline static ConstructorIDParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				return new(_ptr_placement) ConstructorIDParameterIndexedDataEntry(*_indexeddatarawvalue);
+			} else {
+				return nullptr;
+			}
+		}
+		static ConstructorIDParameterIndexedDataEntry CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static ConstructorIDParameterIndexedDataEntry* MoveFromStore(IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				ConstructorIDParameterIndexedDataEntry* ret = new(_ptr_placement) ConstructorIDParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue));
+				_indexeddatastore.RemoveEntryByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+				return ret;
+			} else {
+				return nullptr;
+			}
+		}
+		static ConstructorIDParameterIndexedDataEntry MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static void AddToStore(IndexedDataStore& _indexeddatastore, ConstructorIDParameterIndexedDataEntry&& _entry) noexcept {
+			_indexeddatastore.AddEntry(ConstructorIDParameterIndexedDataEntry::entryid, static_cast<IndexedDataRawValue>(_entry));
+		}
+		inline static void RemoveFromStore(IndexedDataStore& _indexeddatastore) noexcept {
+			_indexeddatastore.RemoveEntryByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
+		}
+		ConstructorID ctorid;
+		inline explicit constexpr ConstructorIDParameterIndexedDataEntry(const ConstructorID& _ctorid) noexcept : ctorid(_ctorid) {}
+		inline constexpr ConstructorIDParameterIndexedDataEntry(const ConstructorIDParameterIndexedDataEntry& x) noexcept : ctorid(x.ctorid) {}
+		inline constexpr ConstructorIDParameterIndexedDataEntry(ConstructorIDParameterIndexedDataEntry&& x) noexcept : ctorid(x.ctorid) {
+			x.ctorid = ConstructorID();
+		}
+		inline ~ConstructorIDParameterIndexedDataEntry() {
+			this->ctorid = ConstructorID();
+		}
+		inline ConstructorIDParameterIndexedDataEntry& operator=(const ConstructorIDParameterIndexedDataEntry& x) noexcept {
+			this->ctorid = x.ctorid;
+		}
+		inline ConstructorIDParameterIndexedDataEntry& operator=(ConstructorIDParameterIndexedDataEntry&& x) noexcept {
+			this->ctorid = x.ctorid;
+			x.ctorid = ConstructorID();
+		}
+	private:
+		inline explicit constexpr ConstructorIDParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : ctorid { _indexeddatarawvalue.context.uuid_context } {}
+		inline explicit ConstructorIDParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : ctorid { _indexeddatarawvalue.context.uuid_context } {
+			_indexeddatarawvalue.context.~context_t();
+			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		}
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, this->ctorid.uuid); }
+	};
+	static_assert(::std::is_standard_layout_v<ConstructorIDParameterIndexedDataEntry>, "ConstructorIDParameterIndexedDataEntry is not standard-layout.");
+
+	class ObjectPointerFromParameterIndexedDataEntry final {
+	public:
+		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("95ca9ad6-1718-4e19-8491-8915aeadf6d1");
+		inline static ObjectPointerFromParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				return new(_ptr_placement) ObjectPointerFromParameterIndexedDataEntry(*_indexeddatarawvalue);
+			} else {
+				return nullptr;
+			}
+		}
+		static ObjectPointerFromParameterIndexedDataEntry CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static ObjectPointerFromParameterIndexedDataEntry* MoveFromStore(IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				ObjectPointerFromParameterIndexedDataEntry* ret = new(_ptr_placement) ObjectPointerFromParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue));
+				_indexeddatastore.RemoveEntryByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+				return ret;
+			} else {
+				return nullptr;
+			}
+		}
+		static ObjectPointerFromParameterIndexedDataEntry MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static void AddToStore(IndexedDataStore& _indexeddatastore, ObjectPointerFromParameterIndexedDataEntry&& _entry) noexcept {
+			_indexeddatastore.AddEntry(ObjectPointerFromParameterIndexedDataEntry::entryid, static_cast<IndexedDataRawValue>(_entry));
+		}
+		inline static void RemoveFromStore(IndexedDataStore& _indexeddatastore) noexcept {
+			_indexeddatastore.RemoveEntryByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
+		}
+		uintptr_t uintptr_ptr_obj = 0;
+		inline explicit constexpr ObjectPointerFromParameterIndexedDataEntry(uintptr_t _uintptr_ptr_obj) noexcept : uintptr_ptr_obj(_uintptr_ptr_obj) {}
+		inline constexpr ObjectPointerFromParameterIndexedDataEntry(const ObjectPointerFromParameterIndexedDataEntry& x) noexcept : uintptr_ptr_obj(x.uintptr_ptr_obj) {}
+		inline constexpr ObjectPointerFromParameterIndexedDataEntry(ObjectPointerFromParameterIndexedDataEntry&& x) noexcept : uintptr_ptr_obj(x.uintptr_ptr_obj) {
+			x.uintptr_ptr_obj = 0;
+		}
+		inline ~ObjectPointerFromParameterIndexedDataEntry() {
+			this->uintptr_ptr_obj = 0;
+		}
+		inline ObjectPointerFromParameterIndexedDataEntry& operator=(const ObjectPointerFromParameterIndexedDataEntry& x) noexcept {
+			this->uintptr_ptr_obj = x.uintptr_ptr_obj;
+		}
+		inline ObjectPointerFromParameterIndexedDataEntry& operator=(ObjectPointerFromParameterIndexedDataEntry&& x) noexcept {
+			this->uintptr_ptr_obj = x.uintptr_ptr_obj;
+			x.uintptr_ptr_obj = 0;
+		}
+	private:
+		inline explicit constexpr ObjectPointerFromParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.context.uintptr_context[0]) {}
+		inline explicit ObjectPointerFromParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.context.uintptr_context[0]) {
+			_indexeddatarawvalue.context.~context_t();
+			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		}
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, this->uintptr_ptr_obj, 0); }
+	};
+	static_assert(::std::is_standard_layout_v<ObjectPointerFromParameterIndexedDataEntry>, "ObjectPointerFromParameterIndexedDataEntry is not standard-layout.");
+
+	//}
+#pragma endregion Stuff used in dynamic object creation
 
 #pragma region Dynamic type class declarations, implementations and initializations helper templates
 	//{ Dynamic type class declarations, implementations and initializations helper templates

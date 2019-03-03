@@ -141,57 +141,42 @@ namespace YBWLib2 {
 	/// <summary>Universally unique identifier.</summary>
 	struct UUID {
 		/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
-		static inline bool IsEqualTo(const UUID* l, const UUID* r) noexcept {
-			if constexpr (sizeof(UUID) % sizeof(uintptr_t)) {
-				for (size_t i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) if (l->data[i] != r->data[i]) return false;
-				return true;
-			} else {
-				for (size_t i = 0; i < sizeof(UUID) / sizeof(uintptr_t); ++i) if (reinterpret_cast<const uintptr_t*>(l)[i] != reinterpret_cast<const uintptr_t*>(r)[i]) return false;
-				return true;
-			}
+		static inline bool IsEqualTo(const UUID& l, const UUID& r) noexcept {
+			return !memcmp(l.data, r.data, sizeof(UUID::data));
 		}
 		/// <summary>
 		/// A less-than comparing function for <c>UUID</c>.
 		/// The behaviour is equivalent to comparing the binary representation of the <c>UUID</c> from byte to byte lexicographically.
 		/// </summary>
-		static inline bool IsLessThan(const UUID* l, const UUID* r) noexcept {
-			for (int i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) {
-				if (reinterpret_cast<const uint8_t*>(l)[i] < reinterpret_cast<const uint8_t*>(r)[i]) return true;
-				if (reinterpret_cast<const uint8_t*>(l)[i] != reinterpret_cast<const uint8_t*>(r)[i]) return false;
+		static inline bool IsLessThan(const UUID& l, const UUID& r) noexcept {
+			for (int i = 0; i < sizeof(UUID::data) / sizeof(uint8_t); ++i) {
+				if (reinterpret_cast<const uint8_t*>(l.data)[i] < reinterpret_cast<const uint8_t*>(r.data)[i]) return true;
+				if (reinterpret_cast<const uint8_t*>(l.data)[i] != reinterpret_cast<const uint8_t*>(r.data)[i]) return false;
 			}
 			return false;
 		}
 		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const UUID* l, const UUID* r) noexcept {
-			if constexpr (sizeof(UUID) % sizeof(uintptr_t)) {
+		static inline bool SecureIsEqualTo(const UUID& l, const UUID& r) noexcept {
+			if constexpr (sizeof(UUID::data) % sizeof(uintptr_t)) {
 				uint8_t x = 0;
-				for (size_t i = 0; i < sizeof(UUID) / sizeof(uint8_t); ++i) x |= l->data[i] ^ r->data[i];
+				for (size_t i = 0; i < sizeof(UUID::data) / sizeof(uint8_t); ++i) x |= l.data[i] ^ r.data[i];
 				return !x;
 			} else {
 				uintptr_t x = 0;
-				for (size_t i = 0; i < sizeof(UUID) / sizeof(uintptr_t); ++i) x |= reinterpret_cast<const uintptr_t*>(l)[i] ^ reinterpret_cast<const uintptr_t*>(r)[i];
+				for (size_t i = 0; i < sizeof(UUID::data) / sizeof(uintptr_t); ++i) x |= reinterpret_cast<const uintptr_t*>(l.data)[i] ^ reinterpret_cast<const uintptr_t*>(r.data)[i];
 				return !x;
 			}
 		}
 		uint8_t data[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		inline bool operator==(const UUID& r) const { return UUID::IsEqualTo(this, &r); }
-		inline bool operator!=(const UUID& r) const { return !UUID::IsEqualTo(this, &r); }
-		inline bool operator<(const UUID& r) const { return UUID::IsLessThan(this, &r); }
-		inline bool operator<=(const UUID& r) const { return !UUID::IsLessThan(&r, this); }
-		inline bool operator>(const UUID& r) const { return UUID::IsLessThan(&r, this); }
-		inline bool operator>=(const UUID& r) const { return !UUID::IsLessThan(this, &r); }
+		inline bool operator==(const UUID& r) const { return UUID::IsEqualTo(*this, r); }
+		inline bool operator!=(const UUID& r) const { return !UUID::IsEqualTo(*this, r); }
+		inline bool operator<(const UUID& r) const { return UUID::IsLessThan(*this, r); }
+		inline bool operator<=(const UUID& r) const { return !UUID::IsLessThan(r, *this); }
+		inline bool operator>(const UUID& r) const { return UUID::IsLessThan(r, *this); }
+		inline bool operator>=(const UUID& r) const { return !UUID::IsLessThan(*this, r); }
 		inline size_t hash() const { return hash_trivially_copyable_t<UUID, size_t>()(*this); }
 	};
 	static_assert(::std::is_standard_layout_v<UUID>, "UUID is not standard-layout.");
-	/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
-	inline bool IsEqualTo_UUID(const UUID* l, const UUID* r) noexcept { return UUID::IsEqualTo(l, r); }
-	/// <summary>
-	/// A less-than comparing function for <c>UUID</c>.
-	/// The behaviour is equivalent to comparing the binary representation of the <c>UUID</c> from byte to byte lexicographically.
-	/// </summary>
-	inline bool IsLessThan_UUID(const UUID* l, const UUID* r) { return UUID::IsLessThan(l, r); }
-	/// <summary>A secure version of <c>IsEqualTo_UUID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-	inline bool SecureIsEqualTo_UUID(const UUID* l, const UUID* r) { return UUID::SecureIsEqualTo(l, r); }
 
 	struct hash_UUID_t {
 		inline size_t operator()(const UUID& t) const {
@@ -668,31 +653,22 @@ namespace YBWLib2 {
 	struct IndexedDataEntryID {
 		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 		/// <summary>An equal-to comparing function for <c>IndexedDataEntryID</c>.</summary>
-		static inline bool IsEqualTo(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IsEqualTo_UUID(&l->uuid, &r->uuid); }
+		static inline bool IsEqualTo(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
 		/// <summary>
 		/// A less-than comparing function for <c>IndexedDataEntryID</c>.
 		/// The behaviour is equivalent to comparing the binary representation of the <c>IndexedDataEntryID</c> from byte to byte lexicographically.
 		/// </summary>
-		static inline bool IsLessThan(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IsLessThan_UUID(&l->uuid, &r->uuid); }
+		static inline bool IsLessThan(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
 		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return SecureIsEqualTo_UUID(&l->uuid, &r->uuid); }
-		inline bool operator==(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsEqualTo(this, &r); }
-		inline bool operator!=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsEqualTo(this, &r); }
-		inline bool operator<(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(this, &r); }
-		inline bool operator<=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(&r, this); }
-		inline bool operator>(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(&r, this); }
-		inline bool operator>=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(this, &r); }
+		static inline bool SecureIsEqualTo(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
+		inline bool operator==(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsEqualTo(*this, r); }
+		inline bool operator!=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsEqualTo(*this, r); }
+		inline bool operator<(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(*this, r); }
+		inline bool operator<=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(r, *this); }
+		inline bool operator>(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(r, *this); }
+		inline bool operator>=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(*this, r); }
 		inline size_t hash() const { return this->uuid.hash(); }
 	};
-	/// <summary>An equal-to comparing function for <c>IndexedDataEntryID</c>.</summary>
-	inline bool IsEqualTo_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::IsEqualTo(l, r); }
-	/// <summary>
-	/// A less-than comparing function for <c>IndexedDataEntryID</c>.
-	/// The behaviour is equivalent to comparing the binary representation of the <c>IndexedDataEntryID</c> from byte to byte lexicographically.
-	/// </summary>
-	inline bool IsLessThan_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::IsLessThan(l, r); }
-	/// <summary>A secure version of <c>IsEqualTo_IndexedDataEntryID</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-	inline bool SecureIsEqualTo_IndexedDataEntryID(const IndexedDataEntryID* l, const IndexedDataEntryID* r) noexcept { return IndexedDataEntryID::SecureIsEqualTo(l, r); }
 
 	struct hash_IndexedDataEntryID_t {
 		inline size_t operator()(const IndexedDataEntryID& t) const {
@@ -708,23 +684,40 @@ namespace YBWLib2 {
 		/// <summary>Function pointer type for cleaning up the raw value before it's destructed.</summary>
 		typedef void(YBWLIB2_CALLTYPE* fnptr_cleanup_t)(IndexedDataRawValue* x) noexcept;
 		fnptr_cleanup_t fnptr_cleanup = nullptr;
-		uintptr_t context = 0;
-		inline constexpr IndexedDataRawValue(
+		union context_t {
+			uintptr_t uintptr_context[2];
+			UUID uuid_context;
+			inline context_t() noexcept : uuid_context() { memset(this, 0, sizeof(context_t)); }
+			inline ~context_t() { memset(this, 0, sizeof(context_t)); }
+		} context;
+		inline IndexedDataRawValue(
 			fnptr_cleanup_t _fnptr_cleanup,
-			uintptr_t _context
+			uintptr_t _uintptr_context_0,
+			uintptr_t _uintptr_context_1
 		) noexcept
-			: fnptr_cleanup(_fnptr_cleanup),
-			context(_context) {}
+			: fnptr_cleanup(_fnptr_cleanup) {
+			this->context.uintptr_context[0] = _uintptr_context_0;
+			this->context.uintptr_context[1] = _uintptr_context_1;
+		}
+		inline IndexedDataRawValue(
+			fnptr_cleanup_t _fnptr_cleanup,
+			const UUID& _uuid_context
+		) noexcept
+			: fnptr_cleanup(_fnptr_cleanup) {
+			this->context.uuid_context = _uuid_context;
+		}
 		IndexedDataRawValue(const IndexedDataRawValue&) = delete;
 		IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(x.fnptr_cleanup), context(x.context) {
 			x.fnptr_cleanup = nullptr;
-			x.context = 0;
+			x.context.~context_t();
+			new (&x.context) context_t();
 		}
 		inline ~IndexedDataRawValue() {
 			if (this->fnptr_cleanup)
 				(*fnptr_cleanup)(this);
 			this->fnptr_cleanup = nullptr;
-			this->context = 0;
+			this->context.~context_t();
+			new (&this->context) context_t();
 		}
 		IndexedDataRawValue& operator=(const IndexedDataRawValue&) = delete;
 		IndexedDataRawValue& operator=(IndexedDataRawValue&& x) noexcept {
@@ -733,7 +726,8 @@ namespace YBWLib2 {
 			this->fnptr_cleanup = x.fnptr_cleanup;
 			this->context = x.context;
 			x.fnptr_cleanup = nullptr;
-			x.context = 0;
+			x.context.~context_t();
+			new (&x.context) context_t();
 		}
 	};
 	static_assert(::std::is_standard_layout_v<IndexedDataRawValue>, "IndexedDataRawValue is not standard-layout.");

@@ -7,6 +7,7 @@
 
 #include "YBWLib2InitModuleLocal.h"
 #include "Common/CommonLowLevelModuleLocal.h"
+#include "Exception/ExceptionLowLevelModuleLocal.h"
 #include "DynamicType/DynamicTypeModuleLocal.h"
 #include "Exception/ExceptionModuleLocal.h"
 #ifdef _WIN32_WINNT

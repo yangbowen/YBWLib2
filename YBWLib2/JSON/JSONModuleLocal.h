@@ -23,14 +23,16 @@ namespace YBWLib2 {
 			{
 				DynamicTypeBaseClassDef<JSONException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<JSONException, IJSONException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(JSONException));
 		ParseErrorJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ParseErrorJSONException>(),
 			IsDynamicTypeModuleLocalClass<ParseErrorJSONException>(),
 			{
 				DynamicTypeBaseClassDef<ParseErrorJSONException, JSONException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ParseErrorJSONException, IParseErrorJSONException, DynamicTypeBaseClassFlag_VirtualBase>
-			});
+			},
+			0, sizeof(ParseErrorJSONException));
 		GetDynamicTypeThisClassObject<JSONException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(JSONException)), module_info_current);
 		GetDynamicTypeThisClassObject<ParseErrorJSONException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ParseErrorJSONException)), module_info_current);
 	}

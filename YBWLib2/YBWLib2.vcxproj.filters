@@ -123,6 +123,15 @@
     <ClInclude Include="JSON\JSONModuleLocal.h">
       <Filter>Header Files\JSON</Filter>
     </ClInclude>
+    <ClInclude Include="Exception\ExceptionLowLevel.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\ExceptionLowLevelModuleLocal.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicType\DynamicTypeHighLevel.h">
+      <Filter>Header Files\DynamicType</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -157,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="JSON\JSON.cpp">
       <Filter>Source Files\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="Exception\ExceptionLowLevel.cpp">
+      <Filter>Source Files\Exception</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

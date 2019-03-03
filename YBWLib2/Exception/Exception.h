@@ -12,6 +12,7 @@
 #include <memory>
 #include "../YBWLib2Api.h"
 #include "../Common/CommonLowLevel.h"
+#include "ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 
 namespace YBWLib2 {
@@ -377,6 +378,38 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IInvalidParameterException, YBWLIB2_API, "8585713d-0d9e-4b14-87ea-85ddab280fff");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IInvalidParameterException);
 		inline virtual ~IInvalidParameterException() = default;
+		/// <summary>Gets the name of the function, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		virtual const char* GetFunctionName() const noexcept = 0;
+		/// <summary>Gets the size (in <c>char</c>s) of the name of the function, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		virtual size_t GetFunctionNameSize() const noexcept = 0;
+		/// <summary>Gets the name of the class of which the function is a member function, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		virtual const char* GetMemberFunctionClassName() const noexcept = 0;
+		/// <summary>Gets the size (in <c>char</c>s) of the name of the class of which the function is a member function, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		virtual size_t GetMemberFunctionClassNameSize() const noexcept = 0;
+	};
+
+	/// <summary>An exception that occurs because of a call to a function that should not be called currently.</summary>
+	class IInvalidCallException abstract : public virtual IException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IInvalidCallException, YBWLIB2_API, "249846e4-03be-4a4b-8770-13bab9dd0257");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IInvalidCallException);
+		inline virtual ~IInvalidCallException() = default;
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the function, if available.
@@ -858,6 +891,98 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>
+	/// A default implementation of <c>IInvalidCallException</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>IInvalidCallException</c>.
+	/// </summary>
+	class InvalidCallException
+		: public virtual Exception,
+		public virtual IInvalidCallException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(InvalidCallException, , "24f2c099-be5d-4401-8338-18817687589c");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(InvalidCallException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
+		/// <summary>Constructs an <c>InvalidCallException</c> object.</summary>
+		/// <param name="_name_function">
+		/// The name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_function">
+		/// The size (in <c>char</c>s) of the name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		/// <param name="_name_class_member_function">
+		/// The name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, pass an empty pointer.
+		/// </param>
+		/// <param name="_size_name_class_member_function">
+		/// The size (in <c>char</c>s) of the name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, pass <c>0</c>.
+		/// </param>
+		inline InvalidCallException(const char* _name_function, size_t _size_name_function, const char* _name_class_member_function = nullptr, size_t _size_name_class_member_function = 0) noexcept {
+			if (_name_function && _size_name_function) {
+				this->size_name_function = _size_name_function;
+				this->name_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_function * sizeof(char)));
+				memcpy(this->name_function, _name_function, this->size_name_function * sizeof(char));
+			}
+			if (_name_class_member_function && _size_name_class_member_function) {
+				this->size_name_class_member_function = _size_name_class_member_function;
+				this->name_class_member_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_class_member_function * sizeof(char)));
+				memcpy(this->name_class_member_function, _name_class_member_function, this->size_name_class_member_function * sizeof(char));
+			}
+		}
+		inline virtual ~InvalidCallException() {
+			if (this->name_function) {
+				ExceptionFreeMemory(this->name_function);
+				this->name_function = nullptr;
+			}
+			this->size_name_function = 0;
+			if (this->name_class_member_function) {
+				ExceptionFreeMemory(this->name_class_member_function);
+				this->name_class_member_function = nullptr;
+			}
+			this->size_name_class_member_function = 0;
+		}
+		/// <summary>Gets the name of the function, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		inline virtual const char* GetFunctionName() const noexcept override {
+			return this->name_function && this->size_name_function ? this->name_function : nullptr;
+		}
+		/// <summary>Gets the size (in <c>char</c>s) of the name of the function, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the name, in UTF-8, of the function, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		inline virtual size_t GetFunctionNameSize() const noexcept override {
+			return this->name_function && this->size_name_function ? this->size_name_function : 0;
+		}
+		/// <summary>Gets the name of the class of which the function is a member function, if available.</summary>
+		/// <returns>
+		/// Returns the name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, an empty pointer is returned.
+		/// </returns>
+		inline virtual const char* GetMemberFunctionClassName() const noexcept override {
+			return this->name_class_member_function && this->size_name_class_member_function ? this->name_class_member_function : nullptr;
+		}
+		/// <summary>Gets the size (in <c>char</c>s) of the name of the class of which the function is a member function, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s) of the name, in UTF-8, of the class of which the function is a member function, if available.
+		/// If no meaningful name can be provided, <c>0</c> is returned.
+		/// </returns>
+		inline virtual size_t GetMemberFunctionClassNameSize() const noexcept override {
+			return this->name_class_member_function && this->size_name_class_member_function ? this->size_name_class_member_function : 0;
+		}
+	protected:
+		char* name_function = nullptr;
+		size_t size_name_function = 0;
+		char* name_class_member_function = nullptr;
+		size_t size_name_class_member_function = 0;
+	};
+
+	/// <summary>
 	/// A default implementation of <c>IInsufficientBufferException</c>.
 	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
 	/// Instead, access by <c>IInsufficientBufferException</c>.
@@ -1173,6 +1298,10 @@ namespace YBWLib2 {
 #define YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(funcname) (new ::YBWLib2::InvalidParameterException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname))) / sizeof(char)) - 1))
 
 #define YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(classname, funcname) (new ::YBWLib2::InvalidParameterException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname))) / sizeof(char)) - 1,YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(classname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(classname))) / sizeof(char)) - 1))
+
+#define YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(funcname) (new ::YBWLib2::InvalidCallException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname))) / sizeof(char)) - 1))
+
+#define YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(classname, funcname) (new ::YBWLib2::InvalidCallException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(funcname))) / sizeof(char)) - 1,YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(classname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(classname))) / sizeof(char)) - 1))
 
 #define YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION(bufferaddr) (new ::YBWLib2::InsufficientBufferException(bufferaddr))
 

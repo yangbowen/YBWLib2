@@ -11,15 +11,18 @@ namespace YBWLib2 {
 		ISeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ISeekableFile>(),
 			IsDynamicTypeModuleLocalClass<ISeekableFile>(),
-			{ DynamicTypeBaseClassDef<ISeekableFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<ISeekableFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(ISeekableFile));
 		IInputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IInputFile>(),
 			IsDynamicTypeModuleLocalClass<IInputFile>(),
-			{ DynamicTypeBaseClassDef<IInputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IInputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IInputFile));
 		IOutputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<IOutputFile>(),
 			IsDynamicTypeModuleLocalClass<IOutputFile>(),
-			{ DynamicTypeBaseClassDef<IOutputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> });
+			{ DynamicTypeBaseClassDef<IOutputFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IOutputFile));
 	}
 
 	void YBWLIB2_CALLTYPE File_RealUnInitGlobal() noexcept {
