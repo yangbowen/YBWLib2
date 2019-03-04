@@ -253,7 +253,7 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* Generate(IJSONSAXHandler* jsonsaxhandler) override {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &jsonsaxhandler, &err_inner]()->void {
+				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
 					if (!this->wrapped->Parse<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
 						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
 						return;
@@ -276,7 +276,7 @@ namespace YBWLib2 {
 		inline virtual bool IsIterativeComplete() const noexcept override {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &err_inner]()->void {
+				[this, &err_inner]() noexcept(false)->void {
 					static_cast<void>(err_inner);
 					return this->wrapped->IterativeParseComplete();
 				});
@@ -304,7 +304,7 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* GenerateIterativeNext(IJSONSAXHandler* jsonsaxhandler) override {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &jsonsaxhandler, &err_inner]()->void {
+				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
 					if (!this->wrapped->IterativeParseNext<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
 						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
 						return;
@@ -326,6 +326,63 @@ namespace YBWLib2 {
 		_Fn_Get_Parse_Error_Ty* fn_get_parse_error;
 		const bool is_iterative;
 	};
+
+	class JSONSAXGeneratorParameterIndexedDataEntry final {
+	public:
+		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("e95a6b6a-2c71-414e-8f3c-b49b9f9471ad");
+		inline static JSONSAXGeneratorParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				return new(_ptr_placement) JSONSAXGeneratorParameterIndexedDataEntry(*_indexeddatarawvalue);
+			} else {
+				return nullptr;
+			}
+		}
+		static JSONSAXGeneratorParameterIndexedDataEntry CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static JSONSAXGeneratorParameterIndexedDataEntry* MoveFromStore(IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				JSONSAXGeneratorParameterIndexedDataEntry* ret = new(_ptr_placement) JSONSAXGeneratorParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue));
+				_indexeddatastore.RemoveEntryByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+				return ret;
+			} else {
+				return nullptr;
+			}
+		}
+		static JSONSAXGeneratorParameterIndexedDataEntry MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static void AddToStore(IndexedDataStore& _indexeddatastore, JSONSAXGeneratorParameterIndexedDataEntry&& _entry) noexcept {
+			_indexeddatastore.AddEntry(JSONSAXGeneratorParameterIndexedDataEntry::entryid, static_cast<IndexedDataRawValue>(_entry));
+		}
+		inline static void RemoveFromStore(IndexedDataStore& _indexeddatastore) noexcept {
+			_indexeddatastore.RemoveEntryByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+		}
+		IJSONSAXGenerator* jsonsaxgenerator = nullptr;
+		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(IJSONSAXGenerator* _jsonsaxgenerator) noexcept : jsonsaxgenerator(_jsonsaxgenerator) {}
+		inline constexpr JSONSAXGeneratorParameterIndexedDataEntry(const JSONSAXGeneratorParameterIndexedDataEntry& x) noexcept : jsonsaxgenerator(x.jsonsaxgenerator) {}
+		inline constexpr JSONSAXGeneratorParameterIndexedDataEntry(JSONSAXGeneratorParameterIndexedDataEntry&& x) noexcept : jsonsaxgenerator(x.jsonsaxgenerator) {
+			x.jsonsaxgenerator = nullptr;
+		}
+		inline ~JSONSAXGeneratorParameterIndexedDataEntry() {
+			this->jsonsaxgenerator = nullptr;
+		}
+		inline JSONSAXGeneratorParameterIndexedDataEntry& operator=(const JSONSAXGeneratorParameterIndexedDataEntry& x) noexcept {
+			this->jsonsaxgenerator = x.jsonsaxgenerator;
+		}
+		inline JSONSAXGeneratorParameterIndexedDataEntry& operator=(JSONSAXGeneratorParameterIndexedDataEntry&& x) noexcept {
+			this->jsonsaxgenerator = x.jsonsaxgenerator;
+			x.jsonsaxgenerator = nullptr;
+		}
+	private:
+		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.context.uintptr_context[0])) {}
+		inline explicit JSONSAXGeneratorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.context.uintptr_context[0])) {
+			_indexeddatarawvalue.context.~context_t();
+			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		}
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->jsonsaxgenerator), 0); }
+	};
+	static_assert(::std::is_standard_layout_v<JSONSAXGeneratorParameterIndexedDataEntry>, "JSONSAXGeneratorParameterIndexedDataEntry is not standard-layout.");
 
 	void YBWLIB2_CALLTYPE JSON_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE JSON_RealUnInitGlobal() noexcept;

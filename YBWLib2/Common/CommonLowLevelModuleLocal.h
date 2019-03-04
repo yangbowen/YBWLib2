@@ -1,9 +1,14 @@
 ﻿#ifndef _INCLUDE_GUARD_AF5FE342_E198_4EEE_972C_9077EE5E9919
 #define _INCLUDE_GUARD_AF5FE342_E198_4EEE_972C_9077EE5E9919
 
+#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
+#define YBWLIB2_EXCEPTION_MACROS_ENABLED
+#endif
+
 #include <cstdlib>
 #include <typeinfo>
 #include "CommonLowLevel.h"
+#include "../Exception/Exception.h"
 
 namespace YBWLib2 {
 	rawallocator_t* rawallocator_crt_module_local = nullptr;
@@ -35,6 +40,26 @@ namespace YBWLib2 {
 		if (!x || x->module_info != module_info_current) return x->GetName();
 		const ::std::type_info* val_type_info_x = reinterpret_cast<const ::std::type_info*>(x->context);
 		return val_type_info_x->name();
+	}
+
+	RawAllocatorParameterIndexedDataEntry RawAllocatorParameterIndexedDataEntry::CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false) {
+		const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			return RawAllocatorParameterIndexedDataEntry(*_indexeddatarawvalue);
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
+	RawAllocatorParameterIndexedDataEntry RawAllocatorParameterIndexedDataEntry::MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false) {
+		IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			RawAllocatorParameterIndexedDataEntry ret(RawAllocatorParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue)));
+			_indexeddatastore.RemoveEntryByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+			return ret;
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
 	}
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitModuleLocal() noexcept {

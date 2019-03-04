@@ -37,13 +37,13 @@ namespace YBWLib2 {
 			if (!_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
-			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_indexeddatastore_parameters, &ret]() noexcept->void {
+			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_indexeddatastore_parameters, &ret]() noexcept(false)->void {
 				typename map_fnptr_create_t::const_iterator it_map_fnptr_create = map_fnptr_create.find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
 				if (it_map_fnptr_create == map_fnptr_create.cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
 				if (!it_map_fnptr_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				ret = reinterpret_cast<uintptr_t>((*it_map_fnptr_create->second)(_indexeddatastore_parameters));
 				});
-			ExceptionReturnParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(err));
+			ExceptionReturnParameterIndexedDataEntry::AddToStore(*_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(::std::move(err)));
 			err = nullptr;
 			return ret;
 		};
@@ -52,7 +52,7 @@ namespace YBWLib2 {
 	/// <summary>Gets the default dynamic object creation function pointer.</summary>
 	template<typename _Class_Ty>
 	inline DynamicTypeClassObj::fnptr_create_object_t DynamicTypeGetDefaultCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<const ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create(
+		static const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create(
 			{
 				{ ConstructorID_Default, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);
@@ -90,13 +90,13 @@ namespace YBWLib2 {
 			if (!_ptr_placement || !_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
-			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_ptr_placement, &_indexeddatastore_parameters, &ret]() noexcept->void {
+			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_ptr_placement, &_indexeddatastore_parameters, &ret]() noexcept(false)->void {
 				typename map_fnptr_placement_create_t::const_iterator it_map_fnptr_placement_create = map_fnptr_placement_create.find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
 				if (it_map_fnptr_placement_create == map_fnptr_placement_create.cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
 				if (!it_map_fnptr_placement_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-				ret = ::std::launder(reinterpret_cast<uintptr_t>((*it_map_fnptr_placement_create->second)(_ptr_placement, _indexeddatastore_parameters)));
+				ret = reinterpret_cast<uintptr_t>((*it_map_fnptr_placement_create->second)(_ptr_placement, _indexeddatastore_parameters));
 				});
-			ExceptionReturnParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(err));
+			ExceptionReturnParameterIndexedDataEntry::AddToStore(*_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(::std::move(err)));
 			err = nullptr;
 			return ret;
 		};
@@ -105,7 +105,7 @@ namespace YBWLib2 {
 	/// <summary>Gets the default dynamic object placement-creation function pointer.</summary>
 	template<typename _Class_Ty>
 	inline DynamicTypeClassObj::fnptr_placement_create_object_t DynamicTypeGetDefaultPlacementCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<const ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create(
+		static const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create(
 			{
 				{ ConstructorID_Default, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);

@@ -12,6 +12,26 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(JSONException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ParseErrorJSONException, );
 
+	JSONSAXGeneratorParameterIndexedDataEntry JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false) {
+		const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			return JSONSAXGeneratorParameterIndexedDataEntry(*_indexeddatarawvalue);
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
+	JSONSAXGeneratorParameterIndexedDataEntry JSONSAXGeneratorParameterIndexedDataEntry::MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false) {
+		IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+		if (_indexeddatarawvalue) {
+			JSONSAXGeneratorParameterIndexedDataEntry ret(JSONSAXGeneratorParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue)));
+			_indexeddatastore.RemoveEntryByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
+			return ret;
+		} else {
+			throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+		}
+	}
+
 	void YBWLIB2_CALLTYPE JSON_RealInitModuleLocal() noexcept {
 		GetDynamicTypeThisClassObject<IJSONException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IJSONException)), module_info_current);
 		GetDynamicTypeThisClassObject<IParseErrorJSONException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IParseErrorJSONException)), module_info_current);

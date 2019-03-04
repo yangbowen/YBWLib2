@@ -605,7 +605,7 @@ namespace YBWLib2 {
 			*size_str_out_ret = 0;
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]()->void {
+				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
 					*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
@@ -786,7 +786,7 @@ namespace YBWLib2 {
 			*parameter_ret = nullptr;
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &_name_parameter, &_size_name_parameter, &parameter_ret, &_rawallocator, &err_inner]()->void {
+				[this, &_name_parameter, &_size_name_parameter, &parameter_ret, &_rawallocator, &err_inner]() noexcept(false)->void {
 					static_cast<void>(err_inner);
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					allocator_rawallocator_t<string_name_parameter_t::value_type> allocator_name_parameter(_rawallocator);
@@ -820,7 +820,7 @@ namespace YBWLib2 {
 			if (!_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, AddParameter);
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &_parameter, &err_inner]()->void {
+				[this, &_parameter, &err_inner]() noexcept(false)->void {
 					const char* name_parameter = _parameter->GetParameterName();
 					size_t size_name_parameter = _parameter->GetParameterNameSize();
 					if (!name_parameter) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, AddParameter); return; }
@@ -870,7 +870,7 @@ namespace YBWLib2 {
 			if (!_name_parameter) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, RemoveParameterByName);
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &_name_parameter, &_size_name_parameter, &_rawallocator, &err_inner]()->void {
+				[this, &_name_parameter, &_size_name_parameter, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					if (!this->map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator)))) {
 						err_inner = YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION();
@@ -969,11 +969,21 @@ namespace YBWLib2 {
 		const rawallocator_t* rawallocator = nullptr;
 	};
 
+	/// <summary>
+	/// String template from JSON SAX generator constructor.
+	/// The pointer to the raw allocator is passed as a parameter using <c>RawAllocatorParameterIndexedDataEntry</c>.
+	/// The pointer to the <c></c> object that generates the JSON value representation of the template is passed as a parameter using <c>JSONSAXGeneratorParameterIndexedDataEntry</c>.
+	/// </summary>
+	constexpr ConstructorID ConstructorID_StringTemplateFromJSONSAXGenerator = ConstructorIDFromUUIDString_CompileTime("2a02e0f3-3fc8-46c8-8d85-13b624bf5d35");
+
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<const ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create_Default_StringTemplate = {
-		{ ConstructorID_Default, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			static_cast<void>(_indexeddatastore_parameters);
-			return new _Class_Ty();// TODO: Change constructor.
+	const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create_Default_StringTemplate = {
+		{ ConstructorID_StringTemplateFromJSONSAXGenerator, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+			if (!_indexeddatastore_parameters) abort();
+			return new _Class_Ty(
+				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
+				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
+			);
 		} },
 		{ ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
@@ -988,11 +998,15 @@ namespace YBWLib2 {
 			return new _Class_Ty(::std::move(*ptr_obj_from));
 		} }
 	};
+
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<const ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create_Default_StringTemplate = {
-		{ ConstructorID_Default, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			static_cast<void>(_indexeddatastore_parameters);
-			return new(_ptr_placement) _Class_Ty();// TODO: Change constructor.
+	const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create_Default_StringTemplate = {
+		{ ConstructorID_StringTemplateFromJSONSAXGenerator, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+			if (!_indexeddatastore_parameters) abort();
+			return new(_ptr_placement) _Class_Ty(
+				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
+				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
+			);
 		} },
 		{ ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
@@ -1027,12 +1041,22 @@ namespace YBWLib2 {
 			const char* _str_value = nullptr,
 			size_t _size_str_value = 0
 		) noexcept(false) : StringTemplate(_rawallocator) {
-			if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, StringStringTemplateParameter));
+			if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate, FixedStringTemplate));
 			this->size_str_value = _size_str_value;
 			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, _str_value, this->size_str_value * sizeof(char));
 		}
+		/// <summary>Constructs an <c>FixedStringTemplate</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="jsonsaxgenerator">A pointer to a JSON SAX generator that provides a JSON value that represents to this string template.</param>
+		FixedStringTemplate(
+			const rawallocator_t* _rawallocator,
+			IJSONSAXGenerator* jsonsaxgenerator
+		) noexcept(false);
 		inline FixedStringTemplate(const FixedStringTemplate& x) noexcept(false) : StringTemplate(static_cast<const StringTemplate&>(x)) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
@@ -1120,13 +1144,13 @@ namespace YBWLib2 {
 			const rawallocator_t* _rawallocator = nullptr
 		) const noexcept override {
 			static_cast<void>(parameter_list);
-			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
-			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+			if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate, GenerateString);
+			if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate, GenerateString);
 			*str_out_ret = nullptr;
 			*size_str_out_ret = 0;
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]()->void {
+				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
 					*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
@@ -1165,7 +1189,7 @@ namespace YBWLib2 {
 		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
 		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
 		/// </param>
-		/// <param name="jsonsaxgenerator">A pointer to a JSON SAX generator that provides a JSON that corresponds to this string template.</param>
+		/// <param name="jsonsaxgenerator">A pointer to a JSON SAX generator that provides a JSON value that represents to this string template.</param>
 		SubstitutionStringTemplate(
 			const rawallocator_t* _rawallocator,
 			IJSONSAXGenerator* jsonsaxgenerator
@@ -1284,7 +1308,7 @@ namespace YBWLib2 {
 			*size_str_out_ret = 0;
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
-				[this, &parameter_list, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]()->void {
+				[this, &parameter_list, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					using string_str_out_element_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 					using vec_str_out_element_t = ::std::vector<string_str_out_element_t, allocator_rawallocator_t<string_str_out_element_t>>;
@@ -1616,8 +1640,8 @@ namespace YBWLib2 {
 				size_t* size_str_out_ret,
 				const rawallocator_t* _rawallocator
 			) const noexcept {
-				if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
-				if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GetParameterByName);
+				if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate::element_t, GenerateString);
+				if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate::element_t, GenerateString);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 				switch (this->type_element) {
@@ -1625,7 +1649,7 @@ namespace YBWLib2 {
 					static_cast<void>(parameter_list);
 					IException* err_inner = nullptr;
 					IException* err = WrapFunctionCatchExceptions(
-						[this, &str_out_ret, &size_str_out_ret, &_rawallocator, &err_inner]()->void {
+						[this, &str_out_ret, &size_str_out_ret, &_rawallocator, &err_inner]() noexcept(false)->void {
 							if (!_rawallocator) _rawallocator = this->rawallocator;
 							*size_str_out_ret = this->content_raw.size_str_value;
 							*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));

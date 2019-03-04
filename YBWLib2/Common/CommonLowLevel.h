@@ -818,6 +818,63 @@ namespace YBWLib2 {
 	//}
 #pragma endregion Entries in IndexedDataStore have unique identifiers, so that custom entries may be added without changing the declaration or definition of the data store.
 
+	class RawAllocatorParameterIndexedDataEntry final {
+	public:
+		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("88817185-e459-4527-a44b-33621380b9a4");
+		inline static RawAllocatorParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				return new(_ptr_placement) RawAllocatorParameterIndexedDataEntry(*_indexeddatarawvalue);
+			} else {
+				return nullptr;
+			}
+		}
+		static RawAllocatorParameterIndexedDataEntry CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static RawAllocatorParameterIndexedDataEntry* MoveFromStore(IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
+			if (!_ptr_placement) abort();
+			IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+			if (_indexeddatarawvalue) {
+				RawAllocatorParameterIndexedDataEntry* ret = new(_ptr_placement) RawAllocatorParameterIndexedDataEntry(::std::move(*_indexeddatarawvalue));
+				_indexeddatastore.RemoveEntryByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+				return ret;
+			} else {
+				return nullptr;
+			}
+		}
+		static RawAllocatorParameterIndexedDataEntry MoveFromStore(IndexedDataStore& _indexeddatastore) noexcept(false);
+		inline static void AddToStore(IndexedDataStore& _indexeddatastore, RawAllocatorParameterIndexedDataEntry&& _entry) noexcept {
+			_indexeddatastore.AddEntry(RawAllocatorParameterIndexedDataEntry::entryid, static_cast<IndexedDataRawValue>(_entry));
+		}
+		inline static void RemoveFromStore(IndexedDataStore& _indexeddatastore) noexcept {
+			_indexeddatastore.RemoveEntryByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
+		}
+		const rawallocator_t* rawalloctor = nullptr;
+		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const rawallocator_t* _rawalloctor) noexcept : rawalloctor(_rawalloctor) {}
+		inline constexpr RawAllocatorParameterIndexedDataEntry(const RawAllocatorParameterIndexedDataEntry& x) noexcept : rawalloctor(x.rawalloctor) {}
+		inline constexpr RawAllocatorParameterIndexedDataEntry(RawAllocatorParameterIndexedDataEntry&& x) noexcept : rawalloctor(x.rawalloctor) {
+			x.rawalloctor = nullptr;
+		}
+		inline ~RawAllocatorParameterIndexedDataEntry() {
+			this->rawalloctor = nullptr;
+		}
+		inline RawAllocatorParameterIndexedDataEntry& operator=(const RawAllocatorParameterIndexedDataEntry& x) noexcept {
+			this->rawalloctor = x.rawalloctor;
+		}
+		inline RawAllocatorParameterIndexedDataEntry& operator=(RawAllocatorParameterIndexedDataEntry&& x) noexcept {
+			this->rawalloctor = x.rawalloctor;
+			x.rawalloctor = nullptr;
+		}
+	private:
+		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.context.uintptr_context[0])) {}
+		inline explicit RawAllocatorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.context.uintptr_context[0])) {
+			_indexeddatarawvalue.context.~context_t();
+			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		}
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->rawalloctor), 0); }
+	};
+	static_assert(::std::is_standard_layout_v<RawAllocatorParameterIndexedDataEntry>, "RawAllocatorParameterIndexedDataEntry is not standard-layout.");
+
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitModuleLocal() noexcept;
