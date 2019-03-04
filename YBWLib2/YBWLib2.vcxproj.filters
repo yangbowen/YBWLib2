@@ -132,6 +132,9 @@
     <ClInclude Include="DynamicType\DynamicTypeHighLevel.h">
       <Filter>Header Files\DynamicType</Filter>
     </ClInclude>
+    <ClInclude Include="YBWLib2RawData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -170,10 +173,14 @@
     <ClCompile Include="Exception\ExceptionLowLevel.cpp">
       <Filter>Source Files\Exception</Filter>
     </ClCompile>
+    <ClCompile Include="YBWLib2RawData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Exception\ExceptionMacroUndef.h">
       <Filter>Header Files\Exception</Filter>
     </None>
+    <None Include="YBWLib2_internal_config.json" />
   </ItemGroup>
 </Project>

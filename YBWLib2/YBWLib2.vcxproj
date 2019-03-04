@@ -46,6 +46,7 @@
     <ClInclude Include="YBWLib2Api.h" />
     <ClInclude Include="YBWLib2Init.h" />
     <ClInclude Include="YBWLib2InitModuleLocal.h" />
+    <ClInclude Include="YBWLib2RawData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\Common.cpp" />
@@ -70,9 +71,11 @@
     </ClCompile>
     <ClCompile Include="UserInterface\UserInterface.cpp" />
     <ClCompile Include="YBWLib2Init.cpp" />
+    <ClCompile Include="YBWLib2RawData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Exception\ExceptionMacroUndef.h" />
+    <None Include="YBWLib2_internal_config.json" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -135,20 +138,24 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -170,6 +177,16 @@
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
     </Link>
+    <CustomBuildStep>
+      <Command>pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
+      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -191,6 +208,16 @@
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
     </Link>
+    <CustomBuildStep>
+      <Command>pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
+      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -217,6 +244,16 @@
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
     </Link>
+    <CustomBuildStep>
+      <Command>pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
+      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -243,8 +280,23 @@
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
     </Link>
+    <CustomBuildStep>
+      <Command>pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
+      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
