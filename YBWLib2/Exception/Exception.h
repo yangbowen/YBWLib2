@@ -64,10 +64,25 @@ namespace YBWLib2 {
 	/// </summary>
 	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size) noexcept;
 	/// <summary>
-	/// Frees memory previously allocated with <c>ExceptionAllocateMemory</c>.
+	/// Frees memory previously allocated with <c>ExceptionAllocateMemory</c> or <c>ExceptionReAllocateMemory</c>.
 	/// Failure to free memory in this function is considered fatal, and results in the process being terminated.
 	/// </summary>
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept;
+	/// <summary>
+	/// Reallocates memory from a separate store dedicated to exception handling.
+	/// If the new size is greater than the original size, the additional memory is zero-initialized.
+	/// Because memory is committed in advance for this separate store, this function usually succeeds even if the system memory is insufficient.
+	/// The size of this separate store is limited, so don't waste memory allocated with this function on purposes unrelated to exception handling.
+	/// Failure to allocate memory in this function is considered fatal, and results in the process being terminated.
+	/// </summary>
+	/// <param name="ptr_old">
+	/// An optional pointer to some memory previously allocated with <c>ExceptionAllocateMemory</c> or <c>ExceptionReAllocateMemory</c>.
+	/// If an empty pointer is passed, this function allocates some memory, just like when <c>ExceptionAllocateMemory</c> is called.
+	/// If this pointer is not empty, the data in the memory up to the lesser of <c>size_old</c> and <c>size_new</c> is preserved.
+	/// </param>
+	/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
+	/// <returns>Returns a pointer to the reallocated memory, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.</returns>
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_new) noexcept;
 
 	/// <summary>An allocator for allocating exception handling dedicated raw memory.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_exception;
@@ -1278,8 +1293,6 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitGlobal() noexcept;
-	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitModuleLocal() noexcept;
-	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitModuleLocal() noexcept;
 }
 
 #endif

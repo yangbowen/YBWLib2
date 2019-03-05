@@ -54,7 +54,9 @@ namespace YBWLib2 {
 	/// </summary>
 	constexpr DynamicTypeClassID DynamicTypeClassID_Null = { UUID_Null };
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>DynamicTypeClassID</c> identifier at compile time.</summary>
-	inline constexpr DynamicTypeClassID DynamicTypeClassIDFromUUIDString_CompileTime(const char(&str)[37]) { return { UUIDFromUUIDString_CompileTime(str) }; }
+	inline constexpr DynamicTypeClassID DynamicTypeClassIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>DynamicTypeClassID</c> identifier at run time.</summary>
+	inline DynamicTypeClassID DynamicTypeClassIDFromUUIDString_RunTime(const char* str, size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	//}
 #pragma endregion DynamicTypeClassID is used to uniquely identify a dynamic type class. Keep in mind that module-local dynamic type classes can have the same DynamicTypeClassID in different executable modules.
@@ -471,7 +473,9 @@ namespace YBWLib2 {
 	};
 	constexpr hash_ConstructorID_t hash_ConstructorID {};
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>ConstructorID</c> identifier at compile time.</summary>
-	inline constexpr ConstructorID ConstructorIDFromUUIDString_CompileTime(const char(&str)[37]) { return { UUIDFromUUIDString_CompileTime(str) }; }
+	inline constexpr ConstructorID ConstructorIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>ConstructorID</c> identifier at run time.</summary>
+	inline ConstructorID ConstructorIDFromUUIDString_RunTime(const char* str, size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	/// <summary>
 	/// Default constructor.

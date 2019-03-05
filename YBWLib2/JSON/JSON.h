@@ -250,7 +250,7 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// The exception object is created in exception handling dedicated memory.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* Generate(IJSONSAXHandler* jsonsaxhandler) override {
+		[[nodiscard]] inline virtual IException* Generate(IJSONSAXHandler* jsonsaxhandler) noexcept override {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
@@ -301,7 +301,7 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// The exception object is created in exception handling dedicated memory.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GenerateIterativeNext(IJSONSAXHandler* jsonsaxhandler) override {
+		[[nodiscard]] inline virtual IException* GenerateIterativeNext(IJSONSAXHandler* jsonsaxhandler) noexcept override {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
@@ -325,6 +325,61 @@ namespace YBWLib2 {
 		_Stream_Input_Ty* stream_input;
 		_Fn_Get_Parse_Error_Ty* fn_get_parse_error;
 		const bool is_iterative;
+	};
+
+	/// <summary>An implementation for <c>IJSONSAXGenerator</c> that wraps a <c>::rapidjson::GenericValue</c> object.</summary>
+	template<typename _Wrapped_Ty>
+	class ValueJSONSAXGeneratorWrapper : public virtual IJSONSAXGenerator {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(ValueJSONSAXGeneratorWrapper);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(ValueJSONSAXGeneratorWrapper);
+		explicit ValueJSONSAXGeneratorWrapper(_Wrapped_Ty& _wrapped) : wrapped(&_wrapped) {}
+		inline virtual ~ValueJSONSAXGeneratorWrapper() {
+			this->wrapped = nullptr;
+		}
+		/// <summary>Whether this generator generates JSON SAX events one at a time.</summary>
+		inline virtual bool IsIterative() const noexcept override { return false; }
+		/// <summary>
+		/// Generates all available events sequentially and dispatches them to <paramref name="jsonsaxhandler" />.
+		/// Only allowed when <c>this->IsIterative()</c> returns <c>false</c>.
+		/// </summary>
+		/// <param name="jsonsaxhandler">The JSON SAX handler that receives the generated events.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// The exception object is created in exception handling dedicated memory.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* Generate(IJSONSAXHandler* jsonsaxhandler) noexcept override {
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
+					if (!this->wrapped->Accept(*jsonsaxhandler)) {
+						err_inner = new JSONException();
+						return;
+					}
+				});
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			} else {
+				return err_inner;
+			}
+		}
+		/// <summary>Unavailable in this class.</summary>
+		inline virtual bool IsIterativeComplete() const noexcept override {
+			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ValueJSONSAXGeneratorWrapper, IsIterative);
+		}
+		/// <summary>Unavailable in this class.</summary>
+		[[nodiscard]] inline virtual IException* GenerateIterativeNext(IJSONSAXHandler* jsonsaxhandler) noexcept override {
+			static_cast<void>(jsonsaxhandler);
+			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ValueJSONSAXGeneratorWrapper, GenerateIterativeNext);
+		}
+	protected:
+		_Wrapped_Ty* wrapped;
 	};
 
 	class JSONSAXGeneratorParameterIndexedDataEntry final {

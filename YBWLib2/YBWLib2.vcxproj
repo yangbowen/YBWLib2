@@ -46,6 +46,7 @@
     <ClInclude Include="YBWLib2Api.h" />
     <ClInclude Include="YBWLib2Init.h" />
     <ClInclude Include="YBWLib2InitModuleLocal.h" />
+    <ClInclude Include="YBWLib2InternalConfig.h" />
     <ClInclude Include="YBWLib2RawData.h" />
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +72,7 @@
     </ClCompile>
     <ClCompile Include="UserInterface\UserInterface.cpp" />
     <ClCompile Include="YBWLib2Init.cpp" />
+    <ClCompile Include="YBWLib2InternalConfig.cpp" />
     <ClCompile Include="YBWLib2RawData.cpp" />
   </ItemGroup>
   <ItemGroup>

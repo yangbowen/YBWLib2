@@ -200,10 +200,6 @@ namespace YBWLib2 {
 		GetDynamicTypeThisClassObject<IException>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
 
-	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitModuleLocal() noexcept {}
-
-	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitModuleLocal() noexcept {}
-
 	static IException* YBWLIB2_CALLTYPE WrapFunctionCatchExceptionsRaw_Exception(void(YBWLIB2_CALLTYPE* _fnptr_inner)(uintptr_t _context), uintptr_t _context) noexcept {
 		if (!_fnptr_inner)
 			return YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION()->AttachCause(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::WrapFunctionCatchExceptionsRaw_Exception));

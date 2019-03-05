@@ -3,6 +3,8 @@
 #include "../Windows.h"
 #include "Exception.h"
 
+#include "../JSON/JSON.h"
+#include "../YBWLib2InternalConfig.h"
 #include "../UserInterface/UserInterface.h"
 
 namespace YBWLib2 {
@@ -44,6 +46,19 @@ namespace YBWLib2 {
 			if (!this || !this->hheap) abort();
 			if (ptr) if (HeapFree(this->hheap, 0, ptr)) abort();
 		}
+		inline void* ReAllocateMemory(void* ptr_old, size_t size_new) noexcept {
+			if (!this || !this->hheap) abort();
+			if (!size_new) size_new = 1;
+			if (ptr_old) {
+				void* ptr_new = HeapReAlloc(this->hheap, HEAP_ZERO_MEMORY, ptr_old, size_new);
+				if (!ptr_new) abort();
+				return ptr_new;
+			} else {
+				void* ptr_new = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size_new);
+				if (!ptr_new) abort();
+				return ptr_new;
+			}
+		}
 	private:
 		static constexpr size_t size_heap_initial = 0x1000000;
 		static constexpr size_t size_heap_max = 0x4000000;
@@ -82,8 +97,6 @@ namespace YBWLib2 {
 	YBWLIB2_API IStringTemplate* ExternalAPIFailureException::strtmpl_description = nullptr;
 	YBWLIB2_API IStringTemplate* UnexpectedExceptionException::strtmpl_description = nullptr;
 
-	static const char str_strtmpl_description_default_Exception[] = "An exception has occurred.";
-
 	static ExceptionHandlingEnvironment* exception_handling_environment = nullptr;
 
 	YBWLIB2_API size_t YBWLIB2_CALLTYPE ExceptionGetMaxMemorySize() noexcept { return exception_handling_environment->GetMaxMemorySize(); }
@@ -91,6 +104,8 @@ namespace YBWLib2 {
 	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size) noexcept { return exception_handling_environment->AllocateMemory(size); }
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept { exception_handling_environment->FreeMemory(ptr); }
+
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_new) noexcept { return exception_handling_environment->ReAllocateMemory(ptr_old, size_new); }
 
 	void YBWLIB2_CALLTYPE Exception_RealInitGlobal() noexcept {
 		exception_handling_environment = new ExceptionHandlingEnvironment();
@@ -106,7 +121,12 @@ namespace YBWLib2 {
 				ExceptionFreeMemory(ptr);
 				return true;
 			},
-				[](uintptr_t context) noexcept->size_t {
+			[](void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept->void* {
+				static_cast<void>(context);
+				static_cast<void>(size_old);
+				return ExceptionReAllocateMemory(ptr_old, size_new);
+			},
+			[](uintptr_t context) noexcept->size_t {
 				static_cast<void>(context);
 				return ExceptionGetMaxMemorySize();
 			});
@@ -210,18 +230,74 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitGlobal() noexcept {
-		Exception::strtmpl_description = new FixedStringTemplate(rawallocator_crt_YBWLib2, str_strtmpl_description_default_Exception, (sizeof(str_strtmpl_description_default_Exception) / sizeof(char)) - 1);
-		DoubleExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		InvalidParameterException::strtmpl_description = nullptr;// TODO: Implement.
-		InvalidCallException::strtmpl_description = nullptr;// TODO: Implement.
-		InsufficientBufferException::strtmpl_description = nullptr;// TODO: Implement.
-		MemoryAllocFailureException::strtmpl_description = nullptr;// TODO: Implement.
-		KeyAlreadyExistException::strtmpl_description = nullptr;// TODO: Implement.
-		KeyNotExistException::strtmpl_description = nullptr;// TODO: Implement.
-		UnhandledUnknownExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		STLExceptionException::strtmpl_description = nullptr;// TODO: Implement.
-		ExternalAPIFailureException::strtmpl_description = nullptr;// TODO: Implement.
-		UnexpectedExceptionException::strtmpl_description = nullptr;// TODO: Implement.
+		typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_exception_t;
+		map_strtmpl_description_exception_t map_strtmpl_description_exception({
+			{ GetDynamicTypeThisClassID<Exception>(), &Exception::strtmpl_description },
+			{ GetDynamicTypeThisClassID<DoubleExceptionException>(), &DoubleExceptionException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<InvalidParameterException>(), &InvalidParameterException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<InvalidCallException>(), &InvalidCallException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<InsufficientBufferException>(), &InsufficientBufferException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<MemoryAllocFailureException>(), &MemoryAllocFailureException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<KeyAlreadyExistException>(), &KeyAlreadyExistException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<KeyNotExistException>(), &KeyNotExistException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<UnhandledUnknownExceptionException>(), &UnhandledUnknownExceptionException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<STLExceptionException>(), &STLExceptionException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<ExternalAPIFailureException>(), &ExternalAPIFailureException::strtmpl_description },
+			{ GetDynamicTypeThisClassID<UnexpectedExceptionException>(), &UnexpectedExceptionException::strtmpl_description }
+			});
+		Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval("Exception"));
+		if (jsonmemberit_config_internal_Exception == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_Exception->value.IsObject()) abort();
+		{
+			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception_strtmpl_description_exception = jsonmemberit_config_internal_Exception->value.FindMember(Internal::ConstStringToInternalConfigJsonval("strtmpl_description_exception"));
+			if (jsonmemberit_config_internal_Exception_strtmpl_description_exception == jsonmemberit_config_internal_Exception->value.MemberEnd() || !jsonmemberit_config_internal_Exception_strtmpl_description_exception->value.IsArray()) abort();
+			{
+				for (const Internal::jsonval_config_internal_t& jsonval_config_internal_Exception_strtmpl_description_exception_element : jsonmemberit_config_internal_Exception_strtmpl_description_exception->value.GetArray()) {
+					if (!jsonval_config_internal_Exception_strtmpl_description_exception_element.IsObject()) abort();
+					Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_exception = jsonval_config_internal_Exception_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_exception"));
+					Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_strtmpl = jsonval_config_internal_Exception_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_strtmpl"));
+					Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_jsonval_strtmpl = jsonval_config_internal_Exception_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("jsonval_strtmpl"));
+					if (
+						jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_exception == jsonval_config_internal_Exception_strtmpl_description_exception_element.MemberEnd()
+						|| !jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_exception->value.IsString()
+						|| jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_strtmpl == jsonval_config_internal_Exception_strtmpl_description_exception_element.MemberEnd()
+						|| !jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_strtmpl->value.IsString()
+						|| jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_jsonval_strtmpl == jsonval_config_internal_Exception_strtmpl_description_exception_element.MemberEnd()
+						) abort();
+					bool is_successful = true;
+					DynamicTypeClassID dtclassid_exception = DynamicTypeClassIDFromUUIDString_RunTime(
+						jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_exception->value.GetString(),
+						jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_exception->value.GetStringLength(),
+						is_successful
+					);
+					if (!is_successful) abort();
+					is_successful = true;
+					DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_strtmpl->value.GetString(),
+						jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_dtclassid_strtmpl->value.GetStringLength(),
+						is_successful
+					);
+					if (!is_successful) abort();
+					map_strtmpl_description_exception_t::iterator it_map_strtmpl_description_exception = map_strtmpl_description_exception.find(dtclassid_exception);
+					if (it_map_strtmpl_description_exception == map_strtmpl_description_exception.end()) continue;
+					DynamicTypeClassObj* dtclassobj_strtmpl = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&dtclassid_strtmpl);
+					if (!dtclassobj_strtmpl) abort();
+					IndexedDataStore indexeddatastore_parameters(rawallocator_crt_YBWLib2);
+					RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
+					ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_Exception_strtmpl_description_exception_element_jsonval_strtmpl->value);
+					JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
+					*it_map_strtmpl_description_exception->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+					if (!*it_map_strtmpl_description_exception->second) abort();
+					unsigned char buf_indexeddataentry_parameter_exception_return[sizeof(ExceptionReturnParameterIndexedDataEntry)];
+					ExceptionReturnParameterIndexedDataEntry* indexeddataentry_parameter_exception_return = ExceptionReturnParameterIndexedDataEntry::MoveFromStore(indexeddatastore_parameters, buf_indexeddataentry_parameter_exception_return);
+					if (indexeddataentry_parameter_exception_return && indexeddataentry_parameter_exception_return->exception) abort();
+					map_strtmpl_description_exception.erase(it_map_strtmpl_description_exception);
+					if (indexeddataentry_parameter_exception_return) {
+						indexeddataentry_parameter_exception_return->~ExceptionReturnParameterIndexedDataEntry();
+						indexeddataentry_parameter_exception_return = nullptr;
+					}
+				}
+			}
+		}
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealUnInitGlobal() noexcept {

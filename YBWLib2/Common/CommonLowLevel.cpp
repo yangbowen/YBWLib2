@@ -125,7 +125,16 @@ namespace YBWLib2 {
 				if (ptr) free(ptr);
 				return true;
 			},
-				[](uintptr_t context) noexcept->size_t {
+			[](void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept->void* {
+				static_cast<void>(size_old);
+				static_cast<void>(context);
+				if (!size_new) size_new = 1;
+				if (ptr_old)
+					return realloc(ptr_old, size_new);
+				else
+					return malloc(size_new);
+			},
+			[](uintptr_t context) noexcept->size_t {
 				static_cast<void>(context);
 				return SIZE_MAX;
 			});

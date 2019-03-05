@@ -2,6 +2,7 @@
 #include "Windows.h"
 #include "YBWLib2Api.h"
 #include "YBWLib2Init.h"
+#include "YBWLib2InternalConfig.h"
 #include "Common/CommonLowLevel.h"
 #include "DynamicType/DynamicType.h"
 #include "Exception/Exception.h"
@@ -36,13 +37,12 @@ namespace YBWLib2 {
 			Common_RealInitModuleLocal();
 			JSON_RealInitGlobal();
 			JSON_RealInitModuleLocal();
+			Internal::YBWLib2InternalConfig_RealInitGlobal();
 			UserInterface_RealInitGlobal();
 			UserInterface_RealInitModuleLocal();
 			ExceptionUserInterface_RealInitGlobal();
-			ExceptionUserInterface_RealInitModuleLocal();
 #ifdef _WIN32_WINNT
 			ExceptionWindowsUserInterface_RealInitGlobal();
-			ExceptionWindowsUserInterface_RealInitModuleLocal();
 #endif
 			File_RealInitGlobal();
 			File_RealInitModuleLocal();
@@ -56,13 +56,12 @@ namespace YBWLib2 {
 			File_RealUnInitModuleLocal();
 			File_RealUnInitGlobal();
 #ifdef _WIN32_WINNT
-			ExceptionWindowsUserInterface_RealUnInitModuleLocal();
 			ExceptionWindowsUserInterface_RealUnInitGlobal();
 #endif
-			ExceptionUserInterface_RealUnInitModuleLocal();
 			ExceptionUserInterface_RealUnInitGlobal();
 			UserInterface_RealUnInitModuleLocal();
 			UserInterface_RealUnInitGlobal();
+			Internal::YBWLib2InternalConfig_RealUnInitGlobal();
 			JSON_RealUnInitModuleLocal();
 			JSON_RealUnInitGlobal();
 			Common_RealUnInitModuleLocal();

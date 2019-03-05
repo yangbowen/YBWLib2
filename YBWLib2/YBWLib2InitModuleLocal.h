@@ -34,10 +34,6 @@ namespace YBWLib2 {
 			Common_RealInitModuleLocal();
 			JSON_RealInitModuleLocal();
 			UserInterface_RealInitModuleLocal();
-			ExceptionUserInterface_RealInitModuleLocal();
-#ifdef _WIN32_WINNT
-			ExceptionWindowsUserInterface_RealInitModuleLocal();
-#endif
 			File_RealInitModuleLocal();
 		} catch (...) {
 			abort();
@@ -47,10 +43,6 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept {
 		try {
 			File_RealUnInitModuleLocal();
-#ifdef _WIN32_WINNT
-			ExceptionWindowsUserInterface_RealUnInitModuleLocal();
-#endif
-			ExceptionUserInterface_RealUnInitModuleLocal();
 			UserInterface_RealUnInitModuleLocal();
 			JSON_RealUnInitModuleLocal();
 			Common_RealUnInitModuleLocal();

@@ -118,10 +118,6 @@ namespace YBWLib2 {
 #endif
 		GetDynamicTypeThisClassObject<IExternalAPIFailureWithLastErrorException>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
-
-	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitModuleLocal() noexcept {}
-
-	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealUnInitModuleLocal() noexcept {}
 }
 
 #endif

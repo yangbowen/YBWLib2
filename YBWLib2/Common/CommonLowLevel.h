@@ -112,11 +112,20 @@ namespace YBWLib2 {
 	static_assert(::std::is_pod_v<dummy_t>, "dummy_t is not POD.");
 	extern YBWLIB2_API dummy_t dummy;
 
-	inline constexpr bool is_hex_uint8_string(const char(&str)[3]) {
+	inline constexpr bool is_hex_uint8_string(const char(&str)[3]) noexcept {
 		return (str[0] >= '0' && str[0] <= '9' || str[0] >= 'A' && str[0] <= 'F' || str[0] >= 'a' && str[0] <= 'f')
 			&& (str[1] >= '0' && str[1] <= '9' || str[1] >= 'A' && str[1] <= 'F' || str[1] >= 'a' && str[1] <= 'f');
 	}
-	inline constexpr uint8_t hex_uint8_from_string(const char(&str)[3]) {
+	inline constexpr bool is_hex_uint16_string(const char(&str)[5]) noexcept {
+		return is_hex_uint8_string({ str[0], str[1], 0 }) || is_hex_uint8_string({ str[2], str[3], 0 });
+	}
+	inline constexpr bool is_hex_uint32_string(const char(&str)[9]) noexcept {
+		return is_hex_uint16_string({ str[0], str[1], str[2], str[3], 0 }) || is_hex_uint16_string({ str[4], str[5], str[6], str[7], 0 });
+	}
+	inline constexpr bool is_hex_uint64_string(const char(&str)[17]) noexcept {
+		return is_hex_uint32_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) || is_hex_uint32_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
+	}
+	inline constexpr uint8_t hex_uint8_from_string(const char(&str)[3]) noexcept {
 		if (!is_hex_uint8_string(str)) abort();
 		return (str[0] >= '0' && str[0] <= '9' ? str[0] - '0'
 			: str[0] >= 'A' && str[0] <= 'F' ? str[0] - 'A' + 0xA
@@ -125,13 +134,13 @@ namespace YBWLib2 {
 				: str[1] >= 'A' && str[1] <= 'F' ? str[1] - 'A' + 0xA
 				: str[1] - 'a' + 0xA);
 	}
-	inline constexpr uint16_t hex_uint16_from_string(const char(&str)[5]) {
+	inline constexpr uint16_t hex_uint16_from_string(const char(&str)[5]) noexcept {
 		return ((uint16_t)hex_uint8_from_string({ str[0], str[1], 0 }) << 0x8) | hex_uint8_from_string({ str[2], str[3], 0 });
 	}
-	inline constexpr uint32_t hex_uint32_from_string(const char(&str)[9]) {
+	inline constexpr uint32_t hex_uint32_from_string(const char(&str)[9]) noexcept {
 		return ((uint32_t)hex_uint16_from_string({ str[0], str[1], str[2], str[3], 0 }) << 0x10) | hex_uint16_from_string({ str[4], str[5], str[6], str[7], 0 });
 	}
-	inline constexpr uint64_t hex_uint64_from_string(const char(&str)[17]) {
+	inline constexpr uint64_t hex_uint64_from_string(const char(&str)[17]) noexcept {
 		return ((uint64_t)hex_uint32_from_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) << 0x20) | hex_uint32_from_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
 	}
 
@@ -187,12 +196,35 @@ namespace YBWLib2 {
 	/// <summary>A null <c>UUID</c>.</summary>
 	constexpr UUID UUID_Null = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>UUID</c> identifier at compile time.</summary>
-	inline constexpr UUID UUIDFromUUIDString_CompileTime(const char(&str)[37]) {
+	inline constexpr UUID UUIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept {
 		if (str[8] != '-'
 			|| str[13] != '-'
 			|| str[18] != '-'
 			|| str[23] != '-'
 			|| str[36]) abort();
+		return UUID {
+			hex_uint8_from_string({ str[0], str[1], 0 }), hex_uint8_from_string({ str[2], str[3], 0 }), hex_uint8_from_string({ str[4], str[5], 0 }), hex_uint8_from_string({ str[6], str[7], 0 }),
+			hex_uint8_from_string({ str[9], str[10], 0 }), hex_uint8_from_string({ str[11], str[12], 0 }), hex_uint8_from_string({ str[14], str[15], 0 }), hex_uint8_from_string({ str[16], str[17], 0 }),
+			hex_uint8_from_string({ str[19], str[20], 0 }), hex_uint8_from_string({ str[21], str[22], 0 }), hex_uint8_from_string({ str[24], str[25], 0 }), hex_uint8_from_string({ str[26], str[27], 0 }),
+			hex_uint8_from_string({ str[28], str[29], 0 }), hex_uint8_from_string({ str[30], str[31], 0 }), hex_uint8_from_string({ str[32], str[33], 0 }), hex_uint8_from_string({ str[34], str[35], 0 })
+		};
+	}
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>UUID</c> identifier at run time.</summary>
+	inline UUID UUIDFromUUIDString_RunTime(const char* str, size_t size_str, bool& is_successful) noexcept {
+		is_successful = false;
+		if (
+			!str
+			|| size_str != 36
+			|| str[8] != '-'
+			|| str[13] != '-'
+			|| str[18] != '-'
+			|| str[23] != '-'
+			|| !is_hex_uint8_string({ str[0], str[1], 0 }) || !is_hex_uint8_string({ str[2], str[3], 0 }) || !is_hex_uint8_string({ str[4], str[5], 0 }) || !is_hex_uint8_string({ str[6], str[7], 0 })
+			|| !is_hex_uint8_string({ str[9], str[10], 0 }) || !is_hex_uint8_string({ str[11], str[12], 0 }) || !is_hex_uint8_string({ str[14], str[15], 0 }) || !is_hex_uint8_string({ str[16], str[17], 0 })
+			|| !is_hex_uint8_string({ str[19], str[20], 0 }) || !is_hex_uint8_string({ str[21], str[22], 0 }) || !is_hex_uint8_string({ str[24], str[25], 0 }) || !is_hex_uint8_string({ str[26], str[27], 0 })
+			|| !is_hex_uint8_string({ str[28], str[29], 0 }) || !is_hex_uint8_string({ str[30], str[31], 0 }) || !is_hex_uint8_string({ str[32], str[33], 0 }) || !is_hex_uint8_string({ str[34], str[35], 0 })
+			) return UUID();
+		is_successful = true;
 		return UUID {
 			hex_uint8_from_string({ str[0], str[1], 0 }), hex_uint8_from_string({ str[2], str[3], 0 }), hex_uint8_from_string({ str[4], str[5], 0 }), hex_uint8_from_string({ str[6], str[7], 0 }),
 			hex_uint8_from_string({ str[9], str[10], 0 }), hex_uint8_from_string({ str[11], str[12], 0 }), hex_uint8_from_string({ str[14], str[15], 0 }), hex_uint8_from_string({ str[16], str[17], 0 }),
@@ -216,25 +248,51 @@ namespace YBWLib2 {
 		typedef void* (YBWLIB2_CALLTYPE* fnptr_allocate_t)(size_t size, uintptr_t context) noexcept;
 		/// <summary>Function pointer type for deallocating raw memory.</summary>
 		/// <param name="ptr">
-		/// A pointer to some memory previously allocated by the same <c>IRawAllocator</c> object and not deallocated yet.
+		/// A pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
 		/// If an empty pointer is passed, this function succeeds without doing anything.
 		/// </param>
 		/// <param name="size">The size, in bytes, of the memory.</param>
 		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
 		/// <returns>Whether the call has succeeded.</returns>
 		typedef bool (YBWLIB2_CALLTYPE* fnptr_deallocate_t)(void* ptr, size_t size, uintptr_t context) noexcept;
-		/// <summary>Function pointer type for getting the maximum amount of memory that could potentially be allocated by this raw memory allocator.</summary>
+		/// <summary>Function pointer type for reallocating some memory to change its size.</summary>
+		/// <param name="ptr_old">
+		/// An optional pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
+		/// If an empty pointer is passed, this function allocates some memory, just like when <c>Allocate</c> is called on the same object.
+		/// If this pointer is not empty, the data in the memory up to the lesser of <c>size_old</c> and <c>size_new</c> is preserved.
+		/// If the call fails, this pointer is still valid and so is the data in the memory pointed to by it.
+		/// </param>
+		/// <param name="size_old">The size, in bytes, of the memory previously allocated.</param>
+		/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
+		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
 		/// <returns>
-		/// The maximum amount of memory that could potentially be allocated by this raw memory allocator.
+		/// If the call has succeeded, a pointer to the reallocated memory is returned, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.
+		/// Otherwise, an empty pointer is returned.
+		/// </returns>
+		typedef void* (YBWLIB2_CALLTYPE* fnptr_reallocate_t)(void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept;
+		/// <summary>Function pointer type for getting the maximum amount of memory that could potentially be allocated with this raw memory allocator.</summary>
+		/// <returns>
+		/// The maximum amount of memory that could potentially be allocated with this raw memory allocator.
 		/// Memory allocations within this limit can still fail.
 		/// </returns>
 		typedef size_t(YBWLIB2_CALLTYPE* fnptr_get_max_size_t)(uintptr_t context) noexcept;
 		fnptr_allocate_t fnptr_allocate = nullptr;
 		fnptr_deallocate_t fnptr_deallocate = nullptr;
+		fnptr_reallocate_t fnptr_reallocate = nullptr;
 		fnptr_get_max_size_t fnptr_get_max_size = nullptr;
 		uintptr_t context = 0;
-		inline constexpr rawallocator_t(fnptr_allocate_t _fnptr_allocate, fnptr_deallocate_t _fnptr_deallocate, fnptr_get_max_size_t _fnptr_get_max_size, uintptr_t _context = 0) noexcept
-			: fnptr_allocate(_fnptr_allocate), fnptr_deallocate(_fnptr_deallocate), fnptr_get_max_size(_fnptr_get_max_size), context(_context) {}
+		inline constexpr rawallocator_t(
+			fnptr_allocate_t _fnptr_allocate,
+			fnptr_deallocate_t _fnptr_deallocate,
+			fnptr_reallocate_t _fnptr_reallocate,
+			fnptr_get_max_size_t _fnptr_get_max_size,
+			uintptr_t _context = 0
+		) noexcept
+			: fnptr_allocate(_fnptr_allocate),
+			fnptr_deallocate(_fnptr_deallocate),
+			fnptr_reallocate(_fnptr_reallocate),
+			fnptr_get_max_size(_fnptr_get_max_size),
+			context(_context) {}
 		/// <summary>Allocates some memory.</summary>
 		/// <param name="size">The size, in bytes, of the memory.</param>
 		/// <returns>
@@ -244,15 +302,39 @@ namespace YBWLib2 {
 		[[nodiscard]] inline void* Allocate(size_t size) const noexcept { return this->fnptr_allocate ? (*this->fnptr_allocate)(size, this->context) : nullptr; }
 		/// <summary>Deallocates some memory.</summary>
 		/// <param name="ptr">
-		/// A pointer to some memory previously allocated by the same <c>IRawAllocator</c> object and not deallocated yet.
+		/// A pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
 		/// If an empty pointer is passed, this function succeeds without doing anything.
 		/// </param>
 		/// <param name="size">The size, in bytes, of the memory.</param>
 		/// <returns>Whether the call has succeeded.</returns>
 		inline bool Deallocate(void* ptr, size_t size) const noexcept { return this->fnptr_deallocate ? (*this->fnptr_deallocate)(ptr, size, this->context) : false; }
-		/// <summary>Gets the maximum amount of memory that could potentially be allocated by this raw memory allocator.</summary>
+		/// <summary>Reallocates some memory to change its size.</summary>
+		/// <param name="ptr_old">
+		/// An optional pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
+		/// If an empty pointer is passed, this function allocates some memory, just like when <c>Allocate</c> is called on the same object.
+		/// If this pointer is not empty, the data in the memory up to the lesser of <c>size_old</c> and <c>size_new</c> is preserved.
+		/// If the call fails, this pointer is still valid and so is the data in the memory pointed to with it.
+		/// </param>
+		/// <param name="size_old">The size, in bytes, of the memory previously allocated.</param>
+		/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
 		/// <returns>
-		/// The maximum amount of memory that could potentially be allocated by this raw memory allocator.
+		/// If the call has succeeded, a pointer to the reallocated memory is returned, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.
+		/// Otherwise, an empty pointer is returned.
+		/// </returns>
+		[[nodiscard]] inline void* Reallocate(void* ptr_old, size_t size_old, size_t size_new) const noexcept {
+			if (this->fnptr_reallocate) {
+				return (*this->fnptr_reallocate)(ptr_old, size_old, size_new, this->context);
+			} else {
+				void* ptr_new = this->Allocate(size_new);
+				if (!ptr_new) return nullptr;
+				memcpy(ptr_new, ptr_old, size_new < size_old ? size_new : size_old);
+				this->Deallocate(ptr_old, size_old);
+				return ptr_new;
+			}
+		}
+		/// <summary>Gets the maximum amount of memory that could potentially be allocated with this raw memory allocator.</summary>
+		/// <returns>
+		/// The maximum amount of memory that could potentially be allocated with this raw memory allocator.
 		/// Memory allocations within this limit can still fail.
 		/// </returns>
 		inline size_t GetMaxSize() const noexcept { return this->fnptr_get_max_size ? (*this->fnptr_get_max_size)(this->context) : 0; }
@@ -677,7 +759,9 @@ namespace YBWLib2 {
 	};
 	constexpr hash_IndexedDataEntryID_t hash_IndexedDataEntryID {};
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>IndexedDataEntryID</c> identifier at compile time.</summary>
-	inline constexpr IndexedDataEntryID IndexedDataEntryIDFromUUIDString_CompileTime(const char(&str)[37]) { return { UUIDFromUUIDString_CompileTime(str) }; }
+	inline constexpr IndexedDataEntryID IndexedDataEntryIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
+	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>IndexedDataEntryID</c> identifier at run time.</summary>
+	inline IndexedDataEntryID IndexedDataEntryIDFromUUIDString_RunTime(const char(&str)[37], size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	/// <summary>A raw value in an indexed data entry.</summary>
 	struct IndexedDataRawValue final {
