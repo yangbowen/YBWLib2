@@ -7,9 +7,9 @@
 #define _INCLUDE_GUARD_BE3FAB28_DF80_4A3C_B1F8_C82BB9C20BFD
 
 #include <cstdint>
+#include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
 #include "../Common/Common.h"
-#include "../DynamicType/DynamicType.h"
 
 namespace YBWLib2 {
 	/// <summary>A file that supports seeking.</summary>

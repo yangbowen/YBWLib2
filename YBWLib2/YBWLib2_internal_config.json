@@ -4,74 +4,112 @@
       {
         // Exception
         "dtclassid_exception": "99ce058f-4074-4ef9-8e34-661121b7754c",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "An exception has occurred."
       },
       {
         // DoubleExceptionException
         "dtclassid_exception": "3e8fb777-36a8-4484-8dfc-c0c1d0769921",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "An exception has occurred during the handling of another exception."
       },
       {
         // InvalidParameterException
         "dtclassid_exception": "64bcf888-15dc-4a20-95ec-d11ea4511e08",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "At least one parameter passed to a function is invalid.\nFunction name: ",
+          { "name_parameter": "name_function" },
+          "\nClass name: ",
+          { "name_parameter": "name_class_member_function" }
+        ]
       },
       {
         // InvalidCallException
         "dtclassid_exception": "24f2c099-be5d-4401-8338-18817687589c",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call has been made to a function that should not be called currently.\nFunction name: ",
+          { "name_parameter": "name_function" },
+          "\nClass name: ",
+          { "name_parameter": "name_class_member_function" }
+        ]
       },
       {
         // InsufficientBufferException
         "dtclassid_exception": "58050bd3-cd5e-4501-b717-ee9603a31e77",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A buffer is insufficient.\nBuffer address: ",
+          { "name_parameter": "address_buffer_insufficient" }
+        ]
       },
       {
         // MemoryAllocFailureException
         "dtclassid_exception": "5b87c2db-b7e8-4f02-928e-76fdc457d1a3",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "A memory allocation has failed."
       },
       {
         // KeyAlreadyExistException
         "dtclassid_exception": "7f492596-20cd-430c-8ebb-8a63b03f648a",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "An attempt to insert an entry into a data structure has failed because it doesn't allow multiple equivalent keys and already has an entry with an equivalent key."
       },
       {
         // KeyNotExistException
         "dtclassid_exception": "41af914c-4067-4088-8c87-0da29e4f3b28",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "A non-existent key in a data structure has been referenced."
       },
       {
         // UnhandledUnknownExceptionException
         "dtclassid_exception": "394df091-137c-4214-9a74-1e3f8ef7601a",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "An unhandled exception thrown with other mechanisms not supported by this exception handling facility has been catched."
       },
       {
         // STLExceptionException
         "dtclassid_exception": "6bfb4f69-92fb-4b8f-b9b0-439243fdc80d",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A C++ STL exception has been catched.\nSTL exception \"what\" string: ",
+          { "name_parameter": "str_what_stlexception" }
+        ]
       },
       {
         // ExternalAPIFailureException
         "dtclassid_exception": "e1c1550b-2b64-48c8-8904-0013c4469f24",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call to an external API has failed.\nExternal API name: ",
+          { "name_parameter": "name_api" },
+          "\nExternal API address: ",
+          { "name_parameter": "address_api" }
+        ]
       },
       {
         // UnexpectedExceptionException
         "dtclassid_exception": "a7f160c0-3ccc-45ab-aa5a-3172469faf64",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "An unexpected exception has occurred.\nSource code file name: ",
+          { "name_parameter": "filename_source_code" },
+          "\nSource code line number: ",
+          { "name_parameter": "linenumber_source_code" }
+        ]
       }
     ]
   },
@@ -80,26 +118,58 @@
       {
         // ExternalAPIFailureWithLastErrorException
         "dtclassid_exception": "fead69a8-4bff-4eaf-95a9-c235784a827d",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call to an external API has failed.\nExternal API name: ",
+          { "name_parameter": "name_api" },
+          "\nExternal API address: ",
+          { "name_parameter": "address_api" },
+          "\nGetLastError error code: ",
+          { "name_parameter": "lasterr" }
+        ]
       },
       {
         // ExternalAPIFailureWithWSALastErrorException
         "dtclassid_exception": "c341f9cf-e4f5-411f-b983-cdf780406870",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call to an external API has failed.\nExternal API name: ",
+          { "name_parameter": "name_api" },
+          "\nExternal API address: ",
+          { "name_parameter": "address_api" },
+          "\nWSAGetLastError error code: ",
+          { "name_parameter": "wsalasterr" }
+        ]
       },
       {
         // ExternalAPIFailureWithNTSTATUSException
         "dtclassid_exception": "74ddcd1a-b4b4-403e-a868-fb8f0be9c1e1",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call to an external API has failed.\nExternal API name: ",
+          { "name_parameter": "name_api" },
+          "\nExternal API address: ",
+          { "name_parameter": "address_api" },
+          "\nNTSTATUS code: ",
+          { "name_parameter": "ntstatus" }
+        ]
       },
       {
         // ExternalAPIFailureWithHRESULTException
         "dtclassid_exception": "6b2bb9f9-4db4-4f3f-83a2-14d03f6d5ae9",
-        "dtclassid_strtmpl": "",
-        "jsonval_strtmpl": []
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A call to an external API has failed.\nExternal API name: ",
+          { "name_parameter": "name_api" },
+          "\nExternal API address: ",
+          { "name_parameter": "address_api" },
+          "\nHRESULT code: ",
+          { "name_parameter": "hresult" }
+        ]
       }
     ]
   }

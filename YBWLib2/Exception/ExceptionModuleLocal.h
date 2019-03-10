@@ -5,8 +5,12 @@
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
 
+#include <vector>
+#include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "Exception.h"
+
+#include "../UserInterface/UserInterface.h"
 
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(Exception, );
@@ -26,6 +30,386 @@ namespace YBWLib2 {
 
 	static fnptr_wrap_function_catch_exceptions_raw_t fnptr_wrap_function_catch_exceptions_raw_old_Exception = nullptr;
 
+	[[nodiscard]] IException* Exception::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = Exception::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* DoubleExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = DoubleExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* InvalidParameterException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_function(rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
+				StringStringTemplateParameter strtmplparameter_name_class_member_function(rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				err_inner = InvalidParameterException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_function,
+						&strtmplparameter_name_class_member_function
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* InvalidCallException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_function(rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
+				StringStringTemplateParameter strtmplparameter_name_class_member_function(rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				err_inner = InvalidCallException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_function,
+						&strtmplparameter_name_class_member_function
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* InsufficientBufferException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				AddressStringTemplateParameter strtmplparameter_address_buffer_insufficient(rawallocator_exception, u8"address_buffer_insufficient", reinterpret_cast<uintptr_t>(this->GetInsufficientBufferAddress()));
+				err_inner = InsufficientBufferException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_address_buffer_insufficient
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* MemoryAllocFailureException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = MemoryAllocFailureException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* KeyAlreadyExistException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = KeyAlreadyExistException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* KeyNotExistException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = KeyNotExistException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* UnhandledUnknownExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				err_inner = UnhandledUnknownExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* STLExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_str_what_stlexception(rawallocator_exception, u8"str_what_stlexception", this->str_what_stlexception, this->size_str_what_stlexception);
+				err_inner = STLExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_str_what_stlexception
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* ExternalAPIFailureException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				err_inner = ExternalAPIFailureException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_api,
+						&strtmplparameter_address_api
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* UnexpectedExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_filename_source_code(rawallocator_exception, u8"filename_source_code", this->filename_source_code, this->size_filename_source_code);
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_linenumber_source_code;
+				{
+					char str_linenumber_source_code[sizeof(int) / sizeof(uint8_t) * 3 + 4];
+					IException* err_utf8_snprintf = utf8_snprintf(rawallocator_exception, str_linenumber_source_code, sizeof(str_linenumber_source_code) / sizeof(char), u8"%d", sizeof(u8"%d") / sizeof(char), this->linenumber_source_code);
+					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					objholder_strtmplparameter_linenumber_source_code.construct(
+						objholder_local_t<StringStringTemplateParameter>::construct_obj,
+						rawallocator_exception,
+						u8"linenumber_source_code",
+						str_linenumber_source_code,
+						strnlen(str_linenumber_source_code, sizeof(str_linenumber_source_code) / sizeof(char))
+					);
+				}
+				err_inner = UnexpectedExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_filename_source_code,
+						objholder_strtmplparameter_linenumber_source_code.get()
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
 	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept {
 		GetDynamicTypeThisClassObject<IException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IException)), module_info_current);
 		GetDynamicTypeThisClassObject<IDoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDoubleExceptionException)), module_info_current);
@@ -43,7 +427,7 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<Exception>(),
 			IsDynamicTypeModuleLocalClass<Exception>(),
 			{ DynamicTypeBaseClassDef<Exception, IException, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(Exception));
+			0, sizeof(Exception), alignof(Exception));
 		DoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<DoubleExceptionException>(),
 			IsDynamicTypeModuleLocalClass<DoubleExceptionException>(),
@@ -51,7 +435,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<DoubleExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<DoubleExceptionException, IDoubleExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(DoubleExceptionException));
+			0, sizeof(DoubleExceptionException), alignof(DoubleExceptionException));
 		InvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<InvalidParameterException>(),
 			IsDynamicTypeModuleLocalClass<InvalidParameterException>(),
@@ -59,7 +443,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<InvalidParameterException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<InvalidParameterException, IInvalidParameterException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(InvalidParameterException));
+			0, sizeof(InvalidParameterException), alignof(InvalidParameterException));
 		InvalidCallException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<InvalidCallException>(),
 			IsDynamicTypeModuleLocalClass<InvalidCallException>(),
@@ -67,7 +451,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<InvalidCallException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<InvalidCallException, IInvalidCallException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(InvalidCallException));
+			0, sizeof(InvalidCallException), alignof(InvalidCallException));
 		InsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<InsufficientBufferException>(),
 			IsDynamicTypeModuleLocalClass<InsufficientBufferException>(),
@@ -75,7 +459,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<InsufficientBufferException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<InsufficientBufferException, IInsufficientBufferException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(InsufficientBufferException));
+			0, sizeof(InsufficientBufferException), alignof(InsufficientBufferException));
 		MemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<MemoryAllocFailureException>(),
 			IsDynamicTypeModuleLocalClass<MemoryAllocFailureException>(),
@@ -83,7 +467,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<MemoryAllocFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<MemoryAllocFailureException, IMemoryAllocFailureException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(MemoryAllocFailureException));
+			0, sizeof(MemoryAllocFailureException), alignof(MemoryAllocFailureException));
 		KeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<KeyAlreadyExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyAlreadyExistException>(),
@@ -91,7 +475,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<KeyAlreadyExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<KeyAlreadyExistException, IKeyAlreadyExistException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(KeyAlreadyExistException));
+			0, sizeof(KeyAlreadyExistException), alignof(KeyAlreadyExistException));
 		KeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<KeyNotExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyNotExistException>(),
@@ -99,7 +483,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<KeyNotExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<KeyNotExistException, IKeyNotExistException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(KeyNotExistException));
+			0, sizeof(KeyNotExistException), alignof(KeyNotExistException));
 		UnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<UnhandledUnknownExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnhandledUnknownExceptionException>(),
@@ -107,7 +491,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<UnhandledUnknownExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<UnhandledUnknownExceptionException, IUnhandledUnknownExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(UnhandledUnknownExceptionException));
+			0, sizeof(UnhandledUnknownExceptionException), alignof(UnhandledUnknownExceptionException));
 		STLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<STLExceptionException>(),
 			IsDynamicTypeModuleLocalClass<STLExceptionException>(),
@@ -115,7 +499,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<STLExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<STLExceptionException, ISTLExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(STLExceptionException));
+			0, sizeof(STLExceptionException), alignof(STLExceptionException));
 		ExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureException>(),
@@ -123,7 +507,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(ExternalAPIFailureException));
+			0, sizeof(ExternalAPIFailureException), alignof(ExternalAPIFailureException));
 		UnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<UnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnexpectedExceptionException>(),
@@ -131,7 +515,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<UnexpectedExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<UnexpectedExceptionException, IUnexpectedExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(UnexpectedExceptionException));
+			0, sizeof(UnexpectedExceptionException), alignof(UnexpectedExceptionException));
 		GetDynamicTypeThisClassObject<Exception>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Exception)), module_info_current);
 		GetDynamicTypeThisClassObject<DoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(DoubleExceptionException)), module_info_current);
 		GetDynamicTypeThisClassObject<InvalidParameterException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InvalidParameterException)), module_info_current);

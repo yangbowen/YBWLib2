@@ -41,19 +41,20 @@ namespace YBWLib2 {
 		uintptr_t ptr_obj_from_base = 0;
 		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
 			has_parameter_ptr_obj_from = true;
-			static_assert(sizeof(uint8_t) == 1, "");
-			uint8_t buf_indexeddataentry_parameter_ptr_obj_from[sizeof(ObjectPointerFromParameterIndexedDataEntry)];
-			ObjectPointerFromParameterIndexedDataEntry* indexeddataentry_parameter_ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, buf_indexeddataentry_parameter_ptr_obj_from);
-			if (!indexeddataentry_parameter_ptr_obj_from) abort();
-			ptr_obj_from_base = indexeddataentry_parameter_ptr_obj_from->uintptr_ptr_obj;
+			static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+			ptr_obj_from_base = objholder_local_t<ObjectPointerFromParameterIndexedDataEntry>(
+				[&_indexeddatastore_parameters](void* ptr_placement) noexcept->ObjectPointerFromParameterIndexedDataEntry* {
+					ObjectPointerFromParameterIndexedDataEntry* ptr_obj = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, ptr_placement);
+					if (!ptr_obj) abort();
+					return ptr_obj;
+				}
+			)->uintptr_ptr_obj;
 			if (!ptr_obj_from_base) abort();
 			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
 			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
-			indexeddataentry_parameter_ptr_obj_from->~ObjectPointerFromParameterIndexedDataEntry();
-			indexeddataentry_parameter_ptr_obj_from = nullptr;
 		}
 		uintptr_t ptr_obj_derived = (*this->fnptr_create_object)(this, &_indexeddatastore_parameters);
 		uintptr_t ret = 0;
@@ -77,19 +78,20 @@ namespace YBWLib2 {
 		uintptr_t ptr_obj_from_base = 0;
 		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
 			has_parameter_ptr_obj_from = true;
-			static_assert(sizeof(uint8_t) == 1, "");
-			uint8_t buf_indexeddataentry_parameter_ptr_obj_from[sizeof(ObjectPointerFromParameterIndexedDataEntry)];
-			ObjectPointerFromParameterIndexedDataEntry* indexeddataentry_parameter_ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, buf_indexeddataentry_parameter_ptr_obj_from);
-			if (!indexeddataentry_parameter_ptr_obj_from) abort();
-			ptr_obj_from_base = indexeddataentry_parameter_ptr_obj_from->uintptr_ptr_obj;
+			static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+			ptr_obj_from_base = objholder_local_t<ObjectPointerFromParameterIndexedDataEntry>(
+				[&_indexeddatastore_parameters](void* ptr_placement) noexcept->ObjectPointerFromParameterIndexedDataEntry* {
+					ObjectPointerFromParameterIndexedDataEntry* ptr_obj = ObjectPointerFromParameterIndexedDataEntry::MoveFromStore(_indexeddatastore_parameters, ptr_placement);
+					if (!ptr_obj) abort();
+					return ptr_obj;
+				}
+			)->uintptr_ptr_obj;
 			if (!ptr_obj_from_base) abort();
 			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
 			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
-			indexeddataentry_parameter_ptr_obj_from->~ObjectPointerFromParameterIndexedDataEntry();
-			indexeddataentry_parameter_ptr_obj_from = nullptr;
 		}
 		uintptr_t ptr_obj_derived = (*this->fnptr_placement_create_object)(this, _ptr_placement, &_indexeddatastore_parameters);
 		uintptr_t ret = 0;

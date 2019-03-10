@@ -380,7 +380,7 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<IDynamicTypeObject>(),
 			IsDynamicTypeModuleLocalClass<IDynamicTypeObject>(),
 			{},
-			0, sizeof(IDynamicTypeObject));
+			0, sizeof(IDynamicTypeObject), alignof(IDynamicTypeObject));
 	}
 
 	void YBWLIB2_CALLTYPE DynamicType_RealUnInitGlobal() noexcept {

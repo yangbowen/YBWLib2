@@ -5,9 +5,12 @@
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
 
+#include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "Exception.h"
 #include "ExceptionWindows.h"
+
+#include "../UserInterface/UserInterfaceWindows.h"
 
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithLastErrorException, );
@@ -19,6 +22,152 @@ namespace YBWLib2 {
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, );
+#endif
+
+	[[nodiscard]] IException* ExternalAPIFailureWithLastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				LastErrorStringTemplateParameter strtmplparameter_lasterr(rawallocator_exception, u8"lasterr", this->lasterr);
+				err_inner = ExternalAPIFailureWithLastErrorException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_api,
+						&strtmplparameter_address_api,
+						&strtmplparameter_lasterr
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+	[[nodiscard]] IException* ExternalAPIFailureWithWSALastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				WSALastErrorStringTemplateParameter strtmplparameter_wsalasterr(rawallocator_exception, u8"wsalasterr", wsalasterr);
+				err_inner = ExternalAPIFailureWithWSALastErrorException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_api,
+						&strtmplparameter_address_api,
+						&strtmplparameter_wsalasterr
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+	[[nodiscard]] IException* ExternalAPIFailureWithNTSTATUSException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				NTSTATUSStringTemplateParameter strtmplparameter_ntstatus(rawallocator_exception, u8"ntstatus", ntstatus);
+				err_inner = ExternalAPIFailureWithNTSTATUSException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_api,
+						&strtmplparameter_address_api,
+						&strtmplparameter_ntstatus
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+#endif
+
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+	[[nodiscard]] IException* ExternalAPIFailureWithHRESULTException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				HRESULTStringTemplateParameter strtmplparameter_hresult(rawallocator_exception, u8"hresult", hresult);
+				err_inner = ExternalAPIFailureWithHRESULTException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						&strtmplparameter_name_api,
+						&strtmplparameter_address_api,
+						&strtmplparameter_hresult
+					}
+				), description_ret, size_descrption_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
 #endif
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitModuleLocal() noexcept {
@@ -39,7 +188,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, IExternalAPIFailureWithLastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(ExternalAPIFailureWithLastErrorException));
+			0, sizeof(ExternalAPIFailureWithLastErrorException), alignof(ExternalAPIFailureWithLastErrorException));
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ExternalAPIFailureWithWSALastErrorException>(),
@@ -48,7 +197,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureWithWSALastErrorException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(ExternalAPIFailureWithWSALastErrorException));
+			0, sizeof(ExternalAPIFailureWithWSALastErrorException), alignof(ExternalAPIFailureWithWSALastErrorException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -58,7 +207,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureWithNTSTATUSException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(ExternalAPIFailureWithNTSTATUSException));
+			0, sizeof(ExternalAPIFailureWithNTSTATUSException), alignof(ExternalAPIFailureWithNTSTATUSException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -68,7 +217,7 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, IExternalAPIFailureWithHRESULTException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
-			0, sizeof(ExternalAPIFailureWithHRESULTException));
+			0, sizeof(ExternalAPIFailureWithHRESULTException), alignof(ExternalAPIFailureWithHRESULTException));
 #endif
 		GetDynamicTypeThisClassObject<ExternalAPIFailureWithLastErrorException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureWithLastErrorException)), module_info_current);
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA

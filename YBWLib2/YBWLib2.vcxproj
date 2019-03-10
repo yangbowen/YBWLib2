@@ -42,6 +42,8 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="UserInterface\UserInterface.h" />
     <ClInclude Include="UserInterface\UserInterfaceModuleLocal.h" />
+    <ClInclude Include="UserInterface\UserInterfaceWindows.h" />
+    <ClInclude Include="UserInterface\UserInterfaceWindowsModuleLocal.h" />
     <ClInclude Include="Windows.h" />
     <ClInclude Include="YBWLib2Api.h" />
     <ClInclude Include="YBWLib2Init.h" />
@@ -71,6 +73,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="UserInterface\UserInterface.cpp" />
+    <ClCompile Include="UserInterface\UserInterfaceWindows.cpp" />
     <ClCompile Include="YBWLib2Init.cpp" />
     <ClCompile Include="YBWLib2InternalConfig.cpp" />
     <ClCompile Include="YBWLib2RawData.cpp" />

@@ -2,6 +2,7 @@
 #define _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
 
 #include <cstdint>
+#include <cinttypes>
 #include <cstdlib>
 #include <type_traits>
 #include <utility>
@@ -16,7 +17,7 @@ namespace YBWLib2 {
 #define YBWLIB2_STRINGIZE_HELPER(x) #x
 #define YBWLIB2_STRINGIZE(x) YBWLIB2_STRINGIZE_HELPER(x)
 
-#define YBWLIB2_CONCATENATE_HELPER(l, r) a ## b
+#define YBWLIB2_CONCATENATE_HELPER(l, r) l ## r
 #define YBWLIB2_CONCATENATE(l, r) YBWLIB2_CONCATENATE_HELPER(l, r)
 
 #define YBWLIB2_TO_UTF8_HELPER(s) u8 ## s
@@ -143,6 +144,56 @@ namespace YBWLib2 {
 	inline constexpr uint64_t hex_uint64_from_string(const char(&str)[17]) noexcept {
 		return ((uint64_t)hex_uint32_from_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) << 0x20) | hex_uint32_from_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
 	}
+
+	template<typename _Ty>
+	struct inttype_traits_t {};
+
+#define _DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(type, prefix_fmtspec)\
+	template<>\
+	struct inttype_traits_t<unsigned type> {\
+		static constexpr char fmtspec_printf_o[] = prefix_fmtspec "o";\
+		static constexpr char fmtspec_printf_o_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "o");\
+		static constexpr char fmtspec_printf_u[] = prefix_fmtspec "u";\
+		static constexpr char fmtspec_printf_u_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "u");\
+		static constexpr char fmtspec_printf_x[] = prefix_fmtspec "x";\
+		static constexpr char fmtspec_printf_x_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "x");\
+		static constexpr char fmtspec_printf_X[] = prefix_fmtspec "X";\
+		static constexpr char fmtspec_printf_X_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "X");\
+		static constexpr char fmtspec_printf_decimal[] = prefix_fmtspec "u";\
+		static constexpr char fmtspec_printf_decimal_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "u");\
+		static constexpr char fmtspec_scanf_o[] = prefix_fmtspec "o";\
+		static constexpr char fmtspec_scanf_o_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "o");\
+		static constexpr char fmtspec_scanf_u[] = prefix_fmtspec "u";\
+		static constexpr char fmtspec_scanf_u_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "u");\
+		static constexpr char fmtspec_scanf_x[] = prefix_fmtspec "x";\
+		static constexpr char fmtspec_scanf_x_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "x");\
+		static constexpr char fmtspec_scanf_decimal[] = prefix_fmtspec "u";\
+		static constexpr char fmtspec_scanf_decimal_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "u");\
+	};\
+\
+	template<>\
+	struct inttype_traits_t<type> {\
+		static constexpr char fmtspec_printf_d[] = prefix_fmtspec "d";\
+		static constexpr char fmtspec_printf_d_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "d");\
+		static constexpr char fmtspec_printf_i[] = prefix_fmtspec "i";\
+		static constexpr char fmtspec_printf_i_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "i");\
+		static constexpr char fmtspec_printf_decimal[] = prefix_fmtspec "d";\
+		static constexpr char fmtspec_printf_decimal_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "d");\
+		static constexpr char fmtspec_scanf_d[] = prefix_fmtspec "d";\
+		static constexpr char fmtspec_scanf_d_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "d");\
+		static constexpr char fmtspec_scanf_i[] = prefix_fmtspec "i";\
+		static constexpr char fmtspec_scanf_i_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "i");\
+		static constexpr char fmtspec_scanf_decimal[] = prefix_fmtspec "d";\
+		static constexpr char fmtspec_scanf_decimal_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "d");\
+	};
+
+	_DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(char, "hh");
+	_DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(short, "h");
+	_DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(int, "");
+	_DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(long, "l");
+	_DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(long long, "ll");
+
+#undef _DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9
 
 #pragma region UUID
 	//{ UUID
@@ -436,7 +487,7 @@ namespace YBWLib2 {
 		inline bool operator!=(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator != r.rawallocator; }
 		template<typename _Element_Ty, typename... _Args_Ty>
 		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
-			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty...>(args...));
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 		}
 		template<typename _Element_Ty>
 		inline void destroy(_Element_Ty* ptr) {
@@ -449,6 +500,100 @@ namespace YBWLib2 {
 	extern rawallocator_t* rawallocator_crt_module_local;
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of YBWLib2.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2;
+
+	/// <summary>An object for holding a pointer to another object that's placement-created in the storage of the former object.</summary>
+	template<typename _Element_Ty>
+	struct objholder_local_t final {
+		static_assert(::std::is_class_v<_Element_Ty>, "The element type is not a class.");
+		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
+		struct construct_obj_t {};
+		static constexpr construct_obj_t construct_obj {};
+		inline constexpr objholder_local_t() noexcept = default;
+		template<typename... _Args_Ty>
+		inline objholder_local_t(construct_obj_t, _Args_Ty&&... args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty...>) {
+			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
+			this->ptr_element = new(this->buf_element) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		}
+		template<typename _Callable_Ty>
+		inline objholder_local_t(_Callable_Ty _callable) noexcept(::std::is_nothrow_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>) {
+			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+			this->ptr_element = _callable(static_cast<void*>(this->buf_element));
+		}
+		inline objholder_local_t(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<_Element_Ty>) {
+			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			if (x.ptr_element)
+				this->ptr_element = new(this->buf_element) _Element_Ty(*x.ptr_element);
+		}
+		inline objholder_local_t(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<_Element_Ty>) {
+			static_assert(::std::is_move_constructible_v<_Element_Ty>, "The element type is not move-constructible.");
+			if (x.ptr_element) {
+				this->ptr_element = new(this->buf_element) _Element_Ty(::std::move(*x.ptr_element));
+				x.ptr_element->~_Element_Ty();
+				x.ptr_element = nullptr;
+			}
+		}
+		inline ~objholder_local_t() {
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+		}
+		inline objholder_local_t& operator=(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<_Element_Ty>) {
+			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+			if (x.ptr_element) {
+				this->ptr_element = new(this->buf_element) _Element_Ty(*x.ptr_element);
+			}
+			return *this;
+		}
+		inline objholder_local_t& operator=(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<_Element_Ty>) {
+			static_assert(::std::is_move_constructible_v<_Element_Ty>, "The element type is not move-constructible.");
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+			if (x.ptr_element) {
+				this->ptr_element = new(this->buf_element) _Element_Ty(::std::move(*x.ptr_element));
+				x.ptr_element->~_Element_Ty();
+				x.ptr_element = nullptr;
+			}
+			return *this;
+		}
+		inline operator bool() const noexcept { return this->ptr_element; }
+		inline _Element_Ty& operator*() const noexcept { return *this->ptr_element; }
+		inline _Element_Ty* operator->() const noexcept { return this->ptr_element; }
+		inline _Element_Ty* get() const noexcept { return this->ptr_element; }
+		template<typename... _Args_Ty>
+		inline void construct(construct_obj_t, _Args_Ty&&... args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty...>) {
+			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+			this->ptr_element = new(this->buf_element) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		}
+		template<typename _Callable_Ty>
+		inline void construct(_Callable_Ty _callable) noexcept(::std::is_nothrow_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>) {
+			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+			this->ptr_element = _callable(static_cast<void*>(this->buf_element));
+		}
+		inline void destruct() noexcept {
+			if (this->ptr_element) {
+				this->ptr_element->~_Element_Ty();
+				this->ptr_element = nullptr;
+			}
+		}
+	private:
+		_Element_Ty* ptr_element = nullptr;
+		alignas(_Element_Ty) uint8_t buf_element[sizeof(_Element_Ty)];
+	};
 
 	/// <summary>A wrapper for objects that satisfy the requirement <c>BasicLockable</c>.</summary>
 	struct wrapper_basic_lockable_t final {
@@ -485,8 +630,8 @@ namespace YBWLib2 {
 				_Class_BasicLockable_Ty* obj = reinterpret_cast<_Class_BasicLockable_Ty*>(context);
 				obj->unlock();
 			},
-			reinterpret_cast<uintptr_t>(&_obj)
-			);
+				reinterpret_cast<uintptr_t>(&_obj)
+				);
 	}
 
 	/// <summary>A wrapper for objects that satisfy the requirement <c>Lockable</c>.</summary>
@@ -533,12 +678,12 @@ namespace YBWLib2 {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				obj->unlock();
 			},
-			[](uintptr_t context)->bool {
+				[](uintptr_t context)->bool {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				return obj->try_lock();
 			},
-			reinterpret_cast<uintptr_t>(&_obj)
-			);
+				reinterpret_cast<uintptr_t>(&_obj)
+				);
 	}
 
 	/// <summary>

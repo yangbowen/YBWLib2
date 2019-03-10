@@ -11,11 +11,13 @@
 #ifndef _INCLUDE_GUARD_F7AE97C5_EBD9_44EF_AD66_A7C5FF8234D5
 #define _INCLUDE_GUARD_F7AE97C5_EBD9_44EF_AD66_A7C5FF8234D5
 
+#include <cstdint>
 #include <cstdarg>
 #include <cstdlib>
 #include <type_traits>
 #include <new>
 #include <memory>
+#include <initializer_list>
 #include <exception>
 #include <string>
 #include <vector>
@@ -25,10 +27,12 @@
 #include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
+#include "../Common/Common.h"
 #include "../DynamicType/DynamicTypeHighLevel.h"
 #include "../JSON/JSON.h"
 
 namespace YBWLib2 {
+	class FixedStringTemplateConstructorJSONSAXHandler;
 	class SubstitutionStringTemplateConstructorJSONSAXHandler;
 
 	/// <summary>
@@ -58,7 +62,7 @@ namespace YBWLib2 {
 		const char* str_format,
 		size_t size_str_format,
 		va_list arglist
-	);
+	) noexcept;
 
 	/// <summary>
 	/// Format data into a UTF-8 string.
@@ -86,7 +90,7 @@ namespace YBWLib2 {
 		const char* str_format,
 		size_t size_str_format,
 		...
-	);
+	) noexcept;
 
 	/// <summary>A runtime parameter for <c>IStringTemplate</c> that may decide the string generation behaviour of the string template.</summary>
 	class IStringTemplateParameter abstract : public virtual IDynamicTypeObject {
@@ -321,6 +325,42 @@ namespace YBWLib2 {
 			bool should_null_terminate,
 			const rawallocator_t* _rawallocator = nullptr
 		) const noexcept = 0;
+		/// <summary>Generates a string using this string template and the specified parameter list.</summary>
+		/// <param name="parameter_list">Reference to a parameter list that may decide the string generation behaviour.</param>
+		/// <param name="str_out_ret">
+		/// Pointer to a pointer variable that receives a pointer to the generated string, in UTF-8.
+		/// After successfully returning from this member function, <c>*str_out_ret</c> will be set to the generated string.
+		/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*str_out_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+		/// If <paramref name="_rawallocator" /> is specified and not empty, the buffer for the part of the generated string will be allocated using <paramref name="_rawallocator" />.
+		/// Otherwise, the buffer for the part of the generated string will be allocated using the raw allocator returned by <c>this->GetRawAllocator()</c>.
+		/// </param>
+		/// <param name="size_str_out_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the generated string, in UTF-8, including the terminating null character, if any.
+		/// After successfully returning from this member function, <c>*size_str_out_ret</c> will be set to the size (in <c>char</c>s) of the generated string.
+		/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+		/// </param>
+		/// <param name="should_null_terminate">Whether a terminating null character should be added to the end of the generated string.</param>
+		/// <param name="_rawallocator">
+		/// An optional pointer to a <c>rawallocator_t</c> object for allocating memory used by this function, including the memory for <c>*str_out_ret</c>.
+		/// If not specified or empty, <c>this->GetRawAllocator()</c> will be used instead.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator <paramref name="_rawallocator" /> or the one returned by <c>this->GetRawAllocator()</c>.
+		/// </returns>
+		[[nodiscard]] inline IException* GenerateString(
+			const IStringTemplateParameterList& parameter_list,
+			char** str_out_ret,
+			size_t* size_str_out_ret,
+			bool should_null_terminate,
+			const rawallocator_t* _rawallocator = nullptr
+		) const noexcept {
+			return this->GenerateString(&parameter_list, str_out_ret, size_str_out_ret, should_null_terminate, _rawallocator);
+		}
 	};
 
 	/// <summary>
@@ -469,9 +509,7 @@ namespace YBWLib2 {
 		size_t size_name_parameter = 0;
 	};
 
-	/// <summary>
-	/// A default implementation of a string template parameter that represents a UTF-8 string itself.
-	/// </summary>
+	/// <summary>A default implementation of a string template parameter that represents a UTF-8 string itself.</summary>
 	class StringStringTemplateParameter : public virtual StringTemplateParameter {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(StringStringTemplateParameter, , "e71987e4-bb8e-4839-b772-7659a2a3fd3d");
@@ -498,6 +536,34 @@ namespace YBWLib2 {
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, _str_value, this->size_str_value * sizeof(char));
 		}
+		/// <summary>Constructs an <c>StringStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_str_value">The string value, in UTF-8, of this parameter.</param>
+		/// <param name="_size_str_value">The size (in <c>char</c>s) of the string value, in UTF-8, of this parameter.</param>
+		template<size_t count_char_name_parameter>
+		inline StringStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char(&_name_parameter)[count_char_name_parameter],
+			const char* _str_value = nullptr,
+			size_t _size_str_value = 0
+		) noexcept(false) : StringStringTemplateParameter(_rawallocator, _name_parameter, count_char_name_parameter - 1, _str_value, _size_str_value) {}
+		/// <summary>Constructs an <c>StringStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_str_value">The string value, in UTF-8, of this parameter.</param>
+		template<size_t count_char_name_parameter, size_t count_char_str_value>
+		inline StringStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char(&_name_parameter)[count_char_name_parameter],
+			const char(&_str_value)[count_char_str_value]
+		) noexcept(false) : StringStringTemplateParameter(_rawallocator, _name_parameter, count_char_name_parameter - 1, _str_value, count_char_str_value - 1) {}
 		inline StringStringTemplateParameter(const StringStringTemplateParameter& x) noexcept(false) : StringTemplateParameter(static_cast<const StringTemplateParameter&>(x)) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
@@ -621,14 +687,129 @@ namespace YBWLib2 {
 					delete err_inner;
 					err_inner = nullptr;
 				}
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err;
 			} else {
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err_inner;
 			}
 		}
 	protected:
 		char* str_value = nullptr;
 		size_t size_str_value = 0;
+	};
+
+	/// <summary>A default implementation of a string template parameter that represents a memory address.</summary>
+	class AddressStringTemplateParameter : public virtual StringTemplateParameter {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(AddressStringTemplateParameter, , "e1bce3de-f5f4-4375-a127-46fa41b4d3dd");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(AddressStringTemplateParameter);
+		/// <summary>Constructs an <c>AddressStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_size_name_parameter">The size (in <c>char</c>s) of the name, in UTF-8, of this parameter.</param>
+		/// <param name="_address">The memory address.</param>
+		inline AddressStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char* _name_parameter,
+			size_t _size_name_parameter,
+			uintptr_t _address
+		) noexcept(false) : StringTemplateParameter(_rawallocator, _name_parameter, _size_name_parameter), address(_address) {}
+		/// <summary>Constructs an <c>AddressStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_address">The memory address.</param>
+		template<size_t count_char_name_parameter>
+		inline AddressStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char(&_name_parameter)[count_char_name_parameter],
+			uintptr_t _address
+		) noexcept(false) : AddressStringTemplateParameter(_rawallocator, _name_parameter, count_char_name_parameter - 1, _address) {}
+		inline AddressStringTemplateParameter(const AddressStringTemplateParameter& x) noexcept(false)
+			: StringTemplateParameter(static_cast<const StringTemplateParameter&>(x)), address(x.address) {}
+		inline AddressStringTemplateParameter(AddressStringTemplateParameter&& x) noexcept(false)
+			: StringTemplateParameter(static_cast<StringTemplateParameter&&>(::std::move(x))), address(::std::move(x.address)) {}
+		inline virtual ~AddressStringTemplateParameter() {
+			this->address = 0;
+		}
+		inline AddressStringTemplateParameter& operator=(const AddressStringTemplateParameter& x) noexcept(false) {
+			static_cast<StringTemplateParameter&>(*this) = static_cast<const StringTemplateParameter&>(x);
+			this->address = x.address;
+			return *this;
+		}
+		inline AddressStringTemplateParameter& operator=(AddressStringTemplateParameter&& x) noexcept(false) {
+			static_cast<StringTemplateParameter&>(*this) = static_cast<StringTemplateParameter&&>(::std::move(x));
+			this->address = ::std::move(x.address);
+			return *this;
+		}
+		/// <summary>Gets whether this parameter may be used as a part of the generated string.</summary>
+		inline virtual bool IsAvailableAsGeneratedStringPart() const noexcept override { return true; }
+		/// <summary>Gets the part of the generated string that this parameter represents.</summary>
+		/// <param name="str_options">
+		/// Pointer to an option string, in UTF-8, provided by the string template.
+		/// Option strings are not null-terminated.
+		/// If no option string is provided, pass an empty pointer or a pointer to an empty string.
+		/// No options are supported for this type of string template parameter currently.
+		/// The option string for this type is reserved. Always pass an empty pointer or a pointer to an empty string.
+		/// </param>
+		/// <param name="size_str_options">
+		/// The size (in <c>char</c>s) of the option string, in UTF-8.
+		/// Option strings are not null-terminated.
+		/// If no option string is provided, pass <c>0</c>.
+		/// No options are supported for this type of string template parameter currently.
+		/// The option string for this type is reserved. Always pass an empty pointer or a pointer to an empty string.
+		/// </param>
+		/// <param name="str_out_ret">
+		/// Pointer to a pointer variable that receives a pointer to the part of the generated string, in UTF-8.
+		/// After successfully returning from this member function, <c>*str_out_ret</c> will be set to the part of the generated string.
+		/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*str_out_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+		/// If <paramref name="_rawallocator" /> is specified and not empty, the buffer for the part of the generated string will be allocated using <paramref name="_rawallocator" />.
+		/// Otherwise, the buffer for the part of the generated string will be allocated using the raw allocator returned by <c>this->GetRawAllocator()</c>.
+		/// </param>
+		/// <param name="size_str_out_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the part of the generated string, in UTF-8, including the terminating null character, if any.
+		/// After successfully returning from this member function, <c>*size_str_out_ret</c> will be set to the size (in <c>char</c>s) of the part of the generated string.
+		/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+		/// </param>
+		/// <param name="should_null_terminate">Whether a terminating null character should be added to the end of the part of the generated string.</param>
+		/// <param name="_rawallocator">
+		/// An optional pointer to a <c>rawallocator_t</c> object for allocating memory used by this function, including the memory for <c>*str_out_ret</c>.
+		/// If not specified or empty, <c>this->GetRawAllocator()</c> will be used instead.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator <paramref name="_rawallocator" /> or the one returned by <c>this->GetRawAllocator()</c>.
+		/// </returns>
+		[[nodiscard]] virtual IException* GenerateString(
+			const char* str_options,
+			size_t size_str_options,
+			char** str_out_ret,
+			size_t* size_str_out_ret,
+			bool should_null_terminate,
+			const rawallocator_t* _rawallocator = nullptr
+		) const noexcept override;
+		/// <summary>Gets the memory address.</summary>
+		inline uintptr_t GetAddress() const noexcept { return this->address; }
+	protected:
+		uintptr_t address;
 	};
 
 	/// <summary>
@@ -646,12 +827,29 @@ namespace YBWLib2 {
 		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
 		/// </param>
 		inline StringTemplateParameterList(const rawallocator_t* _rawallocator) noexcept(false)
-			: rawallocator(_rawallocator) {
+			: rawallocator(_rawallocator),
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
-			this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
-			if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+		}
+		/// <summary>Constructs an <c>StringTemplateParameterList</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_parameter">
+		/// An initializer list of pointers to the parameters to be added.
+		/// The parameters will not be owned by this object, instead, only pointers are stored.
+		/// The parameter objects must survive for at least the lifetime of this object.
+		/// </param>
+		inline StringTemplateParameterList(const rawallocator_t* _rawallocator, const ::std::initializer_list<const IStringTemplateParameter*>& il_parameter) noexcept(false)
+			: rawallocator(_rawallocator),
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)) {
+			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
 			try {
-				this->map_parameter = ::std::launder(new (this->map_parameter) map_parameter_t(allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)));
+				for (const IStringTemplateParameter* val_parameter : il_parameter) {
+					IException* err = this->AddParameter(val_parameter);
+					if (err) throw(err);
+				}
 			} catch (::std::exception& err) {
 				throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
 			}
@@ -660,89 +858,36 @@ namespace YBWLib2 {
 		/// Copy-constructs the parameter list.
 		/// No deep copies will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
-		inline StringTemplateParameterList(const StringTemplateParameterList& x) noexcept(false) : rawallocator(x.rawallocator) {
-			if (x.map_parameter) {
-				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
-				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-				try {
-					this->map_parameter = ::std::launder(new (this->map_parameter) map_parameter_t(*x.map_parameter));
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
-		}
+		inline StringTemplateParameterList(const StringTemplateParameterList& x) noexcept(false)
+			: rawallocator(x.rawallocator), objholder_map_parameter(x.objholder_map_parameter) {}
 		/// <summary>
 		/// Move-constructs the parameter list.
 		/// No deep moves will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
-		inline StringTemplateParameterList(StringTemplateParameterList&& x) noexcept : rawallocator(x.rawallocator) {
-			if (x.map_parameter) {
-				this->map_parameter = x.map_parameter;
-				x.map_parameter = nullptr;
-			}
-		}
-		inline virtual ~StringTemplateParameterList() {
-			if (this->map_parameter) {
-				this->map_parameter->~map_parameter_t();
-				if (!this->rawallocator->Deallocate(this->map_parameter, sizeof(map_parameter_t))) abort();
-				this->map_parameter = nullptr;
-			}
-		}
+		inline StringTemplateParameterList(StringTemplateParameterList&& x) noexcept
+			: rawallocator(x.rawallocator), objholder_map_parameter(::std::move(x.objholder_map_parameter)) {}
+		inline virtual ~StringTemplateParameterList() {}
 		/// <summary>
 		/// Copy-assigns the parameter list.
 		/// No deep copies will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
 		inline StringTemplateParameterList& operator=(const StringTemplateParameterList& x) noexcept(false) {
-			if (this->map_parameter) {
-				this->map_parameter->~map_parameter_t();
-			}
-			if (this->map_parameter && (!x.map_parameter || this->rawallocator != x.rawallocator)) {
-				if (!this->rawallocator->Deallocate(this->map_parameter, sizeof(map_parameter_t))) abort();
-				this->map_parameter = nullptr;
-			}
+			this->objholder_map_parameter.free();
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<const IStringTemplateParameterList&>(x);
 			this->rawallocator = x.rawallocator;
-			if (!this->map_parameter && x.map_parameter) {
-				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
-				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			}
-			if (x.map_parameter) {
-				try {
-					this->map_parameter = ::std::launder(new (this->map_parameter) map_parameter_t(*x.map_parameter, allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)));
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
+			this->objholder_map_parameter = x.objholder_map_parameter;
 		}
 		/// <summary>
 		/// Move-assigns the parameter list.
 		/// No deep moves will be performed for the parameters (which implies that the parameter objects will retain their raw allocators).
 		/// </summary>
 		inline StringTemplateParameterList& operator=(StringTemplateParameterList&& x) noexcept(false) {
-			if (this->map_parameter) {
-				this->map_parameter->~map_parameter_t();
-			}
-			if (this->map_parameter && (!x.map_parameter || this->rawallocator != x.rawallocator)) {
-				if (!this->rawallocator->Deallocate(this->map_parameter, sizeof(map_parameter_t))) abort();
-				this->map_parameter = nullptr;
-			}
+			this->objholder_map_parameter.free();
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<IStringTemplateParameterList&&>(::std::move(x));
 			this->rawallocator = x.rawallocator;
 			x.rawallocator = nullptr;
-			if (!this->map_parameter && x.map_parameter) {
-				this->map_parameter = reinterpret_cast<map_parameter_t*>(this->rawallocator->Allocate(sizeof(map_parameter_t)));
-				if (!this->map_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			}
-			if (x.map_parameter) {
-				try {
-					this->map_parameter = ::std::launder(new (this->map_parameter) map_parameter_t(::std::move(*x.map_parameter), allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)));
-					x.map_parameter->~map_parameter_t();
-					if (!x.rawallocator->Deallocate(x.map_parameter, sizeof(map_parameter_t))) abort();
-					x.map_parameter = nullptr;
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
+			this->objholder_map_parameter = ::std::move(x.objholder_map_parameter);
+			x.objholder_map_parameter.free();
 		}
 		/// <summary>
 		/// Gets a pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
@@ -790,8 +935,8 @@ namespace YBWLib2 {
 					static_cast<void>(err_inner);
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					allocator_rawallocator_t<string_name_parameter_t::value_type> allocator_name_parameter(_rawallocator);
-					map_parameter_t::const_iterator it_map_parameter = this->map_parameter->find(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_name_parameter));
-					if (it_map_parameter != this->map_parameter->cend()) *parameter_ret = it_map_parameter->second;
+					map_parameter_t::const_iterator it_map_parameter = this->objholder_map_parameter->find(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_name_parameter));
+					if (it_map_parameter != this->objholder_map_parameter->cend()) *parameter_ret = it_map_parameter->second;
 				});
 			if (err) {
 				if (err_inner) {
@@ -802,7 +947,6 @@ namespace YBWLib2 {
 			} else {
 				return err_inner;
 			}
-			return nullptr;
 		}
 		/// <summary>Adds a parameter into this parameter list.</summary>
 		/// <param name="_parameter">
@@ -824,7 +968,7 @@ namespace YBWLib2 {
 					const char* name_parameter = _parameter->GetParameterName();
 					size_t size_name_parameter = _parameter->GetParameterNameSize();
 					if (!name_parameter) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, AddParameter); return; }
-					if (!this->map_parameter->emplace(string_name_parameter_t(name_parameter, size_name_parameter, this->map_parameter->get_allocator()), _parameter).second) {
+					if (!this->objholder_map_parameter->emplace(string_name_parameter_t(name_parameter, size_name_parameter, this->objholder_map_parameter->get_allocator()), _parameter).second) {
 						err_inner = YBWLIB2_EXCEPTION_CREATE_KEY_ALREADY_EXIST_EXCEPTION();
 						return;
 					}
@@ -872,7 +1016,7 @@ namespace YBWLib2 {
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &_name_parameter, &_size_name_parameter, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-					if (!this->map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator)))) {
+					if (!this->objholder_map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator)))) {
 						err_inner = YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION();
 						return;
 					}
@@ -892,7 +1036,7 @@ namespace YBWLib2 {
 		using value_map_parameter_t = ::std::pair<const string_name_parameter_t, const IStringTemplateParameter*>;
 		using map_parameter_t = ::std::unordered_map<string_name_parameter_t, const IStringTemplateParameter*, ::std::hash<string_name_parameter_t>, ::std::equal_to<string_name_parameter_t>, allocator_rawallocator_t<value_map_parameter_t>>;
 		const rawallocator_t* rawallocator = nullptr;
-		map_parameter_t* map_parameter = nullptr;
+		objholder_rawallocator_t<map_parameter_t> objholder_map_parameter;
 	};
 
 	/// <summary>
@@ -1022,9 +1166,7 @@ namespace YBWLib2 {
 		} }
 	};
 
-	/// <summary>
-	/// A default implementation of a string template that generates a fixed string independent of the string template parameter(s).
-	/// </summary>
+	/// <summary>A default implementation of a string template that generates a fixed string independent of the string template parameter(s).</summary>
 	class FixedStringTemplate : public virtual StringTemplate {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(FixedStringTemplate, , "e1bfd083-8545-4abf-850c-8982f513c733");
@@ -1166,8 +1308,18 @@ namespace YBWLib2 {
 					delete err_inner;
 					err_inner = nullptr;
 				}
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err;
 			} else {
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err_inner;
 			}
 		}
@@ -1176,9 +1328,7 @@ namespace YBWLib2 {
 		size_t size_str_value = 0;
 	};
 
-	/// <summary>
-	/// A default implementation of a string template that generates a string, optionally with elements in it substituted by the string template parameter(s).
-	/// </summary>
+	/// <summary>A default implementation of a string template that generates a string, optionally with elements in it substituted by the string template parameter(s).</summary>
 	class SubstitutionStringTemplate : public virtual StringTemplate {
 		friend SubstitutionStringTemplateConstructorJSONSAXHandler;
 	public:
@@ -1194,81 +1344,30 @@ namespace YBWLib2 {
 			const rawallocator_t* _rawallocator,
 			IJSONSAXGenerator* jsonsaxgenerator
 		) noexcept(false);
-		inline SubstitutionStringTemplate(const SubstitutionStringTemplate& x) noexcept(false) : StringTemplate(static_cast<const StringTemplate&>(x)) {
-			if (x.vec_element) {
-				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
-				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-				try {
-					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(*x.vec_element));
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
-		}
-		inline SubstitutionStringTemplate(SubstitutionStringTemplate&& x) noexcept(false) : StringTemplate(static_cast<StringTemplate&&>(::std::move(x))) {
-			if (x.vec_element) {
-				this->vec_element = x.vec_element;
-				x.vec_element = nullptr;
-			}
-		}
-		inline virtual ~SubstitutionStringTemplate() {
-			if (this->vec_element) {
-				this->vec_element->~vec_element_t();
-				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
-				this->vec_element = nullptr;
-			}
-		}
+		inline SubstitutionStringTemplate(const SubstitutionStringTemplate& x) noexcept(false)
+			: StringTemplate(static_cast<const StringTemplate&>(x)),
+			objholder_vec_element(x.objholder_vec_element) {}
+		inline SubstitutionStringTemplate(SubstitutionStringTemplate&& x) noexcept(false)
+			: StringTemplate(static_cast<StringTemplate&&>(::std::move(x))),
+			objholder_vec_element(::std::move(x.objholder_vec_element)) {}
+		inline virtual ~SubstitutionStringTemplate() {}
 		inline SubstitutionStringTemplate& operator=(const SubstitutionStringTemplate& x) noexcept(false) {
-			if (this->vec_element) {
-				this->vec_element->~vec_element_t();
-			}
-			if (this->vec_element && (!x.vec_element || this->rawallocator != x.rawallocator)) {
-				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
-				this->vec_element = nullptr;
-			}
+			this->objholder_vec_element.free();
 			static_cast<StringTemplate&>(*this) = static_cast<const StringTemplate&>(x);
-			if (!this->vec_element && x.vec_element) {
-				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
-				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			}
-			if (x.vec_element) {
-				try {
-					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(*x.vec_element, allocator_rawallocator_t<element_t>(this->rawallocator)));
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
+			this->objholder_vec_element = x.objholder_vec_element;
 			return *this;
 		}
 		inline SubstitutionStringTemplate& operator=(SubstitutionStringTemplate&& x) noexcept(false) {
-			if (this->vec_element) {
-				this->vec_element->~vec_element_t();
-			}
-			if (this->vec_element && (!x.vec_element || this->rawallocator != x.rawallocator)) {
-				if (!this->rawallocator->Deallocate(this->vec_element, sizeof(vec_element_t))) abort();
-				this->vec_element = nullptr;
-			}
+			this->objholder_vec_element.free();
 			static_cast<StringTemplate&>(*this) = static_cast<StringTemplate&&>(::std::move(x));
-			if (!this->vec_element && x.vec_element) {
-				this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
-				if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			}
-			if (x.vec_element) {
-				try {
-					this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(::std::move(*x.vec_element), allocator_rawallocator_t<element_t>(this->rawallocator)));
-					x.vec_element->~vec_element_t();
-					if (!x.rawallocator->Deallocate(x.vec_element, sizeof(vec_element_t))) abort();
-					x.vec_element = nullptr;
-				} catch (::std::exception& err) {
-					throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-				}
-			}
+			this->objholder_vec_element = ::std::move(x.objholder_vec_element);
+			x.objholder_vec_element.free();
 			return *this;
 		}
 		/// <summary>Generates a string using this string template and the specified parameter list.</summary>
 		/// <param name="parameter_list">
 		/// Pointer to a parameter list that may decide the string generation behaviour.
-		/// This type of string template ignores the parameter list.
+		/// The parameters may be used to substitute certain elements in the generated string.
 		/// </param>
 		/// <param name="str_out_ret">
 		/// Pointer to a pointer variable that receives a pointer to the generated string, in UTF-8.
@@ -1314,8 +1413,8 @@ namespace YBWLib2 {
 					using vec_str_out_element_t = ::std::vector<string_str_out_element_t, allocator_rawallocator_t<string_str_out_element_t>>;
 					allocator_rawallocator_t<string_str_out_element_t> allocator_vec_vec_str_out_element(_rawallocator);
 					vec_str_out_element_t vec_str_out_element(allocator_vec_vec_str_out_element);
-					vec_str_out_element.reserve(this->vec_element->size());
-					for (const element_t& val_element : *this->vec_element) {
+					vec_str_out_element.reserve(this->objholder_vec_element->size());
+					for (const element_t& val_element : *this->objholder_vec_element) {
 						char* str_out_element = nullptr;
 						size_t size_str_out_element = 0;
 						try {
@@ -1360,8 +1459,18 @@ namespace YBWLib2 {
 					delete err_inner;
 					err_inner = nullptr;
 				}
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err;
 			} else {
+				if (*str_out_ret) {
+					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					*str_out_ret = nullptr;
+					*size_str_out_ret = 0;
+				}
 				return err_inner;
 			}
 		}
@@ -1664,12 +1773,23 @@ namespace YBWLib2 {
 							delete err_inner;
 							err_inner = nullptr;
 						}
+						if (*str_out_ret) {
+							if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+							*str_out_ret = nullptr;
+							*size_str_out_ret = 0;
+						}
 						return err;
 					} else {
+						if (*str_out_ret) {
+							if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+							*str_out_ret = nullptr;
+							*size_str_out_ret = 0;
+						}
 						return err_inner;
 					}
 				}
 				case ElementType_Substitute: {
+					if (!parameter_list) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate::element_t, GenerateString);
 					const IStringTemplateParameter* parameter = nullptr;
 					IException* err = parameter_list->GetParameterByName(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter, &parameter, _rawallocator);
 					if (err) return err;
@@ -1682,7 +1802,7 @@ namespace YBWLib2 {
 			}
 		};
 		using vec_element_t = ::std::vector<element_t, allocator_rawallocator_t<element_t>>;
-		vec_element_t* vec_element = nullptr;
+		objholder_rawallocator_t<vec_element_t> objholder_vec_element;
 	};
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept;

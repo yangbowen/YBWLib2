@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
+#include <utility>
 #include <memory>
 #include "../YBWLib2Api.h"
 #include "../Common/CommonLowLevel.h"
@@ -489,7 +490,7 @@ namespace YBWLib2 {
 		inline virtual ~IKeyNotExistException() = default;
 	};
 
-	/// <summary>An exception that occurs because of an unhandled and unknown C++ exception.</summary>
+	/// <summary>An exception that occurs because of an unhandled exception thrown with other mechanisms not supported by this exception handling facility.</summary>
 	class IUnhandledUnknownExceptionException abstract : public virtual IException {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IUnhandledUnknownExceptionException, YBWLIB2_API, "627ed568-7a33-4025-a9e3-41f6996d9214");
@@ -509,6 +510,12 @@ namespace YBWLib2 {
 		/// If no meaningful <c>what</c> string can be provided, an empty pointer is returned.
 		/// </returns>
 		virtual const char* GetSTLExceptionWhatString() const noexcept = 0;
+		/// <summary>Gets the size (in <c>char</c>s, INCLUDING the terminating null character) of the null-terminated <c>what</c> string of the STL exception, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s, INCLUDING the terminating null character) of the null-terminated <c>what</c> string of the STL exception, if available.
+		/// If no meaningful <c>what</c> string can be provided, <c>0</c> is returned.
+		/// </returns>
+		virtual size_t GetSTLExceptionWhatStringSize() const noexcept = 0;
 	};
 
 	/// <summary>An exception that occurs because of failing to call an external API.</summary>
@@ -740,10 +747,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
-			// TODO: Implement GetDescriptionSingleLevel.
-			return nullptr;
-		}
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The full chain of underlying causes is included.
@@ -777,7 +781,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
 			// TODO: Implement GetDescriptionTotal.
-			return nullptr;
+			return this;
 		}
 	protected:
 		IException* exception_cause = nullptr;
@@ -811,6 +815,39 @@ namespace YBWLib2 {
 		inline virtual ExceptionFlags GetExceptionFlagsSingleLevel() const noexcept override {
 			return this->Exception::GetExceptionFlagsSingleLevel() | ExceptionFlag_DoubleException;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -866,6 +903,39 @@ namespace YBWLib2 {
 			}
 			this->size_name_class_member_function = 0;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the function, if available.
@@ -958,6 +1028,39 @@ namespace YBWLib2 {
 			}
 			this->size_name_class_member_function = 0;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the function, if available.
@@ -1018,6 +1121,39 @@ namespace YBWLib2 {
 			if (_address_buffer_insufficient) this->address_buffer_insufficient = _address_buffer_insufficient;
 		}
 		inline virtual ~InsufficientBufferException() = default;
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the address to the insufficient buffer.</summary>
 		/// <returns>
 		/// Returns the address to the insufficient buffer, if available.
@@ -1047,6 +1183,39 @@ namespace YBWLib2 {
 		inline virtual ExceptionFlags GetExceptionFlagsSingleLevel() const noexcept override {
 			return this->Exception::GetExceptionFlagsSingleLevel() | ExceptionFlag_MemoryAllocFailure;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1063,6 +1232,39 @@ namespace YBWLib2 {
 		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline KeyAlreadyExistException() noexcept = default;
 		inline virtual ~KeyAlreadyExistException() = default;
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1079,6 +1281,39 @@ namespace YBWLib2 {
 		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline KeyNotExistException() noexcept = default;
 		inline virtual ~KeyNotExistException() = default;
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1095,6 +1330,39 @@ namespace YBWLib2 {
 		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline UnhandledUnknownExceptionException() noexcept = default;
 		inline virtual ~UnhandledUnknownExceptionException() = default;
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1111,14 +1379,14 @@ namespace YBWLib2 {
 		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		/// <summary>Constructs an <c>STLExceptionException</c> object.</summary>
 		/// <param name="_str_what_stlexception">
-		/// The <c>what</c> string of the STL exception, if available.
+		/// The null-terminated <c>what</c> string of the STL exception, if available.
 		/// If no meaningful <c>what</c> string can be provided, pass an empty pointer.
 		/// </param>
 		inline STLExceptionException(const char* _str_what_stlexception) noexcept {
 			if (_str_what_stlexception) {
-				size_t size_str_what_stlexception = strlen(_str_what_stlexception);
-				this->str_what_stlexception = reinterpret_cast<char*>(ExceptionAllocateMemory((size_str_what_stlexception + 1) * sizeof(char)));
-				memcpy(this->str_what_stlexception, _str_what_stlexception, (size_str_what_stlexception + 1) * sizeof(char));
+				this->size_str_what_stlexception = strlen(_str_what_stlexception) + 1;
+				this->str_what_stlexception = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_str_what_stlexception * sizeof(char)));
+				memcpy(this->str_what_stlexception, _str_what_stlexception, this->size_str_what_stlexception * sizeof(char));
 			}
 		}
 		inline virtual ~STLExceptionException() {
@@ -1127,6 +1395,39 @@ namespace YBWLib2 {
 				this->str_what_stlexception = nullptr;
 			}
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the null-terminated <c>what</c> string of the STL exception, if available.</summary>
 		/// <returns>
 		/// Returns the null-terminated <c>what</c> string, in UTF-8, of the STL exception, if available.
@@ -1135,8 +1436,17 @@ namespace YBWLib2 {
 		inline virtual const char* GetSTLExceptionWhatString() const noexcept override {
 			return this->str_what_stlexception ? this->str_what_stlexception : nullptr;
 		}
+		/// <summary>Gets the size (in <c>char</c>s, INCLUDING the terminating null character) of the null-terminated <c>what</c> string of the STL exception, if available.</summary>
+		/// <returns>
+		/// Returns the size (in <c>char</c>s, INCLUDING the terminating null character) of the null-terminated <c>what</c> string of the STL exception, if available.
+		/// If no meaningful <c>what</c> string can be provided, <c>0</c> is returned.
+		/// </returns>
+		inline virtual size_t GetSTLExceptionWhatStringSize() const noexcept override {
+			return this->size_str_what_stlexception && this->size_str_what_stlexception ? this->size_str_what_stlexception : 0;
+		}
 	protected:
 		char* str_what_stlexception = nullptr;
+		size_t size_str_what_stlexception = 0;
 	};
 
 	/// <summary>
@@ -1179,6 +1489,39 @@ namespace YBWLib2 {
 			}
 			this->size_name_api = 0;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the external API, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the external API, if available.
@@ -1230,7 +1573,7 @@ namespace YBWLib2 {
 		/// The size (in <c>char</c>s) of the filename, in UTF-8, of the source code file in which the exception has occured, if available.
 		/// If no meaningful filename can be provided, pass <c>0</c>.
 		/// </param>
-		/// <param name="_address_api">
+		/// <param name="_linenumber_source_code">
 		/// The line number of the source code at which the exception has occured, if available.
 		/// If no meaningful line number can be provided, pass <c>-1</c>.
 		/// </param>
@@ -1250,6 +1593,39 @@ namespace YBWLib2 {
 			this->size_filename_source_code = 0;
 			this->linenumber_source_code = -1;
 		}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the filename of the source code file in which the exception has occured, if available.</summary>
 		/// <returns>
 		/// Returns the filename, in UTF-8, of the source code file in which the exception has occured, if available.

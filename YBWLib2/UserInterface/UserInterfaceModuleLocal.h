@@ -427,10 +427,74 @@ namespace YBWLib2 {
 
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(StringTemplateParameter, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(StringStringTemplateParameter, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(AddressStringTemplateParameter, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(StringTemplateParameterList, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(StringTemplate, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(FixedStringTemplate, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(SubstitutionStringTemplate, );
+
+	[[nodiscard]] IException* AddressStringTemplateParameter::GenerateString(
+		const char* str_options,
+		size_t size_str_options,
+		char** str_out_ret,
+		size_t* size_str_out_ret,
+		bool should_null_terminate,
+		const rawallocator_t* _rawallocator
+	) const noexcept {
+		using namespace ::std::string_literals;
+		static_cast<void>(str_options);
+		if (size_str_options) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		*str_out_ret = nullptr;
+		*size_str_out_ret = 0;
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
+				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
+				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
+				str_out_t str_out(allocator_rawallocator);
+				str_out += u8"[Address "s;
+				{
+					char str_address[sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4];
+					static constexpr char str_prefix_fmt[] = u8"0x%0*";
+					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char))];
+					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
+					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char));
+					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_address, sizeof(str_address) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(uintptr_t) / sizeof(uint8_t) * 8, (uintptr_t)this->GetAddress());
+					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					str_out += str_out_t(str_address, strnlen(str_address, sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator);
+				}
+				str_out += u8"]"s;
+				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
+				*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+				if (*size_str_out_ret) {
+					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
+				}
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (*str_out_ret) {
+				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				*str_out_ret = nullptr;
+				*size_str_out_ret = 0;
+			}
+			return err;
+		} else {
+			if (*str_out_ret) {
+				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				*str_out_ret = nullptr;
+				*size_str_out_ret = 0;
+			}
+			return err_inner;
+		}
+	}
 
 	FixedStringTemplate::FixedStringTemplate(
 		const rawallocator_t* _rawallocator,
@@ -453,16 +517,10 @@ namespace YBWLib2 {
 	SubstitutionStringTemplate::SubstitutionStringTemplate(
 		const rawallocator_t* _rawallocator,
 		IJSONSAXGenerator* jsonsaxgenerator
-	) noexcept(false) : StringTemplate(_rawallocator) {
+	) noexcept(false)
+		: StringTemplate(_rawallocator), objholder_vec_element(_rawallocator, objholder_rawallocator_t<vec_element_t>::construct_obj, allocator_rawallocator_t<element_t>(this->rawallocator)) {
 		if (!jsonsaxgenerator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate, SubstitutionStringTemplate));
-		this->vec_element = reinterpret_cast<vec_element_t*>(this->rawallocator->Allocate(sizeof(vec_element_t)));
-		if (!this->vec_element) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-		try {
-			this->vec_element = ::std::launder(new (this->vec_element) vec_element_t(allocator_rawallocator_t<element_t>(this->rawallocator)));
-		} catch (::std::exception& err) {
-			throw(YBWLIB2_EXCEPTION_CREATE_STL_EXCEPTION_EXCEPTION(err));
-		}
-		SubstitutionStringTemplateConstructorJSONSAXHandler jsonsaxhandler_temp(this->rawallocator, this->vec_element);
+		SubstitutionStringTemplateConstructorJSONSAXHandler jsonsaxhandler_temp(this->rawallocator, this->objholder_vec_element.get());
 		if (jsonsaxgenerator->IsIterative()) {
 			while (!jsonsaxgenerator->IsIterativeComplete() && !jsonsaxhandler_temp.IsComplete()) {
 				IException* err = jsonsaxgenerator->GenerateIterativeNext(&jsonsaxhandler_temp);
@@ -483,27 +541,32 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<StringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<StringTemplateParameter, IStringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(StringTemplateParameter));
+			0, sizeof(StringTemplateParameter), alignof(StringTemplateParameter));
 		StringStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<StringStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(StringStringTemplateParameter));
+			0, sizeof(StringStringTemplateParameter), alignof(StringStringTemplateParameter));
+		AddressStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<AddressStringTemplateParameter>(),
+			IsDynamicTypeModuleLocalClass<AddressStringTemplateParameter>(),
+			{ DynamicTypeBaseClassDef<AddressStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(AddressStringTemplateParameter), alignof(AddressStringTemplateParameter));
 		StringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameterList>(),
 			{ DynamicTypeBaseClassDef<StringTemplateParameterList, IStringTemplateParameterList, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(StringTemplateParameterList));
+			0, sizeof(StringTemplateParameterList), alignof(StringTemplateParameterList));
 		StringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<StringTemplate>(),
 			IsDynamicTypeModuleLocalClass<StringTemplate>(),
 			{ DynamicTypeBaseClassDef<StringTemplate, IStringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(StringTemplate));
+			0, sizeof(StringTemplate), alignof(StringTemplate));
 		FixedStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<FixedStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<FixedStringTemplate>(),
 			{ DynamicTypeBaseClassDef<FixedStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(FixedStringTemplate),
+			0, sizeof(FixedStringTemplate), alignof(FixedStringTemplate),
 			DynamicTypeGetCreateObjectFnptr<FixedStringTemplate>(il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.end()),
 			DynamicTypeGetPlacementCreateObjectFnptr<FixedStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.end()),
 			DynamicTypeGetDefaultDeleteObjectFnptr<FixedStringTemplate>());
@@ -511,12 +574,13 @@ namespace YBWLib2 {
 			GetDynamicTypeThisClassID<SubstitutionStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<SubstitutionStringTemplate>(),
 			{ DynamicTypeBaseClassDef<SubstitutionStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(SubstitutionStringTemplate),
+			0, sizeof(SubstitutionStringTemplate), alignof(SubstitutionStringTemplate),
 			DynamicTypeGetCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
 			DynamicTypeGetPlacementCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
 			DynamicTypeGetDefaultDeleteObjectFnptr<SubstitutionStringTemplate>());
 		GetDynamicTypeThisClassObject<StringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameter)), module_info_current);
 		GetDynamicTypeThisClassObject<StringStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringStringTemplateParameter)), module_info_current);
+		GetDynamicTypeThisClassObject<AddressStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(AddressStringTemplateParameter)), module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameterList)), module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplate)), module_info_current);
 		GetDynamicTypeThisClassObject<FixedStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(FixedStringTemplate)), module_info_current);
@@ -528,6 +592,7 @@ namespace YBWLib2 {
 		GetDynamicTypeThisClassObject<FixedStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplateParameterList>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<AddressStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<StringStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<StringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 		delete SubstitutionStringTemplate::DynamicTypeThisClassObject;
@@ -538,6 +603,8 @@ namespace YBWLib2 {
 		StringTemplate::DynamicTypeThisClassObject = nullptr;
 		delete StringTemplateParameterList::DynamicTypeThisClassObject;
 		StringTemplateParameterList::DynamicTypeThisClassObject = nullptr;
+		delete AddressStringTemplateParameter::DynamicTypeThisClassObject;
+		AddressStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 		delete StringStringTemplateParameter::DynamicTypeThisClassObject;
 		StringStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 		delete StringTemplateParameter::DynamicTypeThisClassObject;

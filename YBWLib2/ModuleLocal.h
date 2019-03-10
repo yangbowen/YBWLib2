@@ -16,6 +16,9 @@
 #include "Common/CommonModuleLocal.h"
 #include "JSON/JSONModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
+#ifdef _WIN32_WINNT
+#include "UserInterface/UserInterfaceWindowsModuleLocal.h"
+#endif
 #include "File/FileModuleLocal.h"
 
 #endif

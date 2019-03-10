@@ -14,6 +14,9 @@
 #include "Common/Common.h"
 #include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
+#ifdef _WIN32_WINNT
+#include "UserInterface/UserInterfaceWindows.h"
+#endif
 #include "File/File.h"
 
 namespace YBWLib2 {
@@ -34,6 +37,9 @@ namespace YBWLib2 {
 			Common_RealInitModuleLocal();
 			JSON_RealInitModuleLocal();
 			UserInterface_RealInitModuleLocal();
+#ifdef _WIN32_WINNT
+			UserInterfaceWindows_RealInitModuleLocal();
+#endif
 			File_RealInitModuleLocal();
 		} catch (...) {
 			abort();
@@ -43,6 +49,9 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept {
 		try {
 			File_RealUnInitModuleLocal();
+#ifdef _WIN32_WINNT
+			UserInterfaceWindows_RealUnInitModuleLocal();
+#endif
 			UserInterface_RealUnInitModuleLocal();
 			JSON_RealUnInitModuleLocal();
 			Common_RealUnInitModuleLocal();

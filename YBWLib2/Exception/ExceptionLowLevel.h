@@ -60,16 +60,22 @@ namespace YBWLib2 {
 
 	template<typename _Callable_Ty>
 	inline IException* WrapFunctionCatchExceptions(_Callable_Ty _callable) noexcept {
-		::std::add_pointer_t<_Callable_Ty> ptr_callable = ::std::addressof(_callable);
-		const atomic_fnptr_wrap_function_catch_exceptions_raw_t* ptr_atomic_fnptr_wrap_function_catch_exceptions_raw = GetThreadLocalRawWrapFunctionCatchExceptionsFnptrAtomicPtr();
-		if (!ptr_atomic_fnptr_wrap_function_catch_exceptions_raw) abort();
-		fnptr_wrap_function_catch_exceptions_raw_t fnptr_wrap_function_catch_exceptions_raw = GetRawWrapFunctionCatchExceptionsFnptr(ptr_atomic_fnptr_wrap_function_catch_exceptions_raw);
-		if (!fnptr_wrap_function_catch_exceptions_raw) abort();
-		return (*fnptr_wrap_function_catch_exceptions_raw)(
-			[](uintptr_t _context) {
-				::std::add_pointer_t<_Callable_Ty> ptr_callable = reinterpret_cast<::std::add_pointer_t<_Callable_Ty>>(_context);
-				(*ptr_callable)();
-			}, reinterpret_cast<uintptr_t>(ptr_callable));
+		static_assert(::std::is_invocable_r_v<void, _Callable_Ty>, "The callable value is invalid.");
+		if constexpr (::std::is_nothrow_invocable_r_v<void, _Callable_Ty>) {
+			_callable();
+			return nullptr;
+		} else {
+			::std::add_pointer_t<_Callable_Ty> ptr_callable = ::std::addressof(_callable);
+			const atomic_fnptr_wrap_function_catch_exceptions_raw_t* ptr_atomic_fnptr_wrap_function_catch_exceptions_raw = GetThreadLocalRawWrapFunctionCatchExceptionsFnptrAtomicPtr();
+			if (!ptr_atomic_fnptr_wrap_function_catch_exceptions_raw) abort();
+			fnptr_wrap_function_catch_exceptions_raw_t fnptr_wrap_function_catch_exceptions_raw = GetRawWrapFunctionCatchExceptionsFnptr(ptr_atomic_fnptr_wrap_function_catch_exceptions_raw);
+			if (!fnptr_wrap_function_catch_exceptions_raw) abort();
+			return (*fnptr_wrap_function_catch_exceptions_raw)(
+				[](uintptr_t _context) {
+					::std::add_pointer_t<_Callable_Ty> ptr_callable = reinterpret_cast<::std::add_pointer_t<_Callable_Ty>>(_context);
+					(*ptr_callable)();
+				}, reinterpret_cast<uintptr_t>(ptr_callable));
+		}
 	}
 
 	class ExceptionReturnParameterIndexedDataEntry final {

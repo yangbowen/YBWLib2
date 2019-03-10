@@ -196,6 +196,7 @@ namespace YBWLib2 {
 			::std::initializer_list<DynamicTypeBaseClassDefObj> _dtbaseclassdef,
 			size_t _extent_before,
 			size_t _extent_after,
+			size_t _alignment,
 			fnptr_create_object_t _fnptr_create_object = nullptr,
 			fnptr_placement_create_object_t _fnptr_placement_create_object = nullptr,
 			fnptr_delete_object_t _fnptr_delete_object = nullptr
@@ -204,6 +205,7 @@ namespace YBWLib2 {
 			is_module_local(_is_module_local),
 			extent_before(_extent_before),
 			extent_after(_extent_after),
+			alignment(_alignment),
 			fnptr_create_object(_fnptr_create_object),
 			fnptr_placement_create_object(_fnptr_placement_create_object),
 			fnptr_delete_object(_fnptr_delete_object) {
@@ -235,6 +237,11 @@ namespace YBWLib2 {
 		YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const;
 		/// <summary>Dynamically upcasts a pointer.</summary>
 		YBWLIB2_API uintptr_t YBWLIB2_CALLTYPE DynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const;
+		/// <summary>
+		/// Returns the alignment (in bytes) of the object.
+		/// The position pointed to by the pointer to the object, instead of the beginning of the memory that the object occupies, is aligned.
+		/// </summary>
+		inline size_t GetAlignment() const noexcept { return this->alignment; }
 		/// <summary>
 		/// Returns the size (in bytes) of the part of the memory that the object occupies before the position pointed to by the pointer to the object.
 		/// This is usually <c>0</c>. But don't assume it's <c>0</c> unless guranteed by other means.
@@ -301,6 +308,11 @@ namespace YBWLib2 {
 		const bool is_module_local;
 		/// <summary>Pointer to the implementation object.</summary>
 		_impl_DynamicTypeClassObj* pimpl = nullptr;
+		/// <summary>
+		/// The alignment (in bytes) of the object.
+		/// The position pointed to by the pointer to the object, instead of the beginning of the memory that the object occupies, is aligned.
+		/// </summary>
+		size_t alignment;
 		/// <summary>
 		/// The size (in bytes) of the part of the memory that the object occupies before the position pointed to by the pointer to the object.
 		/// This is usually <c>0</c>. But don't assume it's <c>0</c> unless guranteed by other means.
