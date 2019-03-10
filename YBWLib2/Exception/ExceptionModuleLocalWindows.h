@@ -25,6 +25,7 @@ namespace YBWLib2 {
 #endif
 
 	[[nodiscard]] IException* ExternalAPIFailureWithLastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -61,6 +62,7 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 	[[nodiscard]] IException* ExternalAPIFailureWithWSALastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -98,6 +100,7 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 	[[nodiscard]] IException* ExternalAPIFailureWithNTSTATUSException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -135,6 +138,7 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 	[[nodiscard]] IException* ExternalAPIFailureWithHRESULTException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {

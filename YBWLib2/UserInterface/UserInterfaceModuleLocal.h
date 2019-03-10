@@ -452,9 +452,9 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
-				str_out_t str_out(allocator_rawallocator);
+				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[Address "s;
 				{
 					char str_address[sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4];
@@ -464,7 +464,7 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char));
 					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_address, sizeof(str_address) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(uintptr_t) / sizeof(uint8_t) * 8, (uintptr_t)this->GetAddress());
 					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
-					str_out += str_out_t(str_address, strnlen(str_address, sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator);
+					str_out += str_out_t(str_address, strnlen(str_address, sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();

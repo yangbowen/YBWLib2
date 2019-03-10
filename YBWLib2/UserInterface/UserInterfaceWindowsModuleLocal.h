@@ -52,9 +52,9 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
-				str_out_t str_out(allocator_rawallocator);
+				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[GetLastError "s;
 				{
 					char str_lasterr[sizeof(DWORD) / sizeof(uint8_t) * 3 + 4];
@@ -64,16 +64,16 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<DWORD>::fmtspec_printf_u_utf8, sizeof(inttype_traits_t<DWORD>::fmtspec_printf_u_utf8) / sizeof(char));
 					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_lasterr, sizeof(str_lasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetLastErrorCode());
 					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
-					str_out += str_out_t(str_lasterr, strnlen(str_lasterr, sizeof(DWORD) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator);
+					str_out += str_out_t(str_lasterr, strnlen(str_lasterr, sizeof(DWORD) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
 				{
 					using vec_char_message_lasterr_t = ::std::vector<char, allocator_rawallocator_t<char>>;
-					vec_char_message_lasterr_t vec_char_message_lasterr(allocator_rawallocator);
+					vec_char_message_lasterr_t vec_char_message_lasterr(allocator_rawallocator_char);
 					vec_char_message_lasterr.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_lasterr.data(), vec_char_message_lasterr.size(), true, false, NULL, this->GetLastErrorCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_lasterr.data(), strnlen(vec_char_message_lasterr.data(), vec_char_message_lasterr.size()), allocator_rawallocator);
+					str_out += str_out_t(vec_char_message_lasterr.data(), strnlen(vec_char_message_lasterr.data(), vec_char_message_lasterr.size()), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
@@ -125,9 +125,9 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
-				str_out_t str_out(allocator_rawallocator);
+				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[WSAGetLastError "s;
 				{
 					char str_wsalasterr[sizeof(int) / sizeof(uint8_t) * 3 + 4];
@@ -137,16 +137,16 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<int>::fmtspec_printf_d_utf8, sizeof(inttype_traits_t<int>::fmtspec_printf_d_utf8) / sizeof(char));
 					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_wsalasterr, sizeof(str_wsalasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetWSALastErrorCode());
 					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
-					str_out += str_out_t(str_wsalasterr, strnlen(str_wsalasterr, sizeof(int) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator);
+					str_out += str_out_t(str_wsalasterr, strnlen(str_wsalasterr, sizeof(int) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
 				{
 					using vec_char_message_wsalasterr_t = ::std::vector<char, allocator_rawallocator_t<char>>;
-					vec_char_message_wsalasterr_t vec_char_message_wsalasterr(allocator_rawallocator);
+					vec_char_message_wsalasterr_t vec_char_message_wsalasterr(allocator_rawallocator_char);
 					vec_char_message_wsalasterr.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size(), true, false, NULL, (DWORD)this->GetWSALastErrorCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_wsalasterr.data(), strnlen(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size()), allocator_rawallocator);
+					str_out += str_out_t(vec_char_message_wsalasterr.data(), strnlen(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size()), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
@@ -199,9 +199,9 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
-				str_out_t str_out(allocator_rawallocator);
+				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[NTSTATUS "s;
 				{
 					char str_ntstatus[sizeof(int) / sizeof(uint8_t) * 2 + 4];
@@ -211,16 +211,16 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char));
 					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_ntstatus, sizeof(str_ntstatus) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<NTSTATUS>)this->GetNTSTATUSCode());
 					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
-					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator);
+					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
 				{
 					using vec_char_message_ntstatus_t = ::std::vector<char, allocator_rawallocator_t<char>>;
-					vec_char_message_ntstatus_t vec_char_message_ntstatus(allocator_rawallocator);
+					vec_char_message_ntstatus_t vec_char_message_ntstatus(allocator_rawallocator_char);
 					vec_char_message_ntstatus.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size(), true, false, GetNtdllHmodule(), (DWORD)this->GetNTSTATUSCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_ntstatus.data(), strnlen(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size()), allocator_rawallocator);
+					str_out += str_out_t(vec_char_message_ntstatus.data(), strnlen(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size()), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
@@ -273,9 +273,9 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
-				str_out_t str_out(allocator_rawallocator);
+				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[HRESULT "s;
 				{
 					char str_hresult[sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4];
@@ -285,7 +285,7 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8) / sizeof(char));
 					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_hresult, sizeof(str_hresult) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<HRESULT>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<HRESULT>)this->GetHRESULTCode());
 					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
-					str_out += str_out_t(str_hresult, strnlen(str_hresult, sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator);
+					str_out += str_out_t(str_hresult, strnlen(str_hresult, sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();

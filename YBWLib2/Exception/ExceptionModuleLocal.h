@@ -5,6 +5,12 @@
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
 
+#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
+#define YBWLIB2_EXCEPTION_MACROS_ENABLED
+#endif
+
+#include <type_traits>
+#include <string>
 #include <vector>
 #include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
@@ -13,6 +19,8 @@
 #include "../UserInterface/UserInterface.h"
 
 namespace YBWLib2 {
+	extern YBWLIB2_API IStringTemplate* strtmpl_delimiter_cause_description_exception;
+
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(Exception, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(DoubleExceptionException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(InvalidParameterException, );
@@ -31,6 +39,7 @@ namespace YBWLib2 {
 	static fnptr_wrap_function_catch_exceptions_raw_t fnptr_wrap_function_catch_exceptions_raw_old_Exception = nullptr;
 
 	[[nodiscard]] IException* Exception::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -59,7 +68,132 @@ namespace YBWLib2 {
 		return this;
 	}
 
+	[[nodiscard]] IException* Exception::GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
+		IException* err_inner = nullptr;
+		IException* exception_cause_current = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_descrption_ret, &err_inner, &exception_cause_current]() noexcept(false)->void {
+				struct holder_description_t final {
+					char* str = nullptr;
+					size_t size_str = 0;
+					inline constexpr holder_description_t() noexcept = default;
+					holder_description_t(const holder_description_t&) = delete;
+					inline holder_description_t(holder_description_t&& x) noexcept : str(x.str), size_str(x.size_str) {
+						x.str = nullptr;
+						x.size_str = 0;
+					}
+					inline ~holder_description_t() {
+						if (this->str) {
+							ExceptionFreeMemory(this->str);
+							this->str = nullptr;
+						}
+						this->size_str = 0;
+					}
+					holder_description_t& operator=(const holder_description_t&) = delete;
+					inline holder_description_t& operator=(holder_description_t&& x) noexcept {
+						this->str = ::std::move(x.str);
+						this->size_str = ::std::move(x.size_str);
+						x.str = nullptr;
+						x.size_str = 0;
+					}
+				};
+				allocator_exception_t<char> allocator_exception_char;
+				using str_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_exception_t<char>>;
+				str_t str_description_total(allocator_exception_char);
+				str_t str_prefix_line_description(allocator_exception_char);
+				auto append_string_with_prefix_line = [](str_t& str_destination, const char* str_source, size_t size_str_source, const str_t& str_prefix_line) noexcept(false)->void {
+					if (!str_source && size_str_source || size_str_source > UINTPTR_MAX - reinterpret_cast<uintptr_t>(str_source)) {
+						IException* err_double_exception = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
+						err_double_exception->AttachCause(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Exception, GetDescriptionTotal::append_string_with_prefix_line));
+						throw(err_double_exception);
+					}
+					while (size_str_source) {
+						if (*str_source == '\n') {
+							str_destination.push_back('\n');
+							++str_source;
+							--size_str_source;
+							str_destination += str_prefix_line;
+						} else {
+							str_destination.push_back(*str_source);
+							++str_source;
+							--size_str_source;
+						}
+					}
+				};
+				str_description_total += str_prefix_line_description;
+				{
+					holder_description_t holder_description_this;
+					bool is_successful_this = false;
+					IException* exception_new_this = this->GetDescriptionSingleLevel(&holder_description_this.str, &holder_description_this.size_str, &is_successful_this);
+					if (is_successful_this) {
+						if (exception_new_this != this) abort();
+					} else {
+						err_inner = exception_new_this;
+						return;
+					}
+					append_string_with_prefix_line(str_description_total, holder_description_this.str, holder_description_this.size_str, str_prefix_line_description);
+				}
+				IException* exception_consequence_current = this;
+				while (true) {
+					if (exception_cause_current) abort();
+					exception_consequence_current->DetachCause(&exception_cause_current);
+					if (!exception_cause_current) break;
+					{
+						holder_description_t holder_delimiter_cause_description_exception;
+						if (!strtmpl_delimiter_cause_description_exception) abort();
+						err_inner = strtmpl_delimiter_cause_description_exception->GenerateString(StringTemplateParameterList(rawallocator_exception,
+							{
+							}
+						), &holder_delimiter_cause_description_exception.str, &holder_delimiter_cause_description_exception.size_str, false, rawallocator_exception);
+						if (err_inner) return;
+						append_string_with_prefix_line(str_description_total, holder_delimiter_cause_description_exception.str, holder_delimiter_cause_description_exception.size_str, str_prefix_line_description);
+					}
+					{
+						holder_description_t holder_description_exception_cause_current;
+						bool is_successful_exception_cause_current = false;
+						IException* exception_new_cause_current = exception_cause_current->GetDescriptionSingleLevel(&holder_description_exception_cause_current.str, &holder_description_exception_cause_current.size_str, &is_successful_exception_cause_current);
+						if (is_successful_exception_cause_current) {
+							if (exception_new_cause_current != exception_cause_current) abort();
+						} else {
+							err_inner = exception_new_cause_current;
+							exception_cause_current = nullptr;
+							return;
+						}
+						append_string_with_prefix_line(str_description_total, holder_description_exception_cause_current.str, holder_description_exception_cause_current.size_str, str_prefix_line_description);
+					}
+					exception_consequence_current->AttachCause(exception_cause_current);
+					exception_consequence_current = exception_cause_current;
+					exception_cause_current = nullptr;
+				}
+				if (exception_cause_current) abort();
+				exception_consequence_current = nullptr;
+			}
+		);
+		if (exception_cause_current) {
+			delete exception_cause_current;
+			exception_cause_current = nullptr;
+		}
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
 	[[nodiscard]] IException* DoubleExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -89,6 +223,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* InvalidParameterException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -122,6 +257,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* InvalidCallException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -155,6 +291,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* InsufficientBufferException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -186,6 +323,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* MemoryAllocFailureException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -215,6 +353,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* KeyAlreadyExistException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -244,6 +383,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* KeyNotExistException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -273,6 +413,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* UnhandledUnknownExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -302,6 +443,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* STLExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -333,6 +475,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* ExternalAPIFailureException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -366,6 +509,7 @@ namespace YBWLib2 {
 	}
 
 	[[nodiscard]] IException* UnexpectedExceptionException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_descrption_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
@@ -585,10 +729,16 @@ namespace YBWLib2 {
 	}
 
 	static IException* YBWLIB2_CALLTYPE WrapFunctionCatchExceptionsRaw_Exception(void(YBWLIB2_CALLTYPE* _fnptr_inner)(uintptr_t _context), uintptr_t _context) noexcept {
-		if (!_fnptr_inner)
-			return YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION()->AttachCause(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::WrapFunctionCatchExceptionsRaw_Exception));
-		if (!fnptr_wrap_function_catch_exceptions_raw_old_Exception)
-			return YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION()->AttachCause(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+		if (!_fnptr_inner) {
+			IException* err_double_exception = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
+			err_double_exception->AttachCause(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::WrapFunctionCatchExceptionsRaw_Exception));
+			return err_double_exception;
+		}
+		if (!fnptr_wrap_function_catch_exceptions_raw_old_Exception) {
+			IException* err_double_exception = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
+			err_double_exception->AttachCause(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			return err_double_exception;
+		}
 		struct ctx_t final {
 			void(YBWLIB2_CALLTYPE* const fnptr_inner)(uintptr_t _context) = nullptr;
 			const uintptr_t context;

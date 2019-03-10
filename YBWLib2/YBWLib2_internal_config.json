@@ -1,5 +1,10 @@
 ﻿{
   "Exception": {
+    "strtmpl_delimiter_cause_description_exception": {
+      // FixedStringTemplate
+      "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+      "jsonval_strtmpl": "\nBecause:\n"
+    },
     "strtmpl_description_exception": [
       {
         // Exception

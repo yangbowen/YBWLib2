@@ -90,7 +90,7 @@ namespace YBWLib2 {
 
 	/// <summary>Allocator template structure for allocating memory for exception handling.</summary>
 	template<typename _Ty>
-	struct allocator_exception {
+	struct allocator_exception_t {
 		typedef _Ty value_type;
 		typedef _Ty* pointer;
 		typedef const _Ty* const_pointer;
@@ -100,27 +100,27 @@ namespace YBWLib2 {
 		typedef ptrdiff_t difference_type;
 		template<typename _Rebind_Ty>
 		struct rebind {
-			using other = allocator_exception<_Rebind_Ty>;
+			using other = allocator_exception_t<_Rebind_Ty>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::true_type;
-		inline constexpr allocator_exception() noexcept = default;
+		inline constexpr allocator_exception_t() noexcept = default;
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception(const allocator_exception<_Rebind_From_Ty>& x) noexcept : allocator_exception() {}
+		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception(allocator_exception<_Rebind_From_Ty>&& x) noexcept : allocator_exception() {}
+		inline constexpr allocator_exception_t(allocator_exception_t<_Rebind_From_Ty>&&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_exception<_Rebind_Ty>() const noexcept { return allocator_exception<_Rebind_Ty>(); }
+		inline constexpr operator allocator_exception_t<_Rebind_Ty>() const noexcept { return allocator_exception_t<_Rebind_Ty>(); }
 		template<typename _Allocator_Ty>
 		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
 		template<typename _Element_Ty>
-		inline constexpr bool operator==(const allocator_exception<_Element_Ty>& r) const noexcept { return true; }
+		inline constexpr bool operator==(const allocator_exception_t<_Element_Ty>&) const noexcept { return true; }
 		template<typename _Allocator_Ty>
 		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
 		template<typename _Element_Ty>
-		inline constexpr bool operator!=(const allocator_exception<_Element_Ty>& r) const noexcept { return false; }
+		inline constexpr bool operator!=(const allocator_exception_t<_Element_Ty>&) const noexcept { return false; }
 		inline pointer address(reference ref) const noexcept { return ::std::addressof(ref); }
 		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
 		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept {
@@ -140,11 +140,11 @@ namespace YBWLib2 {
 		inline void destroy(_Element_Ty* ptr) {
 			ptr->~_Element_Ty();
 		}
-		inline constexpr allocator_exception select_on_container_copy_construction() const noexcept { return allocator_exception(*this); }
+		inline constexpr allocator_exception_t select_on_container_copy_construction() const noexcept { return allocator_exception_t(*this); }
 	};
 	/// <summary>Allocator template structure for allocating memory for exception handling.</summary>
 	template<>
-	struct allocator_exception<void> {
+	struct allocator_exception_t<void> {
 		typedef void value_type;
 		typedef void* pointer;
 		typedef const void* const_pointer;
@@ -152,27 +152,27 @@ namespace YBWLib2 {
 		typedef ptrdiff_t difference_type;
 		template<typename _Rebind_Ty>
 		struct rebind {
-			using other = allocator_exception<_Rebind_Ty>;
+			using other = allocator_exception_t<_Rebind_Ty>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::true_type;
-		inline constexpr allocator_exception() noexcept = default;
+		inline constexpr allocator_exception_t() noexcept = default;
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception(const allocator_exception<_Rebind_From_Ty>& x) noexcept : allocator_exception() {}
+		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception(allocator_exception<_Rebind_From_Ty>&& x) noexcept : allocator_exception() {}
+		inline constexpr allocator_exception_t(allocator_exception_t<_Rebind_From_Ty>&&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_exception<_Rebind_Ty>() const noexcept { return allocator_exception<_Rebind_Ty>(); }
+		inline constexpr operator allocator_exception_t<_Rebind_Ty>() const noexcept { return allocator_exception_t<_Rebind_Ty>(); }
 		template<typename _Allocator_Ty>
 		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
 		template<typename _Element_Ty>
-		inline constexpr bool operator==(const allocator_exception<_Element_Ty>& r) const noexcept { return true; }
+		inline constexpr bool operator==(const allocator_exception_t<_Element_Ty>&) const noexcept { return true; }
 		template<typename _Allocator_Ty>
 		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
 		template<typename _Element_Ty>
-		inline constexpr bool operator!=(const allocator_exception<_Element_Ty>& r) const noexcept { return false; }
+		inline constexpr bool operator!=(const allocator_exception_t<_Element_Ty>&) const noexcept { return false; }
 		template<typename _Element_Ty, typename... _Args_Ty>
 		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
 			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty...>(args...));
@@ -181,7 +181,7 @@ namespace YBWLib2 {
 		inline void destroy(_Element_Ty* ptr) {
 			ptr->~_Element_Ty();
 		}
-		inline constexpr allocator_exception select_on_container_copy_construction() const noexcept { return allocator_exception(*this); }
+		inline constexpr allocator_exception_t select_on_container_copy_construction() const noexcept { return allocator_exception_t(*this); }
 	};
 
 	//}
@@ -236,19 +236,7 @@ namespace YBWLib2 {
 		/// Do NOT pass a pointer to a local object variable or an object already managed by other mechanisms.
 		/// Passing an empty pointer clears the cause stored in this object.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
-		/// </returns>
-		[[nodiscard]] virtual IException* AttachCause(IException* exception_cause_new, bool* is_successful_ret = nullptr) noexcept = 0;
+		virtual void AttachCause(IException* exception_cause_new) noexcept = 0;
 		/// <summary>Gets a pointer to the <c>IException</c> object that represents the underlying cause of this exception.</summary>
 		/// <param name="exception_cause_ret">
 		/// Pointer to a pointer variable that receives a pointer to the underlying cause of this exception.
@@ -257,19 +245,7 @@ namespace YBWLib2 {
 		/// The object on which this function is called continues to own the object pointed to by the new <c>*exception_cause</c> after a successful call.
 		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
-		/// </returns>
-		[[nodiscard]] virtual IException* GetCause(IException** exception_cause_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		virtual void GetCause(IException** exception_cause_ret) noexcept = 0;
 		/// <summary>
 		/// Detaches the pointer to the <c>IException</c> object that represents the underlying cause of this exception and gives it to the caller.
 		/// After successfully returning from this function, the object on which this function is called no longer has a exception cause object.
@@ -281,20 +257,7 @@ namespace YBWLib2 {
 		/// The object on which this function is called stops owning the object pointed to by the new <c>*exception_cause</c> after a successful call.
 		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer
-		/// (and the object pointed to by <c>*exception_cause</c>).
-		/// </returns>
-		[[nodiscard]] virtual IException* DetachCause(IException** exception_cause_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		virtual void DetachCause(IException** exception_cause_ret) noexcept = 0;
 		/// <summary>
 		/// Gets the additional variable reserved for exception handling routines in applications.
 		/// Classes that implements this class must provide storage for this variable.
@@ -618,26 +581,12 @@ namespace YBWLib2 {
 		/// Do NOT pass a pointer to a local object variable or an object already managed by other mechanisms.
 		/// Passing an empty pointer clears the cause stored in this object.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
-		/// </returns>
-		[[nodiscard]] inline virtual IException* AttachCause(IException* exception_cause_new, bool* is_successful_ret = nullptr) noexcept override {
+		inline virtual void AttachCause(IException* exception_cause_new) noexcept override {
 			if (this->exception_cause) {
 				delete this->exception_cause;
 				this->exception_cause = nullptr;
 			}
 			this->exception_cause = exception_cause_new;
-			if (is_successful_ret) *is_successful_ret = true;
-			return this;
 		}
 		/// <summary>Gets a pointer to the <c>IException</c> object that represents the underlying cause of this exception.</summary>
 		/// <param name="exception_cause_ret">
@@ -647,22 +596,8 @@ namespace YBWLib2 {
 		/// The object on which this function is called continues to own the object pointed to by the new <c>*exception_cause</c> after a successful call.
 		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
-		/// </returns>
-		[[nodiscard]] inline virtual IException* GetCause(IException** exception_cause_ret, bool* is_successful_ret = nullptr) noexcept override {
+		inline virtual void GetCause(IException** exception_cause_ret) noexcept override {
 			*exception_cause_ret = this->exception_cause;
-			if (is_successful_ret) *is_successful_ret = true;
-			return this;
 		}
 		/// <summary>
 		/// Detaches the pointer to the <c>IException</c> object that represents the underlying cause of this exception and gives it to the caller.
@@ -675,27 +610,9 @@ namespace YBWLib2 {
 		/// The object on which this function is called stops owning the object pointed to by the new <c>*exception_cause</c> after a successful call.
 		/// If there wasn't an underlying cause of this exception, <c>*exception_cause</c> will be set to an empty pointer.
 		/// </param>
-		/// <param name="is_successful_ret">
-		/// Optional pointer to a variable that receives whether the call is successful.
-		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
-		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
-		/// If this pointer is empty, it will be ignored by this function.
-		/// </param>
-		/// <returns>
-		/// If the call is successful, The pointer <c>this</c> is returned.
-		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
-		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
-		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer
-		/// (and the object pointed to by <c>*exception_cause</c>).
-		/// </returns>
-		[[nodiscard]] inline virtual IException* DetachCause(IException** exception_cause_ret, bool* is_successful_ret = nullptr) noexcept override {
+		inline virtual void DetachCause(IException** exception_cause_ret) noexcept override {
 			*exception_cause_ret = this->exception_cause;
-			if (this->exception_cause) {
-				delete this->exception_cause;
-				this->exception_cause = nullptr;
-			}
-			if (is_successful_ret) *is_successful_ret = true;
-			return this;
+			this->exception_cause = nullptr;
 		}
 		/// <summary>
 		/// Get the additional variable reserved for exception handling routines in applications.
@@ -779,10 +696,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override {
-			// TODO: Implement GetDescriptionTotal.
-			return this;
-		}
+		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
 	protected:
 		IException* exception_cause = nullptr;
 		uintptr_t userdata = 0;
