@@ -99,7 +99,7 @@ namespace YBWLib2 {
 		}
 	}
 
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE SnPrintfUtf8(
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE_VARARG SnPrintfUtf8(
 		const rawallocator_t* rawallocator,
 		char* str_out,
 		size_t size_max_str_out,

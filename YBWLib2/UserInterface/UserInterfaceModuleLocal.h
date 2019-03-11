@@ -462,7 +462,7 @@ namespace YBWLib2 {
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char));
-					err_inner = SnPrintfUtf8(_rawallocator, str_address, sizeof(str_address) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(uintptr_t) / sizeof(uint8_t) * 8, (uintptr_t)this->GetAddress());
+					err_inner = SnPrintfUtf8(_rawallocator, str_address, sizeof(str_address) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(uintptr_t) / sizeof(uint8_t) * 2, (uintptr_t)this->GetAddress());
 					if (err_inner) return;
 					str_out += str_out_t(str_address, strnlen(str_address, sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
