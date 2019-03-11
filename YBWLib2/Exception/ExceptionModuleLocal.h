@@ -71,9 +71,10 @@ namespace YBWLib2 {
 	[[nodiscard]] IException* Exception::GetDescriptionTotal(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
 		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
+		bool has_deleted_this = false;
 		IException* exception_cause_current = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[this, &description_ret, &size_description_ret, &err_inner, &exception_cause_current]() noexcept(false)->void {
+			[this, &description_ret, &size_description_ret, &err_inner, &has_deleted_this, &exception_cause_current]() noexcept(false)->void {
 				struct holder_description_t final {
 					char* str = nullptr;
 					size_t size_str = 0;
@@ -129,6 +130,7 @@ namespace YBWLib2 {
 					if (is_successful_this) {
 						if (exception_new_this != this) abort();
 					} else {
+						has_deleted_this = true;
 						err_inner = exception_new_this;
 						return;
 					}
@@ -187,15 +189,22 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (is_successful_ret) *is_successful_ret = false;
-			delete this;
+			if (!has_deleted_this) {
+				delete this;
+				has_deleted_this = true;
+			}
 			return err;
 		}
 		if (err_inner) {
 			if (is_successful_ret) *is_successful_ret = false;
-			delete this;
+			if (!has_deleted_this) {
+				delete this;
+				has_deleted_this = true;
+			}
 			return err_inner;
 		}
 		if (is_successful_ret) *is_successful_ret = true;
+		if (has_deleted_this) abort();
 		return this;
 	}
 
