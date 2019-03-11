@@ -77,7 +77,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -95,7 +95,8 @@ namespace YBWLib2 {
 				*size_str_out_ret = 0;
 			}
 			return err;
-		} else {
+		}
+		if (err_inner) {
 			if (*str_out_ret) {
 				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 				*str_out_ret = nullptr;
@@ -103,6 +104,7 @@ namespace YBWLib2 {
 			}
 			return err_inner;
 		}
+		return nullptr;
 	}
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
@@ -150,7 +152,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -168,7 +170,8 @@ namespace YBWLib2 {
 				*size_str_out_ret = 0;
 			}
 			return err;
-		} else {
+		}
+		if (err_inner) {
 			if (*str_out_ret) {
 				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 				*str_out_ret = nullptr;
@@ -176,6 +179,7 @@ namespace YBWLib2 {
 			}
 			return err_inner;
 		}
+		return nullptr;
 	}
 #endif
 
@@ -224,7 +228,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -242,7 +246,8 @@ namespace YBWLib2 {
 				*size_str_out_ret = 0;
 			}
 			return err;
-		} else {
+		}
+		if (err_inner) {
 			if (*str_out_ret) {
 				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 				*str_out_ret = nullptr;
@@ -250,6 +255,7 @@ namespace YBWLib2 {
 			}
 			return err_inner;
 		}
+		return nullptr;
 	}
 #endif
 
@@ -289,7 +295,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -307,7 +313,8 @@ namespace YBWLib2 {
 				*size_str_out_ret = 0;
 			}
 			return err;
-		} else {
+		}
+		if (err_inner) {
 			if (*str_out_ret) {
 				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 				*str_out_ret = nullptr;
@@ -315,6 +322,7 @@ namespace YBWLib2 {
 			}
 			return err_inner;
 		}
+		return nullptr;
 	}
 #endif
 

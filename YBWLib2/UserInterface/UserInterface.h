@@ -674,7 +674,7 @@ namespace YBWLib2 {
 				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
-					*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (this->size_str_value) {
 						if (!this->str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -693,7 +693,8 @@ namespace YBWLib2 {
 					*size_str_out_ret = 0;
 				}
 				return err;
-			} else {
+			}
+			if (err_inner) {
 				if (*str_out_ret) {
 					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 					*str_out_ret = nullptr;
@@ -701,6 +702,7 @@ namespace YBWLib2 {
 				}
 				return err_inner;
 			}
+			return nullptr;
 		}
 	protected:
 		char* str_value = nullptr;
@@ -1295,7 +1297,7 @@ namespace YBWLib2 {
 				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
-					*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (this->size_str_value) {
 						if (!this->str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -1314,7 +1316,8 @@ namespace YBWLib2 {
 					*size_str_out_ret = 0;
 				}
 				return err;
-			} else {
+			}
+			if (err_inner) {
 				if (*str_out_ret) {
 					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 					*str_out_ret = nullptr;
@@ -1322,6 +1325,7 @@ namespace YBWLib2 {
 				}
 				return err_inner;
 			}
+			return nullptr;
 		}
 	protected:
 		char* str_value = nullptr;
@@ -1441,7 +1445,7 @@ namespace YBWLib2 {
 					if (should_null_terminate)
 						++*size_str_out_ret;
 					if (*size_str_out_ret) {
-						*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+						*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 						*size_str_out_ret = 0;
 						for (const string_str_out_element_t& val_str_out_element : vec_str_out_element) {
@@ -1465,7 +1469,8 @@ namespace YBWLib2 {
 					*size_str_out_ret = 0;
 				}
 				return err;
-			} else {
+			}
+			if (err_inner) {
 				if (*str_out_ret) {
 					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 					*str_out_ret = nullptr;
@@ -1473,6 +1478,7 @@ namespace YBWLib2 {
 				}
 				return err_inner;
 			}
+			return nullptr;
 		}
 	protected:
 		enum ElementType : uint32_t {
@@ -1761,7 +1767,7 @@ namespace YBWLib2 {
 						[this, &str_out_ret, &size_str_out_ret, &_rawallocator, &err_inner]() noexcept(false)->void {
 							if (!_rawallocator) _rawallocator = this->rawallocator;
 							*size_str_out_ret = this->content_raw.size_str_value;
-							*str_out_ret = reinterpret_cast<char*>(this->rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+							*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
 							if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 							if (this->content_raw.size_str_value) {
 								if (!this->content_raw.str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -1779,7 +1785,8 @@ namespace YBWLib2 {
 							*size_str_out_ret = 0;
 						}
 						return err;
-					} else {
+					}
+					if (err_inner) {
 						if (*str_out_ret) {
 							if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
 							*str_out_ret = nullptr;
@@ -1787,6 +1794,7 @@ namespace YBWLib2 {
 						}
 						return err_inner;
 					}
+					return nullptr;
 				}
 				case ElementType_Substitute: {
 					if (!parameter_list) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate::element_t, GenerateString);
