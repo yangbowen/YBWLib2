@@ -520,7 +520,7 @@ namespace YBWLib2 {
 		const rawallocator_t* _rawallocator,
 		IJSONSAXGenerator* jsonsaxgenerator
 	) noexcept(false)
-		: StringTemplate(_rawallocator), objholder_vec_element(_rawallocator, objholder_rawallocator_t<vec_element_t>::construct_obj, allocator_rawallocator_t<element_t>(this->rawallocator)) {
+		: StringTemplate(_rawallocator), objholder_vec_element(_rawallocator, objholder_rawallocator_t<vec_element_t>::construct_obj, allocator_rawallocator_t<element_t>(_rawallocator)) {
 		if (!jsonsaxgenerator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate, SubstitutionStringTemplate));
 		SubstitutionStringTemplateConstructorJSONSAXHandler jsonsaxhandler_temp(this->rawallocator, this->objholder_vec_element.get());
 		if (jsonsaxgenerator->IsIterative()) {

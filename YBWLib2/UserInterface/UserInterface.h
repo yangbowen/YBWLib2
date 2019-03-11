@@ -830,7 +830,7 @@ namespace YBWLib2 {
 		/// </param>
 		inline StringTemplateParameterList(const rawallocator_t* _rawallocator) noexcept(false)
 			: rawallocator(_rawallocator),
-			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)) {
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(_rawallocator)) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
 		}
 		/// <summary>Constructs an <c>StringTemplateParameterList</c> object.</summary>
@@ -845,7 +845,7 @@ namespace YBWLib2 {
 		/// </param>
 		inline StringTemplateParameterList(const rawallocator_t* _rawallocator, const ::std::initializer_list<const IStringTemplateParameter*>& il_parameter) noexcept(false)
 			: rawallocator(_rawallocator),
-			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(this->rawallocator)) {
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(_rawallocator)) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
 			try {
 				for (const IStringTemplateParameter* val_parameter : il_parameter) {
