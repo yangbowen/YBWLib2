@@ -382,11 +382,11 @@ namespace YBWLib2 {
 #endif
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(apiname, ntstatus) (new ::YBWLib2::ExternalAPIFailureWithLastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (ntstatus)))
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(apiname, ntstatus) (new ::YBWLib2::ExternalAPIFailureWithNTSTATUSException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (ntstatus)))
 #endif
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION(apiname, hresult) (new ::YBWLib2::ExternalAPIFailureWithLastErrorException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (hresult)))
+#define YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION(apiname, hresult) (new ::YBWLib2::ExternalAPIFailureWithHRESULTException(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname)), (sizeof(YBWLIB2_TO_UTF8(YBWLIB2_STRINGIZE(apiname))) / sizeof(char)) - 1, &(apiname), (hresult)))
 #endif
 
 //}
