@@ -8,7 +8,7 @@
     "strtmpl_description_exception": [
       {
         // Exception
-        "dtclassid_exception": "99ce058f-4074-4ef9-8e34-661121b7754c",
+        "dtclassid_exception": "ae07f679-f0a1-4f24-9e1b-2e7ad8f59f6d",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An exception has occurred."
