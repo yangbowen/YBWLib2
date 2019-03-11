@@ -55,7 +55,7 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE utf8_vsnprintf(
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE VsnPrintfUtf8(
 		const rawallocator_t* rawallocator,
 		char* str_out,
 		size_t size_max_str_out,
@@ -83,7 +83,7 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE_VARARG utf8_snprintf(
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE_VARARG SnPrintfUtf8(
 		const rawallocator_t* rawallocator,
 		char* str_out,
 		size_t size_max_str_out,

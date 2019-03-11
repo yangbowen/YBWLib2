@@ -93,9 +93,6 @@
     <ClInclude Include="Windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Exception\ExceptionModuleLocalWindows.h">
-      <Filter>Header Files\Exception</Filter>
-    </ClInclude>
     <ClInclude Include="UserInterface\UserInterface.h">
       <Filter>Header Files\UserInterface</Filter>
     </ClInclude>
@@ -144,6 +141,18 @@
     <ClInclude Include="UserInterface\UserInterfaceWindowsModuleLocal.h">
       <Filter>Header Files\UserInterface</Filter>
     </ClInclude>
+    <ClInclude Include="Common\CommonWindowsModuleLocal.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\CommonWindows.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\CommonSTLHelperWindows.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\ExceptionWindowsModuleLocal.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -190,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="UserInterface\UserInterfaceWindows.cpp">
       <Filter>Source Files\UserInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\CommonWindows.cpp">
+      <Filter>Source Files\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

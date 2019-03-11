@@ -6,16 +6,308 @@
 #ifndef _INCLUDE_GUARD_068CE365_7FF5_4D62_A0BD_1F427E075355
 #define _INCLUDE_GUARD_068CE365_7FF5_4D62_A0BD_1F427E075355
 
+#include <cstdlib>
 #include <type_traits>
 #include <utility>
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
 #include <ostream>
 #include "../DynamicType/DynamicType.h"
 #include "Common.h"
 
 namespace YBWLib2 {
+	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
+	template<typename _U16String_Ty, typename _U8String_Ty>
+	inline _U16String_Ty Utf8StringToUtf16String(
+		const rawallocator_t* _rawallocator,
+		const _U8String_Ty& u8str,
+		const typename _U16String_Ty::allocator_type& _allocator_u16str_out
+	) noexcept(false) {
+		static_assert(::std::is_class_v<_U16String_Ty>, "The UTF-16 string type is not a class.");
+		static_assert(::std::is_class_v<_U8String_Ty>, "The UTF-8 string type is not a class.");
+		struct holder_u16str_t final {
+			const rawallocator_t* rawallocator = nullptr;
+			char16_t* str = nullptr;
+			size_t size_str = 0;
+			inline constexpr holder_u16str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
+			/*holder_u16str_t(const holder_u16str_t&) = delete;
+			inline holder_u16str_t(holder_u16str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+			inline ~holder_u16str_t() {
+				if (this->str) {
+					if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char16_t))) abort();
+					this->str = nullptr;
+				}
+				this->size_str = 0;
+				this->rawallocator = nullptr;
+			}
+			/*holder_u16str_t& operator=(const holder_u16str_t&) = delete;
+			inline holder_u16str_t& operator=(holder_u16str_t&& x) noexcept {
+				this->rawallocator = ::std::move(x.rawallocator);
+				this->str = ::std::move(x.str);
+				this->size_str = ::std::move(x.size_str);
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+		} holder_u16str_out(_rawallocator);
+		IException* err = Utf8StringToUtf16String(_rawallocator, &holder_u16str_out.str, &holder_u16str_out.size_str, u8str.data(), u8str.size());
+		if (err) throw(err);
+		return _U16String_Ty(holder_u16str_out.str, holder_u16str_out.size_str, _allocator_u16str_out);
+	}
+
+	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
+	template<typename _U8String_Ty, typename _U16String_Ty>
+	inline _U8String_Ty Utf16StringToUtf8String(
+		const rawallocator_t* _rawallocator,
+		const _U16String_Ty& u16str,
+		const typename _U8String_Ty::allocator_type& _allocator_u8str_out
+	) noexcept(false) {
+		static_assert(::std::is_class_v<_U8String_Ty>, "The UTF-8 string type is not a class.");
+		static_assert(::std::is_class_v<_U16String_Ty>, "The UTF-16 string type is not a class.");
+		struct holder_u8str_t final {
+			const rawallocator_t* rawallocator = nullptr;
+			char* str = nullptr;
+			size_t size_str = 0;
+			inline constexpr holder_u8str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
+			/*holder_u8str_t(const holder_u8str_t&) = delete;
+			inline holder_u8str_t(holder_u8str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+			inline ~holder_u8str_t() {
+				if (this->str) {
+					if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
+					this->str = nullptr;
+				}
+				this->size_str = 0;
+				this->rawallocator = nullptr;
+			}
+			/*holder_u8str_t& operator=(const holder_u8str_t&) = delete;
+			inline holder_u8str_t& operator=(holder_u8str_t&& x) noexcept {
+				this->rawallocator = ::std::move(x.rawallocator);
+				this->str = ::std::move(x.str);
+				this->size_str = ::std::move(x.size_str);
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+		} holder_u8str_out(_rawallocator);
+		IException* err = Utf16StringToUtf8String(_rawallocator, &holder_u8str_out.str, &holder_u8str_out.size_str, u16str.data(), u16str.size());
+		if (err) throw(err);
+		return _U8String_Ty(holder_u8str_out.str, holder_u8str_out.size_str, _allocator_u8str_out);
+	}
+
+	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
+	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>> Utf8StringToUtf16String(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
+		return Utf8StringToUtf16String<
+			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>,
+			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
+		>(u8str.get_allocator().rawallocator, u8str, u8str.get_allocator());
+	}
+
+	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
+	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf16StringToUtf8String(const ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>& u16str) noexcept(false) {
+		return Utf16StringToUtf8String<
+			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
+			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>
+		>(u16str.get_allocator().rawallocator, u16str, u16str.get_allocator());
+	}
+
+	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
+	inline ::std::u16string Utf8StringToUtf16String(const ::std::string& u8str) noexcept(false) {
+		return Utf8StringToUtf16String<::std::u16string, ::std::string>(rawallocator_crt_module_local, u8str, u8str.get_allocator());
+	}
+
+	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
+	inline ::std::string Utf16StringToUtf8String(const ::std::u16string& u16str) noexcept(false) {
+		return Utf16StringToUtf8String<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
+	}
+
+	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
+	template<typename _Vector_Data_Ty, typename _U8String_Ty>
+	inline _Vector_Data_Ty Utf8Base64Decode(
+		const rawallocator_t* _rawallocator,
+		const _U8String_Ty& u8str,
+		const typename _Vector_Data_Ty::allocator_type& _allocator_vec_data_out
+	) noexcept(false) {
+		static_assert(::std::is_class_v<_Vector_Data_Ty>, "The data vector type is not a class.");
+		static_assert(::std::is_class_v<_U8String_Ty>, "The UTF-8 string type is not a class.");
+		struct holder_data_t final {
+			const rawallocator_t* rawallocator = nullptr;
+			uint8_t* data = nullptr;
+			size_t size_data = 0;
+			inline constexpr holder_data_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
+			/*holder_data_t(const holder_data_t&) = delete;
+			inline holder_data_t(holder_data_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), data(::std::move(x.data)), size_data(::std::move(x.size_data)) {
+				x.rawallocator = nullptr;
+				x.data = nullptr;
+				x.size_data = 0;
+			}*/
+			inline ~holder_data_t() {
+				if (this->data) {
+					if (!this->rawallocator->Deallocate(this->data, size_data * sizeof(uint8_t))) abort();
+					this->data = nullptr;
+				}
+				this->size_data = 0;
+				this->rawallocator = nullptr;
+			}
+			/*holder_data_t& operator=(const holder_data_t&) = delete;
+			inline holder_data_t& operator=(holder_data_t&& x) noexcept {
+				this->rawallocator = ::std::move(x.rawallocator);
+				this->data = ::std::move(x.data);
+				this->size_data = ::std::move(x.size_data);
+				x.rawallocator = nullptr;
+				x.data = nullptr;
+				x.size_data = 0;
+			}*/
+		} holder_data_out(_rawallocator);
+		IException* err = Utf8Base64Decode(_rawallocator, &holder_data_out.data, &holder_data_out.size_data, u8str.data(), u8str.size());
+		if (err) throw(err);
+		return _Vector_Data_Ty(holder_data_out.data, holder_data_out.data + holder_data_out.size_data, _allocator_vec_data_out);
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
+	template<typename _U8String_Ty, typename _Vector_Data_Ty>
+	inline _U8String_Ty Utf8Base64Encode(
+		const rawallocator_t* _rawallocator,
+		const _Vector_Data_Ty& vec_data,
+		const typename _U8String_Ty::allocator_type& _allocator_u8str_out
+	) noexcept(false) {
+		static_assert(::std::is_class_v<_U8String_Ty>, "The UTF-8 string type is not a class.");
+		static_assert(::std::is_class_v<_Vector_Data_Ty>, "The data vector type is not a class.");
+		struct holder_u8str_t final {
+			const rawallocator_t* rawallocator = nullptr;
+			char* str = nullptr;
+			size_t size_str = 0;
+			inline constexpr holder_u8str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
+			/*holder_u8str_t(const holder_u8str_t&) = delete;
+			inline holder_u8str_t(holder_u8str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+			inline ~holder_u8str_t() {
+				if (this->str) {
+					if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
+					this->str = nullptr;
+				}
+				this->size_str = 0;
+				this->rawallocator = nullptr;
+			}
+			/*holder_u8str_t& operator=(const holder_u8str_t&) = delete;
+			inline holder_u8str_t& operator=(holder_u8str_t&& x) noexcept {
+				this->rawallocator = ::std::move(x.rawallocator);
+				this->str = ::std::move(x.str);
+				this->size_str = ::std::move(x.size_str);
+				x.rawallocator = nullptr;
+				x.str = nullptr;
+				x.size_str = 0;
+			}*/
+		} holder_u8str_out(_rawallocator);
+		IException* err = Utf8Base64Encode(_rawallocator, &holder_u8str_out.str, &holder_u8str_out.size_str, vec_data.data(), vec_data.size());
+		if (err) throw(err);
+		return _U8String_Ty(holder_u8str_out.str, holder_u8str_out.size_str, _allocator_u8str_out);
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
+	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> Utf8Base64Decode(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
+		return Utf8Base64Decode<
+			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
+			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
+		>(u8str.get_allocator().rawallocator, u8str, u8str.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
+	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf8Base64Encode(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
+		return Utf8Base64Encode<
+			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
+			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
+		>(vec_data.get_allocator().rawallocator, vec_data, vec_data.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
+	inline ::std::vector<uint8_t> Utf8Base64Decode(const ::std::string& u8str) noexcept(false) {
+		return Utf8Base64Decode<::std::vector<uint8_t>, ::std::string>(rawallocator_crt_module_local, u8str, u8str.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
+	inline ::std::string Utf8Base64Encode(const ::std::vector<uint8_t>& u16str) noexcept(false) {
+		return Utf8Base64Encode<::std::string, ::std::vector<uint8_t>>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
+	template<typename _Vector_Hash_Ty, typename _Vector_Data_Ty>
+	inline _Vector_Hash_Ty HashSha256(
+		const rawallocator_t* _rawallocator,
+		const _Vector_Data_Ty& vec_data,
+		const typename _Vector_Hash_Ty::allocator_type& _allocator_vec_hash_out
+	) noexcept(false) {
+		static_assert(::std::is_class_v<_Vector_Hash_Ty>, "The hash vector type is not a class.");
+		static_assert(::std::is_class_v<_Vector_Data_Ty>, "The data vector type is not a class.");
+		struct holder_data_t final {
+			const rawallocator_t* rawallocator = nullptr;
+			uint8_t* data = nullptr;
+			size_t size_data = 0;
+			inline constexpr holder_data_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
+			/*holder_data_t(const holder_data_t&) = delete;
+			inline holder_data_t(holder_data_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), data(::std::move(x.data)), size_data(::std::move(x.size_data)) {
+				x.rawallocator = nullptr;
+				x.data = nullptr;
+				x.size_data = 0;
+			}*/
+			inline ~holder_data_t() {
+				if (this->data) {
+					if (!this->rawallocator->Deallocate(this->data, size_data * sizeof(uint8_t))) abort();
+					this->data = nullptr;
+				}
+				this->size_data = 0;
+				this->rawallocator = nullptr;
+			}
+			/*holder_data_t& operator=(const holder_data_t&) = delete;
+			inline holder_data_t& operator=(holder_data_t&& x) noexcept {
+				this->rawallocator = ::std::move(x.rawallocator);
+				this->data = ::std::move(x.data);
+				this->size_data = ::std::move(x.size_data);
+				x.rawallocator = nullptr;
+				x.data = nullptr;
+				x.size_data = 0;
+			}*/
+		} holder_data_hash(_rawallocator);
+		IException* err = HashSha256(_rawallocator, &holder_data_hash.data, &holder_data_hash.size_data, vec_data.data(), vec_data.size());
+		if (err) throw(err);
+		return _Vector_Hash_Ty(holder_data_hash.data, holder_data_hash.data + holder_data_hash.size_data, _allocator_vec_hash_out);
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
+	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> HashSha256(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
+		return HashSha256<
+			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
+			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
+		>(vec_data.get_allocator().rawallocator, vec_data, vec_data.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
+	inline ::std::vector<uint8_t> HashSha256(const ::std::vector<uint8_t>& vec_data) noexcept(false) {
+		return HashSha256<::std::vector<uint8_t>, ::std::vector<uint8_t>>(rawallocator_crt_module_local, vec_data, vec_data.get_allocator());
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
 	/// <summary>
 	/// Reference counted object.
 	/// Has a reference count of <c>1</c> when constructed.

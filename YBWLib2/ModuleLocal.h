@@ -11,9 +11,12 @@
 #include "DynamicType/DynamicTypeModuleLocal.h"
 #include "Exception/ExceptionModuleLocal.h"
 #ifdef _WIN32_WINNT
-#include "Exception/ExceptionModuleLocalWindows.h"
+#include "Exception/ExceptionWindowsModuleLocal.h"
 #endif
 #include "Common/CommonModuleLocal.h"
+#ifdef _WIN32_WINNT
+#include "Common/CommonWindowsModuleLocal.h"
+#endif
 #include "JSON/JSONModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
 #ifdef _WIN32_WINNT

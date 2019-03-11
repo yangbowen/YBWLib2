@@ -14,6 +14,22 @@
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 typedef NTSTATUS *PNTSTATUS;
 
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#endif
+
+#ifndef NT_INFORMATION
+#define NT_INFORMATION(Status) ((((ULONG)(Status)) >> 30) == 1)
+#endif
+
+#ifndef NT_WARNING
+#define NT_WARNING(Status) ((((ULONG)(Status)) >> 30) == 2)
+#endif
+
+#ifndef NT_ERROR
+#define NT_ERROR(Status) ((((ULONG)(Status)) >> 30) == 3)
+#endif
+
 #undef min
 #undef max
 

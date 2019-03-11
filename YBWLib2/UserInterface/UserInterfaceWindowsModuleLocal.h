@@ -62,8 +62,8 @@ namespace YBWLib2 {
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<DWORD>::fmtspec_printf_u_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<DWORD>::fmtspec_printf_u_utf8, sizeof(inttype_traits_t<DWORD>::fmtspec_printf_u_utf8) / sizeof(char));
-					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_lasterr, sizeof(str_lasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetLastErrorCode());
-					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					err_inner = SnPrintfUtf8(_rawallocator, str_lasterr, sizeof(str_lasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetLastErrorCode());
+					if (err_inner) return;
 					str_out += str_out_t(str_lasterr, strnlen(str_lasterr, sizeof(DWORD) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
@@ -135,8 +135,8 @@ namespace YBWLib2 {
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<int>::fmtspec_printf_d_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<int>::fmtspec_printf_d_utf8, sizeof(inttype_traits_t<int>::fmtspec_printf_d_utf8) / sizeof(char));
-					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_wsalasterr, sizeof(str_wsalasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetWSALastErrorCode());
-					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					err_inner = SnPrintfUtf8(_rawallocator, str_wsalasterr, sizeof(str_wsalasterr) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->GetWSALastErrorCode());
+					if (err_inner) return;
 					str_out += str_out_t(str_wsalasterr, strnlen(str_wsalasterr, sizeof(int) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
@@ -209,8 +209,8 @@ namespace YBWLib2 {
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char));
-					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_ntstatus, sizeof(str_ntstatus) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<NTSTATUS>)this->GetNTSTATUSCode());
-					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					err_inner = SnPrintfUtf8(_rawallocator, str_ntstatus, sizeof(str_ntstatus) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<NTSTATUS>)this->GetNTSTATUSCode());
+					if (err_inner) return;
 					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
@@ -283,8 +283,8 @@ namespace YBWLib2 {
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8) / sizeof(char));
-					IException* err_utf8_snprintf = utf8_snprintf(_rawallocator, str_hresult, sizeof(str_hresult) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<HRESULT>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<HRESULT>)this->GetHRESULTCode());
-					if (err_utf8_snprintf) { err_inner = err_utf8_snprintf; return; }
+					err_inner = SnPrintfUtf8(_rawallocator, str_hresult, sizeof(str_hresult) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), sizeof(::std::make_unsigned_t<HRESULT>) / sizeof(uint8_t) * 8, (::std::make_unsigned_t<HRESULT>)this->GetHRESULTCode());
+					if (err_inner) return;
 					str_out += str_out_t(str_hresult, strnlen(str_hresult, sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;

@@ -24,6 +24,9 @@
     <ClInclude Include="Common\CommonLowLevelModuleLocal.h" />
     <ClInclude Include="Common\CommonModuleLocal.h" />
     <ClInclude Include="Common\CommonSTLHelper.h" />
+    <ClInclude Include="Common\CommonSTLHelperWindows.h" />
+    <ClInclude Include="Common\CommonWindows.h" />
+    <ClInclude Include="Common\CommonWindowsModuleLocal.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
     <ClInclude Include="DynamicType\DynamicTypeHighLevel.h" />
     <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h" />
@@ -32,7 +35,7 @@
     <ClInclude Include="Exception\ExceptionLowLevel.h" />
     <ClInclude Include="Exception\ExceptionLowLevelModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionModuleLocal.h" />
-    <ClInclude Include="Exception\ExceptionModuleLocalWindows.h" />
+    <ClInclude Include="Exception\ExceptionWindowsModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionWindows.h" />
     <ClInclude Include="File\File.h" />
     <ClInclude Include="File\FileModuleLocal.h" />
@@ -54,6 +57,7 @@
   <ItemGroup>
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\CommonLowLevel.cpp" />
+    <ClCompile Include="Common\CommonWindows.cpp" />
     <ClCompile Include="DynamicType\DynamicType.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />
     <ClCompile Include="Exception\ExceptionLowLevel.cpp" />

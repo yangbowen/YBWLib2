@@ -24,11 +24,11 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ExternalAPIFailureWithHRESULTException, );
 #endif
 
-	[[nodiscard]] IException* ExternalAPIFailureWithLastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
-		if (!description_ret || !size_descrption_ret) abort();
+	[[nodiscard]] IException* ExternalAPIFailureWithLastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
 				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
 				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
 				LastErrorStringTemplateParameter strtmplparameter_lasterr(rawallocator_exception, u8"lasterr", this->lasterr);
@@ -38,8 +38,8 @@ namespace YBWLib2 {
 						&strtmplparameter_address_api,
 						&strtmplparameter_lasterr
 					}
-				), description_ret, size_descrption_ret, false, rawallocator_exception);
-				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
 			}
 		);
 		if (err) {
@@ -61,11 +61,11 @@ namespace YBWLib2 {
 	}
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-	[[nodiscard]] IException* ExternalAPIFailureWithWSALastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
-		if (!description_ret || !size_descrption_ret) abort();
+	[[nodiscard]] IException* ExternalAPIFailureWithWSALastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
 				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
 				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
 				WSALastErrorStringTemplateParameter strtmplparameter_wsalasterr(rawallocator_exception, u8"wsalasterr", wsalasterr);
@@ -75,8 +75,8 @@ namespace YBWLib2 {
 						&strtmplparameter_address_api,
 						&strtmplparameter_wsalasterr
 					}
-				), description_ret, size_descrption_ret, false, rawallocator_exception);
-				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
 			}
 		);
 		if (err) {
@@ -99,11 +99,11 @@ namespace YBWLib2 {
 #endif
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-	[[nodiscard]] IException* ExternalAPIFailureWithNTSTATUSException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
-		if (!description_ret || !size_descrption_ret) abort();
+	[[nodiscard]] IException* ExternalAPIFailureWithNTSTATUSException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
 				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
 				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
 				NTSTATUSStringTemplateParameter strtmplparameter_ntstatus(rawallocator_exception, u8"ntstatus", ntstatus);
@@ -113,8 +113,8 @@ namespace YBWLib2 {
 						&strtmplparameter_address_api,
 						&strtmplparameter_ntstatus
 					}
-				), description_ret, size_descrption_ret, false, rawallocator_exception);
-				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
 			}
 		);
 		if (err) {
@@ -137,11 +137,11 @@ namespace YBWLib2 {
 #endif
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-	[[nodiscard]] IException* ExternalAPIFailureWithHRESULTException::GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret) noexcept {
-		if (!description_ret || !size_descrption_ret) abort();
+	[[nodiscard]] IException* ExternalAPIFailureWithHRESULTException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[this, &description_ret, &size_descrption_ret, &err_inner]() noexcept(false)->void {
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
 				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
 				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
 				HRESULTStringTemplateParameter strtmplparameter_hresult(rawallocator_exception, u8"hresult", hresult);
@@ -151,8 +151,8 @@ namespace YBWLib2 {
 						&strtmplparameter_address_api,
 						&strtmplparameter_hresult
 					}
-				), description_ret, size_descrption_ret, false, rawallocator_exception);
-				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_descrption_ret = 0; }
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
 			}
 		);
 		if (err) {

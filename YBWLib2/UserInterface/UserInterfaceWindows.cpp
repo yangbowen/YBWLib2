@@ -36,10 +36,10 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[&rawallocator, &str_out, &size_max_str_out, &is_system_message_table_searched, &is_module_message_table_searched, &hmod, &messageid, &err_inner]() noexcept(false)->void {
-				if (!rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!is_system_message_table_searched && !is_module_message_table_searched) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (!rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
+				if (!str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
+				if (!size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
+				if (!is_system_message_table_searched && !is_module_message_table_searched) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
 #ifdef _WIN32_WINNT
 				struct wchar_array_holder_t {
 					wchar_t* ptr = nullptr;
@@ -79,12 +79,12 @@ namespace YBWLib2 {
 					++cch_u16str_out;
 					if (cch_u16str_out > cch_max_u16str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				}
-				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
 				unsigned int cb_u8str_out = WideCharToMultiByte(CP_UTF8, 0, u16str_out.ptr, cch_u16str_out & ~(unsigned int)0, nullptr, 0, nullptr, nullptr);
 				if (!cb_u8str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte); return; }
 				if (cb_u8str_out > size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION(str_out); return; }
-				if (size_max_str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (size_max_str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
+				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
 				if (!WideCharToMultiByte(CP_UTF8, 0, u16str_out.ptr, cch_u16str_out & ~(unsigned int)0, str_out, size_max_str_out & ~(unsigned int)0, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte); return; }
 #else
 #error This platform is not supported yet.

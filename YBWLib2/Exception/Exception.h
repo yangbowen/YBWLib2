@@ -308,7 +308,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept = 0;
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The full chain of underlying causes is included.
@@ -340,7 +340,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept = 0;
+		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept = 0;
 	};
 
 	/// <summary>An exception that occurs when handling another exception.</summary>
@@ -664,7 +664,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The full chain of underlying causes is included.
@@ -696,7 +696,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionTotal(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	protected:
 		IException* exception_cause = nullptr;
 		uintptr_t userdata = 0;
@@ -761,7 +761,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -849,7 +849,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the function, if available.
@@ -974,7 +974,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the function, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the function, if available.
@@ -1067,7 +1067,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the address to the insufficient buffer.</summary>
 		/// <returns>
 		/// Returns the address to the insufficient buffer, if available.
@@ -1129,7 +1129,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1178,7 +1178,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1227,7 +1227,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1276,7 +1276,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 	};
 
 	/// <summary>
@@ -1341,7 +1341,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the null-terminated <c>what</c> string of the STL exception, if available.</summary>
 		/// <returns>
 		/// Returns the null-terminated <c>what</c> string, in UTF-8, of the STL exception, if available.
@@ -1435,7 +1435,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the name of the external API, if available.</summary>
 		/// <returns>
 		/// Returns the name, in UTF-8, of the external API, if available.
@@ -1539,7 +1539,7 @@ namespace YBWLib2 {
 		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
 		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_descrption_ret, bool* is_successful_ret = nullptr) noexcept override;
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
 		/// <summary>Gets the filename of the source code file in which the exception has occured, if available.</summary>
 		/// <returns>
 		/// Returns the filename, in UTF-8, of the source code file in which the exception has occured, if available.

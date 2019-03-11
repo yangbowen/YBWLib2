@@ -24,7 +24,7 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameterList, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplate, YBWLIB2_API);
 
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE utf8_vsnprintf(
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE VsnPrintfUtf8(
 		const rawallocator_t* rawallocator,
 		char* str_out,
 		size_t size_max_str_out,
@@ -35,11 +35,11 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[&rawallocator, &str_out, &size_max_str_out, &str_format, &size_str_format, &arglist, &err_inner]() noexcept(false)->void {
-				if (!rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (!size_str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (!rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
+				if (!str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
+				if (!size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
+				if (!str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
+				if (!size_str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 #ifdef _WIN32_WINNT
 				struct wchar_array_holder_t {
 					wchar_t* ptr = nullptr;
@@ -59,12 +59,12 @@ namespace YBWLib2 {
 					wchar_array_holder_t& operator=(const wchar_array_holder_t&) = delete;
 					wchar_array_holder_t& operator=(wchar_array_holder_t&&) = delete;
 				};
-				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				unsigned int cch_u16str_format = MultiByteToWideChar(CP_UTF8, 0, str_format, size_str_format & ~(unsigned int)0, nullptr, 0);
 				if (!cch_u16str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar); return; }
 				wchar_array_holder_t u16str_format(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_u16str_format * sizeof(wchar_t))), cch_u16str_format, rawallocator);
 				if (!u16str_format.ptr) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
-				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				if (!MultiByteToWideChar(CP_UTF8, 0, str_format, size_str_format & ~(unsigned int)0, u16str_format.ptr, cch_u16str_format)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar); return; }
 				size_t cch_max_u16str_out = size_max_str_out;
 				wchar_array_holder_t u16str_out(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_max_u16str_out * sizeof(wchar_t))), cch_max_u16str_out, rawallocator);
@@ -76,12 +76,12 @@ namespace YBWLib2 {
 					if (FAILED(hr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_HRESULT_EXCEPTION(StringCchVPrintfExW, hr); return; }
 					cch_u16str_out = endptr_u16str_out + 1 - u16str_out.ptr;
 				}
-				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				unsigned int cb_u8str_out = WideCharToMultiByte(CP_UTF8, 0, u16str_out.ptr, cch_u16str_out & ~(unsigned int)0, nullptr, 0, nullptr, nullptr);
 				if (!cb_u8str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte); return; }
 				if (cb_u8str_out > size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION(str_out); return; }
-				if (size_max_str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
-				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::utf8_vsnprintf); return; }
+				if (size_max_str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
+				if (cch_u16str_out > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				if (!WideCharToMultiByte(CP_UTF8, 0, u16str_out.ptr, cch_u16str_out & ~(unsigned int)0, str_out, size_max_str_out & ~(unsigned int)0, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte); return; }
 #else
 #error This platform is not supported yet.
@@ -99,7 +99,7 @@ namespace YBWLib2 {
 		}
 	}
 
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE utf8_snprintf(
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE SnPrintfUtf8(
 		const rawallocator_t* rawallocator,
 		char* str_out,
 		size_t size_max_str_out,
@@ -109,7 +109,7 @@ namespace YBWLib2 {
 	) noexcept {
 		va_list arglist;
 		va_start(arglist, str_format);
-		IException* exception = utf8_vsnprintf(rawallocator, str_out, size_max_str_out, str_format, size_str_format, arglist);
+		IException* exception = VsnPrintfUtf8(rawallocator, str_out, size_max_str_out, str_format, size_str_format, arglist);
 		va_end(arglist);
 		return exception;
 	}

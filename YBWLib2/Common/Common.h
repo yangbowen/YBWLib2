@@ -220,6 +220,154 @@ namespace YBWLib2 {
 		size_t size_mem = 0;
 	};
 
+	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
+	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
+	/// <param name="str_out_ret">
+	/// Pointer to a pointer variable that receives a pointer to the output string, in UTF-16.
+	/// After successfully returning from this function, <c>*str_out_ret</c> will be set to the output string.
+	/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+	/// The memory will be allocated using <paramref name="rawallocator" />.
+	/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+	/// </param>
+	/// <param name="size_str_out_ret">
+	/// Pointer to a variable that receives the size (in <c>char16_t</c>s) of the output string, in UTF-16.
+	/// After successfully returning from this function, <c>*size_str_out_ret</c> will be set to the size (in <c>char16_t</c>s) of the output string.
+	/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+	/// </param>
+	/// <param name="str_in">Pointer to the input string, in UTF-8.</param>
+	/// <param name="size_str_in">The size, in <c>char</c>s, of the input string, in UTF-8, pointed to by <c>str_in</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8StringToUtf16String(
+		const rawallocator_t* rawallocator,
+		char16_t** str_out_ret,
+		size_t* size_str_out_ret,
+		const char* str_in,
+		size_t size_str_in
+	) noexcept;
+
+	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
+	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
+	/// <param name="str_out_ret">
+	/// Pointer to a pointer variable that receives a pointer to the output string, in UTF-8.
+	/// After successfully returning from this function, <c>*str_out_ret</c> will be set to the output string.
+	/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+	/// The memory will be allocated using <paramref name="rawallocator" />.
+	/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+	/// </param>
+	/// <param name="size_str_out_ret">
+	/// Pointer to a variable that receives the size (in <c>char</c>s) of the output string, in UTF-8.
+	/// After successfully returning from this function, <c>*size_str_out_ret</c> will be set to the size (in <c>char</c>s) of the output string.
+	/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+	/// </param>
+	/// <param name="str_in">Pointer to the input string, in UTF-16.</param>
+	/// <param name="size_str_in">The size, in <c>char16_t</c>s, of the input string, in UTF-16, pointed to by <c>str_in</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf16StringToUtf8String(
+		const rawallocator_t* rawallocator,
+		char** str_out_ret,
+		size_t* size_str_out_ret,
+		const char16_t* str_in,
+		size_t size_str_in
+	) noexcept;
+
+	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
+	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
+	/// <param name="data_out_ret">
+	/// Pointer to a pointer variable that receives a pointer to the output data.
+	/// After successfully returning from this function, <c>*data_out_ret</c> will be set to a pointer to the output data.
+	/// The caller is responsible for freeing the memory pointed to by <c>*data_out_ret</c>.
+	/// The memory will be allocated using <paramref name="rawallocator" />.
+	/// Any value originally in <c>*data_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+	/// </param>
+	/// <param name="size_data_out_ret">
+	/// Pointer to a variable that receives the size (in <c>uint8_t</c>s) of the output data.
+	/// After successfully returning from this function, <c>*size_data_out_ret</c> will be set to the size (in <c>uint8_t</c>s) of the output data.
+	/// Any value originally in <c>*size_data_out_ret</c> will be discarded.
+	/// </param>
+	/// <param name="str_base64_in">Pointer to the input Base64 string, in UTF-8.</param>
+	/// <param name="size_str_base64_in">The size, in <c>char</c>s, of the input Base64 string, in UTF-8, pointed to by <c>str_base64_in</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8Base64Decode(
+		const rawallocator_t* rawallocator,
+		uint8_t** data_out_ret,
+		size_t* size_data_out_ret,
+		const char* str_base64_in,
+		size_t size_str_base64_in
+	) noexcept;
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
+	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
+	/// <param name="str_base64_out_ret">
+	/// Pointer to a pointer variable that receives a pointer to the output Base64 string, in UTF-8.
+	/// After successfully returning from this function, <c>*str_base64_out_ret</c> will be set to the output Base64 string.
+	/// The caller is responsible for freeing the memory pointed to by <c>*str_base64_out_ret</c>.
+	/// The memory will be allocated using <paramref name="rawallocator" />.
+	/// Any value originally in <c>*str_base64_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+	/// </param>
+	/// <param name="size_str_base64_out_ret">
+	/// Pointer to a variable that receives the size (in <c>char</c>s) of the output Base64 string, in UTF-8.
+	/// After successfully returning from this function, <c>*size_str_base64_out_ret</c> will be set to the size (in <c>char</c>s) of the output Base64 string.
+	/// Any value originally in <c>*size_str_base64_out_ret</c> will be discarded.
+	/// </param>
+	/// <param name="data_in">Pointer to the input data.</param>
+	/// <param name="size_data_in">The size, in <c>uint8_t</c>s, of the input data, pointed to by <c>data_in</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8Base64Encode(
+		const rawallocator_t* rawallocator,
+		char** str_base64_out_ret,
+		size_t* size_str_base64_out_ret,
+		const uint8_t* data_in,
+		size_t size_data_in
+	) noexcept;
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
+	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
+	/// <param name="hash_out_ret">
+	/// Pointer to a pointer variable that receives a pointer to the hash.
+	/// After successfully returning from this function, <c>*hash_out_ret</c> will be set to a pointer to the hash.
+	/// The caller is responsible for freeing the memory pointed to by <c>*hash_out_ret</c>.
+	/// The memory will be allocated using <paramref name="rawallocator" />.
+	/// Any value originally in <c>*hash_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+	/// </param>
+	/// <param name="size_hash_out_ret">
+	/// Pointer to a variable that receives the size (in <c>uint8_t</c>s) of the hash.
+	/// After successfully returning from this function, <c>*size_hash_out_ret</c> will be set to the size (in <c>uint8_t</c>s) of the hash.
+	/// Any value originally in <c>*size_hash_out_ret</c> will be discarded.
+	/// </param>
+	/// <param name="data_in">Pointer to the input data.</param>
+	/// <param name="size_data_in">The size, in <c>uint8_t</c>s, of the input data, pointed to by <c>data_in</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE HashSha256(
+		const rawallocator_t* rawallocator,
+		uint8_t** hash_out_ret,
+		size_t* size_hash_out_ret,
+		const uint8_t* data_in,
+		size_t size_data_in
+	) noexcept;
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
 	/// <summary>Reference counted object.</summary>
 	class IReferenceCountedObject abstract : public virtual IDynamicTypeObject {
 	public:

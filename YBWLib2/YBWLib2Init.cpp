@@ -10,6 +10,9 @@
 #include "Exception/ExceptionWindows.h"
 #endif
 #include "Common/Common.h"
+#ifdef _WIN32_WINNT
+#include "Common/CommonWindows.h"
+#endif
 #include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
 #ifdef _WIN32_WINNT
@@ -38,6 +41,10 @@ namespace YBWLib2 {
 #endif
 			Common_RealInitGlobal();
 			Common_RealInitModuleLocal();
+#ifdef _WIN32_WINNT
+			CommonWindows_RealInitGlobal();
+			CommonWindows_RealInitModuleLocal();
+#endif
 			JSON_RealInitGlobal();
 			JSON_RealInitModuleLocal();
 			Internal::YBWLib2InternalConfig_RealInitGlobal();
@@ -75,6 +82,10 @@ namespace YBWLib2 {
 			Internal::YBWLib2InternalConfig_RealUnInitGlobal();
 			JSON_RealUnInitModuleLocal();
 			JSON_RealUnInitGlobal();
+#ifdef _WIN32_WINNT
+			CommonWindows_RealUnInitModuleLocal();
+			CommonWindows_RealUnInitGlobal();
+#endif
 			Common_RealUnInitModuleLocal();
 			Common_RealUnInitGlobal();
 #ifdef _WIN32_WINNT
