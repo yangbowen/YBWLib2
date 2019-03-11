@@ -25,10 +25,10 @@ namespace YBWLib2 {
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};
 		inline static constexpr void* align(void* _ptr) noexcept {
-			return reinterpret_cast<void*>(alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
+			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
 		}
 		inline static constexpr const void* align(const void* _ptr) noexcept {
-			return reinterpret_cast<const void*>(alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
+			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
 		}
 		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator) noexcept(false)
 			: rawallocator(_rawallocator) {
