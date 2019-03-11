@@ -108,7 +108,7 @@ namespace YBWLib2 {
 		...
 	) noexcept {
 		va_list arglist;
-		va_start(arglist, str_format);
+		va_start(arglist, size_str_format);
 		IException* exception = VsnPrintfUtf8(rawallocator, str_out, size_max_str_out, str_format, size_str_format, arglist);
 		va_end(arglist);
 		return exception;
