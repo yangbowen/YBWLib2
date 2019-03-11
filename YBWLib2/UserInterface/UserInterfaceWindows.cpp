@@ -31,11 +31,12 @@ namespace YBWLib2 {
 		bool is_system_message_table_searched,
 		bool is_module_message_table_searched,
 		HMODULE hmod,
-		DWORD messageid
+		DWORD messageid,
+		bool output_unavailable_if_no_message
 	) noexcept {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
-			[&rawallocator, &str_out, &size_max_str_out, &is_system_message_table_searched, &is_module_message_table_searched, &hmod, &messageid, &err_inner]() noexcept(false)->void {
+			[&rawallocator, &str_out, &size_max_str_out, &is_system_message_table_searched, &is_module_message_table_searched, &hmod, &messageid, &output_unavailable_if_no_message, &err_inner]() noexcept(false)->void {
 				if (!rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
 				if (!str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
 				if (!size_max_str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GetWindowsMessageStringUTF8); return; }
@@ -75,7 +76,17 @@ namespace YBWLib2 {
 						cch_max_u16str_out & ~(DWORD)0,
 						nullptr
 					);
-					if (!cch_u16str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(FormatMessageW); return; }
+					if (!cch_u16str_out) {
+						if (output_unavailable_if_no_message) {
+							static constexpr wchar_t constu16str_output_message_unavailable[] = L"<MESSAGE UNAVAILABLE>";
+							if (sizeof(constu16str_output_message_unavailable) / sizeof(wchar_t) > cch_max_u16str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_INSUFFICIENT_BUFFER_EXCEPTION(u16str_out.ptr); return; }
+							cch_u16str_out = sizeof(constu16str_output_message_unavailable) / sizeof(wchar_t) - 1;
+							memcpy(u16str_out.ptr, constu16str_output_message_unavailable, (cch_u16str_out + 1) * sizeof(wchar_t));
+						} else {
+							err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(FormatMessageW);
+							return;
+						}
+					}
 					++cch_u16str_out;
 					if (cch_u16str_out > cch_max_u16str_out) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				}

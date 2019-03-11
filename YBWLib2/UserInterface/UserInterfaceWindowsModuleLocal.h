@@ -71,7 +71,7 @@ namespace YBWLib2 {
 					using vec_char_message_lasterr_t = ::std::vector<char, allocator_rawallocator_t<char>>;
 					vec_char_message_lasterr_t vec_char_message_lasterr(allocator_rawallocator_char);
 					vec_char_message_lasterr.resize(4096);
-					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_lasterr.data(), vec_char_message_lasterr.size(), true, false, NULL, this->GetLastErrorCode());
+					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_lasterr.data(), vec_char_message_lasterr.size(), true, false, NULL, this->GetLastErrorCode(), true);
 					if (err_inner) return;
 					vec_char_message_lasterr.resize(strnlen(vec_char_message_lasterr.data(), vec_char_message_lasterr.size()));
 					for (; !vec_char_message_lasterr.empty() && (vec_char_message_lasterr.back() == '\r' || vec_char_message_lasterr.back() == '\n'); vec_char_message_lasterr.pop_back());
@@ -148,7 +148,7 @@ namespace YBWLib2 {
 					using vec_char_message_wsalasterr_t = ::std::vector<char, allocator_rawallocator_t<char>>;
 					vec_char_message_wsalasterr_t vec_char_message_wsalasterr(allocator_rawallocator_char);
 					vec_char_message_wsalasterr.resize(4096);
-					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size(), true, false, NULL, (DWORD)this->GetWSALastErrorCode());
+					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size(), true, false, NULL, (DWORD)this->GetWSALastErrorCode(), true);
 					if (err_inner) return;
 					vec_char_message_wsalasterr.resize(strnlen(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size()));
 					for (; !vec_char_message_wsalasterr.empty() && (vec_char_message_wsalasterr.back() == '\r' || vec_char_message_wsalasterr.back() == '\n'); vec_char_message_wsalasterr.pop_back());
@@ -226,7 +226,7 @@ namespace YBWLib2 {
 					using vec_char_message_ntstatus_t = ::std::vector<char, allocator_rawallocator_t<char>>;
 					vec_char_message_ntstatus_t vec_char_message_ntstatus(allocator_rawallocator_char);
 					vec_char_message_ntstatus.resize(4096);
-					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size(), true, false, GetNtdllHmodule(), (DWORD)this->GetNTSTATUSCode());
+					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size(), true, false, GetNtdllHmodule(), (DWORD)this->GetNTSTATUSCode(), true);
 					if (err_inner) return;
 					vec_char_message_ntstatus.resize(strnlen(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size()));
 					for (; !vec_char_message_ntstatus.empty() && (vec_char_message_ntstatus.back() == '\r' || vec_char_message_ntstatus.back() == '\n'); vec_char_message_ntstatus.pop_back());

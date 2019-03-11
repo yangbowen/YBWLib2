@@ -243,12 +243,23 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_function(rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
-				StringStringTemplateParameter strtmplparameter_name_class_member_function(rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_function;
+				if (this->name_function && this->size_name_function) {
+					objholder_strtmplparameter_name_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
+				} else {
+					objholder_strtmplparameter_name_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_function", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_class_member_function;
+				if (this->name_class_member_function && this->size_name_class_member_function) {
+					objholder_strtmplparameter_name_class_member_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				} else {
+					objholder_strtmplparameter_name_class_member_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_class_member_function", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
 				err_inner = InvalidParameterException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_function,
-						&strtmplparameter_name_class_member_function
+						objholder_strtmplparameter_name_function.get(),
+						objholder_strtmplparameter_name_class_member_function.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
 				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
@@ -277,12 +288,23 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_function(rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
-				StringStringTemplateParameter strtmplparameter_name_class_member_function(rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_function;
+				if (this->name_function && this->size_name_function) {
+					objholder_strtmplparameter_name_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_function", this->name_function, this->size_name_function);
+				} else {
+					objholder_strtmplparameter_name_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_function", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_class_member_function;
+				if (this->name_class_member_function && this->size_name_class_member_function) {
+					objholder_strtmplparameter_name_class_member_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_class_member_function", this->name_class_member_function, this->size_name_class_member_function);
+				} else {
+					objholder_strtmplparameter_name_class_member_function.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_class_member_function", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
 				err_inner = InvalidCallException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_function,
-						&strtmplparameter_name_class_member_function
+						objholder_strtmplparameter_name_function.get(),
+						objholder_strtmplparameter_name_class_member_function.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
 				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
@@ -311,10 +333,11 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				AddressStringTemplateParameter strtmplparameter_address_buffer_insufficient(rawallocator_exception, u8"address_buffer_insufficient", reinterpret_cast<uintptr_t>(this->GetInsufficientBufferAddress()));
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_buffer_insufficient;
+				objholder_strtmplparameter_address_buffer_insufficient.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_buffer_insufficient", reinterpret_cast<uintptr_t>(this->address_buffer_insufficient));
 				err_inner = InsufficientBufferException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_address_buffer_insufficient
+						objholder_strtmplparameter_address_buffer_insufficient.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
 				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
@@ -463,10 +486,16 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_str_what_stlexception(rawallocator_exception, u8"str_what_stlexception", this->str_what_stlexception, this->size_str_what_stlexception);
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_str_what_stlexception;
+				if (this->str_what_stlexception && this->size_str_what_stlexception) {
+					objholder_strtmplparameter_str_what_stlexception.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"str_what_stlexception", this->str_what_stlexception, this->size_str_what_stlexception);
+				} else {
+					objholder_strtmplparameter_str_what_stlexception.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"str_what_stlexception", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
 				err_inner = STLExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_str_what_stlexception
+						objholder_strtmplparameter_str_what_stlexception.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
 				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
@@ -495,12 +524,19 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
-				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_api;
+				if (this->name_api && this->size_name_api) {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				} else {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_api;
+				objholder_strtmplparameter_address_api.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->address_api));
 				err_inner = ExternalAPIFailureException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_api,
-						&strtmplparameter_address_api
+						objholder_strtmplparameter_name_api.get(),
+						objholder_strtmplparameter_address_api.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
 				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
@@ -529,7 +565,13 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_filename_source_code(rawallocator_exception, u8"filename_source_code", this->filename_source_code, this->size_filename_source_code);
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_filename_source_code;
+				if (this->filename_source_code && this->size_filename_source_code) {
+					objholder_strtmplparameter_filename_source_code.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"filename_source_code", this->filename_source_code, this->size_filename_source_code);
+				} else {
+					objholder_strtmplparameter_filename_source_code.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"filename_source_code", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
 				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_linenumber_source_code;
 				{
 					char str_linenumber_source_code[sizeof(int) / sizeof(uint8_t) * 3 + 4];
@@ -545,7 +587,7 @@ namespace YBWLib2 {
 				}
 				err_inner = UnexpectedExceptionException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_filename_source_code,
+						objholder_strtmplparameter_filename_source_code.get(),
 						objholder_strtmplparameter_linenumber_source_code.get()
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);

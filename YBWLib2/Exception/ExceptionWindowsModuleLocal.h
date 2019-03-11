@@ -25,17 +25,24 @@ namespace YBWLib2 {
 #endif
 
 	[[nodiscard]] IException* ExternalAPIFailureWithLastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
-				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_api;
+				if (this->name_api && this->size_name_api) {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				} else {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_api;
+				objholder_strtmplparameter_address_api.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->address_api));
 				LastErrorStringTemplateParameter strtmplparameter_lasterr(rawallocator_exception, u8"lasterr", this->lasterr);
 				err_inner = ExternalAPIFailureWithLastErrorException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_api,
-						&strtmplparameter_address_api,
+						objholder_strtmplparameter_name_api.get(),
+						objholder_strtmplparameter_address_api.get(),
 						&strtmplparameter_lasterr
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
@@ -62,17 +69,24 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 	[[nodiscard]] IException* ExternalAPIFailureWithWSALastErrorException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
-				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_api;
+				if (this->name_api && this->size_name_api) {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				} else {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_api;
+				objholder_strtmplparameter_address_api.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->address_api));
 				WSALastErrorStringTemplateParameter strtmplparameter_wsalasterr(rawallocator_exception, u8"wsalasterr", wsalasterr);
 				err_inner = ExternalAPIFailureWithWSALastErrorException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_api,
-						&strtmplparameter_address_api,
+						objholder_strtmplparameter_name_api.get(),
+						objholder_strtmplparameter_address_api.get(),
 						&strtmplparameter_wsalasterr
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
@@ -100,17 +114,24 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 	[[nodiscard]] IException* ExternalAPIFailureWithNTSTATUSException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
-				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_api;
+				if (this->name_api && this->size_name_api) {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				} else {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_api;
+				objholder_strtmplparameter_address_api.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->address_api));
 				NTSTATUSStringTemplateParameter strtmplparameter_ntstatus(rawallocator_exception, u8"ntstatus", ntstatus);
 				err_inner = ExternalAPIFailureWithNTSTATUSException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_api,
-						&strtmplparameter_address_api,
+						objholder_strtmplparameter_name_api.get(),
+						objholder_strtmplparameter_address_api.get(),
 						&strtmplparameter_ntstatus
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);
@@ -138,17 +159,24 @@ namespace YBWLib2 {
 
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 	[[nodiscard]] IException* ExternalAPIFailureWithHRESULTException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 		if (!description_ret || !size_description_ret) abort();
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
-				StringStringTemplateParameter strtmplparameter_name_api(rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
-				AddressStringTemplateParameter strtmplparameter_address_api(rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->GetExternalAPIAddress()));
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_name_api;
+				if (this->name_api && this->size_name_api) {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", this->name_api, this->size_name_api);
+				} else {
+					objholder_strtmplparameter_name_api.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"name_api", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_api;
+				objholder_strtmplparameter_address_api.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_api", reinterpret_cast<uintptr_t>(this->address_api));
 				HRESULTStringTemplateParameter strtmplparameter_hresult(rawallocator_exception, u8"hresult", hresult);
 				err_inner = ExternalAPIFailureWithHRESULTException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
 					{
-						&strtmplparameter_name_api,
-						&strtmplparameter_address_api,
+						objholder_strtmplparameter_name_api.get(),
+						objholder_strtmplparameter_address_api.get(),
 						&strtmplparameter_hresult
 					}
 				), description_ret, size_description_ret, false, rawallocator_exception);

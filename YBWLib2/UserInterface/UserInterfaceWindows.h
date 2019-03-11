@@ -51,6 +51,7 @@ namespace YBWLib2 {
 	/// Otherwise, this parameter is ignored.
 	/// </param>
 	/// <param name="messageid">The message identifier.</param>
+	/// <param name="output_unavailable_if_no_message">Whether the function should output a string representing that the message is unavailable, instead of failing, if there's no message found.</param>
 	/// <returns>
 	/// Returns a pointer to the exception object if the function fails.
 	/// Returns an empty pointer otherwise.
@@ -63,7 +64,8 @@ namespace YBWLib2 {
 		bool is_system_message_table_searched,
 		bool is_module_message_table_searched,
 		HMODULE hmod,
-		DWORD messageid
+		DWORD messageid,
+		bool output_unavailable_if_no_message
 	) noexcept;
 
 	/// <summary>A default implementation of a string template parameter that represents a last-error code.</summary>
