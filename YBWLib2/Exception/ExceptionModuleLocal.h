@@ -139,6 +139,7 @@ namespace YBWLib2 {
 					if (exception_cause_current) abort();
 					exception_consequence_current->DetachCause(&exception_cause_current);
 					if (!exception_cause_current) break;
+					str_prefix_line_description.push_back('\t');
 					{
 						holder_description_t holder_delimiter_cause_description_exception;
 						if (!strtmpl_delimiter_cause_description_exception) abort();

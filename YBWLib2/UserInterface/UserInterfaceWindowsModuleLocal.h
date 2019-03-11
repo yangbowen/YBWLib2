@@ -73,7 +73,9 @@ namespace YBWLib2 {
 					vec_char_message_lasterr.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_lasterr.data(), vec_char_message_lasterr.size(), true, false, NULL, this->GetLastErrorCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_lasterr.data(), strnlen(vec_char_message_lasterr.data(), vec_char_message_lasterr.size()), allocator_rawallocator_char);
+					vec_char_message_lasterr.resize(strnlen(vec_char_message_lasterr.data(), vec_char_message_lasterr.size()));
+					for (; !vec_char_message_lasterr.empty() && (vec_char_message_lasterr.back() == '\r' || vec_char_message_lasterr.back() == '\n'); vec_char_message_lasterr.pop_back());
+					str_out += str_out_t(vec_char_message_lasterr.data(), vec_char_message_lasterr.size(), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
@@ -148,7 +150,9 @@ namespace YBWLib2 {
 					vec_char_message_wsalasterr.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size(), true, false, NULL, (DWORD)this->GetWSALastErrorCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_wsalasterr.data(), strnlen(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size()), allocator_rawallocator_char);
+					vec_char_message_wsalasterr.resize(strnlen(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size()));
+					for (; !vec_char_message_wsalasterr.empty() && (vec_char_message_wsalasterr.back() == '\r' || vec_char_message_wsalasterr.back() == '\n'); vec_char_message_wsalasterr.pop_back());
+					str_out += str_out_t(vec_char_message_wsalasterr.data(), vec_char_message_wsalasterr.size(), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
@@ -224,7 +228,9 @@ namespace YBWLib2 {
 					vec_char_message_ntstatus.resize(4096);
 					err_inner = GetWindowsMessageStringUTF8(_rawallocator, vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size(), true, false, GetNtdllHmodule(), (DWORD)this->GetNTSTATUSCode());
 					if (err_inner) return;
-					str_out += str_out_t(vec_char_message_ntstatus.data(), strnlen(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size()), allocator_rawallocator_char);
+					vec_char_message_ntstatus.resize(strnlen(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size()));
+					for (; !vec_char_message_ntstatus.empty() && (vec_char_message_ntstatus.back() == '\r' || vec_char_message_ntstatus.back() == '\n'); vec_char_message_ntstatus.pop_back());
+					str_out += str_out_t(vec_char_message_ntstatus.data(), vec_char_message_ntstatus.size(), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
