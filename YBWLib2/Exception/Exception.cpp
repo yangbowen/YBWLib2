@@ -44,7 +44,7 @@ namespace YBWLib2 {
 		}
 		inline void FreeMemory(void* ptr) noexcept {
 			if (!this || !this->hheap) abort();
-			if (ptr) if (HeapFree(this->hheap, 0, ptr)) abort();
+			if (ptr) if (!HeapFree(this->hheap, 0, ptr)) abort();
 		}
 		inline void* ReAllocateMemory(void* ptr_old, size_t size_new) noexcept {
 			if (!this || !this->hheap) abort();
