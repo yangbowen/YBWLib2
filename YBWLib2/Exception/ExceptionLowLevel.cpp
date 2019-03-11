@@ -12,10 +12,10 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE DeleteIException_Initial(IException* _ptr) noexcept;
 
 	YBWLIB2_API const size_t size_atomic_fnptr_delete_iexception = sizeof(atomic_fnptr_delete_iexception_t);
-	atomic_fnptr_delete_iexception_t atomic_fnptr_delete_iexception_global(&DeleteIException_Initial);
+	static atomic_fnptr_delete_iexception_t atomic_fnptr_delete_iexception_global(&DeleteIException_Initial);
 	YBWLIB2_API atomic_fnptr_delete_iexception_t* const ptr_atomic_fnptr_delete_iexception_global = &atomic_fnptr_delete_iexception_global;
 
-	atomic_fnptr_delete_iexception_t* ConstructDeleteIExceptionFnptrAtomic(
+	YBWLIB2_API atomic_fnptr_delete_iexception_t* YBWLIB2_CALLTYPE ConstructDeleteIExceptionFnptrAtomic(
 		void* _ptr_placement,
 		fnptr_delete_iexception_t _fnptr_delete_iexception
 	) noexcept {
@@ -23,21 +23,21 @@ namespace YBWLib2 {
 		return new(_ptr_placement) atomic_fnptr_delete_iexception_t(_fnptr_delete_iexception);
 	}
 
-	void DestructDeleteIExceptionFnptrAtomic(
+	YBWLIB2_API void YBWLIB2_CALLTYPE DestructDeleteIExceptionFnptrAtomic(
 		atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception
 	) noexcept {
 		if (!_ptr_atomic_fnptr_delete_iexception) abort();
 		_ptr_atomic_fnptr_delete_iexception->~atomic_fnptr_delete_iexception_t();
 	}
 
-	fnptr_delete_iexception_t YBWLIB2_CALLTYPE GetDeleteIExceptionFnptr(
+	YBWLIB2_API fnptr_delete_iexception_t YBWLIB2_CALLTYPE GetDeleteIExceptionFnptr(
 		const atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception
 	) noexcept {
 		if (!_ptr_atomic_fnptr_delete_iexception) abort();
 		return static_cast<fnptr_delete_iexception_t>(*_ptr_atomic_fnptr_delete_iexception);
 	}
 
-	fnptr_delete_iexception_t YBWLIB2_CALLTYPE ExchangeDeleteIExceptionFnptr(
+	YBWLIB2_API fnptr_delete_iexception_t YBWLIB2_CALLTYPE ExchangeDeleteIExceptionFnptr(
 		atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception,
 		fnptr_delete_iexception_t _fnptr_delete_iexception_new
 	) noexcept {

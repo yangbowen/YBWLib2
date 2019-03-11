@@ -14,17 +14,17 @@ namespace YBWLib2 {
 
 	typedef void(YBWLIB2_CALLTYPE* fnptr_delete_iexception_t)(IException* _ptr) noexcept;
 	extern YBWLIB2_API const size_t size_atomic_fnptr_delete_iexception;
-	atomic_fnptr_delete_iexception_t* ConstructDeleteIExceptionFnptrAtomic(
+	YBWLIB2_API atomic_fnptr_delete_iexception_t* YBWLIB2_CALLTYPE ConstructDeleteIExceptionFnptrAtomic(
 		void* _ptr_placement,
 		fnptr_delete_iexception_t _fnptr_delete_iexception
 	) noexcept;
-	void DestructDeleteIExceptionFnptrAtomic(
+	YBWLIB2_API void YBWLIB2_CALLTYPE DestructDeleteIExceptionFnptrAtomic(
 		atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception
 	) noexcept;
-	fnptr_delete_iexception_t YBWLIB2_CALLTYPE GetDeleteIExceptionFnptr(
+	YBWLIB2_API fnptr_delete_iexception_t YBWLIB2_CALLTYPE GetDeleteIExceptionFnptr(
 		const atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception
 	) noexcept;
-	fnptr_delete_iexception_t YBWLIB2_CALLTYPE ExchangeDeleteIExceptionFnptr(
+	YBWLIB2_API fnptr_delete_iexception_t YBWLIB2_CALLTYPE ExchangeDeleteIExceptionFnptr(
 		atomic_fnptr_delete_iexception_t* _ptr_atomic_fnptr_delete_iexception,
 		fnptr_delete_iexception_t _fnptr_delete_iexception_new
 	) noexcept;
