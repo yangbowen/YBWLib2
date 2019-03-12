@@ -52,7 +52,7 @@ namespace YBWLib2 {
 			if (!ptr_obj_from_base) abort();
 			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
-			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
+			uintptr_t ptr_obj_from_derived = ptr_obj_from_iobject->DynamicTypeRawCastTo(this);
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
 		}
@@ -89,7 +89,7 @@ namespace YBWLib2 {
 			if (!ptr_obj_from_base) abort();
 			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
-			uintptr_t ptr_obj_from_derived = reinterpret_cast<uintptr_t>(ptr_obj_from_iobject->DynamicTypeRawCastTo(this));
+			uintptr_t ptr_obj_from_derived = ptr_obj_from_iobject->DynamicTypeRawCastTo(this);
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
 		}
@@ -113,9 +113,9 @@ namespace YBWLib2 {
 		if (!_dtclassobj_base || !this->fnptr_delete_object) abort();
 		IDynamicTypeObject* ptr_obj_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(_ptr_obj, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
 		if (!ptr_obj_iobject) abort();
-		void* ptr_obj_derived = ptr_obj_iobject->DynamicTypeRawCastTo(this);
+		uintptr_t ptr_obj_derived = ptr_obj_iobject->DynamicTypeRawCastTo(this);
 		if (!ptr_obj_derived) abort();
-		(*this->fnptr_delete_object)(this, reinterpret_cast<uintptr_t>(ptr_obj_derived));
+		(*this->fnptr_delete_object)(this, ptr_obj_derived);
 	}
 
 	void DynamicTypeClassObj::RegisterModuleLocal() {
