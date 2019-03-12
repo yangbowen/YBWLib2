@@ -55,6 +55,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.str = nullptr;
 				x.size_str = 0;
+				return *this;
 			}*/
 		} holder_u16str_out(_rawallocator);
 		IException* err = Utf8StringToUtf16String(_rawallocator, &holder_u16str_out.str, &holder_u16str_out.size_str, u8str.data(), u8str.size());
@@ -98,6 +99,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.str = nullptr;
 				x.size_str = 0;
+				return *this;
 			}*/
 		} holder_u8str_out(_rawallocator);
 		IException* err = Utf16StringToUtf8String(_rawallocator, &holder_u8str_out.str, &holder_u8str_out.size_str, u16str.data(), u16str.size());
@@ -167,6 +169,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.data = nullptr;
 				x.size_data = 0;
+				return *this;
 			}*/
 		} holder_data_out(_rawallocator);
 		IException* err = Utf8Base64Decode(_rawallocator, &holder_data_out.data, &holder_data_out.size_data, u8str.data(), u8str.size());
@@ -211,6 +214,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.str = nullptr;
 				x.size_str = 0;
+				return *this;
 			}*/
 		} holder_u8str_out(_rawallocator);
 		IException* err = Utf8Base64Encode(_rawallocator, &holder_u8str_out.str, &holder_u8str_out.size_str, vec_data.data(), vec_data.size());
@@ -285,6 +289,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.data = nullptr;
 				x.size_data = 0;
+				return *this;
 			}*/
 		} holder_data_hash(_rawallocator);
 		IException* err = HashSha256(_rawallocator, &holder_data_hash.data, &holder_data_hash.size_data, vec_data.data(), vec_data.size());
@@ -325,9 +330,11 @@ namespace YBWLib2 {
 		inline virtual ~ReferenceCountedObject() = default;
 		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+			return *this;
 		}
 		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+			return *this;
 		}
 		/// <summary>
 		/// Increments the reference count.
@@ -391,10 +398,12 @@ namespace YBWLib2 {
 		inline SharedPtrReferenceCountedObject& operator=(const SharedPtrReferenceCountedObject& x) noexcept {
 			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x);
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+			return *this;
 		}
 		inline SharedPtrReferenceCountedObject& operator=(SharedPtrReferenceCountedObject&& x) noexcept {
 			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x));
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+			return *this;
 		}
 		/// <summary>
 		/// Increments the reference count.
@@ -550,6 +559,7 @@ namespace YBWLib2 {
 				this->ptr_owned = x.ptr_owned;
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+			return *this;
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
 		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
@@ -565,6 +575,7 @@ namespace YBWLib2 {
 			this->ptr_owned = x.ptr_owned;
 			x.ptr_stored = nullptr;
 			x.ptr_owned = nullptr;
+			return *this;
 		}
 		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder& x) noexcept {
 			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
@@ -580,6 +591,7 @@ namespace YBWLib2 {
 				this->ptr_owned = x.ptr_owned;
 			}
 			this->ptr_stored = x.ptr_stored;
+			return *this;
 		}
 		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder&& x) noexcept {
 			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
@@ -594,6 +606,7 @@ namespace YBWLib2 {
 			this->ptr_owned = x.ptr_owned;
 			x.ptr_stored = nullptr;
 			x.ptr_owned = nullptr;
+			return *this;
 		}
 		template<typename _Element_From_Ty>
 		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const { return this->ptr_owned < x.ptr_owned; }
@@ -734,9 +747,11 @@ namespace YBWLib2 {
 		inline virtual ~LockableObjectFromSTLWrapper() = default;
 		inline LockableObjectFromSTLWrapper& operator=(const LockableObjectFromSTLWrapper& x) noexcept {
 			static_cast<ILockableObject&>(*this) = static_cast<const ILockableObject&>(x);
+			return *this;
 		}
 		inline LockableObjectFromSTLWrapper& operator=(LockableObjectFromSTLWrapper&& x) noexcept {
 			static_cast<ILockableObject&>(*this) = static_cast<ILockableObject&&>(::std::move(x));
+			return *this;
 		}
 		/// <summary>Get a reference to the wrapped object.</summary>
 		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() { return this->obj; }

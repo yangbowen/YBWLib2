@@ -547,10 +547,12 @@ namespace YBWLib2 {
 		}
 		inline ConstructorIDParameterIndexedDataEntry& operator=(const ConstructorIDParameterIndexedDataEntry& x) noexcept {
 			this->ctorid = x.ctorid;
+			return *this;
 		}
 		inline ConstructorIDParameterIndexedDataEntry& operator=(ConstructorIDParameterIndexedDataEntry&& x) noexcept {
-			this->ctorid = x.ctorid;
+			this->ctorid = ::std::move(x.ctorid);
 			x.ctorid = ConstructorID();
+			return *this;
 		}
 	private:
 		inline explicit constexpr ConstructorIDParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : ctorid { _indexeddatarawvalue.context.uuid_context } {}
@@ -604,10 +606,12 @@ namespace YBWLib2 {
 		}
 		inline ObjectPointerFromParameterIndexedDataEntry& operator=(const ObjectPointerFromParameterIndexedDataEntry& x) noexcept {
 			this->uintptr_ptr_obj = x.uintptr_ptr_obj;
+			return *this;
 		}
 		inline ObjectPointerFromParameterIndexedDataEntry& operator=(ObjectPointerFromParameterIndexedDataEntry&& x) noexcept {
-			this->uintptr_ptr_obj = x.uintptr_ptr_obj;
+			this->uintptr_ptr_obj = ::std::move(x.uintptr_ptr_obj);
 			x.uintptr_ptr_obj = 0;
+			return *this;
 		}
 	private:
 		inline explicit constexpr ObjectPointerFromParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.context.uintptr_context[0]) {}
@@ -792,7 +796,7 @@ namespace YBWLib2 {
 		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
 		static_assert(::std::is_convertible_v<typename move_cv_t<void, _Class_From_Ty>::type, typename move_cv_t<void, _Class_To_Ty>::type>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
 		inline _Class_To_Ty* operator()(_Class_From_Ty* ptr) const {
-			reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>()));
+			return reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>()));
 		}
 	};
 	/// <summary>Variable template for type casting using dynamic type functionality.</summary>

@@ -119,8 +119,9 @@ namespace YBWLib2 {
 				DeleteIException(this->exception);
 				this->exception = nullptr;
 			}
-			this->exception = x.exception;
+			this->exception = ::std::move(x.exception);
 			x.exception = nullptr;
+			return *this;
 		}
 	private:
 		inline explicit ExceptionReturnParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : exception(reinterpret_cast<IException*>(_indexeddatarawvalue.context.uintptr_context[0])) {

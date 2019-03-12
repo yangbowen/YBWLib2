@@ -936,7 +936,7 @@ namespace YBWLib2 {
 			this->context.uuid_context = _uuid_context;
 		}
 		IndexedDataRawValue(const IndexedDataRawValue&) = delete;
-		IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(x.fnptr_cleanup), context(x.context) {
+		inline IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(x.fnptr_cleanup), context(x.context) {
 			x.fnptr_cleanup = nullptr;
 			x.context.~context_t();
 			new (&x.context) context_t();
@@ -949,7 +949,7 @@ namespace YBWLib2 {
 			new (&this->context) context_t();
 		}
 		IndexedDataRawValue& operator=(const IndexedDataRawValue&) = delete;
-		IndexedDataRawValue& operator=(IndexedDataRawValue&& x) noexcept {
+		inline IndexedDataRawValue& operator=(IndexedDataRawValue&& x) noexcept {
 			if (this->fnptr_cleanup)
 				(*fnptr_cleanup)(this);
 			this->fnptr_cleanup = x.fnptr_cleanup;
@@ -957,6 +957,7 @@ namespace YBWLib2 {
 			x.fnptr_cleanup = nullptr;
 			x.context.~context_t();
 			new (&x.context) context_t();
+			return *this;
 		}
 	};
 	static_assert(::std::is_standard_layout_v<IndexedDataRawValue>, "IndexedDataRawValue is not standard-layout.");
@@ -1089,10 +1090,12 @@ namespace YBWLib2 {
 		}
 		inline RawAllocatorParameterIndexedDataEntry& operator=(const RawAllocatorParameterIndexedDataEntry& x) noexcept {
 			this->rawalloctor = x.rawalloctor;
+			return *this;
 		}
 		inline RawAllocatorParameterIndexedDataEntry& operator=(RawAllocatorParameterIndexedDataEntry&& x) noexcept {
 			this->rawalloctor = x.rawalloctor;
 			x.rawalloctor = nullptr;
+			return *this;
 		}
 	private:
 		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.context.uintptr_context[0])) {}

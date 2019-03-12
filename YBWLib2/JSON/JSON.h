@@ -424,10 +424,12 @@ namespace YBWLib2 {
 		}
 		inline JSONSAXGeneratorParameterIndexedDataEntry& operator=(const JSONSAXGeneratorParameterIndexedDataEntry& x) noexcept {
 			this->jsonsaxgenerator = x.jsonsaxgenerator;
+			return *this;
 		}
 		inline JSONSAXGeneratorParameterIndexedDataEntry& operator=(JSONSAXGeneratorParameterIndexedDataEntry&& x) noexcept {
-			this->jsonsaxgenerator = x.jsonsaxgenerator;
+			this->jsonsaxgenerator = ::std::move(x.jsonsaxgenerator);
 			x.jsonsaxgenerator = nullptr;
+			return *this;
 		}
 	private:
 		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.context.uintptr_context[0])) {}

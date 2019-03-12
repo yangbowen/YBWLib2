@@ -194,6 +194,7 @@ namespace YBWLib2 {
 						x.rawallocator = nullptr;
 						x.str = nullptr;
 						x.size_str = 0;
+						return *this;
 					}
 				} holder_u16str_out(rawallocator);
 				err_inner = Utf8StringToUtf16String(rawallocator, &holder_u16str_out.str, &holder_u16str_out.size_str, str_base64_in, size_str_base64_in);
@@ -279,6 +280,7 @@ namespace YBWLib2 {
 						x.rawallocator = nullptr;
 						x.str = nullptr;
 						x.size_str = 0;
+						return *this;
 					}
 				} holder_u16str_out(rawallocator);
 				if (!data_in) data_in = reinterpret_cast<const uint8_t*>(&dummy);
@@ -366,6 +368,7 @@ namespace YBWLib2 {
 						x.rawallocator = nullptr;
 						x.data = nullptr;
 						x.size_data = 0;
+						return *this;
 					}
 				};
 				struct holder_halgorithm_t {

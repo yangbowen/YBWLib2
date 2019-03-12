@@ -97,6 +97,7 @@ namespace YBWLib2 {
 						this->size_str = ::std::move(x.size_str);
 						x.str = nullptr;
 						x.size_str = 0;
+						return *this;
 					}
 				};
 				allocator_exception_t<char> allocator_exception_char;

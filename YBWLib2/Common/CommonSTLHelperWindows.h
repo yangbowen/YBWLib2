@@ -52,6 +52,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.str = nullptr;
 				x.size_str = 0;
+				return *this;
 			}*/
 		} holder_u16str_out(_rawallocator);
 		IException* err = AnsiStringToUtf16String(_rawallocator, &holder_u16str_out.str, &holder_u16str_out.size_str, ansistr.data(), ansistr.size());
@@ -95,6 +96,7 @@ namespace YBWLib2 {
 				x.rawallocator = nullptr;
 				x.str = nullptr;
 				x.size_str = 0;
+				return *this;
 			}*/
 		} holder_ansistr_out(_rawallocator);
 		IException* err = Utf16StringToAnsiString(_rawallocator, &holder_ansistr_out.str, &holder_ansistr_out.size_str, u16str.data(), u16str.size());

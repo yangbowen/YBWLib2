@@ -396,8 +396,8 @@ namespace YBWLib2 {
 		}
 		inline StringTemplateParameter(StringTemplateParameter&& x) noexcept(false) : rawallocator(::std::move(x.rawallocator)) {
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->name_parameter = x.name_parameter;
-			this->size_name_parameter = x.size_name_parameter;
+			this->name_parameter = ::std::move(x.name_parameter);
+			this->size_name_parameter = ::std::move(x.size_name_parameter);
 			x.rawallocator = nullptr;
 			x.name_parameter = nullptr;
 			x.size_name_parameter = 0;
@@ -431,10 +431,10 @@ namespace YBWLib2 {
 			}
 			this->size_name_parameter = 0;
 			static_cast<IStringTemplateParameter&>(*this) = static_cast<IStringTemplateParameter&&>(::std::move(x));
-			this->rawallocator = x.rawallocator;
+			this->rawallocator = ::std::move(x.rawallocator);
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->name_parameter = x.name_parameter;
-			this->size_name_parameter = x.size_name_parameter;
+			this->name_parameter = ::std::move(x.name_parameter);
+			this->size_name_parameter = ::std::move(x.size_name_parameter);
 			x.rawallocator = nullptr;
 			x.name_parameter = nullptr;
 			x.size_name_parameter = 0;
@@ -573,8 +573,8 @@ namespace YBWLib2 {
 		}
 		inline StringStringTemplateParameter(StringStringTemplateParameter&& x) noexcept(false) : StringTemplateParameter(static_cast<StringTemplateParameter&&>(::std::move(x))) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->str_value = x.str_value;
-			this->size_str_value = x.size_str_value;
+			this->str_value = ::std::move(x.str_value);
+			this->size_str_value = ::std::move(x.size_str_value);
 			x.str_value = nullptr;
 			x.size_str_value = 0;
 		}
@@ -607,8 +607,8 @@ namespace YBWLib2 {
 			this->size_str_value = 0;
 			static_cast<StringTemplateParameter&>(*this) = static_cast<StringTemplateParameter&&>(::std::move(x));
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->str_value = x.str_value;
-			this->size_str_value = x.size_str_value;
+			this->str_value = ::std::move(x.str_value);
+			this->size_str_value = ::std::move(x.size_str_value);
 			x.str_value = nullptr;
 			x.size_str_value = 0;
 			return *this;
@@ -878,6 +878,7 @@ namespace YBWLib2 {
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<const IStringTemplateParameterList&>(x);
 			this->rawallocator = x.rawallocator;
 			this->objholder_map_parameter = x.objholder_map_parameter;
+			return *this;
 		}
 		/// <summary>
 		/// Move-assigns the parameter list.
@@ -886,10 +887,11 @@ namespace YBWLib2 {
 		inline StringTemplateParameterList& operator=(StringTemplateParameterList&& x) noexcept(false) {
 			this->objholder_map_parameter.free();
 			static_cast<IStringTemplateParameterList&>(*this) = static_cast<IStringTemplateParameterList&&>(::std::move(x));
-			this->rawallocator = x.rawallocator;
+			this->rawallocator = ::std::move(x.rawallocator);
 			x.rawallocator = nullptr;
 			this->objholder_map_parameter = ::std::move(x.objholder_map_parameter);
 			x.objholder_map_parameter.free();
+			return *this;
 		}
 		/// <summary>
 		/// Gets a pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
@@ -1066,11 +1068,13 @@ namespace YBWLib2 {
 		inline StringTemplate& operator=(const StringTemplate& x) noexcept {
 			static_cast<IStringTemplate&>(*this) = static_cast<const IStringTemplate&>(x);
 			this->rawallocator = x.rawallocator;
+			return *this;
 		}
 		inline StringTemplate& operator=(StringTemplate&& x) noexcept {
 			static_cast<IStringTemplate&>(*this) = static_cast<IStringTemplate&&>(::std::move(x));
-			this->rawallocator = x.rawallocator;
+			this->rawallocator = ::std::move(x.rawallocator);
 			x.rawallocator = nullptr;
+			return *this;
 		}
 		/// <summary>
 		/// Gets a pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
@@ -1210,8 +1214,8 @@ namespace YBWLib2 {
 		}
 		inline FixedStringTemplate(FixedStringTemplate&& x) noexcept(false) : StringTemplate(static_cast<StringTemplate&&>(::std::move(x))) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->str_value = x.str_value;
-			this->size_str_value = x.size_str_value;
+			this->str_value = ::std::move(x.str_value);
+			this->size_str_value = ::std::move(x.size_str_value);
 			x.str_value = nullptr;
 			x.size_str_value = 0;
 		}
@@ -1244,8 +1248,8 @@ namespace YBWLib2 {
 			this->size_str_value = 0;
 			static_cast<StringTemplate&>(*this) = static_cast<StringTemplate&&>(::std::move(x));
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-			this->str_value = x.str_value;
-			this->size_str_value = x.size_str_value;
+			this->str_value = ::std::move(x.str_value);
+			this->size_str_value = ::std::move(x.size_str_value);
 			x.str_value = nullptr;
 			x.size_str_value = 0;
 			return *this;
@@ -1715,13 +1719,13 @@ namespace YBWLib2 {
 					throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				}
 				}
-				this->type_element = x.type_element;
-				this->rawallocator = x.rawallocator;
+				this->type_element = ::std::move(x.type_element);
+				this->rawallocator = ::std::move(x.rawallocator);
 				switch (this->type_element) {
 				case ElementType_Raw: {
 					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-					this->content_raw.str_value = x.content_raw.str_value;
-					this->content_raw.size_str_value = x.content_raw.size_str_value;
+					this->content_raw.str_value = ::std::move(x.content_raw.str_value);
+					this->content_raw.size_str_value = ::std::move(x.content_raw.size_str_value);
 					x.content_raw.str_value = nullptr;
 					x.content_raw.size_str_value = 0;
 					break;
@@ -1729,15 +1733,15 @@ namespace YBWLib2 {
 				case ElementType_Substitute: {
 					{
 						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-						this->content_substitute.name_parameter = x.content_substitute.name_parameter;
-						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
+						this->content_substitute.name_parameter = ::std::move(x.content_substitute.name_parameter);
+						this->content_substitute.size_name_parameter = ::std::move(x.content_substitute.size_name_parameter);
 						x.content_substitute.name_parameter = nullptr;
 						x.content_substitute.size_name_parameter = 0;
 					}
 					{
 						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-						this->content_substitute.str_options = x.content_substitute.str_options;
-						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
+						this->content_substitute.str_options = ::std::move(x.content_substitute.str_options);
+						this->content_substitute.size_str_options = ::std::move(x.content_substitute.size_str_options);
 						x.content_substitute.str_options = nullptr;
 						x.content_substitute.size_str_options = 0;
 					}
