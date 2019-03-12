@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="::YBWLib2::UUID">
+    <DisplayString>{{{data[0x0],hhX}{data[0x1],hhX}{data[0x2],hhX}{data[0x3],hhX}-{data[0x4],hhX}{data[0x5],hhX}-{data[0x6],hhX}{data[0x7],hhX}-{data[0x8],hhX}{data[0x9],hhX}-{data[0xA],hhX}{data[0xB],hhX}{data[0xC],hhX}{data[0xD],hhX}-{data[0xE],hhX}{data[0xF],hhX}}}</DisplayString>
+  </Type>
+</AutoVisualizer>

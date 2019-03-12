@@ -86,6 +86,9 @@
     <None Include="Exception\ExceptionMacroUndef.h" />
     <None Include="YBWLib2_internal_config.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="YBWLib2.natvis" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{061E491F-E9BE-4D97-81C4-F05ABCD283E8}</ProjectGuid>
@@ -185,6 +188,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
+      <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>pushd "$(ProjectDir)"
@@ -216,6 +220,7 @@ popd
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
+      <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>pushd "$(ProjectDir)"
@@ -252,6 +257,7 @@ popd
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
+      <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>pushd "$(ProjectDir)"
@@ -288,6 +294,7 @@ popd
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
+      <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>pushd "$(ProjectDir)"

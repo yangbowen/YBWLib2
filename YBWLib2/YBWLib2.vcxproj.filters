@@ -210,4 +210,7 @@
     </None>
     <None Include="YBWLib2_internal_config.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="YBWLib2.natvis" />
+  </ItemGroup>
 </Project>
