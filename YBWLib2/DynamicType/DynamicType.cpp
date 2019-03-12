@@ -44,12 +44,23 @@ namespace YBWLib2 {
 			const DynamicTypeClassID& _dtclassid_baseclass,
 			DynamicTypeClassObj& _dtclassobj_baseclass,
 			DynamicTypeClassObj* _dtclassobj_top_virtual_along_route,
-			::std::vector<upcast_step_t>&& _vec_upcast_step)
+			const ::std::vector<upcast_step_t>& _vec_upcast_step)
 			: dtclassid_thisclass(_dtclassid_thisclass),
 			dtclassid_baseclass(_dtclassid_baseclass),
 			dtclassobj_baseclass(_dtclassobj_baseclass),
 			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route),
 			vec_upcast_step(_vec_upcast_step) {}
+		inline DynamicTypeTotalBaseClass(
+			const DynamicTypeClassID& _dtclassid_thisclass,
+			const DynamicTypeClassID& _dtclassid_baseclass,
+			DynamicTypeClassObj& _dtclassobj_baseclass,
+			DynamicTypeClassObj* _dtclassobj_top_virtual_along_route,
+			::std::vector<upcast_step_t>&& _vec_upcast_step)
+			: dtclassid_thisclass(_dtclassid_thisclass),
+			dtclassid_baseclass(_dtclassid_baseclass),
+			dtclassobj_baseclass(_dtclassobj_baseclass),
+			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route),
+			vec_upcast_step(::std::move(_vec_upcast_step)) {}
 	};
 
 	class _impl_DynamicTypeClassObj {
@@ -292,15 +303,14 @@ namespace YBWLib2 {
 							::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
 								::std::piecewise_construct,
 								::std::forward_as_tuple(val_baseclass_indirect.first),
-								::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeClassObj*, ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>&&>(
+								::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeClassObj*, const ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>&>(
 									this->dtclassid,
 									val_baseclass_indirect.first,
 									val_baseclass_indirect.second.dtclassobj_baseclass,
 									dtclassobj_top_virtual_along_route,
-									::std::move(vec_upcast_step_total)
+									vec_upcast_step_total
 									)
 							);
-							vec_upcast_step_total.clear();
 							if (!ret_emplace.second) {
 								if (dtclassobj_top_virtual_along_route && dtclassobj_top_virtual_along_route == ret_emplace.first->second.dtclassobj_top_virtual_along_route) {
 									// The 2 inheritance routes lead to the same location in the object.
