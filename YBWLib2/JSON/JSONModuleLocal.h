@@ -12,6 +12,92 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(JSONException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ParseErrorJSONException, );
 
+	[[nodiscard]] IException* JSONException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
+				err_inner = JSONException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+					}
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
+	[[nodiscard]] IException* ParseErrorJSONException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
+		if (!description_ret || !size_description_ret) abort();
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &description_ret, &size_description_ret, &err_inner]() noexcept(false)->void {
+				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_str_parse_error;
+				if (this->str_parse_error && this->str_parse_error[0]) {
+					objholder_strtmplparameter_str_parse_error.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"str_parse_error", this->str_parse_error, strlen(this->str_parse_error));
+				} else {
+					objholder_strtmplparameter_str_parse_error.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"str_parse_error", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
+				}
+				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_offset_parse_error;
+				{
+					char str_offset_parse_error[sizeof(size_t) / sizeof(uint8_t) * 3 + 4];
+					static constexpr char str_prefix_fmt[] = u8"%";
+					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<size_t>>::fmtspec_printf_u_utf8) / sizeof(char))];
+					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
+					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<size_t>>::fmtspec_printf_u_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<size_t>>::fmtspec_printf_u_utf8) / sizeof(char));
+					err_inner = SnPrintfUtf8(rawallocator_exception, str_offset_parse_error, sizeof(str_offset_parse_error) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), this->offset_parse_error);
+					if (err_inner) return;
+					objholder_strtmplparameter_offset_parse_error.construct(
+						objholder_local_t<StringStringTemplateParameter>::construct_obj,
+						rawallocator_exception,
+						u8"offset_parse_error",
+						str_offset_parse_error,
+						strnlen(str_offset_parse_error, sizeof(str_offset_parse_error) / sizeof(char))
+					);
+				}
+				err_inner = ParseErrorJSONException::strtmpl_description->GenerateString(StringTemplateParameterList(rawallocator_exception,
+					{
+						objholder_strtmplparameter_str_parse_error.get(),
+						objholder_strtmplparameter_offset_parse_error.get()
+					}
+				), description_ret, size_description_ret, false, rawallocator_exception);
+				if (err_inner && description_ret && *description_ret) { ExceptionFreeMemory(*description_ret); *description_ret = nullptr; *size_description_ret = 0; }
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err;
+		}
+		if (err_inner) {
+			if (is_successful_ret) *is_successful_ret = false;
+			delete this;
+			return err_inner;
+		}
+		if (is_successful_ret) *is_successful_ret = true;
+		return this;
+	}
+
 	JSONSAXGeneratorParameterIndexedDataEntry JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(const IndexedDataStore& _indexeddatastore) noexcept(false) {
 		const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
 		if (_indexeddatarawvalue) {

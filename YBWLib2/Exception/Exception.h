@@ -283,18 +283,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -315,18 +315,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -639,18 +639,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -671,18 +671,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -736,18 +736,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -824,18 +824,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -949,18 +949,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1042,18 +1042,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1104,18 +1104,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1153,18 +1153,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1202,18 +1202,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1251,18 +1251,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1316,18 +1316,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1410,18 +1410,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.
@@ -1514,18 +1514,18 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <param name="description_ret">
 		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string of this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
 		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
 		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
 		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
 		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
-		/// If there wasn't a human-readable description available of this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
 		/// </param>
 		/// <param name="size_description_ret">
 		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
-		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string of this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
 		/// Any value originally in <c>*size_description_ret</c> will be discarded.
-		/// If there wasn't a human-readable description available of this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
 		/// </param>
 		/// <param name="is_successful_ret">
 		/// Optional pointer to a variable that receives whether the call is successful.

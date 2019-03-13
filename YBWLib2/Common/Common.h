@@ -374,6 +374,12 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IReferenceCountedObject, YBWLIB2_API, "6abec0cb-c444-492c-af61-04f502ade136");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IReferenceCountedObject);
 		/// <summary>
+		/// Gets the reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current reference count.</returns>
+		virtual uintptr_t GetReferenceCount() const = 0;
+		/// <summary>
 		/// Increments the reference count.
 		/// This function must be thread-safe.
 		/// </summary>
@@ -386,6 +392,12 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <returns>The new reference count.</returns>
 		virtual uintptr_t DecReferenceCount() const = 0;
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~IReferenceCountedObject() = default;
 	};
 
 	/// <summary>Lockable object.</summary>

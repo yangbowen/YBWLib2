@@ -327,7 +327,6 @@ namespace YBWLib2 {
 		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept : ref_count(1) {
 			static_cast<void>(x);
 		}
-		inline virtual ~ReferenceCountedObject() = default;
 		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
 			return *this;
@@ -335,6 +334,17 @@ namespace YBWLib2 {
 		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
 			return *this;
+		}
+		/// <summary>
+		/// Gets the reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current reference count.</returns>
+		inline virtual uintptr_t GetReferenceCount() const override {
+			if (this)
+				return this->ref_count.load();
+			else
+				return 0;
 		}
 		/// <summary>
 		/// Increments the reference count.
@@ -345,6 +355,8 @@ namespace YBWLib2 {
 			if (this) {
 				uintptr_t ret = ++this->ref_count;
 				return ret;
+			} else {
+				return 0;
 			}
 		}
 		/// <summary>
@@ -358,9 +370,16 @@ namespace YBWLib2 {
 				uintptr_t ret = --this->ref_count;
 				if (!ret) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
 				return ret;
+			} else {
+				return 0;
 			}
 		}
 	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~ReferenceCountedObject() = default;
 		/// <summary>
 		/// Destructs the object and frees any resources allocated for the object.
 		/// This function is intended to be called only by <c>DecReferenceCount</c>.
@@ -394,7 +413,6 @@ namespace YBWLib2 {
 			mtx_this(),
 			ref_count(0),
 			ptr() {}
-		inline virtual ~SharedPtrReferenceCountedObject() = default;
 		inline SharedPtrReferenceCountedObject& operator=(const SharedPtrReferenceCountedObject& x) noexcept {
 			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x);
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
@@ -404,6 +422,19 @@ namespace YBWLib2 {
 			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x));
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
 			return *this;
+		}
+		/// <summary>
+		/// Gets the reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current reference count.</returns>
+		inline virtual uintptr_t GetReferenceCount() const override {
+			if (this) {
+				::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
+				return this->ref_count;
+			} else {
+				return 0;
+			}
 		}
 		/// <summary>
 		/// Increments the reference count.
@@ -420,6 +451,8 @@ namespace YBWLib2 {
 					ptr = this->shared_from_this();
 				}
 				return ret;
+			} else {
+				return 0;
 			}
 		}
 		/// <summary>
@@ -443,8 +476,16 @@ namespace YBWLib2 {
 					ptr = ::std::shared_ptr<_Concrete_Class_Ty>();
 				}
 				return ret;
+			} else {
+				return 0;
 			}
 		}
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~SharedPtrReferenceCountedObject() = default;
 	private:
 		mutable ::std::mutex mtx_this;
 		mutable uintptr_t ref_count = 0;
@@ -660,6 +701,8 @@ namespace YBWLib2 {
 			x.ptr_stored = _ptr_stored;
 			x.ptr_owned = _ptr_owned;
 		}
+		inline bool unique() const noexcept { return this && this->ptr_owned && this->ptr_owned->GetReferenceCount() == 1; }
+		inline uintptr_t use_count() const noexcept { return this && this->ptr_owned ? this->ptr_owned->GetReferenceCount() : 0; }
 	private:
 		_Element_Ty* ptr_stored = nullptr;
 		const IReferenceCountedObject* ptr_owned = nullptr;

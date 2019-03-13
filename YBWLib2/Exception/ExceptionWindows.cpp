@@ -152,19 +152,19 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealUnInitGlobal() noexcept {
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		delete ExternalAPIFailureWithHRESULTException::strtmpl_description;
 		ExternalAPIFailureWithHRESULTException::strtmpl_description = nullptr;
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#endif
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		delete ExternalAPIFailureWithNTSTATUSException::strtmpl_description;
 		ExternalAPIFailureWithNTSTATUSException::strtmpl_description = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		delete ExternalAPIFailureWithWSALastErrorException::strtmpl_description;
 		ExternalAPIFailureWithWSALastErrorException::strtmpl_description = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		delete ExternalAPIFailureWithLastErrorException::strtmpl_description;
 		ExternalAPIFailureWithLastErrorException::strtmpl_description = nullptr;
-#endif
 	}
 }

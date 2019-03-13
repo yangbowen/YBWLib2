@@ -58,8 +58,10 @@ namespace YBWLib2 {
 #ifdef _WIN32_WINNT
 			ExceptionWindowsUserInterface_RealInitGlobal();
 #endif
+			JSONUserInterface_RealInitGlobal();
 			File_RealInitGlobal();
 			File_RealInitModuleLocal();
+			FileUserInterface_RealInitGlobal();
 		} catch (...) {
 			abort();
 		}
@@ -67,8 +69,10 @@ namespace YBWLib2 {
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitDLL() noexcept {
 		try {
+			FileUserInterface_RealUnInitGlobal();
 			File_RealUnInitModuleLocal();
 			File_RealUnInitGlobal();
+			JSONUserInterface_RealUnInitGlobal();
 #ifdef _WIN32_WINNT
 			ExceptionWindowsUserInterface_RealUnInitGlobal();
 #endif

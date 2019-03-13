@@ -177,5 +177,56 @@
         ]
       }
     ]
+  },
+  "JSON": {
+    "strtmpl_description_exception": [
+      {
+        // JSONException
+        "dtclassid_exception": "b3549309-4fdd-483c-810e-1247d13aaa8b",
+        // FixedStringTemplate
+        "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
+        "jsonval_strtmpl": "An exception that relates to JSON has occurred."
+      },
+      {
+        // ParseErrorJSONException
+        "dtclassid_exception": "2cd35585-2444-474c-acdc-11553254e810",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A JSON parse error has occurred.\nParse error string: ",
+          { "name_parameter": "str_parse_error" },
+          "\nParse error offset: ",
+          { "name_parameter": "offset_parse_error" }
+        ]
+      }
+    ]
+  },
+  "File": {
+    "strtmpl_description_exception": [
+      {
+        // FileException
+        "dtclassid_exception": "a3232404-3264-47c1-aaab-e20132d99fd9",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "An exception that relates to a file has occurred.\nFile object address: ",
+          { "name_parameter": "address_file" },
+          "\nFile description: ",
+          { "name_parameter": "description_file" }
+        ]
+      },
+      {
+        // BofFileException
+        "dtclassid_exception": "be41ef8d-18f5-4287-a2b2-fbadc7e0db81",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "The file position of a file is attempted to be set beyond the start of the file.\nFile object address: ",
+          { "name_parameter": "address_file" },
+          "\nFile description: ",
+          { "name_parameter": "description_file" }
+        ]
+      }
+    ]
   }
 }
