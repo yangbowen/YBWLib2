@@ -393,15 +393,14 @@ namespace YBWLib2 {
 	/// Reference counted object that keeps an STL shared pointer of itself.
 	/// Objects of this class must be managed by an STL shared pointer before <c>IncReferenceCount</c> is called.
 	/// Has a reference count of <c>0</c> when constructed.
-	/// Dynamic type implementations must be provided for individual specializations.
 	/// </summary>
 	/// <typeparam name="_Concrete_Class_Ty">The concrete class that inherits from this class.</typeparam>
-	template<typename _Concrete_Class_Ty, const char(&string_dtclassid)[39]>
+	template<typename _Concrete_Class_Ty>
 	class SharedPtrReferenceCountedObject abstract
 		: public virtual ::std::enable_shared_from_this<_Concrete_Class_Ty>,
 		public virtual IReferenceCountedObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(SharedPtrReferenceCountedObject, , string_dtclassid);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedPtrReferenceCountedObject);
 		inline SharedPtrReferenceCountedObject(const SharedPtrReferenceCountedObject& x) noexcept
 			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x)),
@@ -772,15 +771,12 @@ namespace YBWLib2 {
 		return ReferenceCountedObjectHolder<_Element_To_Ty>();
 	}
 
-	/// <summary>
-	/// An object that implements <c>ILockableObject</c> and wraps an STL <c>Lockable</c> object.
-	/// Dynamic type implementations must be provided for individual specializations.
-	/// </summary>
+	/// <summary>An object that implements <c>ILockableObject</c> and wraps an STL <c>Lockable</c> object.</summary>
 	/// <typeparam name="_Ty">The type of the wrapped object.</typeparam>
-	template<typename _Ty, const char(&string_dtclassid)[39]>
+	template<typename _Ty>
 	class LockableObjectFromSTLWrapper : public virtual ILockableObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(SharedPtrReferenceCountedObject, , string_dtclassid);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(LockableObjectFromSTLWrapper);
 		using wrapped_type = _Ty;
 		template<typename... _Args_Ty>

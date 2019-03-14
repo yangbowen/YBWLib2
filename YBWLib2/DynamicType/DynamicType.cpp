@@ -205,6 +205,29 @@ namespace YBWLib2 {
 		return ret;
 	}
 
+	YBWLIB2_API bool YBWLIB2_CALLTYPE DynamicTypeClassObj::CanDynamicUpcastTo(uintptr_t ptr_obj, const DynamicTypeClassObj* dtclassobj_target) const {
+		bool ret = false;
+		try {
+			if (ptr_obj && dtclassobj_target && (!dtclassobj_target->IsModuleLocal() || this->IsModuleLocal())) {
+				if (dtclassobj_target == this) {
+					ret = true;
+				} else {
+					const DynamicTypeClassID* dtclassid_target = &dtclassobj_target->GetDynamicTypeClassID();
+					{
+						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
+						const DynamicTypeTotalBaseClass* dttotalbaseclassobj_target_found = this->pimpl->FindTotalBaseClass(dtclassid_target);
+						if (dttotalbaseclassobj_target_found && &dttotalbaseclassobj_target_found->dtclassobj_baseclass == dtclassobj_target) {
+							ret = true;
+						}
+					}
+				}
+			}
+		} catch (...) {
+			abort();
+		}
+		return ret;
+	}
+
 	YBWLIB2_API void YBWLIB2_CALLTYPE DynamicTypeClassObj::RegisterTypeInfoWrapper(const wrapper_type_info_t* _wrapper_type_info, const module_info_t* _module_info) noexcept {
 		try {
 			{

@@ -3,6 +3,13 @@
 #include "CommonLowLevel.h"
 
 namespace YBWLib2 {
+	YBWLIB2_API byte_order_t<unsigned char>* byte_order_unsigned_char = nullptr;
+	YBWLIB2_API byte_order_t<unsigned short>* byte_order_unsigned_short = nullptr;
+	YBWLIB2_API byte_order_t<unsigned int>* byte_order_unsigned_int = nullptr;
+	YBWLIB2_API byte_order_t<unsigned long>* byte_order_unsigned_long = nullptr;
+	YBWLIB2_API byte_order_t<unsigned long long>* byte_order_unsigned_long_long = nullptr;
+	YBWLIB2_API bool* is_byte_order_le = nullptr;
+	YBWLIB2_API bool* is_byte_order_be = nullptr;
 	YBWLIB2_API dummy_t dummy;
 	YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2 = nullptr;
 
@@ -113,6 +120,23 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept {
+		byte_order_unsigned_char = new byte_order_t<unsigned char>();
+		byte_order_unsigned_short = new byte_order_t<unsigned short>();
+		byte_order_unsigned_int = new byte_order_t<unsigned int>();
+		byte_order_unsigned_long = new byte_order_t<unsigned long>();
+		byte_order_unsigned_long_long = new byte_order_t<unsigned long long>();
+		is_byte_order_le = new bool(true);
+		is_byte_order_be = new bool(true);
+		if (!byte_order_unsigned_char->is_le) *is_byte_order_le = false;
+		if (!byte_order_unsigned_char->is_be) *is_byte_order_be = false;
+		if (!byte_order_unsigned_short->is_le) *is_byte_order_le = false;
+		if (!byte_order_unsigned_short->is_be) *is_byte_order_be = false;
+		if (!byte_order_unsigned_int->is_le) *is_byte_order_le = false;
+		if (!byte_order_unsigned_int->is_be) *is_byte_order_be = false;
+		if (!byte_order_unsigned_long->is_le) *is_byte_order_le = false;
+		if (!byte_order_unsigned_long->is_be) *is_byte_order_be = false;
+		if (!byte_order_unsigned_long_long->is_le) *is_byte_order_le = false;
+		if (!byte_order_unsigned_long_long->is_be) *is_byte_order_be = false;
 		rawallocator_crt_YBWLib2 = new rawallocator_t(
 			[](size_t size, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
@@ -143,5 +167,19 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept {
 		delete rawallocator_crt_YBWLib2;
 		rawallocator_crt_YBWLib2 = nullptr;
+		delete is_byte_order_be;
+		is_byte_order_be = nullptr;
+		delete is_byte_order_le;
+		is_byte_order_le = nullptr;
+		delete byte_order_unsigned_long_long;
+		byte_order_unsigned_long_long = nullptr;
+		delete byte_order_unsigned_long;
+		byte_order_unsigned_long = nullptr;
+		delete byte_order_unsigned_int;
+		byte_order_unsigned_int = nullptr;
+		delete byte_order_unsigned_short;
+		byte_order_unsigned_short = nullptr;
+		delete byte_order_unsigned_char;
+		byte_order_unsigned_char = nullptr;
 	}
 }

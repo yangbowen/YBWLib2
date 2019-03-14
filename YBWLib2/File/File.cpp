@@ -8,10 +8,10 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IFileException, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IBofFileException, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IFile, YBWLIB2_API);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IFileWithSize, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISizedFile, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISeekableFile, YBWLIB2_API);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IInputFile, YBWLIB2_API);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IOutputFile, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IReadableFile, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IWriteableFile, YBWLIB2_API);
 
 	YBWLIB2_API IStringTemplate* FileException::strtmpl_description = nullptr;
 	YBWLIB2_API IStringTemplate* BofFileException::strtmpl_description = nullptr;
@@ -32,37 +32,37 @@ namespace YBWLib2 {
 			IsDynamicTypeModuleLocalClass<IFile>(),
 			{ DynamicTypeBaseClassDef<IFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IFile), alignof(IFile));
-		IFileWithSize::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IFileWithSize>(),
-			IsDynamicTypeModuleLocalClass<IFileWithSize>(),
-			{ DynamicTypeBaseClassDef<IFileWithSize, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(IFileWithSize), alignof(IFileWithSize));
+		ISizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ISizedFile>(),
+			IsDynamicTypeModuleLocalClass<ISizedFile>(),
+			{ DynamicTypeBaseClassDef<ISizedFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(ISizedFile), alignof(ISizedFile));
 		ISeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<ISeekableFile>(),
 			IsDynamicTypeModuleLocalClass<ISeekableFile>(),
 			{ DynamicTypeBaseClassDef<ISeekableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISeekableFile), alignof(ISeekableFile));
-		IInputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IInputFile>(),
-			IsDynamicTypeModuleLocalClass<IInputFile>(),
-			{ DynamicTypeBaseClassDef<IInputFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(IInputFile), alignof(IInputFile));
-		IOutputFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IOutputFile>(),
-			IsDynamicTypeModuleLocalClass<IOutputFile>(),
-			{ DynamicTypeBaseClassDef<IOutputFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(IOutputFile), alignof(IOutputFile));
+		IReadableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IReadableFile>(),
+			IsDynamicTypeModuleLocalClass<IReadableFile>(),
+			{ DynamicTypeBaseClassDef<IReadableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IReadableFile), alignof(IReadableFile));
+		IWriteableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<IWriteableFile>(),
+			IsDynamicTypeModuleLocalClass<IWriteableFile>(),
+			{ DynamicTypeBaseClassDef<IWriteableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IWriteableFile), alignof(IWriteableFile));
 	}
 
 	void YBWLIB2_CALLTYPE File_RealUnInitGlobal() noexcept {
-		delete IOutputFile::DynamicTypeThisClassObject;
-		IOutputFile::DynamicTypeThisClassObject = nullptr;
-		delete IInputFile::DynamicTypeThisClassObject;
-		IInputFile::DynamicTypeThisClassObject = nullptr;
+		delete IWriteableFile::DynamicTypeThisClassObject;
+		IWriteableFile::DynamicTypeThisClassObject = nullptr;
+		delete IReadableFile::DynamicTypeThisClassObject;
+		IReadableFile::DynamicTypeThisClassObject = nullptr;
 		delete ISeekableFile::DynamicTypeThisClassObject;
 		ISeekableFile::DynamicTypeThisClassObject = nullptr;
-		delete IFileWithSize::DynamicTypeThisClassObject;
-		IFileWithSize::DynamicTypeThisClassObject = nullptr;
+		delete ISizedFile::DynamicTypeThisClassObject;
+		ISizedFile::DynamicTypeThisClassObject = nullptr;
 		delete IFile::DynamicTypeThisClassObject;
 		IFile::DynamicTypeThisClassObject = nullptr;
 		delete IBofFileException::DynamicTypeThisClassObject;

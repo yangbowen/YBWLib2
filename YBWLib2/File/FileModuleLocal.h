@@ -15,6 +15,13 @@
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(FileException, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(BofFileException, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(File, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(SizedFile, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(SeekableFile, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ReadableFile, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(WriteableFile, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(SizetSizedFile, );
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(SizetSeekableFile, );
 
 	[[nodiscard]] IException* FileException::GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret) noexcept {
 		if (!description_ret || !size_description_ret) abort();
@@ -180,10 +187,10 @@ namespace YBWLib2 {
 		GetDynamicTypeThisClassObject<IFileException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IFileException)), module_info_current);
 		GetDynamicTypeThisClassObject<IBofFileException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IBofFileException)), module_info_current);
 		GetDynamicTypeThisClassObject<IFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IFile)), module_info_current);
-		GetDynamicTypeThisClassObject<IFileWithSize>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IFileWithSize)), module_info_current);
+		GetDynamicTypeThisClassObject<ISizedFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ISizedFile)), module_info_current);
 		GetDynamicTypeThisClassObject<ISeekableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ISeekableFile)), module_info_current);
-		GetDynamicTypeThisClassObject<IInputFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInputFile)), module_info_current);
-		GetDynamicTypeThisClassObject<IOutputFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IOutputFile)), module_info_current);
+		GetDynamicTypeThisClassObject<IReadableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IReadableFile)), module_info_current);
+		GetDynamicTypeThisClassObject<IWriteableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IWriteableFile)), module_info_current);
 		FileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<FileException>(),
 			IsDynamicTypeModuleLocalClass<FileException>(),
@@ -200,21 +207,103 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<BofFileException, IBofFileException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(BofFileException), alignof(BofFileException));
+		File::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<File>(),
+			IsDynamicTypeModuleLocalClass<File>(),
+			{
+				DynamicTypeBaseClassDef<File, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<File, IFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(File), alignof(File));
+		SizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<SizedFile>(),
+			IsDynamicTypeModuleLocalClass<SizedFile>(),
+			{
+				DynamicTypeBaseClassDef<SizedFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<SizedFile, ISizedFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(SizedFile), alignof(SizedFile));
+		SeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<SeekableFile>(),
+			IsDynamicTypeModuleLocalClass<SeekableFile>(),
+			{
+				DynamicTypeBaseClassDef<SeekableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<SeekableFile, ISeekableFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(SeekableFile), alignof(SeekableFile));
+		ReadableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<ReadableFile>(),
+			IsDynamicTypeModuleLocalClass<ReadableFile>(),
+			{
+				DynamicTypeBaseClassDef<ReadableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<ReadableFile, IReadableFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(ReadableFile), alignof(ReadableFile));
+		WriteableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<WriteableFile>(),
+			IsDynamicTypeModuleLocalClass<WriteableFile>(),
+			{
+				DynamicTypeBaseClassDef<WriteableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
+				DynamicTypeBaseClassDef<WriteableFile, IWriteableFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(WriteableFile), alignof(WriteableFile));
+		SizetSizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<SizetSizedFile>(),
+			IsDynamicTypeModuleLocalClass<SizetSizedFile>(),
+			{
+				DynamicTypeBaseClassDef<SizetSizedFile, SizedFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(SizetSizedFile), alignof(SizetSizedFile));
+		SizetSeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<SizetSeekableFile>(),
+			IsDynamicTypeModuleLocalClass<SizetSeekableFile>(),
+			{
+				DynamicTypeBaseClassDef<SizetSeekableFile, SeekableFile, DynamicTypeBaseClassFlag_VirtualBase>
+			},
+			0, sizeof(SizetSeekableFile), alignof(SizetSeekableFile));
 		GetDynamicTypeThisClassObject<FileException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(FileException)), module_info_current);
 		GetDynamicTypeThisClassObject<BofFileException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(BofFileException)), module_info_current);
+		GetDynamicTypeThisClassObject<File>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(File)), module_info_current);
+		GetDynamicTypeThisClassObject<SizedFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SizedFile)), module_info_current);
+		GetDynamicTypeThisClassObject<SeekableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SeekableFile)), module_info_current);
+		GetDynamicTypeThisClassObject<ReadableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ReadableFile)), module_info_current);
+		GetDynamicTypeThisClassObject<WriteableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(WriteableFile)), module_info_current);
+		GetDynamicTypeThisClassObject<SizetSizedFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SizetSizedFile)), module_info_current);
+		GetDynamicTypeThisClassObject<SizetSeekableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SizetSeekableFile)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE File_RealUnInitModuleLocal() noexcept {
+		GetDynamicTypeThisClassObject<SizetSeekableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<SizetSizedFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<WriteableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<ReadableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<SeekableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<SizedFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<File>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<BofFileException>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<FileException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		delete SizetSeekableFile::DynamicTypeThisClassObject;
+		SizetSeekableFile::DynamicTypeThisClassObject = nullptr;
+		delete SizetSizedFile::DynamicTypeThisClassObject;
+		SizetSizedFile::DynamicTypeThisClassObject = nullptr;
+		delete WriteableFile::DynamicTypeThisClassObject;
+		WriteableFile::DynamicTypeThisClassObject = nullptr;
+		delete ReadableFile::DynamicTypeThisClassObject;
+		ReadableFile::DynamicTypeThisClassObject = nullptr;
+		delete SeekableFile::DynamicTypeThisClassObject;
+		SeekableFile::DynamicTypeThisClassObject = nullptr;
+		delete SizedFile::DynamicTypeThisClassObject;
+		SizedFile::DynamicTypeThisClassObject = nullptr;
+		delete File::DynamicTypeThisClassObject;
+		File::DynamicTypeThisClassObject = nullptr;
 		delete BofFileException::DynamicTypeThisClassObject;
 		BofFileException::DynamicTypeThisClassObject = nullptr;
 		delete FileException::DynamicTypeThisClassObject;
 		FileException::DynamicTypeThisClassObject = nullptr;
-		GetDynamicTypeThisClassObject<IOutputFile>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IInputFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<IWriteableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<IReadableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<ISeekableFile>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IFileWithSize>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeThisClassObject<ISizedFile>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<IFile>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<IBofFileException>()->UnRegisterTypeInfoWrapper(module_info_current);
 		GetDynamicTypeThisClassObject<IFileException>()->UnRegisterTypeInfoWrapper(module_info_current);

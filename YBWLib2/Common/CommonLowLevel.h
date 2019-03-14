@@ -58,7 +58,7 @@ namespace YBWLib2 {
 
 	/// <summary>Obtains byte order information about a given unsigned intergral type.</summary>
 	template<typename _Ty>
-	struct byte_order_t {
+	struct byte_order_t final {
 		static_assert(::std::is_integral_v<_Ty> && ::std::is_unsigned_v<_Ty>, "The specified type is not an unsigned integral type.");
 		static constexpr _Ty number_test_le = byte_order_number_test_le_helper<_Ty, sizeof(_Ty) - 1>;
 		static constexpr _Ty number_test_be = byte_order_number_test_be_helper<_Ty, sizeof(_Ty) - 1>;
@@ -70,6 +70,20 @@ namespace YBWLib2 {
 			is_le(number_test == number_test_le),
 			is_be(number_test == number_test_be) {}
 	};
+
+	static_assert(::std::is_standard_layout_v<byte_order_t<unsigned char>>, "byte_order_t<unsigned char> is not standard-layout.");
+	static_assert(::std::is_standard_layout_v<byte_order_t<unsigned short>>, "byte_order_t<unsigned short> is not standard-layout.");
+	static_assert(::std::is_standard_layout_v<byte_order_t<unsigned int>>, "byte_order_t<unsigned int> is not standard-layout.");
+	static_assert(::std::is_standard_layout_v<byte_order_t<unsigned long>>, "byte_order_t<unsigned long> is not standard-layout.");
+	static_assert(::std::is_standard_layout_v<byte_order_t<unsigned long long>>, "byte_order_t<unsigned long long> is not standard-layout.");
+
+	extern YBWLIB2_API byte_order_t<unsigned char>* byte_order_unsigned_char;
+	extern YBWLIB2_API byte_order_t<unsigned short>* byte_order_unsigned_short;
+	extern YBWLIB2_API byte_order_t<unsigned int>* byte_order_unsigned_int;
+	extern YBWLIB2_API byte_order_t<unsigned long>* byte_order_unsigned_long;
+	extern YBWLIB2_API byte_order_t<unsigned long long>* byte_order_unsigned_long_long;
+	extern YBWLIB2_API bool* is_byte_order_le;
+	extern YBWLIB2_API bool* is_byte_order_be;
 
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
@@ -96,7 +110,7 @@ namespace YBWLib2 {
 				!(count_leading_zero_expand_helper<bitsize> & ((count_leading_zero_expand_helper<bitsize>) - 1))
 				&& count_leading_zero_expand_helper<bitsize> > bitsize
 				&& count_leading_zero_expand_helper<bitsize> <= sizeof(_Uint_Ty) * 0x8
-				, "Unexpected semantic error."
+				, "Unexpected error."
 				);
 			x |= (((_Uint_Ty)1 << ((count_leading_zero_expand_helper<bitsize>) - bitsize)) - 1);
 			count_leading_zero_helper<_Uint_Ty, count_leading_zero_expand_helper<bitsize>>(x, n);
@@ -112,7 +126,7 @@ namespace YBWLib2 {
 			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 			n += table_4[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x4)) & (((size_t)1 << 0x4) - 1)];
 		} else {
-			static_assert(!(bitsize & 1), "Unexpected semantic error.");
+			static_assert(!(bitsize & 1), "Unexpected error.");
 			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * 0x8 - (bitsize >> 1))))) {
 				n += (bitsize >> 1);
 				x <<= (bitsize >> 1);
