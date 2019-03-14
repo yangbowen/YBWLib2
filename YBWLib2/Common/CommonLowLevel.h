@@ -89,7 +89,7 @@ namespace YBWLib2 {
 	template<typename _Uint_Ty, size_t bitsize>
 	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-		static_assert(!(sizeof(_Uint_Ty) & (-sizeof(_Uint_Ty))), "Integral sizes not a power of 2 is not currently supported.");
+		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
 		static_assert(bitsize <= sizeof(_Uint_Ty) * 8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 		if constexpr (bitsize & (bitsize - 1)) {
 			static_assert(
