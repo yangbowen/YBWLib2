@@ -71,6 +71,58 @@ namespace YBWLib2 {
 			is_be(number_test == number_test_be) {}
 	};
 
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	// Helpers for count_leading_zero.
+	template<size_t x, bool no_increment = false>
+	struct count_leading_zero_expand_helper {
+		static constexpr size_t value =
+			!x
+			? 0
+			: (
+				x & (x - 1)
+				? (no_increment ? count_leading_zero_expand_helper<x & (x - 1), true>::value : count_leading_zero_expand_helper<x & (x - 1), true>::value << 1)
+				: x
+				);
+	};
+
+	template<typename _Uint_Ty, size_t bitsize>
+	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
+		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		static_assert(!(sizeof(_Uint_Ty) & (-sizeof(_Uint_Ty))), "Integral sizes not a power of 2 is not currently supported.");
+		static_assert(bitsize <= sizeof(_Uint_Ty) * 8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		if constexpr (bitsize & (bitsize - 1)) {
+			static_assert(
+				!(count_leading_zero_expand_helper<bitsize> & ((count_leading_zero_expand_helper<bitsize>) - 1))
+				&& count_leading_zero_expand_helper<bitsize> > bitsize
+				&& count_leading_zero_expand_helper<bitsize> <= sizeof(_Uint_Ty) * 8
+				, "Unexpected semantic error."
+				);
+			x |= ((1 << ((count_leading_zero_expand_helper<bitsize>) - bitsize)) - 1);
+			count_leading_zero_helper<_Uint_Ty, count_leading_zero_expand_helper<bitsize>>(x, n);
+		} else if constexpr (!bitsize) {
+			return;
+		} else if constexpr (bitsize == 1) {
+			n += x & (1 << (sizeof(_Uint_Ty) * 8 - 1)) ? 0 : 1;
+		} else {
+			static_assert(!(bitsize & 0x1), "Unexpected semantic error.");
+			if (!(x & ((1 << (bitsize >> 1)) - 1))) {
+				n += (bitsize >> 1);
+				x <<= (bitsize >> 1);
+			}
+			count_leading_zero_expand_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
+		}
+	}
+
+	/// <summary>Count leading zeros in an unsigned integral value.</summary>
+	template<typename _Uint_Ty>
+	inline constexpr size_t count_leading_zero(_Uint_Ty x) {
+		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		size_t n = 0;
+		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 8>(x, n);
+		return n;
+	}
+
 	// Helpers for hash_trivially_copyable_t.
 	template<typename _Ty, typename _Hash_Ty, size_t size_hash>
 	struct hash_trivially_copyable_helper_t {};
