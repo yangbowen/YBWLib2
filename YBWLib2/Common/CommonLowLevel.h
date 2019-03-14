@@ -110,7 +110,7 @@ namespace YBWLib2 {
 				n += (bitsize >> 1);
 				x <<= (bitsize >> 1);
 			}
-			count_leading_zero_expand_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
+			count_leading_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
 		}
 	}
 
