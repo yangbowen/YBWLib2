@@ -106,7 +106,7 @@ namespace YBWLib2 {
 			n += x & (1 << (sizeof(_Uint_Ty) * 8 - 1)) ? 0 : 1;
 		} else {
 			static_assert(!(bitsize & 0x1), "Unexpected semantic error.");
-			if (!(x & ((1 << (bitsize >> 1)) - 1))) {
+			if (!(x & (((1 << (bitsize >> 1)) - 1) << (bitsize >> 1)))) {
 				n += (bitsize >> 1);
 				x <<= (bitsize >> 1);
 			}
