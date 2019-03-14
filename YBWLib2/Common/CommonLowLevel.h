@@ -90,23 +90,30 @@ namespace YBWLib2 {
 	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-		static_assert(bitsize <= sizeof(_Uint_Ty) * 8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		static_assert(bitsize <= sizeof(_Uint_Ty) * 0x8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 		if constexpr (bitsize & (bitsize - 1)) {
 			static_assert(
 				!(count_leading_zero_expand_helper<bitsize> & ((count_leading_zero_expand_helper<bitsize>) - 1))
 				&& count_leading_zero_expand_helper<bitsize> > bitsize
-				&& count_leading_zero_expand_helper<bitsize> <= sizeof(_Uint_Ty) * 8
+				&& count_leading_zero_expand_helper<bitsize> <= sizeof(_Uint_Ty) * 0x8
 				, "Unexpected semantic error."
 				);
-			x |= ((1 << ((count_leading_zero_expand_helper<bitsize>) - bitsize)) - 1);
+			x |= (((_Uint_Ty)1 << ((count_leading_zero_expand_helper<bitsize>) - bitsize)) - 1);
 			count_leading_zero_helper<_Uint_Ty, count_leading_zero_expand_helper<bitsize>>(x, n);
 		} else if constexpr (!bitsize) {
 			return;
-		} else if constexpr (bitsize == 1) {
-			n += x & (1 << (sizeof(_Uint_Ty) * 8 - 1)) ? 0 : 1;
+		} else if constexpr (bitsize == 0x1) {
+			static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
+			n += table_1[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x1)) & (((size_t)1 << 0x1) - 1)];
+		} else if constexpr (bitsize == 0x2) {
+			static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x1, 0x0, 0x0 };
+			n += table_2[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x2)) & (((size_t)1 << 0x2) - 1)];
+		} else if constexpr (bitsize == 0x4) {
+			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+			n += table_4[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x4)) & (((size_t)1 << 0x4) - 1)];
 		} else {
-			static_assert(!(bitsize & 0x1), "Unexpected semantic error.");
-			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * 8 - (bitsize >> 1))))) {
+			static_assert(!(bitsize & 1), "Unexpected semantic error.");
+			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * 0x8 - (bitsize >> 1))))) {
 				n += (bitsize >> 1);
 				x <<= (bitsize >> 1);
 			}
@@ -119,7 +126,7 @@ namespace YBWLib2 {
 	inline constexpr size_t count_leading_zero(_Uint_Ty x) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 8>(x, n);
+		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 0x8>(x, n);
 		return n;
 	}
 
