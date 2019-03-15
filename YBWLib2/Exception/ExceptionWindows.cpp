@@ -80,8 +80,8 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_exception_t;
-			map_strtmpl_description_exception_t map_strtmpl_description_exception({
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeThisClassID<ExternalAPIFailureWithLastErrorException>(), &ExternalAPIFailureWithLastErrorException::strtmpl_description }
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 				, { GetDynamicTypeThisClassID<ExternalAPIFailureWithWSALastErrorException>(), &ExternalAPIFailureWithWSALastErrorException::strtmpl_description }
@@ -96,53 +96,53 @@ namespace YBWLib2 {
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval("ExceptionWindows"));
 			if (jsonmemberit_config_internal_ExceptionWindows == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_ExceptionWindows->value.IsObject()) abort();
 			{
-				Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception = jsonmemberit_config_internal_ExceptionWindows->value.FindMember(Internal::ConstStringToInternalConfigJsonval("strtmpl_description_exception"));
-				if (jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception == jsonmemberit_config_internal_ExceptionWindows->value.MemberEnd() || !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception->value.IsArray()) abort();
+				Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description = jsonmemberit_config_internal_ExceptionWindows->value.FindMember(Internal::ConstStringToInternalConfigJsonval("strtmpl_description"));
+				if (jsonmemberit_config_internal_ExceptionWindows_strtmpl_description == jsonmemberit_config_internal_ExceptionWindows->value.MemberEnd() || !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description->value.IsArray()) abort();
 				{
-					for (const Internal::jsonval_config_internal_t& jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element : jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception->value.GetArray()) {
-						if (!jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.IsObject()) abort();
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_exception = jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_exception"));
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_strtmpl"));
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_jsonval_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.FindMember(Internal::ConstStringToInternalConfigJsonval("jsonval_strtmpl"));
+					for (const Internal::jsonval_config_internal_t& jsonval_config_internal_ExceptionWindows_strtmpl_description_element : jsonmemberit_config_internal_ExceptionWindows_strtmpl_description->value.GetArray()) {
+						if (!jsonval_config_internal_ExceptionWindows_strtmpl_description_element.IsObject()) abort();
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_exception"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_strtmpl"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("jsonval_strtmpl"));
 						if (
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_exception == jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.MemberEnd()
-							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_exception->value.IsString()
-							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.MemberEnd()
-							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_strtmpl->value.IsString()
-							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_jsonval_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_exception_element.MemberEnd()
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
+							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.IsString()
+							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
+							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.IsString()
+							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
 						DynamicTypeClassID dtclassid_exception = DynamicTypeClassIDFromUUIDString_RunTime(
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_exception->value.GetString(),
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_exception->value.GetStringLength(),
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.GetString(),
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.GetStringLength(),
 							is_successful
 						);
 						if (!is_successful) abort();
 						is_successful = true;
 						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_strtmpl->value.GetString(),
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_dtclassid_strtmpl->value.GetStringLength(),
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
 						);
 						if (!is_successful) abort();
-						map_strtmpl_description_exception_t::iterator it_map_strtmpl_description_exception = map_strtmpl_description_exception.find(dtclassid_exception);
-						if (it_map_strtmpl_description_exception == map_strtmpl_description_exception.end()) continue;
+						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_exception);
+						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;
 						DynamicTypeClassObj* dtclassobj_strtmpl = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&dtclassid_strtmpl);
 						if (!dtclassobj_strtmpl) abort();
 						IndexedDataStore indexeddatastore_parameters(rawallocator_crt_YBWLib2);
 						ConstructorIDParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, ConstructorIDParameterIndexedDataEntry(ConstructorID_StringTemplateFromJSONSAXGenerator));
 						RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
-						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_exception_element_jsonval_strtmpl->value);
+						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl->value);
 						JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-						*it_map_strtmpl_description_exception->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
-						if (!*it_map_strtmpl_description_exception->second) abort();
+						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+						if (!*it_map_strtmpl_description->second) abort();
 						objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 							[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {
 								return ExceptionReturnParameterIndexedDataEntry::MoveFromStore(indexeddatastore_parameters, ptr_placement);
 							}
 						);
 						if (objholder_indexeddataentry_parameter_exception_return && objholder_indexeddataentry_parameter_exception_return->exception) abort();
-						map_strtmpl_description_exception.erase(it_map_strtmpl_description_exception);
+						map_strtmpl_description.erase(it_map_strtmpl_description);
 					}
 				}
 			}

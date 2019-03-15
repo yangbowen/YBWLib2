@@ -5,7 +5,7 @@
       "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
       "jsonval_strtmpl": "\nBecause:\n"
     },
-    "strtmpl_description_exception": [
+    "strtmpl_description": [
       {
         // Exception
         "dtclassid_exception": "ae07f679-f0a1-4f24-9e1b-2e7ad8f59f6d",
@@ -119,7 +119,7 @@
     ]
   },
   "ExceptionWindows": {
-    "strtmpl_description_exception": [
+    "strtmpl_description": [
       {
         // ExternalAPIFailureWithLastErrorException
         "dtclassid_exception": "fead69a8-4bff-4eaf-95a9-c235784a827d",
@@ -179,7 +179,7 @@
     ]
   },
   "JSON": {
-    "strtmpl_description_exception": [
+    "strtmpl_description": [
       {
         // JSONException
         "dtclassid_exception": "b3549309-4fdd-483c-810e-1247d13aaa8b",
@@ -202,7 +202,7 @@
     ]
   },
   "File": {
-    "strtmpl_description_exception": [
+    "strtmpl_description": [
       {
         // FileException
         "dtclassid_exception": "a3232404-3264-47c1-aaab-e20132d99fd9",
@@ -225,6 +225,31 @@
           { "name_parameter": "address_file" },
           "\nFile description: ",
           { "name_parameter": "description_file" }
+        ]
+      },
+      {
+        // EofFileException
+        "dtclassid_exception": "ab687fb2-4c3f-45c2-b1e0-9b9c2aa2a479",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "A file is attempted to be accessed in some ways unsupported when the position is beyond the last byte of the file.\nFile object address: ",
+          { "name_parameter": "address_file" },
+          "\nFile description: ",
+          { "name_parameter": "description_file" }
+        ]
+      },
+      {
+        // MemoryFile
+        "dtclassid_exception": "ce0268fb-69ab-4838-be0e-7b4f7f453f9a",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "[MemoryFile Address=",
+          { "name_parameter": "address_memory_block" },
+          " Size=",
+          { "name_parameter": "size_memory_block" },
+          "]"
         ]
       }
     ]

@@ -321,6 +321,7 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
+		inline ReferenceCountedObject() noexcept : ref_count(1) {}
 		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept : ref_count(1) {
 			static_cast<void>(x);
 		}

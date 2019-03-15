@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <type_traits>
+#include <mutex>
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
 #include "../Common/Common.h"
@@ -29,6 +30,14 @@ namespace YBWLib2 {
 	class ISeekableFile;
 	class IReadableFile;
 	class IWriteableFile;
+	class File;
+	class SizedFile;
+	class SeekableFile;
+	class ReadableFile;
+	class WriteableFile;
+	class SizetSizedFile;
+	class SizetSeekableFile;
+	class MemoryFile;
 
 	/// <summary>An exception that relates to a file.</summary>
 	class IFileException abstract : public virtual IException {
@@ -41,7 +50,7 @@ namespace YBWLib2 {
 		/// Pointer to the <c>IFile</c> object related to the exception.
 		/// The object on which this member function is called keeps one reference count of the <c>IFile</c> object.
 		/// </returns>
-		virtual IFile* GetFile() const noexcept = 0;
+		virtual const IFile* GetFile() const noexcept = 0;
 	};
 
 	/// <summary>An exception that occurs because the file position is attempted to be set beyond the start of the file.</summary>
@@ -50,6 +59,14 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IBofFileException, YBWLIB2_API, "71f26d51-6f27-49de-99ab-8142c5c54f39");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IBofFileException);
 		inline virtual ~IBofFileException() = default;
+	};
+
+	/// <summary>An exception that occurs because the file is attempted to be accessed in some ways unsupported when the position is beyond the last byte of the file.</summary>
+	class IEofFileException abstract : public virtual IFileException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IEofFileException, YBWLIB2_API, "e255d047-bd87-4ef8-8b96-091ef18618c8");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IEofFileException);
+		inline virtual ~IEofFileException() = default;
 	};
 
 #ifdef _MSC_VER
@@ -73,7 +90,7 @@ namespace YBWLib2 {
 		/// Pointer to the <c>IFile</c> object related to the exception.
 		/// The constructed object increments and keeps one reference count of the <c>IFile</c> object.
 		/// </param>
-		inline FileException(IFile* _file) noexcept : holder_file(_file, ReferenceCountedObjectHolder<IFile>::inc_ref_count) {}
+		inline FileException(const IFile* _file) noexcept : holder_file(_file, ReferenceCountedObjectHolder<const IFile>::inc_ref_count) {}
 		inline virtual ~FileException() {}
 		/// <summary>
 		/// Gets a human-readable description for this exception.
@@ -113,9 +130,9 @@ namespace YBWLib2 {
 		/// Pointer to the <c>IFile</c> object related to the exception.
 		/// The object on which this member function is called keeps one reference count of the <c>IFile</c> object.
 		/// </returns>
-		inline virtual IFile* GetFile() const noexcept override { return this->holder_file.get(); }
+		inline virtual const IFile* GetFile() const noexcept override { return this->holder_file.get(); }
 	protected:
-		ReferenceCountedObjectHolder<IFile> holder_file;
+		ReferenceCountedObjectHolder<const IFile> holder_file;
 	};
 
 	/// <summary>
@@ -135,8 +152,62 @@ namespace YBWLib2 {
 		/// Pointer to the <c>IFile</c> object related to the exception.
 		/// The constructed object increments and keeps one reference count of the <c>IFile</c> object.
 		/// </param>
-		inline BofFileException(IFile* _file) noexcept : FileException(_file) {}
+		inline BofFileException(const IFile* _file) noexcept : FileException(_file) {}
 		inline virtual ~BofFileException() {}
+		/// <summary>
+		/// Gets a human-readable description for this exception.
+		/// The underlying cause is not included.
+		/// <c>GetDescriptionTotal</c> normally calls this member function.
+		/// </summary>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this exception.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <c>ExceptionAllocateMemory</c>.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available for this exception, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this exception.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this exception.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available for this exception, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="is_successful_ret">
+		/// Optional pointer to a variable that receives whether the call is successful.
+		/// If this pointer is supplied, <c>*is_successful_ret</c> will be set to <c>true</c> if the call succeeds, and <c>false</c> otherwise.
+		/// Any value originally in <c>*is_successful_ret</c> will be discarded.
+		/// If this pointer is empty, it will be ignored by this function.
+		/// </param>
+		/// <returns>
+		/// If the call is successful, The pointer <c>this</c> is returned.
+		/// Otherwise, the function becomes responsible for destructing and freeing the object on which the function is called itself,
+		/// and returns a pointer to a newly-created exception object (which has a base class of <c>IDoubleExceptionException</c>) that represents the failure.
+		/// Either way, the caller should stop managing the object using the pointer on which this function is called, and start managing the object pointed to by the returned pointer.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetDescriptionSingleLevel(char** description_ret, size_t* size_description_ret, bool* is_successful_ret = nullptr) noexcept override;
+	};
+
+	/// <summary>
+	/// A default implementation of <c>IEofFileException</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>IEofFileException</c>.
+	/// </summary>
+	class EofFileException
+		: public virtual FileException,
+		public virtual IEofFileException {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(EofFileException, , "ab687fb2-4c3f-45c2-b1e0-9b9c2aa2a479");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(EofFileException);
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
+		/// <summary>Constructs an <c>EofFileException</c> object.</summary>
+		/// <param name="_file">
+		/// Pointer to the <c>IFile</c> object related to the exception.
+		/// The constructed object increments and keeps one reference count of the <c>IFile</c> object.
+		/// </param>
+		inline EofFileException(const IFile* _file) noexcept : FileException(_file) {}
+		inline virtual ~EofFileException() {}
 		/// <summary>
 		/// Gets a human-readable description for this exception.
 		/// The underlying cause is not included.
@@ -203,7 +274,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) noexcept = 0;
+		[[nodiscard]] virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -431,7 +502,10 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IReadableFile, YBWLIB2_API, "1bff7b77-8bcb-42a4-8ccf-bd5e297a351e");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IReadableFile);
-		/// <summary>Reads from the current position to the buffer.</summary>
+		/// <summary>
+		/// Reads from the current position to the buffer.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be read.</param>
 		/// <returns>
@@ -439,7 +513,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] virtual IException* Read(void* buf, size_t size_buf) const noexcept = 0;
+		[[nodiscard]] virtual IException* Read(void* buf, size_t size_buf) noexcept = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -453,7 +527,10 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IWriteableFile, YBWLIB2_API, "4d104398-ff0f-4a4c-934a-0cf1bbcfc4ce");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IWriteableFile);
-		/// <summary>Writes from the buffer to the current position.</summary>
+		/// <summary>
+		/// Writes from the buffer to the current position.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be written.</param>
 		/// <returns>
@@ -485,6 +562,12 @@ namespace YBWLib2 {
 	template<typename _Uint_Ty>
 	[[nodiscard]] inline IException* GenericUintFromLarge(_Uint_Ty* uint_ret, const void* buf_uint, size_t size_buf_uint) noexcept {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		if (!uint_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+		if (!size_buf_uint) {
+			*uint_ret = 0;
+			return nullptr;
+		}
+		if (!buf_uint) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 		*uint_ret = 0;
 		if (sizeof(_Uint_Ty) >= size_buf_uint) {
 			if (*is_byte_order_le) {
@@ -535,6 +618,13 @@ namespace YBWLib2 {
 	template<typename _Uint_Ty>
 	[[nodiscard]] inline IException* GenericUintToLarge(_Uint_Ty uint, void* buf_uint, size_t size_buf_uint) noexcept {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		if (!size_buf_uint) {
+			if (uint)
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+			else
+				return nullptr;
+		}
+		if (!buf_uint) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
 		if (size_buf_uint >= sizeof(_Uint_Ty)) {
 			if (*is_byte_order_le) {
 				memcpy(buf_uint, reinterpret_cast<const void*>(&uint), sizeof(_Uint_Ty));
@@ -603,7 +693,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) noexcept override = 0;
+		[[nodiscard]] virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept override = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -689,6 +779,19 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(SeekableFile, , "7848b484-524e-4efd-9ce1-e5424ec71a93");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(SeekableFile);
+		inline SeekableFile() noexcept : lock_position_file() {}
+		inline SeekableFile(const SeekableFile& x) noexcept : lock_position_file() {
+			static_cast<void>(x);
+		}
+		inline SeekableFile(SeekableFile&& x) noexcept : lock_position_file() {
+			static_cast<void>(x);
+		}
+		inline SeekableFile& operator=(const SeekableFile& x) noexcept {
+			static_cast<void>(x);
+		}
+		inline SeekableFile& operator=(SeekableFile&& x) noexcept {
+			static_cast<void>(x);
+		}
 		/// <summary>
 		/// Returns a pointer to the <c>ILockableObject</c> object that locks the file position.
 		/// The object on which this member function is called, instead of the caller, owns the object pointed to by the returned pointer.
@@ -853,7 +956,10 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReadableFile, , "e3a04ee9-ecc0-440c-b106-2e23d52ec27f");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReadableFile);
-		/// <summary>Reads from the current position to the buffer.</summary>
+		/// <summary>
+		/// Reads from the current position to the buffer.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be read.</param>
 		/// <returns>
@@ -861,7 +967,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] virtual IException* Read(void* buf, size_t size_buf) const noexcept override = 0;
+		[[nodiscard]] virtual IException* Read(void* buf, size_t size_buf) noexcept override = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -882,7 +988,10 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(WriteableFile, , "fed17616-b3d8-4dce-bf77-2c088e661cda");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(WriteableFile);
-		/// <summary>Writes from the buffer to the current position.</summary>
+		/// <summary>
+		/// Writes from the buffer to the current position.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
 		/// <param name="buf">Pointer to the buffer.</param>
 		/// <param name="size">The number of bytes to be written.</param>
 		/// <returns>
@@ -1252,6 +1361,608 @@ namespace YBWLib2 {
 		virtual ~SizetSeekableFile() = default;
 	};
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>
+	/// An implementation of <c>IFile</c>, <c>IReadableFile</c>, <c>IWriteableFile</c>, <c>ISizedFile</c> and <c>ISeekableFile</c> that operates on a memory area.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by the interface classes.
+	/// Has a reference count of <c>1</c> when constructed.
+	/// </summary>
+	class MemoryFile
+		: public virtual SizetSizedFile,
+		public virtual SizetSeekableFile,
+		public virtual ReadableFile,
+		public virtual WriteableFile {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(MemoryFile, , "ce0268fb-69ab-4838-be0e-7b4f7f453f9a");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(MemoryFile);
+		typedef void(YBWLIB2_CALLTYPE* fnptr_release_view_t)(uintptr_t context, void* address_memory_block, size_t size_memory_block) noexcept;
+		typedef void(YBWLIB2_CALLTYPE* fnptr_release_view_readonly_t)(uintptr_t context, const void* address_memory_block, size_t size_memory_block) noexcept;
+		struct view_memory_t {};
+		struct view_memory_readonly_t {};
+		struct allocate_memory_t {};
+		struct adopt_allocated_memory_t {};
+		static constexpr view_memory_t view_memory {};
+		static constexpr view_memory_readonly_t view_memory_readonly {};
+		static constexpr allocate_memory_t allocate_memory {};
+		static constexpr adopt_allocated_memory_t adopt_allocated_memory {};
+		static YBWLIB2_API IStringTemplate* strtmpl_description;
+		inline MemoryFile(
+			view_memory_t,
+			void* _address_memory_block,
+			size_t _size_memory_block,
+			fnptr_release_view_t _fnptr_release_view = nullptr,
+			uintptr_t _context = 0
+		) noexcept(false)
+			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory, _address_memory_block, _size_memory_block, _fnptr_release_view, _context), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+		inline MemoryFile(
+			view_memory_readonly_t,
+			const void* _address_memory_block,
+			size_t _size_memory_block,
+			fnptr_release_view_readonly_t _fnptr_release_view = nullptr,
+			uintptr_t _context = 0
+		) noexcept(false)
+			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory_readonly, _address_memory_block, _size_memory_block, _fnptr_release_view, _context), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+		inline MemoryFile(allocate_memory_t, const rawallocator_t* _rawallocator, size_t _size_memory_block_initial) noexcept(false)
+			: objholder_holder_memory_block(new MemoryBlockHolder(allocate_memory, _rawallocator, _size_memory_block_initial), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+		inline MemoryFile(adopt_allocated_memory_t, const rawallocator_t* _rawallocator, void* _address_memory_block, size_t _size_memory_block_initial) noexcept(false)
+			: objholder_holder_memory_block(new MemoryBlockHolder(adopt_allocated_memory, _rawallocator, _address_memory_block, _size_memory_block_initial), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+		inline MemoryFile(const MemoryFile& x) noexcept(false)
+			: ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
+			File(static_cast<const File&>(x)),
+			ISizedFile(static_cast<const ISizedFile&>(x)),
+			ISeekableFile(static_cast<const ISeekableFile&>(x)),
+			IReadableFile(static_cast<const IReadableFile&>(x)),
+			IWriteableFile(static_cast<const IWriteableFile&>(x)),
+			SizedFile(static_cast<const SizedFile&>(x)),
+			SeekableFile(static_cast<const SeekableFile&>(x)),
+			SizetSizedFile(static_cast<const SizetSizedFile&>(x)),
+			SizetSeekableFile(static_cast<const SizetSeekableFile&>(x)),
+			ReadableFile(static_cast<const ReadableFile&>(x)),
+			WriteableFile(static_cast<const WriteableFile&>(x)) {
+				{
+					LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+					objholder_holder_memory_block = x.objholder_holder_memory_block;
+					position_file = x.position_file;
+				}
+		}
+		inline MemoryFile(MemoryFile&& x) noexcept(false)
+			: ReferenceCountedObject(static_cast<ReferenceCountedObject&&>(::std::move(x))),
+			File(static_cast<File&&>(::std::move(x))),
+			ISizedFile(static_cast<ISizedFile&&>(::std::move(x))),
+			ISeekableFile(static_cast<ISeekableFile&&>(::std::move(x))),
+			IReadableFile(static_cast<IReadableFile&&>(::std::move(x))),
+			IWriteableFile(static_cast<IWriteableFile&&>(::std::move(x))),
+			SizedFile(static_cast<SizedFile&&>(::std::move(x))),
+			SeekableFile(static_cast<SeekableFile&&>(::std::move(x))),
+			SizetSizedFile(static_cast<SizetSizedFile&&>(::std::move(x))),
+			SizetSeekableFile(static_cast<SizetSeekableFile&&>(::std::move(x))),
+			ReadableFile(static_cast<ReadableFile&&>(::std::move(x))),
+			WriteableFile(static_cast<WriteableFile&&>(::std::move(x))) {
+				{
+					LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+					objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
+					position_file = ::std::move(x.position_file);
+					x.position_file = 0;
+				}
+		}
+		inline MemoryFile& operator=(const MemoryFile& x) noexcept(false) {
+			static_cast<ReferenceCountedObject&>(*this) = static_cast<const ReferenceCountedObject&>(x);
+			static_cast<File&>(*this) = static_cast<const File&>(x);
+			static_cast<ISizedFile&>(*this) = static_cast<const ISizedFile&>(x);
+			static_cast<ISeekableFile&>(*this) = static_cast<const ISeekableFile&>(x);
+			static_cast<IReadableFile&>(*this) = static_cast<const IReadableFile&>(x);
+			static_cast<IWriteableFile&>(*this) = static_cast<const IWriteableFile&>(x);
+			static_cast<SizedFile&>(*this) = static_cast<const SizedFile&>(x);
+			static_cast<SeekableFile&>(*this) = static_cast<const SeekableFile&>(x);
+			static_cast<SizetSizedFile&>(*this) = static_cast<const SizetSizedFile&>(x);
+			static_cast<SizetSeekableFile&>(*this) = static_cast<const SizetSeekableFile&>(x);
+			static_cast<ReadableFile&>(*this) = static_cast<const ReadableFile&>(x);
+			static_cast<WriteableFile&>(*this) = static_cast<const WriteableFile&>(x);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+				objholder_holder_memory_block = x.objholder_holder_memory_block;
+				position_file = x.position_file;
+			}
+		}
+		inline MemoryFile& operator=(MemoryFile&& x) noexcept(false) {
+			static_cast<ReferenceCountedObject&>(*this) = static_cast<ReferenceCountedObject&&>(::std::move(x));
+			static_cast<File&>(*this) = static_cast<File&&>(::std::move(x));
+			static_cast<ISizedFile&>(*this) = static_cast<ISizedFile&&>(::std::move(x));
+			static_cast<ISeekableFile&>(*this) = static_cast<ISeekableFile&&>(::std::move(x));
+			static_cast<IReadableFile&>(*this) = static_cast<IReadableFile&&>(::std::move(x));
+			static_cast<IWriteableFile&>(*this) = static_cast<IWriteableFile&&>(::std::move(x));
+			static_cast<SizedFile&>(*this) = static_cast<SizedFile&&>(::std::move(x));
+			static_cast<SeekableFile&>(*this) = static_cast<SeekableFile&&>(::std::move(x));
+			static_cast<SizetSizedFile&>(*this) = static_cast<SizetSizedFile&&>(::std::move(x));
+			static_cast<SizetSeekableFile&>(*this) = static_cast<SizetSeekableFile&&>(::std::move(x));
+			static_cast<ReadableFile&>(*this) = static_cast<ReadableFile&&>(::std::move(x));
+			static_cast<WriteableFile&>(*this) = static_cast<WriteableFile&&>(::std::move(x));
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+				objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
+				position_file = ::std::move(x.position_file);
+				x.position_file = 0;
+			}
+		}
+		/// <summary>Gets a human-readable description for this file.</summary>
+		/// <param name="_rawallocator">A pointer to a <c>rawallocator_t</c> object for allocating memory used by this function, including the memory for <c>*description_ret</c>.</param>
+		/// <param name="description_ret">
+		/// Pointer to a pointer variable that receives a pointer to the description string, in UTF-8, for this file.
+		/// After successfully returning from this member function, <c>*description_ret</c> will be set to the description string for this file.
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*description_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*description_ret</c>.
+		/// The memory will be allocated using <paramref name="_rawallocator" />.
+		/// Any value originally in <c>*description_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// If there wasn't a human-readable description available for this file, <c>*description_ret</c> will be set to an empty pointer.
+		/// </param>
+		/// <param name="size_description_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the description string, in UTF-8, for this file, including the terminating null character, if any.
+		/// After successfully returning from this member function, <c>*size_description_ret</c> will be set to the size (in <c>char</c>s) of the description string for this file.
+		/// Any value originally in <c>*size_description_ret</c> will be discarded.
+		/// If there wasn't a human-readable description available for this file, <c>*size_description_ret</c> will be set to <c>0</c>.
+		/// </param>
+		/// <param name="should_null_terminate">Whether a terminating null character should be added to the end of the description string.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept;
+		/// <summary>Gets the size of the file.</summary>
+		/// <param name="size_ret">A pointer to a variable that receives the current file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GetFileSize(size_t* size_ret) const noexcept override {
+			if (!size_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, GetFileSize);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						*size_ret = holder_memory_block->size_memory_block;
+					}
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>Sets the size of the file.</summary>
+		/// <param name="size">The new file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SetFileSize(size_t size) noexcept override {
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						if (size != holder_memory_block->size_memory_block) {
+							if (holder_memory_block->is_readonly || !holder_memory_block->rawallocator) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SetFileSize);
+							holder_memory_block->address_memory_block = holder_memory_block->rawallocator->Reallocate(holder_memory_block->address_memory_block, holder_memory_block->size_memory_block, size);
+							if (!holder_memory_block->address_memory_block) {
+								holder_memory_block->size_memory_block = 0;
+								return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+							}
+							holder_memory_block->size_memory_block = size;
+						}
+					}
+				}
+			}
+		}
+		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
+		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* IsEof(bool* is_eof_ret) const noexcept override {
+			if (!is_eof_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, IsEof);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						*is_eof_ret = this->position_file >= holder_memory_block->size_memory_block;
+					}
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>Seeks to the position with a specified distance after the start of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the start of the file and the target position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromBegin(size_t distance) noexcept override {
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				this->position_file = distance;
+			}
+			return nullptr;
+		}
+		/// <summary>Seeks to the position with a specified distance before the end of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the end of file.
+		/// A distance of <c>0</c> specifies the end of file (just after the last byte).
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromEnd(size_t distance) noexcept override {
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						if (distance > holder_memory_block->size_memory_block) return new BofFileException(this);
+						this->position_file = holder_memory_block->size_memory_block - distance;
+					}
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>Seeks to the position with a specified distance after the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the current position and the target position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekForward(size_t distance) noexcept override {
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				if (distance > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SeekForward);
+				this->position_file = this->position_file + distance;
+			}
+			return nullptr;
+		}
+		/// <summary>Seeks to the position with a specified distance before the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the current position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekBackward(size_t distance) noexcept override {
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				if (distance > this->position_file) return new BofFileException(this);
+				this->position_file = this->position_file - distance;
+			}
+			return nullptr;
+		}
+		/// <summary>Gets the distance between the start of the file and the current position.</summary>
+		/// <param name="distance_ret">
+		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* Tell(size_t* distance_ret) const noexcept override {
+			if (!distance_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Tell);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				*distance_ret = this->position_file;
+			}
+			return nullptr;
+		}
+		/// <summary>
+		/// Reads from the current position to the buffer.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
+		/// <param name="buf">Pointer to the buffer.</param>
+		/// <param name="size">The number of bytes to be read.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* Read(void* buf, size_t size_buf) noexcept override {
+			if (!size_buf) return nullptr;
+			if (!buf) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				if (size_buf > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						if (this->position_file + size_buf > holder_memory_block->size_memory_block) return new EofFileException(this);
+						if (holder_memory_block->is_readonly) {
+							if (!holder_memory_block->address_memory_block_readonly) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
+							memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block_readonly) + this->position_file), size_buf);
+						} else {
+							if (!holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
+							memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), size_buf);
+						}
+						this->position_file += size_buf;
+					}
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>
+		/// Writes from the buffer to the current position.
+		/// If the file object on which this member function is called has a meaningful file position, the position goes forward to just after the written data.
+		/// </summary>
+		/// <param name="buf">Pointer to the buffer.</param>
+		/// <param name="size">The number of bytes to be written.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* Write(const void* buf, size_t size_buf) noexcept override {
+			if (!size_buf) return nullptr;
+			if (!buf) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
+			{
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				if (size_buf > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				{
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						if (holder_memory_block->is_readonly || !holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
+						if (this->position_file + size_buf > holder_memory_block->size_memory_block) {
+							IException* err_inner = this->SetFileSize(this->position_file + size_buf);
+							if (err_inner) {
+								if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+									IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
+									err->AttachCause(err_inner);
+									err_inner = nullptr;
+									return err;
+								} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+									IException* err = new EofFileException(this);
+									err->AttachCause(err_inner);
+									err_inner = nullptr;
+									return err;
+								} else {
+									return err_inner;
+								}
+							}
+						}
+						if (!holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+						if (this->position_file + size_buf > holder_memory_block->size_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
+						memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), buf, size_buf);
+						this->position_file += size_buf;
+					}
+				}
+			}
+			return nullptr;
+		}
+	protected:
+		/// <summary>
+		/// Reference counted memory block holder.
+		/// Has a reference count of <c>1</c> when constructed.
+		/// </summary>
+		class MemoryBlockHolder final : public virtual ReferenceCountedObject {
+		public:
+			mutable LockableObjectFromSTLWrapper<::std::recursive_mutex> lock_memory_block_holder;
+			union {
+				void* address_memory_block = nullptr;
+				const void* address_memory_block_readonly;
+			};
+			size_t size_memory_block = 0;
+			bool is_readonly = false;
+			const rawallocator_t* rawallocator = nullptr;
+			union {
+				fnptr_release_view_t fnptr_release_view = nullptr;
+				fnptr_release_view_readonly_t fnptr_release_view_readonly;
+			};
+			uintptr_t context = 0;
+			inline MemoryBlockHolder(
+				view_memory_t,
+				void* _address_memory_block,
+				size_t _size_memory_block,
+				fnptr_release_view_t _fnptr_release_view = nullptr,
+				uintptr_t _context = 0
+			) noexcept(false)
+				: address_memory_block(_address_memory_block),
+				size_memory_block(_size_memory_block),
+				rawallocator(nullptr),
+				fnptr_release_view(_fnptr_release_view),
+				context(_context) {
+				if (!this->address_memory_block && this->size_memory_block)
+					throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile::MemoryBlockHolder, MemoryBlockHolder));
+			}
+			inline MemoryBlockHolder(
+				view_memory_readonly_t,
+				const void* _address_memory_block,
+				size_t _size_memory_block,
+				fnptr_release_view_readonly_t _fnptr_release_view = nullptr,
+				uintptr_t _context = 0
+			) noexcept(false)
+				: address_memory_block_readonly(_address_memory_block),
+				size_memory_block(_size_memory_block),
+				is_readonly(true),
+				rawallocator(nullptr),
+				fnptr_release_view_readonly(_fnptr_release_view),
+				context(_context) {
+				if (!this->address_memory_block_readonly && this->size_memory_block)
+					throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile::MemoryBlockHolder, MemoryBlockHolder));
+			}
+			inline MemoryBlockHolder(allocate_memory_t, const rawallocator_t* _rawallocator, size_t _size_memory_block_initial) noexcept(false)
+				: rawallocator(_rawallocator) {
+				this->size_memory_block = _size_memory_block_initial;
+				this->address_memory_block = this->rawallocator->Allocate(this->size_memory_block);
+				if (!this->address_memory_block) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			}
+			inline MemoryBlockHolder(adopt_allocated_memory_t, const rawallocator_t* _rawallocator, void* _address_memory_block, size_t _size_memory_block_initial) noexcept(false)
+				: address_memory_block(_address_memory_block), size_memory_block(_size_memory_block_initial), rawallocator(_rawallocator) {
+				if (!this->address_memory_block && this->size_memory_block)
+					throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile::MemoryBlockHolder, MemoryBlockHolder));
+			}
+			MemoryBlockHolder(const MemoryBlockHolder&) = delete;
+			inline MemoryBlockHolder(MemoryBlockHolder&& x) noexcept(false)
+				: ReferenceCountedObject(),
+				lock_memory_block_holder() {
+				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
+				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
+				this->is_readonly = ::std::move(x.is_readonly);
+				if (this->is_readonly) {
+					this->address_memory_block_readonly = ::std::move(x.address_memory_block_readonly);
+					x.address_memory_block_readonly = nullptr;
+				} else {
+					this->address_memory_block = ::std::move(x.address_memory_block);
+					x.address_memory_block = nullptr;
+				}
+				this->size_memory_block = ::std::move(x.size_memory_block);
+				x.size_memory_block = 0;
+				this->rawallocator = ::std::move(x.rawallocator);
+				x.rawallocator = nullptr;
+				this->fnptr_release_view = ::std::move(x.fnptr_release_view);
+				x.fnptr_release_view = nullptr;
+				this->context = ::std::move(x.context);
+				x.context = 0;
+			}
+			MemoryBlockHolder& operator=(const MemoryBlockHolder&) = delete;
+			inline MemoryBlockHolder& operator=(MemoryBlockHolder&& x) noexcept(false) {
+				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
+				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
+				this->is_readonly = ::std::move(x.is_readonly);
+				if (this->is_readonly) {
+					this->address_memory_block_readonly = ::std::move(x.address_memory_block_readonly);
+					x.address_memory_block_readonly = nullptr;
+				} else {
+					this->address_memory_block = ::std::move(x.address_memory_block);
+					x.address_memory_block = nullptr;
+				}
+				this->size_memory_block = ::std::move(x.size_memory_block);
+				x.size_memory_block = 0;
+				this->rawallocator = ::std::move(x.rawallocator);
+				x.rawallocator = nullptr;
+				this->fnptr_release_view = ::std::move(x.fnptr_release_view);
+				x.fnptr_release_view = nullptr;
+				this->context = ::std::move(x.context);
+				x.context = 0;
+			}
+		protected:
+			/// <summary>
+			/// Destructor intentionally declared protected.
+			/// Object users should use the reference counting mechanism instead.
+			/// </summary>
+			virtual ~MemoryBlockHolder() {
+				if (this->is_readonly) {
+					if (this->address_memory_block_readonly) {
+						if (this->fnptr_release_view_readonly)
+							(*this->fnptr_release_view_readonly)(this->context, this->address_memory_block_readonly, this->size_memory_block);
+						this->address_memory_block_readonly = nullptr;
+					}
+				} else {
+					if (this->address_memory_block) {
+						if (this->fnptr_release_view)
+							(*this->fnptr_release_view)(this->context, this->address_memory_block, this->size_memory_block);
+						if (this->rawallocator)
+							this->rawallocator->Deallocate(this->address_memory_block, this->size_memory_block);
+						this->address_memory_block = nullptr;
+					}
+				}
+				this->size_memory_block = 0;
+				this->rawallocator = nullptr;
+				this->fnptr_release_view = nullptr;
+				this->context = 0;
+			}
+			/// <summary>
+			/// Destructs the object and frees any resources allocated for the object.
+			/// This function is intended to be called only by <c>DecReferenceCount</c>.
+			/// </summary>
+			inline virtual void DeleteMe() override {
+				delete this;
+			}
+		};
+		ReferenceCountedObjectHolder<MemoryBlockHolder> objholder_holder_memory_block;
+		size_t position_file = 0;
+		mutable LockableObjectFromSTLWrapper<::std::recursive_mutex> lock_objholder_holder_memory_block;
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~MemoryFile() = default;
+		/// <summary>
+		/// Destructs the object and frees any resources allocated for the object.
+		/// This function is intended to be called only by <c>DecReferenceCount</c>.
+		/// </summary>
+		inline virtual void DeleteMe() override {
+			delete this;
+		}
+	};
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
