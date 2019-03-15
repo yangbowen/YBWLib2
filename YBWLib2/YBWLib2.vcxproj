@@ -39,6 +39,8 @@
     <ClInclude Include="Exception\ExceptionWindows.h" />
     <ClInclude Include="File\File.h" />
     <ClInclude Include="File\FileModuleLocal.h" />
+    <ClInclude Include="File\FileWindows.h" />
+    <ClInclude Include="File\FileWindowsModuleLocal.h" />
     <ClInclude Include="JSON\JSON.h" />
     <ClInclude Include="JSON\JSONModuleLocal.h" />
     <ClInclude Include="ModuleLocal.h" />
@@ -63,6 +65,7 @@
     <ClCompile Include="Exception\ExceptionLowLevel.cpp" />
     <ClCompile Include="Exception\ExceptionWindows.cpp" />
     <ClCompile Include="File\File.cpp" />
+    <ClCompile Include="File\FileWindows.cpp" />
     <ClCompile Include="JSON\JSON.cpp" />
     <ClCompile Include="ModuleLocal.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>

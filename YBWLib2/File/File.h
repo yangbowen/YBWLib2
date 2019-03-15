@@ -37,6 +37,8 @@ namespace YBWLib2 {
 	class WriteableFile;
 	class SizetSizedFile;
 	class SizetSeekableFile;
+	class ULongLongSizedFile;
+	class ULongLongSeekableFile;
 	class MemoryFile;
 
 	/// <summary>An exception that relates to a file.</summary>
@@ -1052,7 +1054,7 @@ namespace YBWLib2 {
 			size_t size = 0;
 			IException* err_inner = this->GetFileSize(&size);
 			if (err_inner) return err_inner;
-			err_inner = GenericUintToLarge(size, buf_size, size_buf_size);
+			err_inner = GenericUintToLarge<size_t>(size, buf_size, size_buf_size);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSizedFile, GetFileSizeLarge);
@@ -1335,7 +1337,7 @@ namespace YBWLib2 {
 			size_t distance = 0;
 			IException* err_inner = this->Tell(&distance);
 			if (err_inner) return err_inner;
-			err_inner = GenericUintToLarge(distance, buf_distance, size_buf_distance);
+			err_inner = GenericUintToLarge<size_t>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSeekableFile, TellLarge);
@@ -1359,6 +1361,529 @@ namespace YBWLib2 {
 		/// Object users should use the reference counting mechanism instead.
 		/// </summary>
 		virtual ~SizetSeekableFile() = default;
+	};
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>
+	/// An implementation of <c>ISizedFile</c> that has the file size always representable in <c>unsigned long long</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>ISizedFile</c>.
+	/// Has a reference count of <c>1</c> when constructed.
+	/// </summary>
+	class ULongLongSizedFile abstract : public virtual SizedFile {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ULongLongSizedFile, , "34869489-e20a-4e02-b0b0-15d3c69cad8c");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ULongLongSizedFile);
+		/// <summary>Gets the size of the file.</summary>
+		/// <param name="size_ret">A pointer to a variable that receives the current file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GetFileSize(size_t* size_ret) const noexcept override {
+			if (!size_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+			if constexpr (::std::is_same_v<size_t, unsigned long long>) {
+				return this->GetFileSizeULongLong(size_ret);
+			} else if (sizeof(size_t) == sizeof(unsigned long long) && (*is_byte_order_le || *is_byte_order_be)) {
+				return this->GetFileSizeULongLong(reinterpret_cast<unsigned long long*>(size_ret));
+			} else {
+				unsigned long long ulonglong_size = 0;
+				IException* err_inner = this->GetFileSizeULongLong(&ulonglong_size);
+				if (err_inner) {
+					if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+						err->AttachCause(err_inner);
+						err_inner = nullptr;
+						return err;
+					} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+						err->AttachCause(err_inner);
+						err_inner = nullptr;
+						return err;
+					} else {
+						return err_inner;
+					}
+				}
+				if constexpr (sizeof(size_t) < sizeof(unsigned long long))
+					if (ulonglong_size > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+				*size_ret = ulonglong_size;
+				return nullptr;
+			}
+		}
+		/// <summary>Sets the size of the file.</summary>
+		/// <param name="size">The new file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SetFileSize(size_t size) noexcept override {
+			if constexpr (sizeof(size_t) <= sizeof(unsigned long long)) {
+				return this->SetFileSizeULongLong(size);
+			} else {
+				if (size > ULLONG_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, SetFileSize);
+				unsigned long long ulonglong_size = size & ~(unsigned long long)0;
+				return this->SetFileSizeULongLong(ulonglong_size);
+			}
+		}
+		/// <summary>Gets the size of the file.</summary>
+		/// <param name="buf_size">
+		/// An unsigned integer buffer that receives the current file size (in <c>uint8_t</c>s).
+		/// The file size will be stored in machine byte order.
+		/// </param>
+		/// <param name="size_buf_size">
+		/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_size</c>.
+		/// If the buffer is insufficient to contain the current file size, the function call will fail.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* GetFileSizeLarge(void* buf_size, size_t size_buf_size) const noexcept override {
+			unsigned long long size = 0;
+			IException* err_inner = this->GetFileSizeULongLong(&size);
+			if (err_inner) return err_inner;
+			err_inner = GenericUintToLarge<unsigned long long>(size, buf_size, size_buf_size);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSizeLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSizeLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>Sets the size of the file.</summary>
+		/// <param name="buf_size">
+		/// An unsigned integer buffer that specifies the new file size (in <c>uint8_t</c>s).
+		/// The file size must be stored in machine byte order.
+		/// If the new file size is too large, the function call will fail.
+		/// </param>
+		/// <param name="size_buf_size">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_size</c>.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SetFileSizeLarge(const void* buf_size, size_t size_buf_size) noexcept override {
+			unsigned long long size = 0;
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(&size, buf_size, size_buf_size);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, SetFileSizeLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, SetFileSizeLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return this->SetFileSizeULongLong(size);
+		}
+		/// <summary>Gets the size of the file.</summary>
+		/// <param name="size_ret">A pointer to a variable that receives the current file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* GetFileSizeULongLong(unsigned long long* size_ret) const noexcept = 0;
+		/// <summary>Sets the size of the file.</summary>
+		/// <param name="size">The new file size (in <c>uint8_t</c>s).</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* SetFileSizeULongLong(unsigned long long size) noexcept = 0;
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~ULongLongSizedFile() = default;
+	};
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>
+	/// An implementation of <c>ISeekableFile</c> that has the file position always representable in <c>unsigned long long</c>.
+	/// One executable module should NOT be allowed to access objects created by other executable modules using this type.
+	/// Instead, access by <c>ISeekableFile</c>.
+	/// Has a reference count of <c>1</c> when constructed.
+	/// </summary>
+	class ULongLongSeekableFile abstract : public virtual SeekableFile {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ULongLongSeekableFile, , "6ea5ca33-fbc5-4369-9626-e1c94d8b51ff");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ULongLongSeekableFile);
+		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
+		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* IsEof(bool* is_eof_ret) const noexcept override = 0;
+		/// <summary>Seeks to the position with a specified distance after the start of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the start of the file and the target position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromBegin(size_t distance) noexcept override {
+			if constexpr (sizeof(size_t) <= sizeof(unsigned long long)) {
+				return this->SeekFromBeginULongLong(distance);
+			} else {
+				if (distance > ULLONG_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromBegin);
+				unsigned long long ulonglong_distance = distance & ~(unsigned long long)0;
+				return this->SeekFromBeginULongLong(ulonglong_distance);
+			}
+		}
+		/// <summary>Seeks to the position with a specified distance before the end of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the end of file.
+		/// A distance of <c>0</c> specifies the end of file (just after the last byte).
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromEnd(size_t distance) noexcept override {
+			if constexpr (sizeof(size_t) <= sizeof(unsigned long long)) {
+				return this->SeekFromEndULongLong(distance);
+			} else {
+				if (distance > ULLONG_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromEnd);
+				unsigned long long ulonglong_distance = distance & ~(unsigned long long)0;
+				return this->SeekFromEndULongLong(ulonglong_distance);
+			}
+		}
+		/// <summary>Seeks to the position with a specified distance after the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the current position and the target position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekForward(size_t distance) noexcept override {
+			if constexpr (sizeof(size_t) <= sizeof(unsigned long long)) {
+				return this->SeekForwardULongLong(distance);
+			} else {
+				if (distance > ULLONG_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekForward);
+				unsigned long long ulonglong_distance = distance & ~(unsigned long long)0;
+				return this->SeekForwardULongLong(ulonglong_distance);
+			}
+		}
+		/// <summary>Seeks to the position with a specified distance before the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the current position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekBackward(size_t distance) noexcept override {
+			if constexpr (sizeof(size_t) <= sizeof(unsigned long long)) {
+				return this->SeekBackwardULongLong(distance);
+			} else {
+				if (distance > ULLONG_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekBackward);
+				unsigned long long ulonglong_distance = distance & ~(unsigned long long)0;
+				return this->SeekBackwardULongLong(ulonglong_distance);
+			}
+		}
+		/// <summary>Gets the distance between the start of the file and the current position.</summary>
+		/// <param name="distance_ret">
+		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* Tell(size_t* distance_ret) const noexcept override {
+			if (!distance_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+			if constexpr (::std::is_same_v<size_t, unsigned long long>) {
+				return this->TellULongLong(distance_ret);
+			} else if (sizeof(size_t) == sizeof(unsigned long long) && (*is_byte_order_le || *is_byte_order_be)) {
+				return this->TellULongLong(reinterpret_cast<unsigned long long*>(distance_ret));
+			} else {
+				unsigned long long ulonglong_distance = 0;
+				IException* err_inner = this->TellULongLong(&ulonglong_distance);
+				if (err_inner) {
+					if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+						err->AttachCause(err_inner);
+						err_inner = nullptr;
+						return err;
+					} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+						err->AttachCause(err_inner);
+						err_inner = nullptr;
+						return err;
+					} else {
+						return err_inner;
+					}
+				}
+				if constexpr (sizeof(size_t) < sizeof(unsigned long long))
+					if (ulonglong_distance > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+				*distance_ret = ulonglong_distance;
+				return nullptr;
+			}
+		}
+		/// <summary>Seeks to the position with a specified distance after the start of file.</summary>
+		/// <param name="buf_distance">
+		/// An unsigned integer buffer that specifies the distance (in <c>uint8_t</c>s) between the start of the file and the target position.
+		/// The distance must be stored in machine byte order.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// If the distance is too large, the function call will fail.
+		/// </param>
+		/// <param name="size_buf_distance">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_distance</c>.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromBeginLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
+			unsigned long long distance = 0;
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromBeginLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromBeginLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return this->SeekFromBeginULongLong(distance);
+		}
+		/// <summary>Seeks to the position with a specified distance before the end of file.</summary>
+		/// <param name="buf_distance">
+		/// An unsigned integer buffer that specifies the distance (in <c>uint8_t</c>s) between the target position and the end of file.
+		/// The distance must be stored in machine byte order.
+		/// A distance of <c>0</c> specifies the end of file (just after the last byte).
+		/// If the distance is too large, the function call will fail.
+		/// </param>
+		/// <param name="size_buf_distance">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_distance</c>.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekFromEndLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
+			unsigned long long distance = 0;
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromEndLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromEndLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return this->SeekFromEndULongLong(distance);
+		}
+		/// <summary>Seeks to the position with a specified distance after the current position.</summary>
+		/// <param name="buf_distance">
+		/// An unsigned integer buffer that specifies the distance (in <c>uint8_t</c>s) between the current position and the target position.
+		/// The distance must be stored in machine byte order.
+		/// A distance of <c>0</c> specifies the current position.
+		/// If the distance is too large, the function call will fail.
+		/// </param>
+		/// <param name="size_buf_distance">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_distance</c>.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekForwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
+			unsigned long long distance = 0;
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekForwardLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekForwardLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return this->SeekForwardULongLong(distance);
+		}
+		/// <summary>Seeks to the position with a specified distance before the current position.</summary>
+		/// <param name="buf_distance">
+		/// An unsigned integer buffer that specifies the distance (in <c>uint8_t</c>s) between the target position and the current position.
+		/// The distance must be stored in machine byte order.
+		/// A distance of <c>0</c> specifies the current position.
+		/// If the distance is too large, the function call will fail.
+		/// </param>
+		/// <param name="size_buf_distance">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_distance</c>.</param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* SeekBackwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
+			unsigned long long distance = 0;
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekBackwardLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekBackwardLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return this->SeekBackwardULongLong(distance);
+		}
+		/// <summary>Gets the distance between the start of the file and the current position.</summary>
+		/// <param name="buf_distance">
+		/// An unsigned integer buffer that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// The distance will be stored in machine byte order.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <param name="size_buf_distance">
+		/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_distance</c>.
+		/// If the buffer is insufficient to contain the current file size, the function call will fail.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] inline virtual IException* TellLarge(void* buf_distance, size_t size_buf_distance) const noexcept override {
+			unsigned long long distance = 0;
+			IException* err_inner = this->TellULongLong(&distance);
+			if (err_inner) return err_inner;
+			err_inner = GenericUintToLarge<unsigned long long>(distance, buf_distance, size_buf_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, TellLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, TellLarge);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			return nullptr;
+		}
+		/// <summary>Seeks to the position with a specified distance after the start of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the start of the file and the target position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* SeekFromBeginULongLong(unsigned long long distance) noexcept = 0;
+		/// <summary>Seeks to the position with a specified distance before the end of file.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the end of file.
+		/// A distance of <c>0</c> specifies the end of file (just after the last byte).
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* SeekFromEndULongLong(unsigned long long distance) noexcept = 0;
+		/// <summary>Seeks to the position with a specified distance after the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the current position and the target position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* SeekForwardULongLong(unsigned long long distance) noexcept = 0;
+		/// <summary>Seeks to the position with a specified distance before the current position.</summary>
+		/// <param name="distance">
+		/// The distance (in <c>uint8_t</c>s) between the target position and the current position.
+		/// A distance of <c>0</c> specifies the current position.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* SeekBackwardULongLong(unsigned long long distance) noexcept = 0;
+		/// <summary>Gets the distance between the start of the file and the current position.</summary>
+		/// <param name="distance_ret">
+		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A distance of <c>0</c> specifies the start of file.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// </returns>
+		[[nodiscard]] virtual IException* TellULongLong(unsigned long long* distance_ret) const noexcept = 0;
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~ULongLongSeekableFile() = default;
 	};
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 

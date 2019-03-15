@@ -21,6 +21,9 @@
 #include "UserInterface/UserInterfaceWindows.h"
 #endif
 #include "File/File.h"
+#ifdef _WIN32_WINNT
+#include "File/FileWindows.h"
+#endif
 
 namespace YBWLib2 {
 	static ::std::atomic<uintptr_t> usecount_YBWLib2_ModuleLocal(0);
@@ -47,6 +50,9 @@ namespace YBWLib2 {
 			UserInterfaceWindows_RealInitModuleLocal();
 #endif
 			File_RealInitModuleLocal();
+#ifdef _WIN32_WINNT
+			FileWindows_RealInitModuleLocal();
+#endif
 		} catch (...) {
 			abort();
 		}
@@ -54,6 +60,9 @@ namespace YBWLib2 {
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept {
 		try {
+#ifdef _WIN32_WINNT
+			FileWindows_RealUnInitModuleLocal();
+#endif
 			File_RealUnInitModuleLocal();
 #ifdef _WIN32_WINNT
 			UserInterfaceWindows_RealUnInitModuleLocal();

@@ -131,6 +131,20 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
+	YBWLIB2_API void YBWLIB2_CALLTYPE Win32HandleHolder::ClearHandle(HANDLE* _handle) noexcept {
+		if (_handle && *_handle) {
+			CloseHandle(*_handle);
+			*_handle = NULL;
+		}
+	}
+
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Win32HandleHolder::CopyHandle(HANDLE _handle_from, HANDLE* _handle_to) noexcept {
+		if (!_handle_from || !_handle_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32HandleHolder, CopyHandle);
+		if (!DuplicateHandle(GetCurrentProcess(), _handle_from, GetCurrentProcess(), _handle_to, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(DuplicateHandle);
+		return nullptr;
+	}
+
 	void YBWLIB2_CALLTYPE CommonWindows_RealInitGlobal() noexcept {}
 
 	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitGlobal() noexcept {}

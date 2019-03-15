@@ -23,5 +23,8 @@
 #include "UserInterface/UserInterfaceWindowsModuleLocal.h"
 #endif
 #include "File/FileModuleLocal.h"
+#ifdef _WIN32_WINNT
+#include "File/FileWindowsModuleLocal.h"
+#endif
 
 #endif

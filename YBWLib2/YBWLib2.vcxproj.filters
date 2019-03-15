@@ -153,6 +153,12 @@
     <ClInclude Include="Exception\ExceptionWindowsModuleLocal.h">
       <Filter>Header Files\Exception</Filter>
     </ClInclude>
+    <ClInclude Include="File\FileWindows.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="File\FileWindowsModuleLocal.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -202,6 +208,9 @@
     </ClCompile>
     <ClCompile Include="Common\CommonWindows.cpp">
       <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="File\FileWindows.cpp">
+      <Filter>Source Files\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
