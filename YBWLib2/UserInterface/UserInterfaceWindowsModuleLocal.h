@@ -60,7 +60,7 @@ namespace YBWLib2 {
 				{
 					using integral_HANDLE_t = ::std::conditional_t<::std::is_integral_v<HANDLE>, HANDLE, ::std::conditional_t<::std::is_pointer_v<HANDLE>, uintptr_t, void>>;
 					static_assert(!::std::is_void_v<integral_HANDLE_t>, "Cannot obtain the corresponding integral type of HANDLE.");
-					char str_win32handle[sizeof(integral_HANDLE_t) / sizeof(uint8_t) * 2 + 4];
+					char str_win32handle[sizeof(integral_HANDLE_t) / sizeof(uint8_t) * 2 + 16];
 					static constexpr char str_prefix_fmt[] = u8"0x%0*";
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<integral_HANDLE_t>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
@@ -280,7 +280,7 @@ namespace YBWLib2 {
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[NTSTATUS "s;
 				{
-					char str_ntstatus[sizeof(int) / sizeof(uint8_t) * 2 + 4];
+					char str_ntstatus[sizeof(int) / sizeof(uint8_t) * 2 + 16];
 					static constexpr char str_prefix_fmt[] = u8"0x%0*";
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
@@ -358,7 +358,7 @@ namespace YBWLib2 {
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[HRESULT "s;
 				{
-					char str_hresult[sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4];
+					char str_hresult[sizeof(HRESULT) / sizeof(uint8_t) * 2 + 16];
 					static constexpr char str_prefix_fmt[] = u8"0x%0*";
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));

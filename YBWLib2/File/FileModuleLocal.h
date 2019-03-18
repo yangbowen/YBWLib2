@@ -289,7 +289,7 @@ namespace YBWLib2 {
 							objholder_strtmplparameter_address_memory_block.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, _rawallocator, u8"address_memory_block", reinterpret_cast<uintptr_t>(holder_memory_block->is_readonly ? holder_memory_block->address_memory_block_readonly : holder_memory_block->address_memory_block));
 							objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_size_memory_block;
 							{
-								char str_size_memory_block[sizeof(size_t) / sizeof(uint8_t) * 2 + 4];
+								char str_size_memory_block[sizeof(size_t) / sizeof(uint8_t) * 2 + 16];
 								static constexpr char str_prefix_fmt[] = u8"0x%0*";
 								char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<size_t>::fmtspec_printf_X_utf8) / sizeof(char))];
 								memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));

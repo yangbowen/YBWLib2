@@ -23,8 +23,10 @@
 namespace YBWLib2 {
 	class IFileException;
 	class IBofFileException;
+	class IEofFileException;
 	class FileException;
 	class BofFileException;
+	class EofFileException;
 	class IFile;
 	class ISizedFile;
 	class ISeekableFile;
@@ -409,7 +411,7 @@ namespace YBWLib2 {
 		[[nodiscard]] virtual IException* SeekBackward(size_t distance) noexcept = 0;
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>
@@ -855,7 +857,7 @@ namespace YBWLib2 {
 		[[nodiscard]] virtual IException* SeekBackward(size_t distance) noexcept override = 0;
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>
@@ -1177,7 +1179,7 @@ namespace YBWLib2 {
 		[[nodiscard]] virtual IException* SeekBackward(size_t distance) noexcept override = 0;
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>
@@ -1616,7 +1618,7 @@ namespace YBWLib2 {
 		}
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>
@@ -1869,7 +1871,7 @@ namespace YBWLib2 {
 		[[nodiscard]] virtual IException* SeekBackwardULongLong(unsigned long long distance) noexcept = 0;
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>
@@ -1933,7 +1935,8 @@ namespace YBWLib2 {
 		inline MemoryFile(adopt_allocated_memory_t, const rawallocator_t* _rawallocator, void* _address_memory_block, size_t _size_memory_block_initial) noexcept(false)
 			: objholder_holder_memory_block(new MemoryBlockHolder(adopt_allocated_memory, _rawallocator, _address_memory_block, _size_memory_block_initial), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
 		inline MemoryFile(const MemoryFile& x) noexcept(false)
-			: ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
+			: IReferenceCountedObject(static_cast<const IReferenceCountedObject&>(x)),
+			ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
 			File(static_cast<const File&>(x)),
 			ISizedFile(static_cast<const ISizedFile&>(x)),
 			ISeekableFile(static_cast<const ISeekableFile&>(x)),
@@ -1955,7 +1958,8 @@ namespace YBWLib2 {
 				}
 		}
 		inline MemoryFile(MemoryFile&& x) noexcept(false)
-			: ReferenceCountedObject(static_cast<ReferenceCountedObject&&>(::std::move(x))),
+			: IReferenceCountedObject(static_cast<IReferenceCountedObject&&>(::std::move(x))),
+			ReferenceCountedObject(static_cast<ReferenceCountedObject&&>(::std::move(x))),
 			File(static_cast<File&&>(::std::move(x))),
 			ISizedFile(static_cast<ISizedFile&&>(::std::move(x))),
 			ISeekableFile(static_cast<ISeekableFile&&>(::std::move(x))),
@@ -1978,6 +1982,7 @@ namespace YBWLib2 {
 				}
 		}
 		inline MemoryFile& operator=(const MemoryFile& x) noexcept(false) {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
 			static_cast<ReferenceCountedObject&>(*this) = static_cast<const ReferenceCountedObject&>(x);
 			static_cast<File&>(*this) = static_cast<const File&>(x);
 			static_cast<ISizedFile&>(*this) = static_cast<const ISizedFile&>(x);
@@ -2000,6 +2005,7 @@ namespace YBWLib2 {
 			}
 		}
 		inline MemoryFile& operator=(MemoryFile&& x) noexcept(false) {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
 			static_cast<ReferenceCountedObject&>(*this) = static_cast<ReferenceCountedObject&&>(::std::move(x));
 			static_cast<File&>(*this) = static_cast<File&&>(::std::move(x));
 			static_cast<ISizedFile&>(*this) = static_cast<ISizedFile&&>(::std::move(x));
@@ -2103,6 +2109,7 @@ namespace YBWLib2 {
 					}
 				}
 			}
+			return nullptr;
 		}
 		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
 		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
@@ -2217,7 +2224,7 @@ namespace YBWLib2 {
 		}
 		/// <summary>Gets the distance between the start of the file and the current position.</summary>
 		/// <param name="distance_ret">
-		/// A pointer variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
+		/// A pointer to a variable that receives the distance (in <c>uint8_t</c>s) between the start of the file and the current position.
 		/// A distance of <c>0</c> specifies the start of file.
 		/// </param>
 		/// <returns>

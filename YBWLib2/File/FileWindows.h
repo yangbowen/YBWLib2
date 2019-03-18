@@ -179,7 +179,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetFileSizeULongLong(unsigned long long* size_ret) const noexcept {
+		[[nodiscard]] inline virtual IException* GetFileSizeULongLong(unsigned long long* size_ret) const noexcept override {
 			if (!size_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, GetFileSizeULongLong);
 			{
 				LockableObjectToSTLWrapper wrapper_lock_this(this->lock_this);
@@ -198,7 +198,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* SetFileSizeULongLong(unsigned long long size) noexcept {
+		[[nodiscard]] inline virtual IException* SetFileSizeULongLong(unsigned long long size) noexcept override {
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
@@ -228,6 +228,7 @@ namespace YBWLib2 {
 				}
 				if (!SetEndOfFile(this->win32handleholder_file.get())) return YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(SetEndOfFile);
 			}
+			return nullptr;
 		}
 		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
 		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
@@ -262,7 +263,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* SeekFromBeginULongLong(unsigned long long distance) noexcept {
+		[[nodiscard]] inline virtual IException* SeekFromBeginULongLong(unsigned long long distance) noexcept override {
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
@@ -285,7 +286,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* SeekFromEndULongLong(unsigned long long distance) noexcept {
+		[[nodiscard]] inline virtual IException* SeekFromEndULongLong(unsigned long long distance) noexcept override {
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
@@ -308,7 +309,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* SeekForwardULongLong(unsigned long long distance) noexcept {
+		[[nodiscard]] inline virtual IException* SeekForwardULongLong(unsigned long long distance) noexcept override {
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
@@ -331,7 +332,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* SeekBackwardULongLong(unsigned long long distance) noexcept {
+		[[nodiscard]] inline virtual IException* SeekBackwardULongLong(unsigned long long distance) noexcept override {
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
@@ -364,7 +365,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* TellULongLong(unsigned long long* distance_ret) const noexcept {
+		[[nodiscard]] inline virtual IException* TellULongLong(unsigned long long* distance_ret) const noexcept override {
 			if (!distance_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, TellULongLong);
 			{
 				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());

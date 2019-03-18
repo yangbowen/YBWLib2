@@ -562,13 +562,13 @@ namespace YBWLib2 {
 		/// <c>GetExceptionFlagsTotal</c> normally calls this member function.
 		/// </summary>
 		/// <returns>The exception flags.</returns>
-		virtual ExceptionFlags GetExceptionFlagsSingleLevel() const noexcept override { return 0; }
+		inline virtual ExceptionFlags GetExceptionFlagsSingleLevel() const noexcept override { return 0; }
 		/// <summary>
 		/// Gets the exception flags.
 		/// The full chain of underlying causes is included.
 		/// </summary>
 		/// <returns>The exception flags.</returns>
-		virtual ExceptionFlags GetExceptionFlagsTotal() const noexcept override {
+		inline virtual ExceptionFlags GetExceptionFlagsTotal() const noexcept override {
 			return (this->exception_cause ? this->exception_cause->GetExceptionFlagsTotal() & ExceptionFlag_Mask_Inheritable : 0) | this->GetExceptionFlagsSingleLevel();
 		}
 		/// <summary>
@@ -1073,7 +1073,7 @@ namespace YBWLib2 {
 		/// Returns the address to the insufficient buffer, if available.
 		/// If no meaningful pointer can be provided, an empty pointer is returned.
 		/// </returns>
-		virtual void* GetInsufficientBufferAddress() const noexcept override {
+		inline virtual void* GetInsufficientBufferAddress() const noexcept override {
 			return this->address_buffer_insufficient ? this->address_buffer_insufficient : nullptr;
 		}
 	protected:

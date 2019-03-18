@@ -457,7 +457,7 @@ namespace YBWLib2 {
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[Address "s;
 				{
-					char str_address[sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 4];
+					char str_address[sizeof(uintptr_t) / sizeof(uint8_t) * 2 + 16];
 					static constexpr char str_prefix_fmt[] = u8"0x%0*";
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<uintptr_t>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
