@@ -7,6 +7,7 @@
 
 namespace YBWLib2 {
 	YBWLIB2_API wrapper_lockable_t* wrapper_lockable_dtenv = nullptr;
+	YBWLIB2_API ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>* map_fnptr_FindDynamicTypeClassObject_module = nullptr;
 
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDynamicTypeObject, YBWLIB2_API);
 
@@ -71,7 +72,7 @@ namespace YBWLib2 {
 		/// This member variable is only modified during the construction and destruction of this object.
 		/// </summary>
 		DynamicTypeClassObj* pdecl = nullptr;
-		/// <summary>The map of <c></c> objects that represents the type of this class.</summary>
+		/// <summary>The map of <c>wrapper_type_info_t</c> objects that represents the type of this class.</summary>
 		::std::unordered_map<const module_info_t*, wrapper_type_info_t> map_wrapper_type_info;
 		/// <summary>
 		/// The set of direct base classes of this class.
@@ -129,7 +130,7 @@ namespace YBWLib2 {
 		}
 	};
 
-	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid) {
+	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid) noexcept {
 		DynamicTypeClassObj* ret = nullptr;
 		try {
 			if (_dtclassid && *_dtclassid != DynamicTypeClassID_Null) {
@@ -138,6 +139,21 @@ namespace YBWLib2 {
 					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
 					if (it_dtclassobj != map_dtclassobj_global->end()) ret = &it_dtclassobj->second;
 				}
+			}
+		} catch (...) {
+			abort();
+		}
+		return ret;
+	}
+
+	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindDynamicTypeClassObjectSpecifiedModule(const module_info_t* _module_info, const DynamicTypeClassID* _dtclassid) noexcept {
+		DynamicTypeClassObj* ret = nullptr;
+		try {
+			if (!map_fnptr_FindDynamicTypeClassObject_module) abort();
+			::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>::const_iterator it_map_fnptr_FindDynamicTypeClassObject_module = map_fnptr_FindDynamicTypeClassObject_module->find(_module_info);
+			if (it_map_fnptr_FindDynamicTypeClassObject_module != map_fnptr_FindDynamicTypeClassObject_module->cend()) {
+				if (!it_map_fnptr_FindDynamicTypeClassObject_module->second) abort();
+				ret = (*it_map_fnptr_FindDynamicTypeClassObject_module->second)(_dtclassid);
 			}
 		} catch (...) {
 			abort();
@@ -407,6 +423,8 @@ namespace YBWLib2 {
 		if (!mtx_dtenv) abort();
 		wrapper_lockable_dtenv = new wrapper_lockable_t(WrapLockable(*mtx_dtenv));
 		if (!wrapper_lockable_dtenv) abort();
+		map_fnptr_FindDynamicTypeClassObject_module = new ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>();
+		if (!map_fnptr_FindDynamicTypeClassObject_module) abort();
 		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
 		if (!map_dtclassobj_global) abort();
 		IDynamicTypeObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
@@ -422,6 +440,9 @@ namespace YBWLib2 {
 		if (!map_dtclassobj_global->empty()) abort();
 		delete map_dtclassobj_global;
 		map_dtclassobj_global = nullptr;
+		if (!map_fnptr_FindDynamicTypeClassObject_module->empty()) abort();
+		delete map_fnptr_FindDynamicTypeClassObject_module;
+		map_fnptr_FindDynamicTypeClassObject_module = nullptr;
 		delete wrapper_lockable_dtenv;
 		wrapper_lockable_dtenv = nullptr;
 		delete mtx_dtenv;

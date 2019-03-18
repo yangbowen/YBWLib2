@@ -17,9 +17,11 @@
 #include "../Exception/Exception.h"
 
 namespace YBWLib2 {
+	extern YBWLIB2_API ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>* map_fnptr_FindDynamicTypeClassObject_module;
+
 	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj_module_local = nullptr;
 
-	DynamicTypeClassObj* DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) {
+	DynamicTypeClassObj* DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) noexcept {
 		DynamicTypeClassObj* ret = nullptr;
 		try {
 			if (_dtclassid && *_dtclassid != DynamicTypeClassID_Null) {
@@ -181,6 +183,13 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE DynamicType_RealInitModuleLocal() noexcept {
+		if (!map_fnptr_FindDynamicTypeClassObject_module) abort();
+		if (!map_fnptr_FindDynamicTypeClassObject_module->emplace(
+			module_info_current,
+			[](const DynamicTypeClassID* _dtclassid) noexcept->DynamicTypeClassObj* {
+				return DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(_dtclassid);
+			}
+		).second) abort();
 		map_dtclassobj_module_local = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
 		if (!map_dtclassobj_module_local) abort();
 		GetDynamicTypeThisClassObject<IDynamicTypeObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDynamicTypeObject)), module_info_current);
@@ -191,6 +200,7 @@ namespace YBWLib2 {
 		if (!map_dtclassobj_module_local->empty()) abort();
 		delete map_dtclassobj_module_local;
 		map_dtclassobj_module_local = nullptr;
+		map_fnptr_FindDynamicTypeClassObject_module->erase(module_info_current);
 	}
 }
 

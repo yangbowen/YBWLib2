@@ -183,13 +183,19 @@ namespace YBWLib2 {
 		/// This function returns a pointer to the found dynamic type class object if successful.
 		/// Otherwise (if there isn't a non-module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
 		/// </returns>
-		static YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid);
+		static YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid) noexcept;
+		/// <summary>Finds a registered module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier in the specified module.</summary>
+		/// <returns>
+		/// This function returns a pointer to the found dynamic type class object if successful.
+		/// Otherwise (if there isn't a non-module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
+		/// </returns>
+		static YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE FindDynamicTypeClassObjectSpecifiedModule(const module_info_t* _module_info, const DynamicTypeClassID* _dtclassid) noexcept;
 		/// <summary>Finds a registered module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier.</summary>
 		/// <returns>
 		/// This function returns a pointer to the found dynamic type class object if successful.
 		/// Otherwise (if there isn't a module-local dynamic type class object with the specified identifier registered), it returns an empty pointer.
 		/// </returns>
-		static DynamicTypeClassObj* FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid);
+		static DynamicTypeClassObj* FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) noexcept;
 		inline DynamicTypeClassObj(
 			const DynamicTypeClassID& _dtclassid,
 			bool _is_module_local,
@@ -375,13 +381,17 @@ namespace YBWLib2 {
 	class DynamicTypeBaseClassDefObj final {
 	public:
 		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, DynamicTypeBaseClassFlags _dtbaseclassflags, fnptr_dynamic_type_upcast_t _fnptr_dynamic_type_static_upcast)
-			: dtclassid(_dtclassid), is_module_local(_is_module_local), dtbaseclassflags(_dtbaseclassflags), fnptr_dynamic_type_static_upcast(_fnptr_dynamic_type_static_upcast) {
+			: dtclassid(_dtclassid),
+			is_module_local(_is_module_local),
+			module_info(_is_module_local ? module_info_current : nullptr),
+			dtbaseclassflags(_dtbaseclassflags),
+			fnptr_dynamic_type_static_upcast(_fnptr_dynamic_type_static_upcast) {
 			if (this->dtclassid == DynamicTypeClassID_Null) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
 					this->IsModuleLocal()
-					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectSpecifiedModule(this->module_info, &this->dtclassid)
 					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
 				if (!this->dtclassobj) abort();
 				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
@@ -390,13 +400,17 @@ namespace YBWLib2 {
 			}
 		}
 		inline DynamicTypeBaseClassDefObj(const DynamicTypeBaseClassDefObj& x)
-			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), dtbaseclassflags(x.dtbaseclassflags), fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
+			: dtclassid(x.dtclassid),
+			is_module_local(x.is_module_local),
+			module_info(x.module_info),
+			dtbaseclassflags(x.dtbaseclassflags),
+			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
 			if (this->dtclassid == DynamicTypeClassID_Null) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
 					this->IsModuleLocal()
-					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectSpecifiedModule(this->module_info, &this->dtclassid)
 					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
 				if (!this->dtclassobj) abort();
 				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
@@ -405,13 +419,17 @@ namespace YBWLib2 {
 			}
 		}
 		inline DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj&& x)
-			: dtclassid(x.dtclassid), is_module_local(x.is_module_local), dtbaseclassflags(x.dtbaseclassflags), fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
+			: dtclassid(x.dtclassid),
+			is_module_local(x.is_module_local),
+			module_info(x.module_info),
+			dtbaseclassflags(x.dtbaseclassflags),
+			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
 			if (this->dtclassid == DynamicTypeClassID_Null) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
 					this->IsModuleLocal()
-					? DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&this->dtclassid)
+					? DynamicTypeClassObj::FindDynamicTypeClassObjectSpecifiedModule(this->module_info, &this->dtclassid)
 					: DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(&this->dtclassid);
 				if (!this->dtclassobj) abort();
 				if (this->dtclassobj->IsModuleLocal() != this->is_module_local) abort();
@@ -437,6 +455,7 @@ namespace YBWLib2 {
 	protected:
 		const DynamicTypeClassID dtclassid;
 		const bool is_module_local;
+		const module_info_t* const module_info;
 		const DynamicTypeBaseClassFlags dtbaseclassflags;
 		DynamicTypeClassObj* dtclassobj = nullptr;
 		fnptr_dynamic_type_upcast_t fnptr_dynamic_type_static_upcast = nullptr;
