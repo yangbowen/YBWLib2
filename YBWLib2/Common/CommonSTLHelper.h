@@ -499,6 +499,8 @@ namespace YBWLib2 {
 	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
 	template<typename _Element_Ty>
 	class ReferenceCountedObjectHolder {
+		template<typename _Element_Ty_Other>
+		friend class ReferenceCountedObjectHolder;
 	public:
 		struct inc_ref_count_t {};
 		struct adopt_ref_count_t {};
