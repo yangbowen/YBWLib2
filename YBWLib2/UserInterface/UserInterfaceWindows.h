@@ -68,6 +68,111 @@ namespace YBWLib2 {
 		bool output_unavailable_if_no_message
 	) noexcept;
 
+	/// <summary>A default implementation of a string template parameter that represents a Win32 handle.</summary>
+	class Win32HandleStringTemplateParameter : public virtual StringTemplateParameter {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Win32HandleStringTemplateParameter, , "a9c40844-b390-4659-9754-7df3dea13d50");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Win32HandleStringTemplateParameter);
+		/// <summary>Constructs an <c>Win32HandleStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_size_name_parameter">The size (in <c>char</c>s) of the name, in UTF-8, of this parameter.</param>
+		/// <param name="_win32handle">The Win32 handle.</param>
+		inline Win32HandleStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char* _name_parameter,
+			size_t _size_name_parameter,
+			HANDLE _win32handle
+		) noexcept(false) : StringTemplateParameter(_rawallocator, _name_parameter, _size_name_parameter), win32handle(_win32handle) {}
+		/// <summary>Constructs an <c>Win32HandleStringTemplateParameter</c> object.</summary>
+		/// <param name="_rawallocator">
+		/// A pointer to a <c>rawallocator_t</c> object for allocating memory used by this class.
+		/// The <c>rawallocator_t</c> object must survive for at least the lifetime of this object and any objects copied or moved from this object.
+		/// </param>
+		/// <param name="_name_parameter">The name, in UTF-8, of this parameter.</param>
+		/// <param name="_win32handle">The Win32 handle.</param>
+		template<size_t count_char_name_parameter>
+		inline Win32HandleStringTemplateParameter(
+			const rawallocator_t* _rawallocator,
+			const char(&_name_parameter)[count_char_name_parameter],
+			HANDLE _win32handle
+		) noexcept(false) : Win32HandleStringTemplateParameter(_rawallocator, _name_parameter, count_char_name_parameter - 1, _win32handle) {}
+		inline Win32HandleStringTemplateParameter(const Win32HandleStringTemplateParameter& x) noexcept(false)
+			: StringTemplateParameter(static_cast<const StringTemplateParameter&>(x)), win32handle(x.win32handle) {}
+		inline Win32HandleStringTemplateParameter(Win32HandleStringTemplateParameter&& x) noexcept(false)
+			: StringTemplateParameter(static_cast<StringTemplateParameter&&>(::std::move(x))), win32handle(::std::move(x.win32handle)) {}
+		inline virtual ~Win32HandleStringTemplateParameter() {
+			this->win32handle = NULL;
+		}
+		inline Win32HandleStringTemplateParameter& operator=(const Win32HandleStringTemplateParameter& x) noexcept(false) {
+			static_cast<StringTemplateParameter&>(*this) = static_cast<const StringTemplateParameter&>(x);
+			this->win32handle = x.win32handle;
+			return *this;
+		}
+		inline Win32HandleStringTemplateParameter& operator=(Win32HandleStringTemplateParameter&& x) noexcept(false) {
+			static_cast<StringTemplateParameter&>(*this) = static_cast<StringTemplateParameter&&>(::std::move(x));
+			this->win32handle = ::std::move(x.win32handle);
+			return *this;
+		}
+		/// <summary>Gets whether this parameter may be used as a part of the generated string.</summary>
+		inline virtual bool IsAvailableAsGeneratedStringPart() const noexcept override { return true; }
+		/// <summary>Gets the part of the generated string that this parameter represents.</summary>
+		/// <param name="str_options">
+		/// Pointer to an option string, in UTF-8, provided by the string template.
+		/// Option strings are not null-terminated.
+		/// If no option string is provided, pass an empty pointer or a pointer to an empty string.
+		/// No options are supported for this type of string template parameter currently.
+		/// The option string for this type is reserved. Always pass an empty pointer or a pointer to an empty string.
+		/// </param>
+		/// <param name="size_str_options">
+		/// The size (in <c>char</c>s) of the option string, in UTF-8.
+		/// Option strings are not null-terminated.
+		/// If no option string is provided, pass <c>0</c>.
+		/// No options are supported for this type of string template parameter currently.
+		/// The option string for this type is reserved. Always pass an empty pointer or a pointer to an empty string.
+		/// </param>
+		/// <param name="str_out_ret">
+		/// Pointer to a pointer variable that receives a pointer to the part of the generated string, in UTF-8.
+		/// After successfully returning from this member function, <c>*str_out_ret</c> will be set to the part of the generated string.
+		/// Any value originally in <c>*str_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
+		/// The object on which this function is called does not own the buffer pointed to by the new <c>*str_out_ret</c> after a successful call.
+		/// The caller is responsible for freeing the memory pointed to by <c>*str_out_ret</c>.
+		/// If <paramref name="_rawallocator" /> is specified and not empty, the buffer for the part of the generated string will be allocated using <paramref name="_rawallocator" />.
+		/// Otherwise, the buffer for the part of the generated string will be allocated using the raw allocator returned by <c>this->GetRawAllocator()</c>.
+		/// </param>
+		/// <param name="size_str_out_ret">
+		/// Pointer to a variable that receives the size (in <c>char</c>s) of the part of the generated string, in UTF-8, including the terminating null character, if any.
+		/// After successfully returning from this member function, <c>*size_str_out_ret</c> will be set to the size (in <c>char</c>s) of the part of the generated string.
+		/// Any value originally in <c>*size_str_out_ret</c> will be discarded.
+		/// </param>
+		/// <param name="should_null_terminate">Whether a terminating null character should be added to the end of the part of the generated string.</param>
+		/// <param name="_rawallocator">
+		/// An optional pointer to a <c>rawallocator_t</c> object for allocating memory used by this function, including the memory for <c>*str_out_ret</c>.
+		/// If not specified or empty, <c>this->GetRawAllocator()</c> will be used instead.
+		/// </param>
+		/// <returns>
+		/// Returns a pointer to the exception object if the function fails.
+		/// Returns an empty pointer otherwise.
+		/// The caller is responsible for destructing and freeing the object pointed to.
+		/// The exception object is created in exception handling dedicated memory, instead of memory allocated using the raw allocator <paramref name="_rawallocator" /> or the one returned by <c>this->GetRawAllocator()</c>.
+		/// </returns>
+		[[nodiscard]] virtual IException* GenerateString(
+			const char* str_options,
+			size_t size_str_options,
+			char** str_out_ret,
+			size_t* size_str_out_ret,
+			bool should_null_terminate,
+			const rawallocator_t* _rawallocator = nullptr
+		) const noexcept override;
+		/// <summary>Gets the Win32 handle.</summary>
+		inline HANDLE GetWin32Handle() const noexcept { return this->win32handle; }
+	protected:
+		HANDLE win32handle;
+	};
+
 	/// <summary>A default implementation of a string template parameter that represents a last-error code.</summary>
 	class LastErrorStringTemplateParameter : public virtual StringTemplateParameter {
 	public:
@@ -172,7 +277,7 @@ namespace YBWLib2 {
 	protected:
 		DWORD lasterr;
 	};
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 	/// <summary>A default implementation of a string template parameter that represents a WSA last-error code.</summary>
 	class WSALastErrorStringTemplateParameter : public virtual StringTemplateParameter {
 	public:
@@ -278,7 +383,7 @@ namespace YBWLib2 {
 		int wsalasterr;
 	};
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 	/// <summary>A default implementation of a string template parameter that represents an NTSTATUS code.</summary>
 	class NTSTATUSStringTemplateParameter : public virtual StringTemplateParameter {
 	public:
@@ -384,7 +489,7 @@ namespace YBWLib2 {
 		NTSTATUS ntstatus;
 	};
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 	/// <summary>A default implementation of a string template parameter that represents an HRESULT code.</summary>
 	class HRESULTStringTemplateParameter : public virtual StringTemplateParameter {
 	public:

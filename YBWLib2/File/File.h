@@ -1950,8 +1950,8 @@ namespace YBWLib2 {
 					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
 					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
 					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
-					objholder_holder_memory_block = x.objholder_holder_memory_block;
-					position_file = x.position_file;
+					this->objholder_holder_memory_block = x.objholder_holder_memory_block;
+					this->position_file = x.position_file;
 				}
 		}
 		inline MemoryFile(MemoryFile&& x) noexcept(false)
@@ -1972,8 +1972,8 @@ namespace YBWLib2 {
 					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
 					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
 					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
-					objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
-					position_file = ::std::move(x.position_file);
+					this->objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
+					this->position_file = ::std::move(x.position_file);
 					x.position_file = 0;
 				}
 		}
@@ -1995,8 +1995,8 @@ namespace YBWLib2 {
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
 				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
-				objholder_holder_memory_block = x.objholder_holder_memory_block;
-				position_file = x.position_file;
+				this->objholder_holder_memory_block = x.objholder_holder_memory_block;
+				this->position_file = x.position_file;
 			}
 		}
 		inline MemoryFile& operator=(MemoryFile&& x) noexcept(false) {
@@ -2017,8 +2017,8 @@ namespace YBWLib2 {
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
 				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
 				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
-				objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
-				position_file = ::std::move(x.position_file);
+				this->objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
+				this->position_file = ::std::move(x.position_file);
 				x.position_file = 0;
 			}
 		}
@@ -2045,7 +2045,7 @@ namespace YBWLib2 {
 		/// Returns an empty pointer otherwise.
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
-		[[nodiscard]] inline virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept;
+		[[nodiscard]] virtual IException* GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept;
 		/// <summary>Gets the size of the file.</summary>
 		/// <param name="size_ret">A pointer to a variable that receives the current file size (in <c>uint8_t</c>s).</param>
 		/// <returns>

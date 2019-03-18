@@ -253,5 +253,22 @@
         ]
       }
     ]
+  },
+  "FileWindows": {
+    "strtmpl_description": [
+      {
+        // Win32File
+        "dtclassid_exception": "0f872e37-6173-411d-9e4f-7f3df2e34e02",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "[Win32File ",
+          { "name_parameter": "win32handle_file" },
+          " ",
+          { "name_parameter": "filename_file" },
+          "]"
+        ]
+      }
+    ]
   }
 }

@@ -10,6 +10,7 @@
 #endif
 
 #include "../DynamicType/DynamicType.h"
+#include "../UserInterface/UserInterface.h"
 #include "File.h"
 
 namespace YBWLib2 {

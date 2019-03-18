@@ -20,18 +20,86 @@
 #include "UserInterfaceWindows.h"
 
 namespace YBWLib2 {
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(Win32HandleStringTemplateParameter, );
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(LastErrorStringTemplateParameter, );
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(WSALastErrorStringTemplateParameter, );
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(NTSTATUSStringTemplateParameter, );
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(HRESULTStringTemplateParameter, );
 #endif
 
 	YBWLIB2_API HMODULE YBWLIB2_CALLTYPE GetNtdllHmodule() noexcept;
+
+	[[nodiscard]] IException* Win32HandleStringTemplateParameter::GenerateString(
+		const char* str_options,
+		size_t size_str_options,
+		char** str_out_ret,
+		size_t* size_str_out_ret,
+		bool should_null_terminate,
+		const rawallocator_t* _rawallocator
+	) const noexcept {
+		using namespace ::std::string_literals;
+		static_cast<void>(str_options);
+		if (size_str_options) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		if (!str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		if (!size_str_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, GenerateString);
+		*str_out_ret = nullptr;
+		*size_str_out_ret = 0;
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
+				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
+				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
+				str_out_t str_out(allocator_rawallocator_char);
+				str_out += u8"[Win32Handle "s;
+				{
+					using integral_HANDLE_t = ::std::conditional_t<::std::is_integral_v<HANDLE>, HANDLE, ::std::conditional_t<::std::is_pointer_v<HANDLE>, uintptr_t, void>>;
+					static_assert(!::std::is_void_v<integral_HANDLE_t>, "Cannot obtain the corresponding integral type of HANDLE.");
+					char str_win32handle[sizeof(integral_HANDLE_t) / sizeof(uint8_t) * 2 + 4];
+					static constexpr char str_prefix_fmt[] = u8"0x%0*";
+					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<integral_HANDLE_t>::fmtspec_printf_X_utf8) / sizeof(char))];
+					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
+					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<integral_HANDLE_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<integral_HANDLE_t>::fmtspec_printf_X_utf8) / sizeof(char));
+					err_inner = SnPrintfUtf8(_rawallocator, str_win32handle, sizeof(str_win32handle) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(::std::make_unsigned_t<integral_HANDLE_t>) / sizeof(uint8_t) * 2), this->GetWin32Handle());
+					if (err_inner) return;
+					str_out += str_out_t(str_win32handle, strnlen(str_win32handle, sizeof(integral_HANDLE_t) / sizeof(uint8_t) * 3 + 4), allocator_rawallocator_char);
+				}
+				str_out += u8"]"s;
+				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+				if (*size_str_out_ret) {
+					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
+				}
+			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			if (*str_out_ret) {
+				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				*str_out_ret = nullptr;
+				*size_str_out_ret = 0;
+			}
+			return err;
+		}
+		if (err_inner) {
+			if (*str_out_ret) {
+				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				*str_out_ret = nullptr;
+				*size_str_out_ret = 0;
+			}
+			return err_inner;
+		}
+		return nullptr;
+	}
 
 	[[nodiscard]] IException* LastErrorStringTemplateParameter::GenerateString(
 		const char* str_options,
@@ -109,7 +177,7 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 	[[nodiscard]] IException* WSALastErrorStringTemplateParameter::GenerateString(
 		const char* str_options,
 		size_t size_str_options,
@@ -187,7 +255,7 @@ namespace YBWLib2 {
 	}
 #endif
 
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 	[[nodiscard]] IException* NTSTATUSStringTemplateParameter::GenerateString(
 		const char* str_options,
 		size_t size_str_options,
@@ -265,7 +333,7 @@ namespace YBWLib2 {
 	}
 #endif
 
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 	[[nodiscard]] IException* HRESULTStringTemplateParameter::GenerateString(
 		const char* str_options,
 		size_t size_str_options,
@@ -333,69 +401,78 @@ namespace YBWLib2 {
 #endif
 
 	void YBWLIB2_CALLTYPE UserInterfaceWindows_RealInitModuleLocal() noexcept {
+		Win32HandleStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeThisClassID<Win32HandleStringTemplateParameter>(),
+			IsDynamicTypeModuleLocalClass<Win32HandleStringTemplateParameter>(),
+			{ DynamicTypeBaseClassDef<Win32HandleStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(Win32HandleStringTemplateParameter), alignof(Win32HandleStringTemplateParameter));
 		LastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<LastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<LastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<LastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(LastErrorStringTemplateParameter), alignof(LastErrorStringTemplateParameter));
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		WSALastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<WSALastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<WSALastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<WSALastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(WSALastErrorStringTemplateParameter), alignof(WSALastErrorStringTemplateParameter));
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		NTSTATUSStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<NTSTATUSStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<NTSTATUSStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<NTSTATUSStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(NTSTATUSStringTemplateParameter), alignof(NTSTATUSStringTemplateParameter));
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		HRESULTStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeThisClassID<HRESULTStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<HRESULTStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<HRESULTStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(HRESULTStringTemplateParameter), alignof(HRESULTStringTemplateParameter));
 #endif
+		GetDynamicTypeThisClassObject<Win32HandleStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Win32HandleStringTemplateParameter)), module_info_current);
 		GetDynamicTypeThisClassObject<LastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(LastErrorStringTemplateParameter)), module_info_current);
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		GetDynamicTypeThisClassObject<WSALastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(WSALastErrorStringTemplateParameter)), module_info_current);
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		GetDynamicTypeThisClassObject<NTSTATUSStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(NTSTATUSStringTemplateParameter)), module_info_current);
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		GetDynamicTypeThisClassObject<HRESULTStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(HRESULTStringTemplateParameter)), module_info_current);
 #endif
 	}
 
 	void YBWLIB2_CALLTYPE UserInterfaceWindows_RealUnInitModuleLocal() noexcept {
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		GetDynamicTypeThisClassObject<HRESULTStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		GetDynamicTypeThisClassObject<NTSTATUSStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		GetDynamicTypeThisClassObject<WSALastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
 		GetDynamicTypeThisClassObject<LastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
+		GetDynamicTypeThisClassObject<Win32HandleStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		delete HRESULTStringTemplateParameter::DynamicTypeThisClassObject;
 		HRESULTStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		delete NTSTATUSStringTemplateParameter::DynamicTypeThisClassObject;
 		NTSTATUSStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 #endif
-#ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
+#ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		delete WSALastErrorStringTemplateParameter::DynamicTypeThisClassObject;
 		WSALastErrorStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 #endif
 		delete LastErrorStringTemplateParameter::DynamicTypeThisClassObject;
 		LastErrorStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
+		delete Win32HandleStringTemplateParameter::DynamicTypeThisClassObject;
+		Win32HandleStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 	}
 }
 

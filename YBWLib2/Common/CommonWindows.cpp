@@ -131,16 +131,16 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE Win32HandleHolder::ClearHandle(HANDLE* _handle) noexcept {
-		if (_handle && *_handle) {
-			CloseHandle(*_handle);
-			*_handle = NULL;
+	YBWLIB2_API void YBWLIB2_CALLTYPE Win32HandleHolder::ClearWin32Handle(HANDLE* _win32handle) noexcept {
+		if (_win32handle && *_win32handle) {
+			CloseHandle(*_win32handle);
+			*_win32handle = NULL;
 		}
 	}
 
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Win32HandleHolder::CopyHandle(HANDLE _handle_from, HANDLE* _handle_to) noexcept {
-		if (!_handle_from || !_handle_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32HandleHolder, CopyHandle);
-		if (!DuplicateHandle(GetCurrentProcess(), _handle_from, GetCurrentProcess(), _handle_to, 0, FALSE, DUPLICATE_SAME_ACCESS))
+	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Win32HandleHolder::CopyWin32Handle(HANDLE _win32handle_from, HANDLE* _win32handle_to) noexcept {
+		if (!_win32handle_from || !_win32handle_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32HandleHolder, CopyWin32Handle);
+		if (!DuplicateHandle(GetCurrentProcess(), _win32handle_from, GetCurrentProcess(), _win32handle_to, 0, FALSE, DUPLICATE_SAME_ACCESS))
 			return YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(DuplicateHandle);
 		return nullptr;
 	}
