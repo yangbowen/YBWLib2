@@ -54,6 +54,12 @@ namespace YBWLib2 {
 			: win32handleholder_file(_win32handleholder_file), can_read(true) {}
 		inline Win32File(writeonly_t, const Win32HandleHolder& _win32handleholder_file) noexcept(false)
 			: win32handleholder_file(_win32handleholder_file), can_write(true) {}
+		inline Win32File(Win32HandleHolder&& _win32handleholder_file) noexcept(false)
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true), can_write(true) {}
+		inline Win32File(readonly_t, Win32HandleHolder&& _win32handleholder_file) noexcept(false)
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true) {}
+		inline Win32File(writeonly_t, Win32HandleHolder&& _win32handleholder_file) noexcept(false)
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_write(true) {}
 		inline Win32File(const Win32File& x) noexcept(false)
 			: ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
 			File(static_cast<const File&>(x)),
