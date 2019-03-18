@@ -5,6 +5,10 @@
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
 
+#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
+#define YBWLIB2_EXCEPTION_MACROS_ENABLED
+#endif
+
 #include "../DynamicType/DynamicType.h"
 #include "JSON.h"
 
