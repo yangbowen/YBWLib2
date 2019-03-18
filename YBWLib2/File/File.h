@@ -576,8 +576,10 @@ namespace YBWLib2 {
 		if (sizeof(_Uint_Ty) >= size_buf_uint) {
 			if (*is_byte_order_le) {
 				memcpy(reinterpret_cast<void*>(uint_ret), buf_uint, size_buf_uint);
+				return nullptr;
 			} else if (*is_byte_order_be) {
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(uint_ret) + (sizeof(_Uint_Ty) - size_buf_uint)), buf_uint, size_buf_uint);
+				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 			}
@@ -590,6 +592,7 @@ namespace YBWLib2 {
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 				}
 				memcpy(reinterpret_cast<void*>(uint_ret), buf_uint, sizeof(_Uint_Ty));
+				return nullptr;
 			} else if (*is_byte_order_be) {
 				{
 					const uint8_t* limit_p = reinterpret_cast<const uint8_t*>(buf_uint) + (size_buf_uint - sizeof(_Uint_Ty));
@@ -598,6 +601,7 @@ namespace YBWLib2 {
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 				}
 				memcpy(reinterpret_cast<void*>(uint_ret), reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(buf_uint) + (size_buf_uint - sizeof(_Uint_Ty))), sizeof(_Uint_Ty));
+				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 			}
