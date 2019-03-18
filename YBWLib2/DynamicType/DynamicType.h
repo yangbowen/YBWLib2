@@ -869,13 +869,13 @@ specifiers_vfunc virtual bool DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTy
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(classname) \
 inline virtual const ::YBWLib2::DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
-inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return GetDynamicTypeThisClassObject<classname>(); }\
+inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeThisClassObject<classname>(); }\
 inline virtual uintptr_t DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }\
 inline virtual bool DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeCanDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }
 
 #define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_IOBJECT(classname, specifiers_vfunc) \
 specifiers_vfunc const ::YBWLib2::DynamicTypeClassID* classname::DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &GetDynamicTypeThisClassID<classname>(); }\
-specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return GetDynamicTypeThisClassObject<classname>(); }\
+specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeThisClassObject<classname>(); }\
 specifiers_vfunc uintptr_t classname::DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }\
 specifiers_vfunc bool classname::DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeCanDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }
 
