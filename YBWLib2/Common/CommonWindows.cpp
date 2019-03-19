@@ -131,9 +131,9 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE Win32HandleHolder::ClearWin32Handle(HANDLE* _win32handle) noexcept {
+	YBWLIB2_API void YBWLIB2_CALLTYPE Win32HandleHolder::ClearWin32Handle(HANDLE* _win32handle, bool _is_owned_handle) noexcept {
 		if (_win32handle && *_win32handle) {
-			CloseHandle(*_win32handle);
+			if (_is_owned_handle) CloseHandle(*_win32handle);
 			*_win32handle = NULL;
 		}
 	}

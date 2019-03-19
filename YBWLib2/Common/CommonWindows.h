@@ -119,11 +119,11 @@ namespace YBWLib2 {
 			x.is_owned_handle = false;
 		}
 		inline virtual ~Win32HandleHolder() {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 		}
 		inline Win32HandleHolder& operator=(const Win32HandleHolder& x) noexcept(false) {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			if (x.win32handle) {
 				IException* err = Win32HandleHolder::CopyWin32Handle(x.win32handle, &this->win32handle);
@@ -135,7 +135,7 @@ namespace YBWLib2 {
 			}
 		}
 		inline Win32HandleHolder& operator=(Win32HandleHolder&& x) noexcept {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			this->win32handle = ::std::move(x.win32handle);
 			x.win32handle = NULL;
@@ -151,26 +151,26 @@ namespace YBWLib2 {
 			x.is_owned_handle = is_owned_handle_temp;
 		}
 		inline void reset(view_handle_t, const HANDLE& _win32handle) noexcept {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			this->win32handle = _win32handle == INVALID_HANDLE_VALUE ? NULL : _win32handle;
 			this->is_owned_handle = false;
 		}
 		inline void reset(view_handle_t, no_eliminate_invalid_handle_value_t, const HANDLE& _win32handle) noexcept {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			this->win32handle = _win32handle;
 			this->is_owned_handle = false;
 		}
 		inline void reset(own_handle_t, HANDLE&& _win32handle) noexcept {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			this->win32handle = _win32handle == INVALID_HANDLE_VALUE ? NULL : _win32handle;
 			_win32handle = NULL;
 			this->is_owned_handle = true;
 		}
 		inline void reset(own_handle_t, no_eliminate_invalid_handle_value_t, HANDLE&& _win32handle) noexcept {
-			Win32HandleHolder::ClearWin32Handle(&this->win32handle);
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 			this->win32handle = _win32handle;
 			_win32handle = NULL;
@@ -181,7 +181,7 @@ namespace YBWLib2 {
 	protected:
 		HANDLE win32handle = NULL;
 		bool is_owned_handle = false;
-		static YBWLIB2_API void YBWLIB2_CALLTYPE ClearWin32Handle(HANDLE* _win32handle) noexcept;
+		static YBWLIB2_API void YBWLIB2_CALLTYPE ClearWin32Handle(HANDLE* _win32handle, bool _is_owned_handle) noexcept;
 		[[nodiscard]] static YBWLIB2_API IException* YBWLIB2_CALLTYPE CopyWin32Handle(HANDLE _win32handle_from, HANDLE* _win32handle_to) noexcept;
 	};
 	template<typename _Char_Ty, typename _Traits_Ty>
