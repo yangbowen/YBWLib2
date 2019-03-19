@@ -270,71 +270,69 @@ namespace YBWLib2 {
 
 	[[nodiscard]] IException* MemoryFile::GetDescription(const rawallocator_t* _rawallocator, char** description_ret, size_t* size_description_ret, bool should_null_terminate) const noexcept {
 		if (!_rawallocator || !description_ret || !size_description_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, GetDescription);
-		{
-			LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-			::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-			LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-			::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-			{
-				MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-				if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+		IException* err_inner = nullptr;
+		IException* err = WrapFunctionCatchExceptions(
+			[this, &_rawallocator, &description_ret, &size_description_ret, &should_null_terminate, &err_inner]() noexcept(false)->void {
+				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 				{
-					IException* err_inner = nullptr;
-					IException* err = WrapFunctionCatchExceptions(
-						[this, &_rawallocator, &description_ret, &size_description_ret, &should_null_terminate, &holder_memory_block, &err_inner]() noexcept(false)->void {
-							static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
-							objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_memory_block;
-							objholder_strtmplparameter_address_memory_block.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, _rawallocator, u8"address_memory_block", reinterpret_cast<uintptr_t>(holder_memory_block->is_readonly ? holder_memory_block->address_memory_block_readonly : holder_memory_block->address_memory_block));
-							objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_size_memory_block;
+					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+					if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					{
+						static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
+						objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_memory_block;
+						objholder_strtmplparameter_address_memory_block.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, _rawallocator, u8"address_memory_block", reinterpret_cast<uintptr_t>(holder_memory_block->is_readonly ? holder_memory_block->address_memory_block_readonly : holder_memory_block->address_memory_block));
+						objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_size_memory_block;
+						{
+							char str_size_memory_block[sizeof(size_t) / sizeof(uint8_t) * 2 + 16];
+							static constexpr char str_prefix_fmt[] = u8"0x%0*";
+							char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<size_t>::fmtspec_printf_X_utf8) / sizeof(char))];
+							memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
+							memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<size_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<size_t>::fmtspec_printf_X_utf8) / sizeof(char));
+							err_inner = SnPrintfUtf8(_rawallocator, str_size_memory_block, sizeof(str_size_memory_block) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(size_t) / sizeof(uint8_t) * 2), holder_memory_block->size_memory_block);
+							if (err_inner) return;
+							objholder_strtmplparameter_size_memory_block.construct(
+								objholder_local_t<StringStringTemplateParameter>::construct_obj,
+								_rawallocator,
+								u8"size_memory_block",
+								str_size_memory_block,
+								strnlen(str_size_memory_block, sizeof(str_size_memory_block) / sizeof(char))
+							);
+						}
+						err_inner = MemoryFile::strtmpl_description->GenerateString(StringTemplateParameterList(_rawallocator,
 							{
-								char str_size_memory_block[sizeof(size_t) / sizeof(uint8_t) * 2 + 16];
-								static constexpr char str_prefix_fmt[] = u8"0x%0*";
-								char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<size_t>::fmtspec_printf_X_utf8) / sizeof(char))];
-								memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
-								memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<size_t>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<size_t>::fmtspec_printf_X_utf8) / sizeof(char));
-								err_inner = SnPrintfUtf8(_rawallocator, str_size_memory_block, sizeof(str_size_memory_block) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(size_t) / sizeof(uint8_t) * 2), holder_memory_block->size_memory_block);
-								if (err_inner) return;
-								objholder_strtmplparameter_size_memory_block.construct(
-									objholder_local_t<StringStringTemplateParameter>::construct_obj,
-									_rawallocator,
-									u8"size_memory_block",
-									str_size_memory_block,
-									strnlen(str_size_memory_block, sizeof(str_size_memory_block) / sizeof(char))
-								);
+								objholder_strtmplparameter_address_memory_block.get(),
+								objholder_strtmplparameter_size_memory_block.get()
 							}
-							err_inner = MemoryFile::strtmpl_description->GenerateString(StringTemplateParameterList(_rawallocator,
-								{
-									objholder_strtmplparameter_address_memory_block.get(),
-									objholder_strtmplparameter_size_memory_block.get()
-								}
-							), description_ret, size_description_ret, should_null_terminate, _rawallocator);
-							if (err_inner) {
-								if (description_ret && *description_ret) {
-									if (!_rawallocator->Deallocate(*description_ret, *size_description_ret)) abort();
-									*description_ret = nullptr;
-								}
-								if (size_description_ret && *size_description_ret) {
-									*size_description_ret = 0;
-								}
-							}
-						}
-					);
-					if (err) {
+						), description_ret, size_description_ret, should_null_terminate, _rawallocator);
 						if (err_inner) {
-							delete err_inner;
-							err_inner = nullptr;
+							if (description_ret && *description_ret) {
+								if (!_rawallocator->Deallocate(*description_ret, *size_description_ret)) abort();
+								*description_ret = nullptr;
+							}
+							if (size_description_ret && *size_description_ret) {
+								*size_description_ret = 0;
+							}
 						}
-						return err;
 					}
-					if (err_inner) {
-						return err_inner;
-					}
-					return nullptr;
 				}
 			}
+		);
+		if (err) {
+			if (err_inner) {
+				delete err_inner;
+				err_inner = nullptr;
+			}
+			return err;
 		}
+		if (err_inner) {
+			return err_inner;
+		}
+		return nullptr;
 	}
 
 	void YBWLIB2_CALLTYPE File_RealInitModuleLocal() noexcept {

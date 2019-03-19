@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <type_traits>
 #include <mutex>
+#include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
 #include "../Common/Common.h"
@@ -2069,20 +2070,33 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* GetFileSize(size_t* size_ret) const noexcept override {
 			if (!size_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, GetFileSize);
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &size_ret, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						*size_ret = holder_memory_block->size_memory_block;
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							*size_ret = holder_memory_block->size_memory_block;
+						}
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2094,28 +2108,41 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SetFileSize(size_t size) noexcept override {
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &size, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						if (size != holder_memory_block->size_memory_block) {
-							if (holder_memory_block->is_readonly || !holder_memory_block->rawallocator) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SetFileSize);
-							holder_memory_block->address_memory_block = holder_memory_block->rawallocator->Reallocate(holder_memory_block->address_memory_block, holder_memory_block->size_memory_block, size);
-							if (!holder_memory_block->address_memory_block) {
-								holder_memory_block->size_memory_block = 0;
-								return YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							if (size != holder_memory_block->size_memory_block) {
+								if (holder_memory_block->is_readonly || !holder_memory_block->rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SetFileSize); return; }
+								holder_memory_block->address_memory_block = holder_memory_block->rawallocator->Reallocate(holder_memory_block->address_memory_block, holder_memory_block->size_memory_block, size);
+								if (!holder_memory_block->address_memory_block) {
+									holder_memory_block->size_memory_block = 0;
+									{ err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+								}
+								holder_memory_block->size_memory_block = size;
 							}
-							holder_memory_block->size_memory_block = size;
 						}
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2128,20 +2155,33 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* IsEof(bool* is_eof_ret) const noexcept override {
 			if (!is_eof_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, IsEof);
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &is_eof_ret, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						*is_eof_ret = this->position_file >= holder_memory_block->size_memory_block;
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							*is_eof_ret = this->position_file >= holder_memory_block->size_memory_block;
+						}
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2156,10 +2196,23 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromBegin(size_t distance) noexcept override {
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				this->position_file = distance;
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &distance, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					this->position_file = distance;
+				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2174,21 +2227,34 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromEnd(size_t distance) noexcept override {
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &distance, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						if (distance > holder_memory_block->size_memory_block) return new BofFileException(this);
-						this->position_file = holder_memory_block->size_memory_block - distance;
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							if (distance > holder_memory_block->size_memory_block) { err_inner = new BofFileException(this); return; }
+							this->position_file = holder_memory_block->size_memory_block - distance;
+						}
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2203,11 +2269,24 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekForward(size_t distance) noexcept override {
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				if (distance > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SeekForward);
-				this->position_file = this->position_file + distance;
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &distance, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					if (distance > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SeekForward); return; }
+					this->position_file = this->position_file + distance;
+				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2222,11 +2301,24 @@ namespace YBWLib2 {
 		/// The caller is responsible for destructing and freeing the object pointed to.
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekBackward(size_t distance) noexcept override {
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				if (distance > this->position_file) return new BofFileException(this);
-				this->position_file = this->position_file - distance;
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &distance, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					if (distance > this->position_file) { err_inner = new BofFileException(this); return; }
+					this->position_file = this->position_file - distance;
+				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2242,10 +2334,23 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* Tell(size_t* distance_ret) const noexcept override {
 			if (!distance_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Tell);
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				*distance_ret = this->position_file;
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &distance_ret, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					*distance_ret = this->position_file;
+				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2263,29 +2368,42 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* Read(void* buf, size_t size_buf) noexcept override {
 			if (!size_buf) return nullptr;
 			if (!buf) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				if (size_buf > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &buf, &size_buf, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					if (size_buf > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read); return; }
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						if (this->position_file + size_buf > holder_memory_block->size_memory_block) return new EofFileException(this);
-						if (holder_memory_block->is_readonly) {
-							if (!holder_memory_block->address_memory_block_readonly) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
-							memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block_readonly) + this->position_file), size_buf);
-						} else {
-							if (!holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read);
-							memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), size_buf);
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							if (this->position_file + size_buf > holder_memory_block->size_memory_block) { err_inner = new EofFileException(this); return; }
+							if (holder_memory_block->is_readonly) {
+								if (!holder_memory_block->address_memory_block_readonly) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read); return; }
+								memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block_readonly) + this->position_file), size_buf);
+							} else {
+								if (!holder_memory_block->address_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read); return; }
+								memcpy(buf, reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), size_buf);
+							}
+							this->position_file += size_buf;
 						}
-						this->position_file += size_buf;
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
@@ -2303,43 +2421,56 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* Write(const void* buf, size_t size_buf) noexcept override {
 			if (!size_buf) return nullptr;
 			if (!buf) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
-			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				if (size_buf > SIZE_MAX - this->position_file) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
-				{
-					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
-					if (!holder_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+			IException* err_inner = nullptr;
+			IException* err = WrapFunctionCatchExceptions(
+				[this, &buf, &size_buf, &err_inner]() noexcept(false)->void {
+					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					if (size_buf > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write); return; }
+					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
-						if (holder_memory_block->is_readonly || !holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
-						if (this->position_file + size_buf > holder_memory_block->size_memory_block) {
-							IException* err_inner = this->SetFileSize(this->position_file + size_buf);
-							if (err_inner) {
-								if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
-									IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
-									err->AttachCause(err_inner);
-									err_inner = nullptr;
-									return err;
-								} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
-									IException* err = new EofFileException(this);
-									err->AttachCause(err_inner);
-									err_inner = nullptr;
-									return err;
-								} else {
-									return err_inner;
+						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
+						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						{
+							if (holder_memory_block->is_readonly || !holder_memory_block->address_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write); return; }
+							if (this->position_file + size_buf > holder_memory_block->size_memory_block) {
+								err_inner = this->SetFileSize(this->position_file + size_buf);
+								if (err_inner) {
+									if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+										IException* err_consequence = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write);
+										err_consequence->AttachCause(err_inner);
+										err_inner = err_consequence;
+										return;
+									} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+										IException* err_consequence = new EofFileException(this);
+										err_consequence->AttachCause(err_inner);
+										err_inner = err_consequence;
+										return;
+									} else {
+										return;
+									}
 								}
 							}
+							if (!holder_memory_block->address_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+							if (this->position_file + size_buf > holder_memory_block->size_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+							memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), buf, size_buf);
+							this->position_file += size_buf;
 						}
-						if (!holder_memory_block->address_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-						if (this->position_file + size_buf > holder_memory_block->size_memory_block) return YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION();
-						memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(holder_memory_block->address_memory_block) + this->position_file), buf, size_buf);
-						this->position_file += size_buf;
 					}
 				}
+			);
+			if (err) {
+				if (err_inner) {
+					delete err_inner;
+					err_inner = nullptr;
+				}
+				return err;
+			}
+			if (err_inner) {
+				return err_inner;
 			}
 			return nullptr;
 		}
