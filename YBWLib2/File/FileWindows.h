@@ -50,17 +50,29 @@ namespace YBWLib2 {
 		static constexpr writeonly_t writeonly {};
 		static YBWLIB2_API IStringTemplate* strtmpl_description;
 		inline Win32File(const Win32HandleHolder& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(_win32handleholder_file), can_read(true), can_write(true) {}
+			: win32handleholder_file(_win32handleholder_file), can_read(true), can_write(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(readonly_t, const Win32HandleHolder& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(_win32handleholder_file), can_read(true) {}
+			: win32handleholder_file(_win32handleholder_file), can_read(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(writeonly_t, const Win32HandleHolder& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(_win32handleholder_file), can_write(true) {}
+			: win32handleholder_file(_win32handleholder_file), can_write(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(Win32HandleHolder&& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true), can_write(true) {}
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true), can_write(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(readonly_t, Win32HandleHolder&& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true) {}
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_read(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(writeonly_t, Win32HandleHolder&& _win32handleholder_file) noexcept(false)
-			: win32handleholder_file(::std::move(_win32handleholder_file)), can_write(true) {}
+			: win32handleholder_file(::std::move(_win32handleholder_file)), can_write(true) {
+			if (!this->win32handleholder_file) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::Win32File, Win32File));
+		}
 		inline Win32File(const Win32File& x) noexcept(false)
 			: ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
 			File(static_cast<const File&>(x)),
