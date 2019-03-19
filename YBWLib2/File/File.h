@@ -1395,32 +1395,31 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* GetFileSize(size_t* size_ret) const noexcept override {
 			if (!size_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
 			if constexpr (::std::is_same_v<size_t, unsigned long long>) {
-				return this->GetFileSizeULongLong(size_ret);
-			} else if (sizeof(size_t) == sizeof(unsigned long long) && (*is_byte_order_le || *is_byte_order_be)) {
 				return this->GetFileSizeULongLong(reinterpret_cast<unsigned long long*>(size_ret));
-			} else {
-				unsigned long long ulonglong_size = 0;
-				IException* err_inner = this->GetFileSizeULongLong(&ulonglong_size);
-				if (err_inner) {
-					if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
-						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
-						err->AttachCause(err_inner);
-						err_inner = nullptr;
-						return err;
-					} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
-						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
-						err->AttachCause(err_inner);
-						err_inner = nullptr;
-						return err;
-					} else {
-						return err_inner;
-					}
-				}
-				if constexpr (sizeof(size_t) < sizeof(unsigned long long))
-					if (ulonglong_size > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
-				*size_ret = ulonglong_size;
-				return nullptr;
+			} else if constexpr (sizeof(size_t) == sizeof(unsigned long long)) if (*is_byte_order_le || *is_byte_order_be) {
+				return this->GetFileSizeULongLong(reinterpret_cast<unsigned long long*>(size_ret));
 			}
+			unsigned long long ulonglong_size = 0;
+			IException* err_inner = this->GetFileSizeULongLong(&ulonglong_size);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			if constexpr (sizeof(size_t) < sizeof(unsigned long long))
+				if (ulonglong_size > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, GetFileSize);
+			*size_ret = ulonglong_size & ~(size_t)0;
+			return nullptr;
 		}
 		/// <summary>Sets the size of the file.</summary>
 		/// <param name="size">The new file size (in <c>uint8_t</c>s).</param>
@@ -1638,32 +1637,31 @@ namespace YBWLib2 {
 		[[nodiscard]] inline virtual IException* Tell(size_t* distance_ret) const noexcept override {
 			if (!distance_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
 			if constexpr (::std::is_same_v<size_t, unsigned long long>) {
-				return this->TellULongLong(distance_ret);
-			} else if (sizeof(size_t) == sizeof(unsigned long long) && (*is_byte_order_le || *is_byte_order_be)) {
 				return this->TellULongLong(reinterpret_cast<unsigned long long*>(distance_ret));
-			} else {
-				unsigned long long ulonglong_distance = 0;
-				IException* err_inner = this->TellULongLong(&ulonglong_distance);
-				if (err_inner) {
-					if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
-						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
-						err->AttachCause(err_inner);
-						err_inner = nullptr;
-						return err;
-					} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
-						IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
-						err->AttachCause(err_inner);
-						err_inner = nullptr;
-						return err;
-					} else {
-						return err_inner;
-					}
-				}
-				if constexpr (sizeof(size_t) < sizeof(unsigned long long))
-					if (ulonglong_distance > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
-				*distance_ret = ulonglong_distance;
-				return nullptr;
+			} else if constexpr (sizeof(size_t) == sizeof(unsigned long long)) if (*is_byte_order_le || *is_byte_order_be) {
+				return this->TellULongLong(reinterpret_cast<unsigned long long*>(distance_ret));
 			}
+			unsigned long long ulonglong_distance = 0;
+			IException* err_inner = this->TellULongLong(&ulonglong_distance);
+			if (err_inner) {
+				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else if (DynamicTypeCanCast<IInvalidCallException, IException>(err_inner)) {
+					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+					err->AttachCause(err_inner);
+					err_inner = nullptr;
+					return err;
+				} else {
+					return err_inner;
+				}
+			}
+			if constexpr (sizeof(size_t) < sizeof(unsigned long long))
+				if (ulonglong_distance > SIZE_MAX) return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, Tell);
+			*distance_ret = ulonglong_distance & ~(size_t)0;
+			return nullptr;
 		}
 		/// <summary>Seeks to the position with a specified distance after the start of file.</summary>
 		/// <param name="buf_distance">
