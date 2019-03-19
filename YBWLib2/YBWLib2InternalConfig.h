@@ -25,7 +25,7 @@
 #include "JSON/JSON.h"
 
 namespace YBWLib2::Internal {
-	static constexpr unsigned int parseflags_rapidjson =
+	constexpr unsigned int parseflags_rapidjson =
 		::rapidjson::kParseValidateEncodingFlag
 		| ::rapidjson::kParseFullPrecisionFlag
 		| ::rapidjson::kParseCommentsFlag

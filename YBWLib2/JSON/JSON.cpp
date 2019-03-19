@@ -56,17 +56,17 @@ namespace YBWLib2 {
 				{ GetDynamicTypeThisClassID<JSONException>(), &JSONException::strtmpl_description },
 				{ GetDynamicTypeThisClassID<ParseErrorJSONException>(), &ParseErrorJSONException::strtmpl_description }
 				});
-			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval("JSON"));
+			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"JSON"));
 			if (jsonmemberit_config_internal_JSON == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_JSON->value.IsObject()) abort();
 			{
-				Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description = jsonmemberit_config_internal_JSON->value.FindMember(Internal::ConstStringToInternalConfigJsonval("strtmpl_description"));
+				Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description = jsonmemberit_config_internal_JSON->value.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"strtmpl_description"));
 				if (jsonmemberit_config_internal_JSON_strtmpl_description == jsonmemberit_config_internal_JSON->value.MemberEnd() || !jsonmemberit_config_internal_JSON_strtmpl_description->value.IsArray()) abort();
 				{
 					for (const Internal::jsonval_config_internal_t& jsonval_config_internal_JSON_strtmpl_description_element : jsonmemberit_config_internal_JSON_strtmpl_description->value.GetArray()) {
 						if (!jsonval_config_internal_JSON_strtmpl_description_element.IsObject()) abort();
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_exception = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_exception"));
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_strtmpl = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("dtclassid_strtmpl"));
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_jsonval_strtmpl = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval("jsonval_strtmpl"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_exception = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"dtclassid_exception"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_strtmpl = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"dtclassid_strtmpl"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON_strtmpl_description_element_jsonval_strtmpl = jsonval_config_internal_JSON_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"jsonval_strtmpl"));
 						if (
 							jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_exception == jsonval_config_internal_JSON_strtmpl_description_element.MemberEnd()
 							|| !jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_exception->value.IsString()
