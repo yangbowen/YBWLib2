@@ -287,7 +287,7 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char));
 					err_inner = SnPrintfUtf8(_rawallocator, str_ntstatus, sizeof(str_ntstatus) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 2), (::std::make_unsigned_t<NTSTATUS>)this->GetNTSTATUSCode());
 					if (err_inner) return;
-					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
+					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 16), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
 				{
@@ -365,7 +365,7 @@ namespace YBWLib2 {
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<HRESULT>>::fmtspec_printf_X_utf8) / sizeof(char));
 					err_inner = SnPrintfUtf8(_rawallocator, str_hresult, sizeof(str_hresult) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(::std::make_unsigned_t<HRESULT>) / sizeof(uint8_t) * 2), (::std::make_unsigned_t<HRESULT>)this->GetHRESULTCode());
 					if (err_inner) return;
-					str_out += str_out_t(str_hresult, strnlen(str_hresult, sizeof(HRESULT) / sizeof(uint8_t) * 2 + 4), allocator_rawallocator_char);
+					str_out += str_out_t(str_hresult, strnlen(str_hresult, sizeof(HRESULT) / sizeof(uint8_t) * 2 + 16), allocator_rawallocator_char);
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
