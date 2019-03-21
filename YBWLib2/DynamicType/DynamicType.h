@@ -814,9 +814,9 @@ namespace YBWLib2 {
 				&& !IsDynamicTypeModuleLocalClass<_Class_To_Ty>()
 				&& !IsDynamicTypeModuleLocalClass<_Class_From_Ty>()
 				) {
-				return static_cast<_Class_To_Ty*>(ptr);
+				return ptr ? static_cast<_Class_To_Ty*>(ptr) : nullptr;
 			} else {
-				return reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>()));
+				return ptr ? reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>())) : nullptr;
 			}
 		}
 	};
@@ -840,9 +840,9 @@ namespace YBWLib2 {
 					&& !IsDynamicTypeModuleLocalClass<_Class_To_Ty>()
 					&& !IsDynamicTypeModuleLocalClass<_Class_From_Ty>()
 					) {
-					return true;
+					return ptr;
 				} else {
-					return ptr->DynamicTypeRawCanCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>());
+					return ptr && ptr->DynamicTypeRawCanCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>());
 				}
 			} else {
 				return false;
