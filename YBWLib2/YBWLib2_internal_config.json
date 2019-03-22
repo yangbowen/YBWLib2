@@ -221,7 +221,7 @@
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
-          "The file position of a file is attempted to be set beyond the start of the file.\nFile object address: ",
+          "The file position of a file has been attempted to be set beyond the start of the file.\nFile object address: ",
           { "name_parameter": "address_file" },
           "\nFile description: ",
           { "name_parameter": "description_file" }
@@ -233,7 +233,7 @@
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
-          "A file is attempted to be accessed in some ways unsupported when the position is beyond the last byte of the file.\nFile object address: ",
+          "A file has been attempted to be accessed in some ways unsupported when the position is beyond the last byte of the file.\nFile object address: ",
           { "name_parameter": "address_file" },
           "\nFile description: ",
           { "name_parameter": "description_file" }
