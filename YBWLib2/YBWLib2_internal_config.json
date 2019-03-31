@@ -8,21 +8,21 @@
     "strtmpl_description": [
       {
         // Exception
-        "dtclassid_exception": "ae07f679-f0a1-4f24-9e1b-2e7ad8f59f6d",
+        "dtclassid_object": "ae07f679-f0a1-4f24-9e1b-2e7ad8f59f6d",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An exception has occurred."
       },
       {
         // DoubleExceptionException
-        "dtclassid_exception": "3e8fb777-36a8-4484-8dfc-c0c1d0769921",
+        "dtclassid_object": "3e8fb777-36a8-4484-8dfc-c0c1d0769921",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An exception has occurred during the handling of another exception."
       },
       {
         // InvalidParameterException
-        "dtclassid_exception": "64bcf888-15dc-4a20-95ec-d11ea4511e08",
+        "dtclassid_object": "64bcf888-15dc-4a20-95ec-d11ea4511e08",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -34,7 +34,7 @@
       },
       {
         // InvalidCallException
-        "dtclassid_exception": "24f2c099-be5d-4401-8338-18817687589c",
+        "dtclassid_object": "24f2c099-be5d-4401-8338-18817687589c",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -46,7 +46,7 @@
       },
       {
         // InsufficientBufferException
-        "dtclassid_exception": "58050bd3-cd5e-4501-b717-ee9603a31e77",
+        "dtclassid_object": "58050bd3-cd5e-4501-b717-ee9603a31e77",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -56,35 +56,35 @@
       },
       {
         // MemoryAllocFailureException
-        "dtclassid_exception": "5b87c2db-b7e8-4f02-928e-76fdc457d1a3",
+        "dtclassid_object": "5b87c2db-b7e8-4f02-928e-76fdc457d1a3",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "A memory allocation has failed."
       },
       {
         // KeyAlreadyExistException
-        "dtclassid_exception": "7f492596-20cd-430c-8ebb-8a63b03f648a",
+        "dtclassid_object": "7f492596-20cd-430c-8ebb-8a63b03f648a",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An attempt to insert an entry into a data structure has failed because it doesn't allow multiple equivalent keys and already has an entry with an equivalent key."
       },
       {
         // KeyNotExistException
-        "dtclassid_exception": "41af914c-4067-4088-8c87-0da29e4f3b28",
+        "dtclassid_object": "41af914c-4067-4088-8c87-0da29e4f3b28",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "A non-existent key in a data structure has been referenced."
       },
       {
         // UnhandledUnknownExceptionException
-        "dtclassid_exception": "394df091-137c-4214-9a74-1e3f8ef7601a",
+        "dtclassid_object": "394df091-137c-4214-9a74-1e3f8ef7601a",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An unhandled exception thrown with other mechanisms not supported by this exception handling facility has been catched."
       },
       {
         // STLExceptionException
-        "dtclassid_exception": "6bfb4f69-92fb-4b8f-b9b0-439243fdc80d",
+        "dtclassid_object": "6bfb4f69-92fb-4b8f-b9b0-439243fdc80d",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -94,7 +94,7 @@
       },
       {
         // ExternalAPIFailureException
-        "dtclassid_exception": "e1c1550b-2b64-48c8-8904-0013c4469f24",
+        "dtclassid_object": "e1c1550b-2b64-48c8-8904-0013c4469f24",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -106,7 +106,7 @@
       },
       {
         // UnexpectedExceptionException
-        "dtclassid_exception": "a7f160c0-3ccc-45ab-aa5a-3172469faf64",
+        "dtclassid_object": "a7f160c0-3ccc-45ab-aa5a-3172469faf64",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -122,7 +122,7 @@
     "strtmpl_description": [
       {
         // ExternalAPIFailureWithLastErrorException
-        "dtclassid_exception": "fead69a8-4bff-4eaf-95a9-c235784a827d",
+        "dtclassid_object": "fead69a8-4bff-4eaf-95a9-c235784a827d",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -136,7 +136,7 @@
       },
       {
         // ExternalAPIFailureWithWSALastErrorException
-        "dtclassid_exception": "c341f9cf-e4f5-411f-b983-cdf780406870",
+        "dtclassid_object": "c341f9cf-e4f5-411f-b983-cdf780406870",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -150,7 +150,7 @@
       },
       {
         // ExternalAPIFailureWithNTSTATUSException
-        "dtclassid_exception": "74ddcd1a-b4b4-403e-a868-fb8f0be9c1e1",
+        "dtclassid_object": "74ddcd1a-b4b4-403e-a868-fb8f0be9c1e1",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -164,7 +164,7 @@
       },
       {
         // ExternalAPIFailureWithHRESULTException
-        "dtclassid_exception": "6b2bb9f9-4db4-4f3f-83a2-14d03f6d5ae9",
+        "dtclassid_object": "6b2bb9f9-4db4-4f3f-83a2-14d03f6d5ae9",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -182,14 +182,14 @@
     "strtmpl_description": [
       {
         // JSONException
-        "dtclassid_exception": "b3549309-4fdd-483c-810e-1247d13aaa8b",
+        "dtclassid_object": "b3549309-4fdd-483c-810e-1247d13aaa8b",
         // FixedStringTemplate
         "dtclassid_strtmpl": "e1bfd083-8545-4abf-850c-8982f513c733",
         "jsonval_strtmpl": "An exception that relates to JSON has occurred."
       },
       {
         // ParseErrorJSONException
-        "dtclassid_exception": "2cd35585-2444-474c-acdc-11553254e810",
+        "dtclassid_object": "2cd35585-2444-474c-acdc-11553254e810",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -205,7 +205,7 @@
     "strtmpl_description": [
       {
         // FileException
-        "dtclassid_exception": "a3232404-3264-47c1-aaab-e20132d99fd9",
+        "dtclassid_object": "a3232404-3264-47c1-aaab-e20132d99fd9",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -217,7 +217,7 @@
       },
       {
         // BofFileException
-        "dtclassid_exception": "be41ef8d-18f5-4287-a2b2-fbadc7e0db81",
+        "dtclassid_object": "be41ef8d-18f5-4287-a2b2-fbadc7e0db81",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -229,7 +229,7 @@
       },
       {
         // EofFileException
-        "dtclassid_exception": "ab687fb2-4c3f-45c2-b1e0-9b9c2aa2a479",
+        "dtclassid_object": "ab687fb2-4c3f-45c2-b1e0-9b9c2aa2a479",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -241,7 +241,7 @@
       },
       {
         // MemoryFile
-        "dtclassid_exception": "ce0268fb-69ab-4838-be0e-7b4f7f453f9a",
+        "dtclassid_object": "ce0268fb-69ab-4838-be0e-7b4f7f453f9a",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [
@@ -258,7 +258,7 @@
     "strtmpl_description": [
       {
         // Win32File
-        "dtclassid_exception": "0f872e37-6173-411d-9e4f-7f3df2e34e02",
+        "dtclassid_object": "0f872e37-6173-411d-9e4f-7f3df2e34e02",
         // SubstitutionStringTemplate
         "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
         "jsonval_strtmpl": [

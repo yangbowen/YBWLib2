@@ -101,20 +101,20 @@ namespace YBWLib2 {
 				{
 					for (const Internal::jsonval_config_internal_t& jsonval_config_internal_ExceptionWindows_strtmpl_description_element : jsonmemberit_config_internal_ExceptionWindows_strtmpl_description->value.GetArray()) {
 						if (!jsonval_config_internal_ExceptionWindows_strtmpl_description_element.IsObject()) abort();
-						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"dtclassid_exception"));
+						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"dtclassid_object"));
 						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"dtclassid_strtmpl"));
 						Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl = jsonval_config_internal_ExceptionWindows_strtmpl_description_element.FindMember(Internal::ConstStringToInternalConfigJsonval(u8"jsonval_strtmpl"));
 						if (
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
-							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.IsString()
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
+							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object->value.IsString()
 							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
 							|| !jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.IsString()
 							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_exception = DynamicTypeClassIDFromUUIDString_RunTime(
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.GetString(),
-							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_exception->value.GetStringLength(),
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object->value.GetString(),
+							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
 						);
 						if (!is_successful) abort();
@@ -125,7 +125,7 @@ namespace YBWLib2 {
 							is_successful
 						);
 						if (!is_successful) abort();
-						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_exception);
+						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;
 						DynamicTypeClassObj* dtclassobj_strtmpl = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&dtclassid_strtmpl);
 						if (!dtclassobj_strtmpl) abort();

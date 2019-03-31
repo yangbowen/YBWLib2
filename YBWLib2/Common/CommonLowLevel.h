@@ -751,12 +751,12 @@ namespace YBWLib2 {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				obj->unlock();
 			},
-				[](uintptr_t context)->bool {
+			[](uintptr_t context)->bool {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				return obj->try_lock();
 			},
-				reinterpret_cast<uintptr_t>(&_obj)
-				);
+			reinterpret_cast<uintptr_t>(&_obj)
+		);
 	}
 
 	/// <summary>

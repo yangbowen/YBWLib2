@@ -30,7 +30,7 @@ namespace YBWLib2::Internal {
 
 	void YBWLIB2_CALLTYPE YBWLib2InternalConfig_RealInitGlobal() noexcept {
 		_jsondoc_config_internal = new jsondoc_config_internal_t();
-		_jsondoc_config_internal->Parse<parseflags_rapidjson>(GetRawData_YBWLib2InternalConfig(), GetRawDataSize_YBWLib2InternalConfig());
+		_jsondoc_config_internal->Parse<parseflags_rapidjson_config_internal>(GetRawData_YBWLib2InternalConfig(), GetRawDataSize_YBWLib2InternalConfig());
 		if (_jsondoc_config_internal->HasParseError()) abort();
 		jsondoc_config_internal = _jsondoc_config_internal;
 		if (!jsondoc_config_internal->IsObject()) abort();
