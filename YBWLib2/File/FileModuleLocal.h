@@ -39,44 +39,15 @@ namespace YBWLib2 {
 				objholder_strtmplparameter_address_file.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_file", reinterpret_cast<uintptr_t>(file));
 				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_description_file;
 				{
-					struct holder_str_t final {
-						const rawallocator_t* rawallocator = nullptr;
-						char* str = nullptr;
-						size_t size_str = 0;
-						inline constexpr holder_str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-						/*holder_str_t(const holder_str_t&) = delete;
-						inline holder_str_t(holder_str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-						}*/
-						inline ~holder_str_t() {
-							if (this->str) {
-								if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
-								this->str = nullptr;
-							}
-							this->size_str = 0;
-							this->rawallocator = nullptr;
-						}
-						/*holder_str_t& operator=(const holder_str_t&) = delete;
-						inline holder_str_t& operator=(holder_str_t&& x) noexcept {
-							this->rawallocator = ::std::move(x.rawallocator);
-							this->str = ::std::move(x.str);
-							this->size_str = ::std::move(x.size_str);
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-							return *this;
-						}*/
-					} holder_str_description_file(rawallocator_exception);
+					objholder_rawallocator_t<char[]> holder_str_description_file(rawallocator_exception);
 					if (file) {
-						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.str, &holder_str_description_file.size_str, false);
+						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.get_ref_ptr_array_element_element_as_mem(), &holder_str_description_file.get_ref_count_element_element_as_mem(), false);
 						err_inner = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
 						err_inner->AttachCause(err_cause_inner);
 						return;
 					}
-					if (holder_str_description_file.str && holder_str_description_file.size_str) {
-						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.str, holder_str_description_file.size_str);
+					if (holder_str_description_file.get() && holder_str_description_file.get_count()) {
+						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.get(), holder_str_description_file.get_count());
 					} else {
 						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
 					}
@@ -119,44 +90,15 @@ namespace YBWLib2 {
 				objholder_strtmplparameter_address_file.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_file", reinterpret_cast<uintptr_t>(file));
 				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_description_file;
 				{
-					struct holder_str_t final {
-						const rawallocator_t* rawallocator = nullptr;
-						char* str = nullptr;
-						size_t size_str = 0;
-						inline constexpr holder_str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-						/*holder_str_t(const holder_str_t&) = delete;
-						inline holder_str_t(holder_str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-						}*/
-						inline ~holder_str_t() {
-							if (this->str) {
-								if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
-								this->str = nullptr;
-							}
-							this->size_str = 0;
-							this->rawallocator = nullptr;
-						}
-						/*holder_str_t& operator=(const holder_str_t&) = delete;
-						inline holder_str_t& operator=(holder_str_t&& x) noexcept {
-							this->rawallocator = ::std::move(x.rawallocator);
-							this->str = ::std::move(x.str);
-							this->size_str = ::std::move(x.size_str);
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-							return *this;
-						}*/
-					} holder_str_description_file(rawallocator_exception);
+					objholder_rawallocator_t<char[]> holder_str_description_file(rawallocator_exception);
 					if (file) {
-						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.str, &holder_str_description_file.size_str, false);
+						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.get_ref_ptr_array_element_element_as_mem(), &holder_str_description_file.get_ref_count_element_element_as_mem(), false);
 						err_inner = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
 						err_inner->AttachCause(err_cause_inner);
 						return;
 					}
-					if (holder_str_description_file.str && holder_str_description_file.size_str) {
-						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.str, holder_str_description_file.size_str);
+					if (holder_str_description_file.get() && holder_str_description_file.get_count()) {
+						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.get(), holder_str_description_file.get_count());
 					} else {
 						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
 					}
@@ -199,44 +141,15 @@ namespace YBWLib2 {
 				objholder_strtmplparameter_address_file.construct(objholder_local_t<AddressStringTemplateParameter>::construct_obj, rawallocator_exception, u8"address_file", reinterpret_cast<uintptr_t>(file));
 				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_description_file;
 				{
-					struct holder_str_t final {
-						const rawallocator_t* rawallocator = nullptr;
-						char* str = nullptr;
-						size_t size_str = 0;
-						inline constexpr holder_str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-						/*holder_str_t(const holder_str_t&) = delete;
-						inline holder_str_t(holder_str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-						}*/
-						inline ~holder_str_t() {
-							if (this->str) {
-								if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
-								this->str = nullptr;
-							}
-							this->size_str = 0;
-							this->rawallocator = nullptr;
-						}
-						/*holder_str_t& operator=(const holder_str_t&) = delete;
-						inline holder_str_t& operator=(holder_str_t&& x) noexcept {
-							this->rawallocator = ::std::move(x.rawallocator);
-							this->str = ::std::move(x.str);
-							this->size_str = ::std::move(x.size_str);
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-							return *this;
-						}*/
-					} holder_str_description_file(rawallocator_exception);
+					objholder_rawallocator_t<char[]> holder_str_description_file(rawallocator_exception);
 					if (file) {
-						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.str, &holder_str_description_file.size_str, false);
+						IException* err_cause_inner = file->GetDescription(rawallocator_exception, &holder_str_description_file.get_ref_ptr_array_element_element_as_mem(), &holder_str_description_file.get_ref_count_element_element_as_mem(), false);
 						err_inner = YBWLIB2_EXCEPTION_CREATE_DOUBLE_EXCEPTION_EXCEPTION();
 						err_inner->AttachCause(err_cause_inner);
 						return;
 					}
-					if (holder_str_description_file.str && holder_str_description_file.size_str) {
-						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.str, holder_str_description_file.size_str);
+					if (holder_str_description_file.get() && holder_str_description_file.get_count()) {
+						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", holder_str_description_file.get(), holder_str_description_file.get_count());
 					} else {
 						objholder_strtmplparameter_description_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, rawallocator_exception, u8"description_file", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
 					}

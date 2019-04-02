@@ -75,31 +75,6 @@ namespace YBWLib2 {
 		IException* exception_cause_current = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &description_ret, &size_description_ret, &err_inner, &has_deleted_this, &exception_cause_current]() noexcept(false)->void {
-				struct holder_description_t final {
-					char* str = nullptr;
-					size_t size_str = 0;
-					inline constexpr holder_description_t() noexcept = default;
-					holder_description_t(const holder_description_t&) = delete;
-					inline holder_description_t(holder_description_t&& x) noexcept : str(x.str), size_str(x.size_str) {
-						x.str = nullptr;
-						x.size_str = 0;
-					}
-					inline ~holder_description_t() {
-						if (this->str) {
-							ExceptionFreeMemory(this->str);
-							this->str = nullptr;
-						}
-						this->size_str = 0;
-					}
-					holder_description_t& operator=(const holder_description_t&) = delete;
-					inline holder_description_t& operator=(holder_description_t&& x) noexcept {
-						this->str = ::std::move(x.str);
-						this->size_str = ::std::move(x.size_str);
-						x.str = nullptr;
-						x.size_str = 0;
-						return *this;
-					}
-				};
 				allocator_exception_t<char> allocator_exception_char;
 				using str_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_exception_t<char>>;
 				str_t str_description_total(allocator_exception_char);
@@ -125,9 +100,9 @@ namespace YBWLib2 {
 				};
 				str_description_total += str_prefix_line_description;
 				{
-					holder_description_t holder_description_this;
+					objholder_rawallocator_t<char[]> holder_description_this(rawallocator_exception);
 					bool is_successful_this = false;
-					IException* exception_new_this = this->GetDescriptionSingleLevel(&holder_description_this.str, &holder_description_this.size_str, &is_successful_this);
+					IException* exception_new_this = this->GetDescriptionSingleLevel(&holder_description_this.get_ref_ptr_array_element_element_as_mem(), &holder_description_this.get_ref_count_element_element_as_mem(), &is_successful_this);
 					if (is_successful_this) {
 						if (exception_new_this != this) abort();
 					} else {
@@ -135,7 +110,7 @@ namespace YBWLib2 {
 						err_inner = exception_new_this;
 						return;
 					}
-					append_string_with_prefix_line(str_description_total, holder_description_this.str, holder_description_this.size_str, str_prefix_line_description);
+					append_string_with_prefix_line(str_description_total, holder_description_this.get(), holder_description_this.get_count(), str_prefix_line_description);
 				}
 				IException* exception_consequence_current = this;
 				while (true) {
@@ -144,19 +119,19 @@ namespace YBWLib2 {
 					if (!exception_cause_current) break;
 					str_prefix_line_description.push_back('\t');
 					{
-						holder_description_t holder_delimiter_cause_description_exception;
+						objholder_rawallocator_t<char[]> holder_delimiter_cause_description_exception(rawallocator_exception);
 						if (!strtmpl_delimiter_cause_description_exception) abort();
 						err_inner = strtmpl_delimiter_cause_description_exception->GenerateString(StringTemplateParameterList(rawallocator_exception,
 							{
 							}
-						), &holder_delimiter_cause_description_exception.str, &holder_delimiter_cause_description_exception.size_str, false, rawallocator_exception);
+						), &holder_delimiter_cause_description_exception.get_ref_ptr_array_element_element_as_mem(), &holder_delimiter_cause_description_exception.get_ref_count_element_element_as_mem(), false, rawallocator_exception);
 						if (err_inner) return;
-						append_string_with_prefix_line(str_description_total, holder_delimiter_cause_description_exception.str, holder_delimiter_cause_description_exception.size_str, str_prefix_line_description);
+						append_string_with_prefix_line(str_description_total, holder_delimiter_cause_description_exception.get(), holder_delimiter_cause_description_exception.get_count(), str_prefix_line_description);
 					}
 					{
-						holder_description_t holder_description_exception_cause_current;
+						objholder_rawallocator_t<char[]> holder_description_exception_cause_current(rawallocator_exception);
 						bool is_successful_exception_cause_current = false;
-						IException* exception_new_cause_current = exception_cause_current->GetDescriptionSingleLevel(&holder_description_exception_cause_current.str, &holder_description_exception_cause_current.size_str, &is_successful_exception_cause_current);
+						IException* exception_new_cause_current = exception_cause_current->GetDescriptionSingleLevel(&holder_description_exception_cause_current.get_ref_ptr_array_element_element_as_mem(), &holder_description_exception_cause_current.get_ref_count_element_element_as_mem(), &is_successful_exception_cause_current);
 						if (is_successful_exception_cause_current) {
 							if (exception_new_cause_current != exception_cause_current) abort();
 						} else {
@@ -164,7 +139,7 @@ namespace YBWLib2 {
 							exception_cause_current = nullptr;
 							return;
 						}
-						append_string_with_prefix_line(str_description_total, holder_description_exception_cause_current.str, holder_description_exception_cause_current.size_str, str_prefix_line_description);
+						append_string_with_prefix_line(str_description_total, holder_description_exception_cause_current.get(), holder_description_exception_cause_current.get_count(), str_prefix_line_description);
 					}
 					exception_consequence_current->AttachCause(exception_cause_current);
 					exception_consequence_current = exception_cause_current;

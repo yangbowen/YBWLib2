@@ -35,112 +35,70 @@ namespace YBWLib2 {
 				objholder_local_t<StringStringTemplateParameter> objholder_strtmplparameter_filename_file;
 				{
 					static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
-					struct holder_u16str_t final {
-						const rawallocator_t* rawallocator = nullptr;
-						char16_t* str = nullptr;
-						size_t size_str = 0;
-						inline constexpr holder_u16str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-						/*holder_u16str_t(const holder_u16str_t&) = delete;
-						inline holder_u16str_t(holder_u16str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-						}*/
-						inline ~holder_u16str_t() {
-							if (this->str) {
-								if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char16_t))) abort();
-								this->str = nullptr;
-							}
-							this->size_str = 0;
-							this->rawallocator = nullptr;
-						}
-						/*holder_u16str_t& operator=(const holder_u16str_t&) = delete;
-						inline holder_u16str_t& operator=(holder_u16str_t&& x) noexcept {
-							this->rawallocator = ::std::move(x.rawallocator);
-							this->str = ::std::move(x.str);
-							this->size_str = ::std::move(x.size_str);
-							x.rawallocator = nullptr;
-							x.str = nullptr;
-							x.size_str = 0;
-							return *this;
-						}*/
-					} holder_u16str_filename_file(_rawallocator);
-					holder_u16str_filename_file.size_str = 1;
-					holder_u16str_filename_file.str = reinterpret_cast<char16_t*>(_rawallocator->Allocate(holder_u16str_filename_file.size_str * sizeof(char16_t)));
-					if (!holder_u16str_filename_file.str) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+					objholder_rawallocator_t<char16_t[]> holder_u16str_filename_file(_rawallocator);
+					holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 1;
+					holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Allocate(holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+					if (!holder_u16str_filename_file.get()) {
+						holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
+						err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+						return;
+					}
 					DWORD dword_size_filename_file = 0;
-					dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+					dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
 					if (!dword_size_filename_file) {
-						dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
+						dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
 						if (!dword_size_filename_file) {
 							err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetFinalPathNameByHandleW);
 							return;
 						} else {
-							holder_u16str_filename_file.size_str = dword_size_filename_file;
-							holder_u16str_filename_file.str = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.str, 1 * sizeof(char16_t), holder_u16str_filename_file.size_str * sizeof(char16_t)));
-							if (!holder_u16str_filename_file.str) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+							holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
+							holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+							if (!holder_u16str_filename_file.get()) {
+								holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
+								err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+								return;
+							}
 							--dword_size_filename_file;
-							if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID) != dword_size_filename_file) {
+							if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID) != dword_size_filename_file) {
 								err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetFinalPathNameByHandleW);
 								return;
 							}
 						}
 					} else {
-						holder_u16str_filename_file.size_str = dword_size_filename_file;
-						holder_u16str_filename_file.str = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.str, 1 * sizeof(char16_t), holder_u16str_filename_file.size_str * sizeof(char16_t)));
-						if (!holder_u16str_filename_file.str) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+						holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
+						holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+						if (!holder_u16str_filename_file.get()) {
+							holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
+							err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+							return;
+						}
 						--dword_size_filename_file;
-						if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS) != dword_size_filename_file) {
-							dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
+						if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS) != dword_size_filename_file) {
+							dword_size_filename_file = GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
 							if (!dword_size_filename_file) {
 								err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetFinalPathNameByHandleW);
 								return;
 							} else {
-								holder_u16str_filename_file.size_str = dword_size_filename_file;
-								holder_u16str_filename_file.str = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.str, 1 * sizeof(char16_t), holder_u16str_filename_file.size_str * sizeof(char16_t)));
-								if (!holder_u16str_filename_file.str) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+								holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
+								holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+								if (!holder_u16str_filename_file.get()) {
+									holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
+									err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
+									return;
+								}
 								--dword_size_filename_file;
-								if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.str), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID) != dword_size_filename_file) {
+								if (GetFinalPathNameByHandleW(this->win32handleholder_file.get(), reinterpret_cast<wchar_t*>(holder_u16str_filename_file.get()), dword_size_filename_file, FILE_NAME_NORMALIZED | VOLUME_NAME_GUID) != dword_size_filename_file) {
 									err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetFinalPathNameByHandleW);
 									return;
 								}
 							}
 						}
 					}
-					if (holder_u16str_filename_file.str && holder_u16str_filename_file.size_str) {
-						struct holder_u8str_t final {
-							const rawallocator_t* rawallocator = nullptr;
-							char* str = nullptr;
-							size_t size_str = 0;
-							inline constexpr holder_u8str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-							/*holder_u8str_t(const holder_u8str_t&) = delete;
-							inline holder_u8str_t(holder_u8str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-								x.rawallocator = nullptr;
-								x.str = nullptr;
-								x.size_str = 0;
-							}*/
-							inline ~holder_u8str_t() {
-								if (this->str) {
-									if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char))) abort();
-									this->str = nullptr;
-								}
-								this->size_str = 0;
-								this->rawallocator = nullptr;
-							}
-							/*holder_u8str_t& operator=(const holder_u8str_t&) = delete;
-							inline holder_u8str_t& operator=(holder_u8str_t&& x) noexcept {
-								this->rawallocator = ::std::move(x.rawallocator);
-								this->str = ::std::move(x.str);
-								this->size_str = ::std::move(x.size_str);
-								x.rawallocator = nullptr;
-								x.str = nullptr;
-								x.size_str = 0;
-								return *this;
-							}*/
-						} holder_u8str_filename_file(_rawallocator);
-						err_inner = Utf16StringToUtf8String(_rawallocator, &holder_u8str_filename_file.str, &holder_u8str_filename_file.size_str, holder_u16str_filename_file.str, holder_u16str_filename_file.size_str - 1);
+					if (holder_u16str_filename_file.get() && holder_u16str_filename_file.get_count()) {
+						objholder_rawallocator_t<char[]> holder_u8str_filename_file(_rawallocator);
+						err_inner = Utf16StringToUtf8String(_rawallocator, &holder_u8str_filename_file.get_ref_ptr_array_element_element_as_mem(), &holder_u8str_filename_file.get_ref_count_element_element_as_mem(), holder_u16str_filename_file.get(), holder_u16str_filename_file.get_count() - 1);
 						if (err_inner) return;
-						objholder_strtmplparameter_filename_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, _rawallocator, u8"filename_file", holder_u8str_filename_file.str, holder_u8str_filename_file.size_str);
+						objholder_strtmplparameter_filename_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, _rawallocator, u8"filename_file", holder_u8str_filename_file.get(), holder_u8str_filename_file.get_count());
 					} else {
 						objholder_strtmplparameter_filename_file.construct(objholder_local_t<StringStringTemplateParameter>::construct_obj, _rawallocator, u8"filename_file", conststr_unavailable, sizeof(conststr_unavailable) / sizeof(char) - 1);
 					}

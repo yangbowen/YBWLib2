@@ -577,7 +577,7 @@ namespace YBWLib2 {
 	/// <summary>An object for holding a pointer to another object that's placement-created in the storage of the former object.</summary>
 	template<typename _Element_Ty>
 	struct objholder_local_t final {
-		static_assert(::std::is_class_v<_Element_Ty>, "The element type is not a class.");
+		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
 		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};

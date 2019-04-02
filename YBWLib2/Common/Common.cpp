@@ -167,48 +167,19 @@ namespace YBWLib2 {
 #ifdef _WIN32_WINNT
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
 				static_assert(sizeof(uint8_t) == sizeof(BYTE), "The size of uint8_t is different from the size of BYTE.");
-				struct holder_u16str_t final {
-					const rawallocator_t* rawallocator = nullptr;
-					char16_t* str = nullptr;
-					size_t size_str = 0;
-					inline constexpr holder_u16str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-					holder_u16str_t(const holder_u16str_t&) = delete;
-					inline holder_u16str_t(holder_u16str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-						x.rawallocator = nullptr;
-						x.str = nullptr;
-						x.size_str = 0;
-					}
-					inline ~holder_u16str_t() {
-						if (this->str) {
-							if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char16_t))) abort();
-							this->str = nullptr;
-						}
-						this->size_str = 0;
-						this->rawallocator = nullptr;
-					}
-					holder_u16str_t& operator=(const holder_u16str_t&) = delete;
-					inline holder_u16str_t& operator=(holder_u16str_t&& x) noexcept {
-						this->rawallocator = ::std::move(x.rawallocator);
-						this->str = ::std::move(x.str);
-						this->size_str = ::std::move(x.size_str);
-						x.rawallocator = nullptr;
-						x.str = nullptr;
-						x.size_str = 0;
-						return *this;
-					}
-				} holder_u16str_out(rawallocator);
-				err_inner = Utf8StringToUtf16String(rawallocator, &holder_u16str_out.str, &holder_u16str_out.size_str, str_base64_in, size_str_base64_in);
+				objholder_rawallocator_t<char16_t[]> holder_u16str_base64_in(rawallocator);
+				err_inner = Utf8StringToUtf16String(rawallocator, &holder_u16str_base64_in.get_ref_ptr_array_element_element_as_mem(), &holder_u16str_base64_in.get_ref_count_element_element_as_mem(), str_base64_in, size_str_base64_in);
 				if (err_inner) return;
 				DWORD dword_size_data_out = 0;
-				if (holder_u16str_out.size_str > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-				if (!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_out.str), holder_u16str_out.size_str & ~(DWORD)0, CRYPT_STRING_BASE64, nullptr, &dword_size_data_out, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW); return; }
+				if (holder_u16str_base64_in.get_count() > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+				if (!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_base64_in.get()), holder_u16str_base64_in.get_count() & ~(DWORD)0, CRYPT_STRING_BASE64, nullptr, &dword_size_data_out, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW); return; }
 				if (dword_size_data_out > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				*size_data_out_ret = dword_size_data_out & ~(size_t)0;
 				*data_out_ret = reinterpret_cast<uint8_t*>(rawallocator->Allocate(*size_data_out_ret * sizeof(uint8_t)));
 				if (!*data_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
-				if (holder_u16str_out.size_str > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+				if (holder_u16str_base64_in.get_count() > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (
-					!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_out.str), holder_u16str_out.size_str & ~(DWORD)0, CRYPT_STRING_BASE64, reinterpret_cast<BYTE*>(*data_out_ret), &dword_size_data_out, nullptr, nullptr)
+					!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_base64_in.get()), holder_u16str_base64_in.get_count() & ~(DWORD)0, CRYPT_STRING_BASE64, reinterpret_cast<BYTE*>(*data_out_ret), &dword_size_data_out, nullptr, nullptr)
 					|| dword_size_data_out != *size_data_out_ret
 					) {
 					err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW);
@@ -253,57 +224,25 @@ namespace YBWLib2 {
 #ifdef _WIN32_WINNT
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
 				static_assert(sizeof(uint8_t) == sizeof(BYTE), "The size of uint8_t is different from the size of BYTE.");
-				struct holder_u16str_t final {
-					const rawallocator_t* rawallocator = nullptr;
-					char16_t* str = nullptr;
-					size_t size_str = 0;
-					inline constexpr holder_u16str_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-					holder_u16str_t(const holder_u16str_t&) = delete;
-					inline holder_u16str_t(holder_u16str_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), str(::std::move(x.str)), size_str(::std::move(x.size_str)) {
-						x.rawallocator = nullptr;
-						x.str = nullptr;
-						x.size_str = 0;
-					}
-					inline ~holder_u16str_t() {
-						if (this->str) {
-							if (!this->rawallocator->Deallocate(this->str, size_str * sizeof(char16_t))) abort();
-							this->str = nullptr;
-						}
-						this->size_str = 0;
-						this->rawallocator = nullptr;
-					}
-					holder_u16str_t& operator=(const holder_u16str_t&) = delete;
-					inline holder_u16str_t& operator=(holder_u16str_t&& x) noexcept {
-						this->rawallocator = ::std::move(x.rawallocator);
-						this->str = ::std::move(x.str);
-						this->size_str = ::std::move(x.size_str);
-						x.rawallocator = nullptr;
-						x.str = nullptr;
-						x.size_str = 0;
-						return *this;
-					}
-				} holder_u16str_out(rawallocator);
+				objholder_rawallocator_t<char16_t[]> holder_u16str_base64_out(rawallocator);
 				if (!data_in) data_in = reinterpret_cast<const uint8_t*>(&dummy);
 				DWORD dword_size_u16str_out = 0;
 				if (size_data_in > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &dword_size_u16str_out)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptBinaryToStringW); return; }
 				if (dword_size_u16str_out > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-				holder_u16str_out.size_str = dword_size_u16str_out;
-				holder_u16str_out.str = reinterpret_cast<char16_t*>(rawallocator->Allocate(holder_u16str_out.size_str * sizeof(char16_t)));
-				if (!holder_u16str_out.str) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+				holder_u16str_base64_out.get_ref_count_element_element_as_mem() = dword_size_u16str_out;
+				holder_u16str_base64_out.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(rawallocator->Allocate(holder_u16str_base64_out.get_count() * sizeof(char16_t)));
+				if (!holder_u16str_base64_out.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (size_data_in > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, reinterpret_cast<wchar_t*>(holder_u16str_out.str), &dword_size_u16str_out)) {
+				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, reinterpret_cast<wchar_t*>(holder_u16str_base64_out.get()), &dword_size_u16str_out)) {
 					err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptBinaryToStringW);
-					if (!rawallocator->Deallocate(holder_u16str_out.str, holder_u16str_out.size_str * sizeof(char16_t))) abort();
-					holder_u16str_out.str = nullptr;
-					holder_u16str_out.size_str = 0;
 					return;
 				}
-				err_inner = Utf16StringToUtf8String(rawallocator, str_base64_out_ret, size_str_base64_out_ret, holder_u16str_out.str, holder_u16str_out.size_str);
+				err_inner = Utf16StringToUtf8String(rawallocator, str_base64_out_ret, size_str_base64_out_ret, holder_u16str_base64_out.get(), holder_u16str_base64_out.get_count());
 				if (err_inner) {
-					if (!rawallocator->Deallocate(holder_u16str_out.str, holder_u16str_out.size_str * sizeof(char16_t))) abort();
-					holder_u16str_out.str = nullptr;
-					holder_u16str_out.size_str = 0;
+					if (!rawallocator->Deallocate(*str_base64_out_ret, *size_str_base64_out_ret * sizeof(char16_t))) abort();
+					*str_base64_out_ret = nullptr;
+					*size_str_base64_out_ret = 0;
 					return;
 				}
 #else
@@ -341,36 +280,6 @@ namespace YBWLib2 {
 			[&rawallocator, &hash_out_ret, &size_hash_out_ret, &data_in, &size_data_in, &err_inner]() noexcept(false)->void {
 #ifdef _WIN32_WINNT
 				static_assert(sizeof(uint8_t) == sizeof(UCHAR), "The size of uint8_t is different from the size of UCHAR.");
-				struct holder_data_t final {
-					const rawallocator_t* rawallocator = nullptr;
-					uint8_t* data = nullptr;
-					size_t size_data = 0;
-					inline constexpr holder_data_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {}
-					holder_data_t(const holder_data_t&) = delete;
-					inline holder_data_t(holder_data_t&& x) noexcept : rawallocator(::std::move(x.rawallocator)), data(::std::move(x.data)), size_data(::std::move(x.size_data)) {
-						x.rawallocator = nullptr;
-						x.data = nullptr;
-						x.size_data = 0;
-					}
-					inline ~holder_data_t() {
-						if (this->data) {
-							if (!this->rawallocator->Deallocate(this->data, size_data * sizeof(uint8_t))) abort();
-							this->data = nullptr;
-						}
-						this->size_data = 0;
-						this->rawallocator = nullptr;
-					}
-					holder_data_t& operator=(const holder_data_t&) = delete;
-					inline holder_data_t& operator=(holder_data_t&& x) noexcept {
-						this->rawallocator = ::std::move(x.rawallocator);
-						this->data = ::std::move(x.data);
-						this->size_data = ::std::move(x.size_data);
-						x.rawallocator = nullptr;
-						x.data = nullptr;
-						x.size_data = 0;
-						return *this;
-					}
-				};
 				struct holder_halgorithm_t {
 					BCRYPT_ALG_HANDLE halgorithm = NULL;
 					~holder_halgorithm_t() {
@@ -389,11 +298,11 @@ namespace YBWLib2 {
 					ntstatus = BCryptGetProperty(holder_halgorithm.halgorithm, BCRYPT_OBJECT_LENGTH, reinterpret_cast<UCHAR*>(&ulong_size_hashobj), sizeof(unsigned long), &ulong_size_result_property, 0);
 					if (!NT_SUCCESS(ntstatus) || ulong_size_result_property != sizeof(unsigned long)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptGetProperty, ntstatus); return; }
 				}
-				holder_data_t holder_data_hashobj(rawallocator);
+				objholder_rawallocator_t<uint8_t[]> holder_data_hashobj(rawallocator);
 				if (ulong_size_hashobj > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-				holder_data_hashobj.size_data = ulong_size_hashobj;
-				holder_data_hashobj.data = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hashobj.size_data * sizeof(uint8_t)));
-				if (!holder_data_hashobj.data) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+				holder_data_hashobj.get_ref_count_element_element_as_mem() = ulong_size_hashobj;
+				holder_data_hashobj.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hashobj.get_count() * sizeof(uint8_t)));
+				if (!holder_data_hashobj.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				{
 					struct holder_hhash_t {
 						BCRYPT_HASH_HANDLE hhash = NULL;
@@ -404,8 +313,8 @@ namespace YBWLib2 {
 							}
 						}
 					} holder_hhash;
-					if (holder_data_hashobj.size_data > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-					ntstatus = BCryptCreateHash(holder_halgorithm.halgorithm, &holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hashobj.data), holder_data_hashobj.size_data & ~(ULONG)0, nullptr, 0, 0);
+					if (holder_data_hashobj.get_count() > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+					ntstatus = BCryptCreateHash(holder_halgorithm.halgorithm, &holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hashobj.get()), holder_data_hashobj.get_count() & ~(ULONG)0, nullptr, 0, 0);
 					if (!NT_SUCCESS(ntstatus)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptCreateHash, ntstatus); return; }
 					if constexpr (SIZE_MAX > ULONG_MAX) {
 						if (size_data_in > ULONG_MAX) {
@@ -429,18 +338,20 @@ namespace YBWLib2 {
 						ntstatus = BCryptGetProperty(holder_halgorithm.halgorithm, BCRYPT_HASH_LENGTH, reinterpret_cast<UCHAR*>(&ulong_size_hash), sizeof(unsigned long), &ulong_size_result_property, 0);
 						if (!NT_SUCCESS(ntstatus) || ulong_size_result_property != sizeof(unsigned long)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptGetProperty, ntstatus); return; }
 					}
-					holder_data_t holder_data_hash(rawallocator);
+					objholder_rawallocator_t<uint8_t[]> holder_data_hash(rawallocator);
 					if (ulong_size_hash > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-					holder_data_hash.size_data = ulong_size_hash;
-					holder_data_hash.data = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hash.size_data * sizeof(uint8_t)));
-					if (!holder_data_hash.data) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
-					if (holder_data_hash.size_data > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-					ntstatus = BCryptFinishHash(holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hash.data), holder_data_hash.size_data & ~(ULONG)0, 0);
+					holder_data_hash.get_ref_count_element_element_as_mem() = ulong_size_hash;
+					holder_data_hash.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hash.get_count() * sizeof(uint8_t)));
+					if (!holder_data_hash.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
+					if (holder_data_hash.get_count() > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+					ntstatus = BCryptFinishHash(holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hash.get()), holder_data_hash.get_count() & ~(ULONG)0, 0);
 					if (!NT_SUCCESS(ntstatus)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptFinishHash, ntstatus); return; }
-					*size_hash_out_ret = holder_data_hash.size_data;
-					*hash_out_ret = holder_data_hash.data;
-					holder_data_hash.data = nullptr;
-					holder_data_hash.size_data = 0;
+					{
+						void* ptr_mem_hash_out = nullptr;
+						size_t size_mem_hash_out = 0;
+						holder_data_hash.release(*hash_out_ret, *size_hash_out_ret, ptr_mem_hash_out, size_mem_hash_out);
+						if (ptr_mem_hash_out != *hash_out_ret || size_mem_hash_out != *size_hash_out_ret * sizeof(uint8_t)) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+					}
 				}
 #else
 #error This platform is not supported yet.

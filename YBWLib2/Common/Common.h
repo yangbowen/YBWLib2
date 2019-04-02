@@ -20,7 +20,7 @@ namespace YBWLib2 {
 	/// <summary>An object for holding a pointer to another object that's placement-created in memory allocated by a <c>rawallocator_t</c> object.</summary>
 	template<typename _Element_Ty>
 	struct objholder_rawallocator_t final {
-		static_assert(::std::is_class_v<_Element_Ty>, "The element type is not a class.");
+		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
 		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};
@@ -65,10 +65,19 @@ namespace YBWLib2 {
 		inline objholder_rawallocator_t(const objholder_rawallocator_t& x) noexcept(false) : rawallocator(x.rawallocator) {
 			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = x.size_mem;
-			if (x.ptr_mem) {
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
-				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			if (x.is_element_as_mem) {
+				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (x.ptr_element) {
+					this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			} else {
+				this->size_mem = x.size_mem;
+				if (x.ptr_mem) {
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
@@ -85,11 +94,19 @@ namespace YBWLib2 {
 			x.ptr_mem = nullptr;
 			this->size_mem = x.size_mem;
 			x.size_mem = 0;
+			this->is_element_as_mem = x.is_element_as_mem;
+			x.is_element_as_mem = false;
 			x.rawallocator = nullptr;
 		}
 		inline ~objholder_rawallocator_t() {
 			if (this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
+				if (this->is_element_as_mem) {
+					if (this->ptr_mem || this->size_mem) abort();
+					this->ptr_mem = this->ptr_element;
+					this->size_mem = sizeof(_Element_Ty);
+					this->is_element_as_mem = false;
+				}
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -97,6 +114,7 @@ namespace YBWLib2 {
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
+			this->is_element_as_mem = false;
 			this->rawallocator = nullptr;
 		}
 		inline objholder_rawallocator_t& operator=(const objholder_rawallocator_t& x) noexcept(false) {
@@ -104,6 +122,12 @@ namespace YBWLib2 {
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
+				if (this->is_element_as_mem) {
+					if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->ptr_mem = this->ptr_element;
+					this->size_mem = sizeof(_Element_Ty);
+					this->is_element_as_mem = false;
+				}
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -111,11 +135,21 @@ namespace YBWLib2 {
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
+			this->is_element_as_mem = false;
 			this->rawallocator = x.rawallocator;
-			this->size_mem = x.size_mem;
-			if (x.ptr_mem) {
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
-				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			if (x.is_element_as_mem) {
+				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (x.ptr_element) {
+					this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			} else {
+				this->size_mem = x.size_mem;
+				if (x.ptr_mem) {
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, operator=));
@@ -128,6 +162,12 @@ namespace YBWLib2 {
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
+				if (this->is_element_as_mem) {
+					if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+					this->ptr_mem = this->ptr_element;
+					this->size_mem = sizeof(_Element_Ty);
+					this->is_element_as_mem = false;
+				}
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -135,6 +175,7 @@ namespace YBWLib2 {
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
+			this->is_element_as_mem = false;
 			this->rawallocator = x.rawallocator;
 			this->ptr_element = x.ptr_element;
 			x.ptr_element = nullptr;
@@ -142,6 +183,8 @@ namespace YBWLib2 {
 			x.ptr_mem = nullptr;
 			this->size_mem = x.size_mem;
 			x.size_mem = 0;
+			this->is_element_as_mem = x.is_element_as_mem;
+			x.is_element_as_mem = false;
 			x.rawallocator = nullptr;
 			return *this;
 		}
@@ -159,6 +202,12 @@ namespace YBWLib2 {
 		}
 		inline void release(_Element_Ty*& _ptr_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
 			_ptr_element = this->ptr_element;
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_element;
+				this->size_mem = sizeof(_Element_Ty);
+				this->is_element_as_mem = false;
+			}
 			this->ptr_element = nullptr;
 			_ptr_mem = this->ptr_mem;
 			this->ptr_mem = nullptr;
@@ -168,37 +217,57 @@ namespace YBWLib2 {
 		template<typename... _Args_Ty>
 		inline void construct(construct_obj_t, _Args_Ty&&... args) noexcept(false) {
 			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
-			if (this->ptr_element) {
+			if (this->is_element_as_mem && this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
+				void* ptr_mem_aligned = this->ptr_element;
 				this->ptr_element = nullptr;
+				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+			} else {
+				this->destruct();
+				this->allocate();
+				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 			}
-			this->allocate();
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 		}
 		template<typename _Callable_Ty>
 		inline void construct(_Callable_Ty _callable) noexcept(false) {
 			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
-			if (this->ptr_element) {
+			if (this->is_element_as_mem && this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
+				void* ptr_mem_aligned = this->ptr_element;
 				this->ptr_element = nullptr;
+				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
+			} else {
+				this->destruct();
+				this->allocate();
+				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
 			}
-			this->allocate();
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
 		}
 		inline void destruct() noexcept {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_element;
+				this->size_mem = sizeof(_Element_Ty);
+				this->is_element_as_mem = false;
+			}
 			if (this->ptr_element) {
 				this->ptr_element->~_Element_Ty();
 				this->ptr_element = nullptr;
 			}
 		}
 		inline void allocate() noexcept(false) {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_element;
+				this->size_mem = sizeof(_Element_Ty);
+				this->is_element_as_mem = false;
+			}
 			if (!this->ptr_mem) {
 				this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			} else if (this->size_mem != sizeof(_Element_Ty) + alignof(_Element_Ty) - 1) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) != this->ptr_mem + this->size_mem) {
 				this->free();
 				this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
@@ -213,11 +282,358 @@ namespace YBWLib2 {
 			}
 			this->size_mem = 0;
 		}
+		inline void set_element_as_mem() noexcept {
+			if (!this->is_element_as_mem) free();
+		}
+		inline _Element_Ty*& get_ref_ptr_element_element_as_mem() noexcept {
+			this->set_element_as_mem();
+			return this->ptr_element;
+		}
 	private:
 		_Element_Ty* ptr_element = nullptr;
 		const rawallocator_t* rawallocator = nullptr;
 		void* ptr_mem = nullptr;
 		size_t size_mem = 0;
+		bool is_element_as_mem = false;
+	};
+
+	/// <summary>An object for holding a pointer to an array of objects that's placement-created in memory allocated by a <c>rawallocator_t</c> object.</summary>
+	template<typename _Element_Ty>
+	struct objholder_rawallocator_t<_Element_Ty[]> final {
+		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
+		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
+		struct construct_obj_t {};
+		static constexpr construct_obj_t construct_obj {};
+		inline static constexpr void* align(void* _ptr) noexcept {
+			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - 1) % alignof(_Element_Ty[])) - 1);
+		}
+		inline static constexpr const void* align(const void* _ptr) noexcept {
+			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - 1) % alignof(_Element_Ty[])) - 1);
+		}
+		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator) noexcept(false)
+			: rawallocator(_rawallocator) {
+			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+		}
+		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator, _Element_Ty*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept(false)
+			: rawallocator(_rawallocator), ptr_array_element(::std::move(_ptr_array_element)), count_element(_count_element), ptr_mem(::std::move(_ptr_mem)), size_mem(_size_mem) {
+			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			_ptr_array_element = nullptr;
+			_ptr_mem = nullptr;
+		}
+		template<typename... _Args_Ty>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false)
+			: rawallocator(_rawallocator) {
+			static_assert(::std::is_constructible_v<_Element_Ty, ::std::result_of_t<_Args_Ty::operator[], _Args_Ty, size_t>...>, "The element type is not constructible with the specified arguments.");
+			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty[]) - 1;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			try {
+				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
+					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<_Args_Ty>(args[this->count_element])...);
+			} catch (...) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+				throw;
+			}
+		}
+		template<typename _Callable_Ty>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, _Callable_Ty _callable) noexcept(false)
+			: rawallocator(_rawallocator) {
+			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*, size_t>, "The callable value is invalid.");
+			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty[]) - 1;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			this->count_element = _count_element;
+			try {
+				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
+			} catch (...) {
+				this->count_element = 0;
+				throw;
+			}
+		}
+		inline objholder_rawallocator_t(const objholder_rawallocator_t& x) noexcept(false) : rawallocator(x.rawallocator) {
+			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			if (x.is_element_as_mem) {
+				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (x.ptr_array_element) {
+					this->size_mem = sizeof(_Element_Ty) * x.count_element + alignof(_Element_Ty[]) - 1;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			} else {
+				this->size_mem = x.size_mem;
+				if (x.ptr_mem) {
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			}
+			if (x.ptr_array_element) {
+				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				try {
+					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
+						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
+				} catch (...) {
+					for (; this->count_element; --this->count_element)
+						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element = nullptr;
+					throw;
+				}
+			}
+		}
+		inline objholder_rawallocator_t(objholder_rawallocator_t&& x) noexcept(false) {
+			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			this->rawallocator = x.rawallocator;
+			this->ptr_array_element = x.ptr_array_element;
+			x.ptr_array_element = nullptr;
+			this->count_element = x.count_element;
+			x.count_element = 0;
+			this->ptr_mem = x.ptr_mem;
+			x.ptr_mem = nullptr;
+			this->size_mem = x.size_mem;
+			x.size_mem = 0;
+			this->is_element_as_mem = x.is_element_as_mem;
+			x.is_element_as_mem = false;
+			x.rawallocator = nullptr;
+		}
+		inline ~objholder_rawallocator_t() {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (this->ptr_array_element) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+			}
+			if (this->ptr_mem) {
+				if (!this->rawallocator || !this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->ptr_mem = nullptr;
+			}
+			this->size_mem = 0;
+			this->rawallocator = nullptr;
+		}
+		inline objholder_rawallocator_t& operator=(const objholder_rawallocator_t& x) noexcept(false) {
+			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (this->ptr_array_element) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+			}
+			if (this->ptr_mem) {
+				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->ptr_mem = nullptr;
+			}
+			this->size_mem = 0;
+			this->rawallocator = x.rawallocator;
+			if (x.is_element_as_mem) {
+				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (x.ptr_array_element) {
+					this->size_mem = sizeof(_Element_Ty) * x.count_element + alignof(_Element_Ty[]) - 1;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			} else {
+				this->size_mem = x.size_mem;
+				if (x.ptr_mem) {
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+			}
+			if (x.ptr_array_element) {
+				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				try {
+					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
+						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
+				} catch (...) {
+					for (; this->count_element; --this->count_element)
+						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element = nullptr;
+					throw;
+				}
+			}
+			return *this;
+		}
+		inline objholder_rawallocator_t& operator=(objholder_rawallocator_t&& x) noexcept(false) {
+			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (this->ptr_array_element) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+			}
+			if (this->ptr_mem) {
+				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->ptr_mem = nullptr;
+			}
+			this->size_mem = 0;
+			this->rawallocator = x.rawallocator;
+			this->ptr_array_element = x.ptr_array_element;
+			x.ptr_array_element = nullptr;
+			this->count_element = x.count_element;
+			x.count_element = 0;
+			this->ptr_mem = x.ptr_mem;
+			x.ptr_mem = nullptr;
+			this->size_mem = x.size_mem;
+			x.size_mem = 0;
+			this->is_element_as_mem = x.is_element_as_mem;
+			x.is_element_as_mem = false;
+			x.rawallocator = nullptr;
+			return *this;
+		}
+		inline operator bool() const noexcept { return this->ptr_array_element; }
+		inline _Element_Ty& operator[](size_t idx_element) const noexcept { return this->ptr_array_element[idx_element]; }
+		inline _Element_Ty* get() const noexcept { return this->ptr_array_element; }
+		inline size_t get_count() const noexcept { return this->count_element; }
+		inline void reset(_Element_Ty*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
+			this->free();
+			this->ptr_array_element = _ptr_array_element;
+			_ptr_array_element = nullptr;
+			this->ptr_mem = _ptr_mem;
+			_ptr_mem = nullptr;
+			this->count_element = _count_element;
+			this->size_mem = _size_mem;
+		}
+		inline void release(_Element_Ty*& _ptr_array_element, size_t& _count_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			_ptr_array_element = this->ptr_array_element;
+			this->ptr_array_element = nullptr;
+			_count_element = this->count_element;
+			this->count_element = 0;
+			_ptr_mem = this->ptr_mem;
+			this->ptr_mem = nullptr;
+			_size_mem = this->size_mem;
+			this->size_mem = 0;
+		}
+		template<typename... _Args_Ty>
+		inline void construct(size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false) {
+			static_assert(::std::is_constructible_v<_Element_Ty, ::std::result_of_t<_Args_Ty::operator[], _Args_Ty, size_t>...>, "The element type is not constructible with the specified arguments.");
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			this->destruct();
+			this->allocate(_count_element);
+			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			try {
+				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
+					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<_Args_Ty>(args[this->count_element])...);
+			} catch (...) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+				throw;
+			}
+		}
+		template<typename _Callable_Ty>
+		inline void construct(size_t _count_element, _Callable_Ty _callable) noexcept(false) {
+			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*, size_t>, "The callable value is invalid.");
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			this->destruct();
+			this->allocate(_count_element);
+			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			this->count_element = _count_element;
+			try {
+				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
+			} catch (...) {
+				this->count_element = 0;
+				throw;
+			}
+		}
+		inline void destruct() noexcept {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (this->ptr_array_element) {
+				for (; this->count_element; --this->count_element)
+					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+				this->ptr_array_element = nullptr;
+			}
+		}
+		inline void allocate(size_t _count_element) noexcept(false) {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (!this->ptr_mem) {
+				this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty) - 1;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element != this->ptr_mem + this->size_mem) {
+				this->free();
+				this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty) - 1;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			}
+		}
+		inline void free() noexcept {
+			this->destruct();
+			if (this->ptr_mem) {
+				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->ptr_mem = nullptr;
+			}
+			this->size_mem = 0;
+		}
+		inline void set_element_as_mem() noexcept {
+			if (!this->is_element_as_mem) free();
+		}
+		inline _Element_Ty*& get_ref_ptr_array_element_element_as_mem() noexcept {
+			this->set_element_as_mem();
+			return this->ptr_array_element;
+		}
+		inline size_t& get_ref_count_element_element_as_mem() noexcept {
+			this->set_element_as_mem();
+			return this->count_element;
+		}
+	private:
+		_Element_Ty* ptr_array_element = nullptr;
+		size_t count_element = 0;
+		const rawallocator_t* rawallocator = nullptr;
+		void* ptr_mem = nullptr;
+		size_t size_mem = 0;
+		bool is_element_as_mem = false;
 	};
 
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
