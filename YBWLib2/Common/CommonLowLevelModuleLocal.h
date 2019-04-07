@@ -69,7 +69,7 @@ namespace YBWLib2 {
 				static_cast<void>(context);
 				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
 				if (!size) size = align;
-				void* ptr_allocated = malloc(size + align - 1);
+				void* ptr_allocated = malloc(size + sizeof(void**) + align - 1);
 				if (!ptr_allocated) abort();
 				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
 				if (!ptr_allocdata) abort();
@@ -97,7 +97,7 @@ namespace YBWLib2 {
 					if (!ptr_allocated_old || ptr_allocated_old > ptr_allocdata_old) abort();
 					size_t offset_allocdata_old = reinterpret_cast<uintptr_t>(ptr_allocdata_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
 					size_t offset_old = reinterpret_cast<uintptr_t>(ptr_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
-					void* ptr_allocated_new = realloc(ptr_allocated_old, size_new + align - 1);
+					void* ptr_allocated_new = realloc(ptr_allocated_old, size_new + sizeof(void**) + align - 1);
 					if (!ptr_allocated_new) abort();
 					void* ptr_allocdata_new = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated_new) + (sizeof(void*) - 1)), align) - 1);
 					void* ptr_new = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata_new) + 1);
@@ -110,7 +110,7 @@ namespace YBWLib2 {
 						return ptr_new;
 					}
 				} else {
-					void* ptr_allocated = malloc(size_new + align - 1);
+					void* ptr_allocated = malloc(size_new + sizeof(void**) + align - 1);
 					if (!ptr_allocated) abort();
 					void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
 					if (!ptr_allocdata) abort();
