@@ -45,22 +45,20 @@ namespace YBWLib2 {
 			: rawallocator(_rawallocator) {
 			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			this->size_mem = sizeof(_Element_Ty);
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+			this->ptr_element = new(this->ptr_mem) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 		}
 		template<typename _Callable_Ty>
 		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, _Callable_Ty _callable) noexcept(false)
 			: rawallocator(_rawallocator) {
 			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			this->size_mem = sizeof(_Element_Ty);
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
+			this->ptr_element = _callable(static_cast<void*>(this->ptr_mem));
 		}
 		inline objholder_rawallocator_t(const objholder_rawallocator_t& x) noexcept(false) : rawallocator(x.rawallocator) {
 			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
@@ -68,21 +66,20 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_element) {
-					this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->size_mem = sizeof(_Element_Ty);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->ptr_mem) _Element_Ty(*x.ptr_element);
 			}
 		}
 		inline objholder_rawallocator_t(objholder_rawallocator_t&& x) noexcept(false) {
@@ -110,7 +107,8 @@ namespace YBWLib2 {
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator || !this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				if (!this->rawallocator) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -131,7 +129,7 @@ namespace YBWLib2 {
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -140,21 +138,20 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_element) {
-					this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->size_mem = sizeof(_Element_Ty);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, operator=));
-				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->ptr_mem) _Element_Ty(*x.ptr_element);
 			}
 			return *this;
 		}
@@ -171,7 +168,7 @@ namespace YBWLib2 {
 				this->ptr_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -226,6 +223,7 @@ namespace YBWLib2 {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 			}
 		}
@@ -241,6 +239,7 @@ namespace YBWLib2 {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
 			}
 		}
@@ -264,20 +263,20 @@ namespace YBWLib2 {
 				this->is_element_as_mem = false;
 			}
 			if (!this->ptr_mem) {
-				this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				this->size_mem = sizeof(_Element_Ty);
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) != this->ptr_mem + this->size_mem) {
 				this->free();
-				this->size_mem = sizeof(_Element_Ty) + alignof(_Element_Ty) - 1;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				this->size_mem = sizeof(_Element_Ty);
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
 		}
 		inline void free() noexcept {
 			this->destruct();
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -325,12 +324,11 @@ namespace YBWLib2 {
 			: rawallocator(_rawallocator) {
 			static_assert(::std::is_constructible_v<_Element_Ty, ::std::result_of_t<_Args_Ty::operator[], _Args_Ty, size_t>...>, "The element type is not constructible with the specified arguments.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty[]) - 1;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			this->size_mem = sizeof(_Element_Ty) * _count_element;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
 			try {
-				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
 					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<_Args_Ty>(args[this->count_element])...);
 			} catch (...) {
@@ -345,13 +343,12 @@ namespace YBWLib2 {
 			: rawallocator(_rawallocator) {
 			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*, size_t>, "The callable value is invalid.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty[]) - 1;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+			this->size_mem = sizeof(_Element_Ty) * _count_element;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
 			this->count_element = _count_element;
 			try {
-				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
+				this->ptr_array_element = _callable(static_cast<void*>(this->ptr_mem), _count_element);
 			} catch (...) {
 				this->count_element = 0;
 				throw;
@@ -363,8 +360,8 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_array_element) {
-					this->size_mem = sizeof(_Element_Ty) * x.count_element + alignof(_Element_Ty[]) - 1;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->size_mem = sizeof(_Element_Ty) * x.count_element;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
@@ -376,9 +373,8 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_array_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
 				try {
-					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
 					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
 						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
 				} catch (...) {
@@ -417,7 +413,8 @@ namespace YBWLib2 {
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator || !this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				if (!this->rawallocator) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -438,7 +435,7 @@ namespace YBWLib2 {
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -446,8 +443,8 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_array_element) {
-					this->size_mem = sizeof(_Element_Ty) * x.count_element + alignof(_Element_Ty[]) - 1;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->size_mem = sizeof(_Element_Ty) * x.count_element;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
@@ -459,9 +456,8 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_array_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
 				try {
-					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
 					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
 						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
 				} catch (...) {
@@ -487,7 +483,7 @@ namespace YBWLib2 {
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
@@ -546,6 +542,7 @@ namespace YBWLib2 {
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			try {
 				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
@@ -569,6 +566,7 @@ namespace YBWLib2 {
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->count_element = _count_element;
 			try {
 				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
@@ -598,20 +596,20 @@ namespace YBWLib2 {
 				this->is_element_as_mem = false;
 			}
 			if (!this->ptr_mem) {
-				this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty) - 1;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				this->size_mem = sizeof(_Element_Ty) * _count_element;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element != this->ptr_mem + this->size_mem) {
 				this->free();
-				this->size_mem = sizeof(_Element_Ty) * _count_element + alignof(_Element_Ty) - 1;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+				this->size_mem = sizeof(_Element_Ty) * _count_element;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
 		}
 		inline void free() noexcept {
 			this->destruct();
 			if (this->ptr_mem) {
-				if (!this->rawallocator->Deallocate(this->ptr_mem, this->size_mem)) abort();
+				this->rawallocator->Deallocate(this->ptr_mem, this->size_mem);
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;

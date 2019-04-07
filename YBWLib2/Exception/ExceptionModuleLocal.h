@@ -148,7 +148,7 @@ namespace YBWLib2 {
 				if (exception_cause_current) abort();
 				exception_consequence_current = nullptr;
 				*size_description_ret = str_description_total.size();
-				*description_ret = reinterpret_cast<char*>(ExceptionAllocateMemory(*size_description_ret * sizeof(char)));
+				*description_ret = reinterpret_cast<char*>(ExceptionAllocateMemory(*size_description_ret * sizeof(char), alignof(char[])));
 				if (!*description_ret) abort();
 				if (*size_description_ret) {
 					memcpy(*description_ret, str_description_total.data(), *size_description_ret * sizeof(char));

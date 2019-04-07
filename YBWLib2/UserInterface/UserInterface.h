@@ -383,14 +383,14 @@ namespace YBWLib2 {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameter, StringTemplateParameter));
 			if (!_name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameter, StringTemplateParameter));
 			this->size_name_parameter = _size_name_parameter;
-			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char)));
+			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char), alignof(char[])));
 			if (!this->name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_name_parameter) memcpy(this->name_parameter, _name_parameter, this->size_name_parameter * sizeof(char));
 		}
 		inline StringTemplateParameter(const StringTemplateParameter& x) noexcept(false) : rawallocator(x.rawallocator) {
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_name_parameter = x.size_name_parameter;
-			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char)));
+			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char), alignof(char[])));
 			if (!this->name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_name_parameter) memcpy(this->name_parameter, x.name_parameter, this->size_name_parameter * sizeof(char));
 		}
@@ -404,14 +404,14 @@ namespace YBWLib2 {
 		}
 		inline virtual ~StringTemplateParameter() {
 			if (this->name_parameter) {
-				if (!this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char));
 				this->name_parameter = nullptr;
 			}
 			this->size_name_parameter = 0;
 		}
 		inline StringTemplateParameter& operator=(const StringTemplateParameter& x) noexcept(false) {
 			if (this->name_parameter) {
-				if (!this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char));
 				this->name_parameter = nullptr;
 			}
 			this->size_name_parameter = 0;
@@ -419,14 +419,14 @@ namespace YBWLib2 {
 			this->rawallocator = x.rawallocator;
 			if (!x.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_name_parameter = x.size_name_parameter;
-			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char)));
+			this->name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter * sizeof(char), alignof(char[])));
 			if (!this->name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_name_parameter) memcpy(this->name_parameter, x.name_parameter, this->size_name_parameter * sizeof(char));
 			return *this;
 		}
 		inline StringTemplateParameter& operator=(StringTemplateParameter&& x) noexcept(false) {
 			if (this->name_parameter) {
-				if (!this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->name_parameter, this->size_name_parameter * sizeof(char));
 				this->name_parameter = nullptr;
 			}
 			this->size_name_parameter = 0;
@@ -532,7 +532,7 @@ namespace YBWLib2 {
 		) noexcept(false) : StringTemplateParameter(_rawallocator, _name_parameter, _size_name_parameter) {
 			if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringStringTemplateParameter, StringStringTemplateParameter));
 			this->size_str_value = _size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, _str_value, this->size_str_value * sizeof(char));
 		}
@@ -567,7 +567,7 @@ namespace YBWLib2 {
 		inline StringStringTemplateParameter(const StringStringTemplateParameter& x) noexcept(false) : StringTemplateParameter(static_cast<const StringTemplateParameter&>(x)) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, x.str_value, this->size_str_value * sizeof(char));
 		}
@@ -580,28 +580,28 @@ namespace YBWLib2 {
 		}
 		inline virtual ~StringStringTemplateParameter() {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
 		}
 		inline StringStringTemplateParameter& operator=(const StringStringTemplateParameter& x) noexcept(false) {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
 			static_cast<StringTemplateParameter&>(*this) = static_cast<const StringTemplateParameter&>(x);
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, x.str_value, this->size_str_value * sizeof(char));
 			return *this;
 		}
 		inline StringStringTemplateParameter& operator=(StringStringTemplateParameter&& x) noexcept(false) {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
@@ -674,7 +674,7 @@ namespace YBWLib2 {
 				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
-					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (this->size_str_value) {
 						if (!this->str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -688,7 +688,7 @@ namespace YBWLib2 {
 					err_inner = nullptr;
 				}
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -696,7 +696,7 @@ namespace YBWLib2 {
 			}
 			if (err_inner) {
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -830,7 +830,7 @@ namespace YBWLib2 {
 		/// </param>
 		inline StringTemplateParameterList(const rawallocator_t* _rawallocator) noexcept(false)
 			: rawallocator(_rawallocator),
-			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(_rawallocator)) {
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(*_rawallocator)) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
 		}
 		/// <summary>Constructs an <c>StringTemplateParameterList</c> object.</summary>
@@ -845,7 +845,7 @@ namespace YBWLib2 {
 		/// </param>
 		inline StringTemplateParameterList(const rawallocator_t* _rawallocator, const ::std::initializer_list<const IStringTemplateParameter*>& il_parameter) noexcept(false)
 			: rawallocator(_rawallocator),
-			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(_rawallocator)) {
+			objholder_map_parameter(_rawallocator, objholder_rawallocator_t<map_parameter_t>::construct_obj, allocator_rawallocator_t<value_map_parameter_t>(*_rawallocator)) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::StringTemplateParameterList, StringTemplateParameterList));
 			try {
 				for (const IStringTemplateParameter* val_parameter : il_parameter) {
@@ -938,7 +938,7 @@ namespace YBWLib2 {
 				[this, &_name_parameter, &_size_name_parameter, &parameter_ret, &_rawallocator, &err_inner]() noexcept(false)->void {
 					static_cast<void>(err_inner);
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-					allocator_rawallocator_t<string_name_parameter_t::value_type> allocator_name_parameter(_rawallocator);
+					allocator_rawallocator_t<string_name_parameter_t::value_type> allocator_name_parameter(*_rawallocator);
 					map_parameter_t::const_iterator it_map_parameter = this->objholder_map_parameter->find(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_name_parameter));
 					if (it_map_parameter != this->objholder_map_parameter->cend()) *parameter_ret = it_map_parameter->second;
 				});
@@ -1020,7 +1020,7 @@ namespace YBWLib2 {
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &_name_parameter, &_size_name_parameter, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-					if (!this->objholder_map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(_rawallocator)))) {
+					if (!this->objholder_map_parameter->erase(string_name_parameter_t(_name_parameter, _size_name_parameter, allocator_rawallocator_t<string_name_parameter_t::value_type>(*_rawallocator)))) {
 						err_inner = YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION();
 						return;
 					}
@@ -1191,7 +1191,7 @@ namespace YBWLib2 {
 		) noexcept(false) : StringTemplate(_rawallocator) {
 			if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::FixedStringTemplate, FixedStringTemplate));
 			this->size_str_value = _size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, _str_value, this->size_str_value * sizeof(char));
 		}
@@ -1208,7 +1208,7 @@ namespace YBWLib2 {
 		inline FixedStringTemplate(const FixedStringTemplate& x) noexcept(false) : StringTemplate(static_cast<const StringTemplate&>(x)) {
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, x.str_value, this->size_str_value * sizeof(char));
 		}
@@ -1221,28 +1221,28 @@ namespace YBWLib2 {
 		}
 		inline virtual ~FixedStringTemplate() {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
 		}
 		inline FixedStringTemplate& operator=(const FixedStringTemplate& x) noexcept(false) {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
 			static_cast<StringTemplate&>(*this) = static_cast<const StringTemplate&>(x);
 			if (!x.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->size_str_value = x.size_str_value;
-			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char)));
+			this->str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_value * sizeof(char), alignof(char[])));
 			if (!this->str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			if (this->size_str_value) memcpy(this->str_value, x.str_value, this->size_str_value * sizeof(char));
 			return *this;
 		}
 		inline FixedStringTemplate& operator=(FixedStringTemplate&& x) noexcept(false) {
 			if (this->size_str_value) {
-				if (!this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char))) abort();
+				this->rawallocator->Deallocate(this->str_value, this->size_str_value * sizeof(char));
 				this->str_value = nullptr;
 			}
 			this->size_str_value = 0;
@@ -1301,7 +1301,7 @@ namespace YBWLib2 {
 				[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					*size_str_out_ret = should_null_terminate ? this->size_str_value + 1 : this->size_str_value;
-					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (this->size_str_value) {
 						if (!this->str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -1315,7 +1315,7 @@ namespace YBWLib2 {
 					err_inner = nullptr;
 				}
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -1323,7 +1323,7 @@ namespace YBWLib2 {
 			}
 			if (err_inner) {
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -1419,7 +1419,7 @@ namespace YBWLib2 {
 					if (!_rawallocator) _rawallocator = this->GetRawAllocator();
 					using string_str_out_element_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 					using vec_str_out_element_t = ::std::vector<string_str_out_element_t, allocator_rawallocator_t<string_str_out_element_t>>;
-					allocator_rawallocator_t<string_str_out_element_t> allocator_vec_vec_str_out_element(_rawallocator);
+					allocator_rawallocator_t<string_str_out_element_t> allocator_vec_vec_str_out_element(*_rawallocator);
 					vec_str_out_element_t vec_str_out_element(allocator_vec_vec_str_out_element);
 					vec_str_out_element.reserve(this->objholder_vec_element->size());
 					for (const element_t& val_element : *this->objholder_vec_element) {
@@ -1428,15 +1428,15 @@ namespace YBWLib2 {
 						try {
 							IException* err = val_element.GenerateString(parameter_list, &str_out_element, &size_str_out_element, _rawallocator);
 							if (err) throw(err);
-							vec_str_out_element.emplace_back(str_out_element, size_str_out_element, allocator_rawallocator_t<string_str_out_element_t::value_type>(_rawallocator));
+							vec_str_out_element.emplace_back(str_out_element, size_str_out_element, allocator_rawallocator_t<string_str_out_element_t::value_type>(*_rawallocator));
 							if (str_out_element) {
-								if (!_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char))) abort();
+								_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char));
 								str_out_element = nullptr;
 							}
 							size_str_out_element = 0;
 						} catch (...) {
 							if (str_out_element) {
-								if (!_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char))) abort();
+								_rawallocator->Deallocate(str_out_element, size_str_out_element * sizeof(char));
 								str_out_element = nullptr;
 							}
 							size_str_out_element = 0;
@@ -1449,7 +1449,7 @@ namespace YBWLib2 {
 					if (should_null_terminate)
 						++*size_str_out_ret;
 					if (*size_str_out_ret) {
-						*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+						*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 						*size_str_out_ret = 0;
 						for (const string_str_out_element_t& val_str_out_element : vec_str_out_element) {
@@ -1468,7 +1468,7 @@ namespace YBWLib2 {
 					err_inner = nullptr;
 				}
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -1476,7 +1476,7 @@ namespace YBWLib2 {
 			}
 			if (err_inner) {
 				if (*str_out_ret) {
-					if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+					_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 					*str_out_ret = nullptr;
 					*size_str_out_ret = 0;
 				}
@@ -1509,7 +1509,7 @@ namespace YBWLib2 {
 				: type_element(ElementType_Raw), rawallocator(_rawallocator) {
 				if (_size_str_value && !_str_value) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
 				this->content_raw.size_str_value = _size_str_value;
-				this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+				this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char), alignof(char[])));
 				if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, _str_value, this->content_raw.size_str_value * sizeof(char));
 			}
@@ -1519,13 +1519,13 @@ namespace YBWLib2 {
 				if (_size_str_options && !_str_options) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplate::element_t, element_t));
 				{
 					this->content_substitute.size_name_parameter = _size_name_parameter;
-					this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+					this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char), alignof(char[])));
 					if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 					if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, _name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 				}
 				{
 					this->content_substitute.size_str_options = _size_str_options;
-					this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+					this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char), alignof(char[])));
 					if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 					if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, _str_options, this->content_substitute.size_str_options * sizeof(char));
 				}
@@ -1535,7 +1535,7 @@ namespace YBWLib2 {
 				case ElementType_Raw: {
 					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 					this->content_raw.size_str_value = x.content_raw.size_str_value;
-					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char), alignof(char[])));
 					if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 					if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, x.content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
 					break;
@@ -1544,14 +1544,14 @@ namespace YBWLib2 {
 					{
 						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
-						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char), alignof(char[])));
 						if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 						if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, x.content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 					}
 					{
 						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
-						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char), alignof(char[])));
 						if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 						if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, x.content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
 					}
@@ -1598,7 +1598,7 @@ namespace YBWLib2 {
 				switch (this->type_element) {
 				case ElementType_Raw: {
 					if (this->content_raw.size_str_value) {
-						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
 						this->content_raw.str_value = nullptr;
 					}
 					this->content_raw.size_str_value = 0;
@@ -1607,14 +1607,14 @@ namespace YBWLib2 {
 				case ElementType_Substitute: {
 					{
 						if (this->content_substitute.size_name_parameter) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 							this->content_substitute.name_parameter = nullptr;
 						}
 						this->content_substitute.size_name_parameter = 0;
 					}
 					{
 						if (this->content_substitute.size_str_options) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
 							this->content_substitute.str_options = nullptr;
 						}
 						this->content_substitute.size_str_options = 0;
@@ -1627,7 +1627,7 @@ namespace YBWLib2 {
 				switch (this->type_element) {
 				case ElementType_Raw: {
 					if (this->content_raw.size_str_value) {
-						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
 						this->content_raw.str_value = nullptr;
 					}
 					this->content_raw.size_str_value = 0;
@@ -1636,14 +1636,14 @@ namespace YBWLib2 {
 				case ElementType_Substitute: {
 					{
 						if (this->content_substitute.size_name_parameter) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 							this->content_substitute.name_parameter = nullptr;
 						}
 						this->content_substitute.size_name_parameter = 0;
 					}
 					{
 						if (this->content_substitute.size_str_options) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
 							this->content_substitute.str_options = nullptr;
 						}
 						this->content_substitute.size_str_options = 0;
@@ -1660,7 +1660,7 @@ namespace YBWLib2 {
 				case ElementType_Raw: {
 					if (!x.content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 					this->content_raw.size_str_value = x.content_raw.size_str_value;
-					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char)));
+					this->content_raw.str_value = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_raw.size_str_value * sizeof(char), alignof(char[])));
 					if (!this->content_raw.str_value) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 					if (this->content_raw.size_str_value) memcpy(this->content_raw.str_value, x.content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
 					break;
@@ -1669,14 +1669,14 @@ namespace YBWLib2 {
 					{
 						if (!x.content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 						this->content_substitute.size_name_parameter = x.content_substitute.size_name_parameter;
-						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char)));
+						this->content_substitute.name_parameter = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_name_parameter * sizeof(char), alignof(char[])));
 						if (!this->content_substitute.name_parameter) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 						if (this->content_substitute.size_name_parameter) memcpy(this->content_substitute.name_parameter, x.content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 					}
 					{
 						if (!x.content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 						this->content_substitute.size_str_options = x.content_substitute.size_str_options;
-						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char)));
+						this->content_substitute.str_options = reinterpret_cast<char*>(this->rawallocator->Allocate(this->content_substitute.size_str_options * sizeof(char), alignof(char[])));
 						if (!this->content_substitute.str_options) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 						if (this->content_substitute.size_str_options) memcpy(this->content_substitute.str_options, x.content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
 					}
@@ -1692,7 +1692,7 @@ namespace YBWLib2 {
 				switch (this->type_element) {
 				case ElementType_Raw: {
 					if (this->content_raw.size_str_value) {
-						if (!this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char))) abort();
+						this->rawallocator->Deallocate(this->content_raw.str_value, this->content_raw.size_str_value * sizeof(char));
 						this->content_raw.str_value = nullptr;
 					}
 					this->content_raw.size_str_value = 0;
@@ -1701,14 +1701,14 @@ namespace YBWLib2 {
 				case ElementType_Substitute: {
 					{
 						if (this->content_substitute.size_name_parameter) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.name_parameter, this->content_substitute.size_name_parameter * sizeof(char));
 							this->content_substitute.name_parameter = nullptr;
 						}
 						this->content_substitute.size_name_parameter = 0;
 					}
 					{
 						if (this->content_substitute.size_str_options) {
-							if (!this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char))) abort();
+							this->rawallocator->Deallocate(this->content_substitute.str_options, this->content_substitute.size_str_options * sizeof(char));
 							this->content_substitute.str_options = nullptr;
 						}
 						this->content_substitute.size_str_options = 0;
@@ -1771,7 +1771,7 @@ namespace YBWLib2 {
 						[this, &str_out_ret, &size_str_out_ret, &_rawallocator, &err_inner]() noexcept(false)->void {
 							if (!_rawallocator) _rawallocator = this->rawallocator;
 							*size_str_out_ret = this->content_raw.size_str_value;
-							*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+							*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 							if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 							if (this->content_raw.size_str_value) {
 								if (!this->content_raw.str_value) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
@@ -1784,7 +1784,7 @@ namespace YBWLib2 {
 							err_inner = nullptr;
 						}
 						if (*str_out_ret) {
-							if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+							_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 						}
@@ -1792,7 +1792,7 @@ namespace YBWLib2 {
 					}
 					if (err_inner) {
 						if (*str_out_ret) {
-							if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+							_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 						}

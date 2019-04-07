@@ -51,18 +51,20 @@ namespace YBWLib2 {
 
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
 	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>> Utf8StringToUtf16String(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
+		rawallocator_t rawallocator(u8str.get_allocator().rawallocator);
 		return Utf8StringToUtf16String<
 			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>,
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(u8str.get_allocator().rawallocator, u8str, u8str.get_allocator());
+		>(&rawallocator, u8str, u8str.get_allocator());
 	}
 
 	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
 	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf16StringToUtf8String(const ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>& u16str) noexcept(false) {
+		rawallocator_t rawallocator(u16str.get_allocator().rawallocator);
 		return Utf16StringToUtf8String<
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
 			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>
-		>(u16str.get_allocator().rawallocator, u16str, u16str.get_allocator());
+		>(&rawallocator, u16str, u16str.get_allocator());
 	}
 
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
@@ -109,19 +111,21 @@ namespace YBWLib2 {
 
 	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
 	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> Utf8Base64Decode(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
+		rawallocator_t rawallocator(u8str.get_allocator().rawallocator);
 		return Utf8Base64Decode<
 			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(u8str.get_allocator().rawallocator, u8str, u8str.get_allocator());
+		>(&rawallocator, u8str, u8str.get_allocator());
 	}
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
 	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf8Base64Encode(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
+		rawallocator_t rawallocator(vec_data.get_allocator().rawallocator);
 		return Utf8Base64Encode<
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
 			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
-		>(vec_data.get_allocator().rawallocator, vec_data, vec_data.get_allocator());
+		>(&rawallocator, vec_data, vec_data.get_allocator());
 	}
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
@@ -155,10 +159,11 @@ namespace YBWLib2 {
 
 	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
 	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> HashSha256(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
+		rawallocator_t rawallocator(vec_data.get_allocator().rawallocator);
 		return HashSha256<
 			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
 			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
-		>(vec_data.get_allocator().rawallocator, vec_data, vec_data.get_allocator());
+		>(&rawallocator, vec_data, vec_data.get_allocator());
 	}
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 

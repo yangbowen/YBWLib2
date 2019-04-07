@@ -51,7 +51,7 @@ namespace YBWLib2 {
 					wchar_array_holder_t(wchar_array_holder_t&&) = delete;
 					inline ~wchar_array_holder_t() {
 						if (this->ptr) {
-							if (!this->rawallocator->Deallocate(this->ptr, this->size * sizeof(wchar_t))) abort();
+							this->rawallocator->Deallocate(this->ptr, this->size * sizeof(wchar_t));
 							this->ptr = nullptr;
 							this->size = 0;
 						}
@@ -63,7 +63,7 @@ namespace YBWLib2 {
 				size_t cch_max_u16str_out = size_max_str_out;
 				if (cch_max_u16str_out > 0x10000 / sizeof(wchar_t)) cch_max_u16str_out = 0x10000 / sizeof(wchar_t);
 				if (cch_max_u16str_out > MAXDWORD) cch_max_u16str_out = MAXDWORD;
-				wchar_array_holder_t u16str_out(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_max_u16str_out * sizeof(wchar_t))), cch_max_u16str_out, rawallocator);
+				wchar_array_holder_t u16str_out(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_max_u16str_out * sizeof(wchar_t), alignof(wchar_t[]))), cch_max_u16str_out, rawallocator);
 				if (!u16str_out.ptr) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				size_t cch_u16str_out = 0;
 				{

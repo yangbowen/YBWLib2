@@ -144,6 +144,98 @@ namespace YBWLib2 {
 		return n;
 	}
 
+	/// <summary>Calculates the greatest common denominator of two values.</summary>
+	template<typename _Ty>
+	inline constexpr _Ty greatest_common_denominator(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> a, std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> b) {
+		_Ty c(a % b);
+		if (!c)
+			return b;
+		else
+			return greatest_common_denominator<_Ty>(b, c);
+	}
+
+	/// <summary>Calculates the least common multiple of two values.</summary>
+	template<typename _Ty>
+	inline constexpr _Ty least_common_multiple(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> a, std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> b) {
+		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
+	}
+
+	// Helpers for get_lookup_table_least_common_multiple.
+	template<typename _Ty>
+	using get_lookup_table_least_common_multiple_helper_value_index_t = ::std::conditional_t < sizeof(size_t) < sizeof(_Ty), size_t, _Ty > ;
+
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base, bool is_odd_count_element>
+	struct get_lookup_table_least_common_multiple_helper1_t;
+
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, false> {
+		static_assert(!(count_element % 2));
+		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base, (count_element / 2) % 2> branch_0;
+		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base + count_element / 2, (count_element / 2) % 2> branch_1;
+	};
+
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, true> {
+		static_assert(count_element % 2);
+		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element - 1, value_fixed, value_index_base, false> truncated;
+		const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + count_element);
+	};
+
+	template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(0), value_fixed, value_index_base, false> {};
+
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+	using get_lookup_table_least_common_multiple_helper2_t = get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t>(0), count_element % 2>;
+
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+	constexpr get_lookup_table_least_common_multiple_helper2_t<_Ty, count_element, value_fixed> get_lookup_table_least_common_multiple_helper2 {};
+
+	/// <summary>
+	/// Gets a reference to a lookup table of least common multiples with one fixed value.
+	/// The index in the lookup table is the non-fixed value MINUS ONE.
+	/// Used in alignment calculations.
+	/// </summary>
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+	inline const _Ty* get_lookup_table_least_common_multiple() noexcept {
+		return reinterpret_cast<const _Ty*>(&get_lookup_table_least_common_multiple_helper2<_Ty, count_element, value_fixed>);
+	}
+
+	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed>
+	inline _Ty least_common_multiple_optimized1(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> value_runtime) {
+		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+	}
+
+	/// <summary>Integer modulus operation optimized for alignment calculations.</summary>
+	inline constexpr size_t mod_alignment(size_t dividend, size_t divisor) {
+		constexpr size_t lookup_table_bitmask_mod_alignment[0x10] = {
+			~(size_t)0x0,
+			~(size_t)0x1,
+			0x0,
+			~(size_t)0x3,
+			0x0,
+			0x0,
+			0x0,
+			~(size_t)0x7,
+			0x0,
+			0x0,
+			0x0,
+			0x0,
+			0x0,
+			0x0,
+			0x0,
+			~(size_t)0xF
+		};
+		if (!divisor) abort();
+		if (divisor > 0x10)
+			return dividend % divisor;
+		size_t value_lookup_table_bitmask_mod_alignment = lookup_table_bitmask_mod_alignment[divisor - 0x1];
+		if (!value_lookup_table_bitmask_mod_alignment)
+			return dividend % divisor;
+		else
+			return dividend & ~value_lookup_table_bitmask_mod_alignment;
+	}
+
 	// Helpers for hash_trivially_copyable_t.
 	template<typename _Ty, typename _Hash_Ty, size_t size_hash>
 	struct hash_trivially_copyable_helper_t {};
@@ -362,14 +454,30 @@ namespace YBWLib2 {
 
 	/// <summary>An allocator for allocating raw memory.</summary>
 	struct rawallocator_t final {
+		/// <summary>Function pointer type for cleaning up the allocator.</summary>
+		/// <param name="rawallocator_from">Pointer to the <c>rawallocator_t</c> object.</param>
+		typedef void (YBWLIB2_CALLTYPE* fnptr_cleanup_rawallocator_t)(rawallocator_t* rawallocator) noexcept;
+		/// <summary>Function pointer type for copying the allocator.</summary>
+		/// <param name="rawallocator_to">Pointer to the <c>rawallocator_t</c> object to be copied to.</param>
+		/// <param name="rawallocator_from">Pointer to the <c>rawallocator_t</c> object to be copied from.</param>
+		typedef void (YBWLIB2_CALLTYPE* fnptr_copy_rawallocator_t)(rawallocator_t* rawallocator_to, const rawallocator_t* rawallocator_from) noexcept;
+		/// <summary>
+		/// Function pointer type for comparing equality of allocators.
+		/// <c>rawallocator_t</c> objects with different <c>fnptr_is_equal_rawallocator</c> function pointers never compare equal.
+		/// </summary>
+		/// <param name="rawallocator_l">Pointer to the <c>rawallocator_t</c> object on the left side of the comparison operator.</param>
+		/// <param name="rawallocator_r">Pointer to the <c>rawallocator_t</c> object on the right side of the comparison operator.</param>
+		/// <returns>Whether the two allocators compare equal (which means that memory allocated using one can be deallocated using the other).</returns>
+		typedef bool (YBWLIB2_CALLTYPE* fnptr_is_equal_rawallocator_t)(const rawallocator_t* rawallocator_l, const rawallocator_t* rawallocator_r) noexcept;
 		/// <summary>Function pointer type for allocating raw memory.</summary>
 		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <param name="align">The alignment, in bytes, of the memory.</param>
 		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
 		/// <returns>
 		/// If the call has succeeded, a pointer to the allocated memory is returned.
 		/// Otherwise, an empty pointer is returned.
 		/// </returns>
-		typedef void* (YBWLIB2_CALLTYPE* fnptr_allocate_t)(size_t size, uintptr_t context) noexcept;
+		typedef void* (YBWLIB2_CALLTYPE* fnptr_allocate_t)(size_t size, size_t align, uintptr_t context) noexcept;
 		/// <summary>Function pointer type for deallocating raw memory.</summary>
 		/// <param name="ptr">
 		/// A pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
@@ -377,8 +485,7 @@ namespace YBWLib2 {
 		/// </param>
 		/// <param name="size">The size, in bytes, of the memory.</param>
 		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
-		/// <returns>Whether the call has succeeded.</returns>
-		typedef bool (YBWLIB2_CALLTYPE* fnptr_deallocate_t)(void* ptr, size_t size, uintptr_t context) noexcept;
+		typedef void (YBWLIB2_CALLTYPE* fnptr_deallocate_t)(void* ptr, size_t size, uintptr_t context) noexcept;
 		/// <summary>Function pointer type for reallocating some memory to change its size.</summary>
 		/// <param name="ptr_old">
 		/// An optional pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
@@ -388,50 +495,148 @@ namespace YBWLib2 {
 		/// </param>
 		/// <param name="size_old">The size, in bytes, of the memory previously allocated.</param>
 		/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
+		/// <param name="align">The alignment, in bytes, of the memory.</param>
 		/// <param name="context">A context value associated to the <c>rawallocator_t</c> object.</param>
 		/// <returns>
 		/// If the call has succeeded, a pointer to the reallocated memory is returned, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.
 		/// Otherwise, an empty pointer is returned.
 		/// </returns>
-		typedef void* (YBWLIB2_CALLTYPE* fnptr_reallocate_t)(void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept;
+		typedef void* (YBWLIB2_CALLTYPE* fnptr_reallocate_t)(void* ptr_old, size_t size_old, size_t size_new, size_t align, uintptr_t context) noexcept;
 		/// <summary>Function pointer type for getting the maximum amount of memory that could potentially be allocated with this raw memory allocator.</summary>
 		/// <returns>
 		/// The maximum amount of memory that could potentially be allocated with this raw memory allocator.
 		/// Memory allocations within this limit can still fail.
 		/// </returns>
 		typedef size_t(YBWLIB2_CALLTYPE* fnptr_get_max_size_t)(uintptr_t context) noexcept;
+		fnptr_cleanup_rawallocator_t fnptr_cleanup_rawallocator = nullptr;
+		fnptr_copy_rawallocator_t fnptr_copy_rawallocator = nullptr;
+		fnptr_is_equal_rawallocator_t fnptr_is_equal_rawallocator = nullptr;
 		fnptr_allocate_t fnptr_allocate = nullptr;
 		fnptr_deallocate_t fnptr_deallocate = nullptr;
 		fnptr_reallocate_t fnptr_reallocate = nullptr;
 		fnptr_get_max_size_t fnptr_get_max_size = nullptr;
 		uintptr_t context = 0;
 		inline constexpr rawallocator_t(
+			fnptr_cleanup_rawallocator_t _fnptr_cleanup_rawallocator,
+			fnptr_copy_rawallocator_t _fnptr_copy_rawallocator,
+			fnptr_is_equal_rawallocator_t _fnptr_is_equal_rawallocator,
 			fnptr_allocate_t _fnptr_allocate,
 			fnptr_deallocate_t _fnptr_deallocate,
 			fnptr_reallocate_t _fnptr_reallocate,
 			fnptr_get_max_size_t _fnptr_get_max_size,
 			uintptr_t _context = 0
 		) noexcept
-			: fnptr_allocate(_fnptr_allocate),
+			: fnptr_cleanup_rawallocator(_fnptr_cleanup_rawallocator),
+			fnptr_copy_rawallocator(_fnptr_copy_rawallocator),
+			fnptr_is_equal_rawallocator(_fnptr_is_equal_rawallocator),
+			fnptr_allocate(_fnptr_allocate),
 			fnptr_deallocate(_fnptr_deallocate),
 			fnptr_reallocate(_fnptr_reallocate),
 			fnptr_get_max_size(_fnptr_get_max_size),
 			context(_context) {}
+		inline rawallocator_t(const rawallocator_t& x) noexcept {
+			if (x.fnptr_copy_rawallocator) {
+				(*x.fnptr_copy_rawallocator)(this, &x);
+			} else {
+				this->fnptr_cleanup_rawallocator = x.fnptr_cleanup_rawallocator;
+				this->fnptr_copy_rawallocator = x.fnptr_copy_rawallocator;
+				this->fnptr_is_equal_rawallocator = x.fnptr_is_equal_rawallocator;
+				this->fnptr_allocate = x.fnptr_allocate;
+				this->fnptr_deallocate = x.fnptr_deallocate;
+				this->fnptr_reallocate = x.fnptr_reallocate;
+				this->fnptr_get_max_size = x.fnptr_get_max_size;
+				this->context = x.context;
+			}
+		}
+		inline rawallocator_t(rawallocator_t&& x) noexcept {
+			this->fnptr_cleanup_rawallocator = ::std::move(x.fnptr_cleanup_rawallocator);
+			x.fnptr_cleanup_rawallocator = nullptr;
+			this->fnptr_copy_rawallocator = ::std::move(x.fnptr_copy_rawallocator);
+			x.fnptr_copy_rawallocator = nullptr;
+			this->fnptr_is_equal_rawallocator = ::std::move(x.fnptr_is_equal_rawallocator);
+			x.fnptr_is_equal_rawallocator = nullptr;
+			this->fnptr_allocate = ::std::move(x.fnptr_allocate);
+			x.fnptr_allocate = nullptr;
+			this->fnptr_deallocate = ::std::move(x.fnptr_deallocate);
+			x.fnptr_deallocate = nullptr;
+			this->fnptr_reallocate = ::std::move(x.fnptr_reallocate);
+			x.fnptr_reallocate = nullptr;
+			this->fnptr_get_max_size = ::std::move(x.fnptr_get_max_size);
+			x.fnptr_get_max_size = nullptr;
+			this->context = ::std::move(x.context);
+			x.context = 0;
+		}
+		inline ~rawallocator_t() noexcept {
+			if (this->fnptr_cleanup_rawallocator) (*this->fnptr_cleanup_rawallocator)(this);
+			this->fnptr_cleanup_rawallocator = nullptr;
+			this->fnptr_copy_rawallocator = nullptr;
+			this->fnptr_is_equal_rawallocator = nullptr;
+			this->fnptr_allocate = nullptr;
+			this->fnptr_deallocate = nullptr;
+			this->fnptr_reallocate = nullptr;
+			this->fnptr_get_max_size = nullptr;
+			this->context = 0;
+		}
+		inline rawallocator_t& operator=(const rawallocator_t& x) noexcept {
+			this->~rawallocator_t();
+			new(this) rawallocator_t(x);
+			return *this;
+		}
+		inline rawallocator_t& operator=(rawallocator_t&& x) noexcept {
+			this->~rawallocator_t();
+			new(this) rawallocator_t(::std::move(x));
+			return *this;
+		}
+		inline bool operator==(const rawallocator_t& x) const noexcept {
+			if (this->fnptr_is_equal_rawallocator != x.fnptr_is_equal_rawallocator) return false;
+			if (this->fnptr_is_equal_rawallocator) {
+				return (*this->fnptr_is_equal_rawallocator)(this, &x);
+			} else {
+				return
+					this->fnptr_cleanup_rawallocator == x.fnptr_cleanup_rawallocator
+					&& this->fnptr_copy_rawallocator == x.fnptr_copy_rawallocator
+					&& this->fnptr_is_equal_rawallocator == x.fnptr_is_equal_rawallocator
+					&& this->fnptr_allocate == x.fnptr_allocate
+					&& this->fnptr_deallocate == x.fnptr_deallocate
+					&& this->fnptr_reallocate == x.fnptr_reallocate
+					&& this->fnptr_get_max_size == x.fnptr_get_max_size
+					&& this->context == x.context;
+			}
+		}
+		inline bool operator!=(const rawallocator_t& x) const noexcept {
+			if (this->fnptr_is_equal_rawallocator != x.fnptr_is_equal_rawallocator) return true;
+			if (this->fnptr_is_equal_rawallocator) {
+				return !(*this->fnptr_is_equal_rawallocator)(this, &x);
+			} else {
+				return
+					this->fnptr_cleanup_rawallocator != x.fnptr_cleanup_rawallocator
+					|| this->fnptr_copy_rawallocator != x.fnptr_copy_rawallocator
+					|| this->fnptr_is_equal_rawallocator != x.fnptr_is_equal_rawallocator
+					|| this->fnptr_allocate != x.fnptr_allocate
+					|| this->fnptr_deallocate != x.fnptr_deallocate
+					|| this->fnptr_reallocate != x.fnptr_reallocate
+					|| this->fnptr_get_max_size != x.fnptr_get_max_size
+					|| this->context != x.context;
+			}
+		}
 		/// <summary>Allocates some memory.</summary>
 		/// <param name="size">The size, in bytes, of the memory.</param>
+		/// <param name="align">The alignment, in bytes, of the memory.</param>
 		/// <returns>
 		/// If the call has succeeded, a pointer to the allocated memory is returned.
 		/// Otherwise, an empty pointer is returned.
 		/// </returns>
-		[[nodiscard]] inline void* Allocate(size_t size) const noexcept { return this->fnptr_allocate ? (*this->fnptr_allocate)(size, this->context) : nullptr; }
+		[[nodiscard]] inline void* Allocate(size_t size, size_t align) const noexcept { return this->fnptr_allocate ? (*this->fnptr_allocate)(size, align, this->context) : nullptr; }
 		/// <summary>Deallocates some memory.</summary>
 		/// <param name="ptr">
 		/// A pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
 		/// If an empty pointer is passed, this function succeeds without doing anything.
 		/// </param>
 		/// <param name="size">The size, in bytes, of the memory.</param>
-		/// <returns>Whether the call has succeeded.</returns>
-		inline bool Deallocate(void* ptr, size_t size) const noexcept { return this->fnptr_deallocate ? (*this->fnptr_deallocate)(ptr, size, this->context) : false; }
+		inline void Deallocate(void* ptr, size_t size) const noexcept {
+			if (!this->fnptr_deallocate) abort();
+			(*this->fnptr_deallocate)(ptr, size, this->context);
+		}
 		/// <summary>Reallocates some memory to change its size.</summary>
 		/// <param name="ptr_old">
 		/// An optional pointer to some memory previously allocated with the same <c>rawallocator_t</c> object and not deallocated yet.
@@ -441,19 +646,24 @@ namespace YBWLib2 {
 		/// </param>
 		/// <param name="size_old">The size, in bytes, of the memory previously allocated.</param>
 		/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
+		/// <param name="align">The alignment, in bytes, of the memory.</param>
 		/// <returns>
 		/// If the call has succeeded, a pointer to the reallocated memory is returned, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.
 		/// Otherwise, an empty pointer is returned.
 		/// </returns>
-		[[nodiscard]] inline void* Reallocate(void* ptr_old, size_t size_old, size_t size_new) const noexcept {
+		[[nodiscard]] inline void* Reallocate(void* ptr_old, size_t size_old, size_t size_new, size_t align) const noexcept {
 			if (this->fnptr_reallocate) {
-				return (*this->fnptr_reallocate)(ptr_old, size_old, size_new, this->context);
+				return (*this->fnptr_reallocate)(ptr_old, size_old, size_new, align, this->context);
 			} else {
-				void* ptr_new = this->Allocate(size_new);
-				if (!ptr_new) return nullptr;
-				memcpy(ptr_new, ptr_old, size_new < size_old ? size_new : size_old);
-				this->Deallocate(ptr_old, size_old);
-				return ptr_new;
+				void* ptr_new = this->Allocate(size_new, align);
+				if (!ptr_new) {
+					this->Deallocate(ptr_old, size_old);
+					return nullptr;
+				} else {
+					memcpy(ptr_new, ptr_old, size_new < size_old ? size_new : size_old);
+					this->Deallocate(ptr_old, size_old);
+					return ptr_new;
+				}
 			}
 		}
 		/// <summary>Gets the maximum amount of memory that could potentially be allocated with this raw memory allocator.</summary>
@@ -483,14 +693,13 @@ namespace YBWLib2 {
 		using propagate_on_container_move_assignment = ::std::true_type;
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::false_type;
-		const rawallocator_t* const rawallocator;
-		inline constexpr allocator_rawallocator_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {
-			if (!_rawallocator) abort();
-		}
+		rawallocator_t rawallocator;
+		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
+		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(::std::move(x.rawallocator)) {}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
 		template<typename _Allocator_Ty>
@@ -505,15 +714,15 @@ namespace YBWLib2 {
 		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
 		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept(false) {
 			static_cast<void>(hint);
-			pointer ptr = reinterpret_cast<pointer>(this->rawallocator->Allocate(count * sizeof(value_type)));
+			pointer ptr = reinterpret_cast<pointer>(this->rawallocator.Allocate(count * sizeof(value_type), alignof(value_type)));
 			if (!ptr) throw(::std::bad_alloc());
 			return reinterpret_cast<pointer>(ptr);
 		}
 		inline void deallocate(pointer ptr, size_type count) const noexcept {
 			static_cast<void>(count);
-			if (!this->rawallocator->Deallocate(ptr, count * sizeof(value_type))) abort();
+			this->rawallocator.Deallocate(ptr, count * sizeof(value_type));
 		}
-		inline size_type max_size() const noexcept { return this->rawallocator->GetMaxSize(); }
+		inline size_type max_size() const noexcept { return this->rawallocator.GetMaxSize(); }
 		template<typename _Element_Ty, typename... _Args_Ty>
 		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
 			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty>(args)...);
@@ -522,7 +731,7 @@ namespace YBWLib2 {
 		inline void destroy(_Element_Ty* ptr) {
 			ptr->~_Element_Ty();
 		}
-		inline constexpr allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
+		inline allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
 	};
 	/// <summary>Allocator template structure for allocating memory using a <c>rawallocator_t</c> object.</summary>
 	template<>
@@ -540,14 +749,13 @@ namespace YBWLib2 {
 		using propagate_on_container_move_assignment = ::std::true_type;
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::false_type;
-		const rawallocator_t* const rawallocator;
-		inline constexpr allocator_rawallocator_t(const rawallocator_t* _rawallocator) noexcept : rawallocator(_rawallocator) {
-			if (!_rawallocator) abort();
-		}
+		rawallocator_t rawallocator;
+		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
+		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(::std::move(x.rawallocator)) {}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
 		template<typename _Allocator_Ty>
@@ -566,7 +774,7 @@ namespace YBWLib2 {
 		inline void destroy(_Element_Ty* ptr) {
 			ptr->~_Element_Ty();
 		}
-		inline constexpr allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
+		inline allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
 	};
 
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of the executable module that contains this reference to this variable.</summary>

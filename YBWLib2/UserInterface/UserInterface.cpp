@@ -50,7 +50,7 @@ namespace YBWLib2 {
 					wchar_array_holder_t(wchar_array_holder_t&&) = delete;
 					inline ~wchar_array_holder_t() {
 						if (this->ptr) {
-							if (!this->rawallocator->Deallocate(this->ptr, this->size * sizeof(wchar_t))) abort();
+							this->rawallocator->Deallocate(this->ptr, this->size * sizeof(wchar_t));
 							this->ptr = nullptr;
 							this->size = 0;
 						}
@@ -62,12 +62,12 @@ namespace YBWLib2 {
 				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				unsigned int cch_u16str_format = MultiByteToWideChar(CP_UTF8, 0, str_format, size_str_format & ~(unsigned int)0, nullptr, 0);
 				if (!cch_u16str_format) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar); return; }
-				wchar_array_holder_t u16str_format(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_u16str_format * sizeof(wchar_t))), cch_u16str_format, rawallocator);
+				wchar_array_holder_t u16str_format(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_u16str_format * sizeof(wchar_t), alignof(wchar_t[]))), cch_u16str_format, rawallocator);
 				if (!u16str_format.ptr) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (size_str_format > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::VsnPrintfUtf8); return; }
 				if (!MultiByteToWideChar(CP_UTF8, 0, str_format, size_str_format & ~(unsigned int)0, u16str_format.ptr, cch_u16str_format)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar); return; }
 				size_t cch_max_u16str_out = size_max_str_out;
-				wchar_array_holder_t u16str_out(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_max_u16str_out * sizeof(wchar_t))), cch_max_u16str_out, rawallocator);
+				wchar_array_holder_t u16str_out(reinterpret_cast<wchar_t*>(rawallocator->Allocate(cch_max_u16str_out * sizeof(wchar_t), alignof(wchar_t[]))), cch_max_u16str_out, rawallocator);
 				if (!u16str_out.ptr) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				size_t cch_u16str_out = 0;
 				{

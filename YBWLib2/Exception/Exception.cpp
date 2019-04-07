@@ -35,28 +35,55 @@ namespace YBWLib2 {
 			if (!this) abort();
 			return this->size_heap_max;
 		}
-		inline void* AllocateMemory(size_t size) noexcept {
+		inline void* AllocateMemory(size_t size, size_t align) noexcept {
 			if (!this || !this->hheap) abort();
-			if (!size) size = 1;
-			void* ptr = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size);
-			if (!ptr) abort();
-			return ptr;
+			align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+			if (!size) size = align;
+			void* ptr_allocated = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size + align - 1);
+			if (!ptr_allocated) abort();
+			void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+			if (!ptr_allocdata) abort();
+			*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
+			return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);
 		}
 		inline void FreeMemory(void* ptr) noexcept {
 			if (!this || !this->hheap) abort();
-			if (ptr) if (!HeapFree(this->hheap, 0, ptr)) abort();
+			if (ptr) {
+				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr) - 1);
+				void* ptr_allocated = *reinterpret_cast<void**>(ptr_allocdata);
+				if (!ptr_allocated) abort();
+				if (!HeapFree(this->hheap, 0, ptr_allocated)) abort();
+			}
 		}
-		inline void* ReAllocateMemory(void* ptr_old, size_t size_new) noexcept {
+		inline void* ReAllocateMemory(void* ptr_old, size_t size_old, size_t size_new, size_t align) noexcept {
 			if (!this || !this->hheap) abort();
-			if (!size_new) size_new = 1;
+			align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+			if (!size_new) size_new = align;
 			if (ptr_old) {
-				void* ptr_new = HeapReAlloc(this->hheap, HEAP_ZERO_MEMORY, ptr_old, size_new);
-				if (!ptr_new) abort();
-				return ptr_new;
+				void* ptr_allocdata_old = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_old) - 1);
+				void* ptr_allocated_old = *reinterpret_cast<void**>(ptr_allocdata_old);
+				if (!ptr_allocated_old || ptr_allocated_old > ptr_allocdata_old) abort();
+				size_t offset_allocdata_old = reinterpret_cast<uintptr_t>(ptr_allocdata_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
+				size_t offset_old = reinterpret_cast<uintptr_t>(ptr_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
+				void* ptr_allocated_new = HeapReAlloc(this->hheap, HEAP_ZERO_MEMORY, ptr_allocated_old, size_new + align - 1);
+				if (!ptr_allocated_new) abort();
+				void* ptr_allocdata_new = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated_new) + (sizeof(void*) - 1)), align) - 1);
+				void* ptr_new = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata_new) + 1);
+				if (ptr_allocdata_new != reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_allocdata_old)) {
+					memmove(ptr_new, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_old), size_new < size_old ? size_new : size_old);
+					*reinterpret_cast<void**>(ptr_allocdata_new) = ptr_allocated_new;
+					return ptr_new;
+				} else {
+					*reinterpret_cast<void**>(ptr_allocdata_new) = ptr_allocated_new;
+					return ptr_new;
+				}
 			} else {
-				void* ptr_new = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size_new);
-				if (!ptr_new) abort();
-				return ptr_new;
+				void* ptr_allocated = HeapAlloc(this->hheap, HEAP_ZERO_MEMORY, size_new + align - 1);
+				if (!ptr_allocated) abort();
+				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+				if (!ptr_allocdata) abort();
+				*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
+				return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);
 			}
 		}
 	private:
@@ -102,30 +129,30 @@ namespace YBWLib2 {
 
 	YBWLIB2_API size_t YBWLIB2_CALLTYPE ExceptionGetMaxMemorySize() noexcept { return exception_handling_environment->GetMaxMemorySize(); }
 
-	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size) noexcept { return exception_handling_environment->AllocateMemory(size); }
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size, size_t align) noexcept { return exception_handling_environment->AllocateMemory(size, align); }
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept { exception_handling_environment->FreeMemory(ptr); }
 
-	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_new) noexcept { return exception_handling_environment->ReAllocateMemory(ptr_old, size_new); }
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_old, size_t size_new, size_t align) noexcept { return exception_handling_environment->ReAllocateMemory(ptr_old, size_old, size_new, align); }
 
 	void YBWLIB2_CALLTYPE Exception_RealInitGlobal() noexcept {
 		exception_handling_environment = new ExceptionHandlingEnvironment();
 		if (!exception_handling_environment) abort();
 		rawallocator_exception = new rawallocator_t(
-			[](size_t size, uintptr_t context) noexcept->void* {
+			nullptr, nullptr, nullptr,
+			[](size_t size, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
-				return ExceptionAllocateMemory(size);
+				return ExceptionAllocateMemory(size, align);
 			},
-			[](void* ptr, size_t size, uintptr_t context) noexcept->bool {
+			[](void* ptr, size_t size, uintptr_t context) noexcept->void {
 				static_cast<void>(size);
 				static_cast<void>(context);
 				ExceptionFreeMemory(ptr);
-				return true;
 			},
-			[](void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept->void* {
+			[](void* ptr_old, size_t size_old, size_t size_new, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
 				static_cast<void>(size_old);
-				return ExceptionReAllocateMemory(ptr_old, size_new);
+				return ExceptionReAllocateMemory(ptr_old, size_old, size_new, align);
 			},
 			[](uintptr_t context) noexcept->size_t {
 				static_cast<void>(context);

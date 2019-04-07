@@ -48,18 +48,20 @@ namespace YBWLib2 {
 
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
 	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>> AnsiStringToUtf16String(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& ansistr) noexcept(false) {
+		rawallocator_t rawallocator(ansistr.get_allocator().rawallocator);
 		return AnsiStringToUtf16String<
 			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>,
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(ansistr.get_allocator().rawallocator, ansistr, ansistr.get_allocator());
+		>(&rawallocator, ansistr, ansistr.get_allocator());
 	}
 
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
 	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf16StringToAnsiString(const ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>& u16str) noexcept(false) {
+		rawallocator_t rawallocator(u16str.get_allocator().rawallocator);
 		return Utf16StringToAnsiString<
 			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
 			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>
-		>(u16str.get_allocator().rawallocator, u16str, u16str.get_allocator());
+		>(&rawallocator, u16str, u16str.get_allocator());
 	}
 
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>

@@ -63,11 +63,17 @@ namespace YBWLib2 {
 	/// The size of this separate store is limited, so don't waste memory allocated with this function on purposes unrelated to exception handling.
 	/// Failure to allocate memory in this function is considered fatal, and results in the process being terminated.
 	/// </summary>
-	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size) noexcept;
+	/// <param name="size">The new size, in bytes, of the memory to be allocated.</param>
+	/// <param name="align">The alignment, in bytes, of the memory.</param>
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionAllocateMemory(size_t size, size_t align) noexcept;
 	/// <summary>
 	/// Frees memory previously allocated with <c>ExceptionAllocateMemory</c> or <c>ExceptionReAllocateMemory</c>.
 	/// Failure to free memory in this function is considered fatal, and results in the process being terminated.
 	/// </summary>
+	/// <param name="ptr">
+	/// An optional pointer to some memory previously allocated with <c>ExceptionAllocateMemory</c> or <c>ExceptionReAllocateMemory</c>.
+	/// If an empty pointer is passed, this function does nothing.
+	/// </param>
 	YBWLIB2_API void YBWLIB2_CALLTYPE ExceptionFreeMemory(void* ptr) noexcept;
 	/// <summary>
 	/// Reallocates memory from a separate store dedicated to exception handling.
@@ -82,8 +88,9 @@ namespace YBWLib2 {
 	/// If this pointer is not empty, the data in the memory up to the lesser of <c>size_old</c> and <c>size_new</c> is preserved.
 	/// </param>
 	/// <param name="size_new">The new size, in bytes, of the memory to be reallocated.</param>
+	/// <param name="align">The alignment, in bytes, of the memory.</param>
 	/// <returns>Returns a pointer to the reallocated memory, which may or may not be the same as the original pointer passed as <c>ptr_old</c>.</returns>
-	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_new) noexcept;
+	YBWLIB2_API void* YBWLIB2_CALLTYPE ExceptionReAllocateMemory(void* ptr_old, size_t size_old, size_t size_new, size_t align) noexcept;
 
 	/// <summary>An allocator for allocating exception handling dedicated raw memory.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_exception;
@@ -125,7 +132,7 @@ namespace YBWLib2 {
 		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
 		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept {
 			static_cast<void>(hint);
-			return reinterpret_cast<pointer>(ExceptionAllocateMemory(count * sizeof(value_type)));
+			return reinterpret_cast<pointer>(ExceptionAllocateMemory(count * sizeof(value_type), alignof(value_type)));
 		}
 		inline void deallocate(pointer ptr, size_type count) const noexcept {
 			static_cast<void>(count);
@@ -202,10 +209,10 @@ namespace YBWLib2 {
 		IException& operator=(const IException&) = delete;
 		IException& operator=(IException&&) = delete;
 		static inline void* operator new(size_t size) noexcept {
-			return ExceptionAllocateMemory(size);
+			return ExceptionAllocateMemory(size, alignof(IException));
 		}
 		static inline void* operator new[](size_t size) noexcept {
-			return ExceptionAllocateMemory(size);
+			return ExceptionAllocateMemory(size, alignof(IException));
 		}
 		static inline void operator delete(void* ptr) noexcept {
 			return ExceptionFreeMemory(ptr);
@@ -796,12 +803,12 @@ namespace YBWLib2 {
 		inline InvalidParameterException(const char* _name_function, size_t _size_name_function, const char* _name_class_member_function = nullptr, size_t _size_name_class_member_function = 0) noexcept {
 			if (_name_function && _size_name_function) {
 				this->size_name_function = _size_name_function;
-				this->name_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_function * sizeof(char)));
+				this->name_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_function * sizeof(char), alignof(char[])));
 				memcpy(this->name_function, _name_function, this->size_name_function * sizeof(char));
 			}
 			if (_name_class_member_function && _size_name_class_member_function) {
 				this->size_name_class_member_function = _size_name_class_member_function;
-				this->name_class_member_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_class_member_function * sizeof(char)));
+				this->name_class_member_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_class_member_function * sizeof(char), alignof(char[])));
 				memcpy(this->name_class_member_function, _name_class_member_function, this->size_name_class_member_function * sizeof(char));
 			}
 		}
@@ -921,12 +928,12 @@ namespace YBWLib2 {
 		inline InvalidCallException(const char* _name_function, size_t _size_name_function, const char* _name_class_member_function = nullptr, size_t _size_name_class_member_function = 0) noexcept {
 			if (_name_function && _size_name_function) {
 				this->size_name_function = _size_name_function;
-				this->name_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_function * sizeof(char)));
+				this->name_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_function * sizeof(char), alignof(char[])));
 				memcpy(this->name_function, _name_function, this->size_name_function * sizeof(char));
 			}
 			if (_name_class_member_function && _size_name_class_member_function) {
 				this->size_name_class_member_function = _size_name_class_member_function;
-				this->name_class_member_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_class_member_function * sizeof(char)));
+				this->name_class_member_function = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_class_member_function * sizeof(char), alignof(char[])));
 				memcpy(this->name_class_member_function, _name_class_member_function, this->size_name_class_member_function * sizeof(char));
 			}
 		}
@@ -1299,7 +1306,7 @@ namespace YBWLib2 {
 		inline STLExceptionException(const char* _str_what_stlexception) noexcept {
 			if (_str_what_stlexception) {
 				this->size_str_what_stlexception = strlen(_str_what_stlexception) + 1;
-				this->str_what_stlexception = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_str_what_stlexception * sizeof(char)));
+				this->str_what_stlexception = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_str_what_stlexception * sizeof(char), alignof(char[])));
 				memcpy(this->str_what_stlexception, _str_what_stlexception, this->size_str_what_stlexception * sizeof(char));
 			}
 		}
@@ -1391,7 +1398,7 @@ namespace YBWLib2 {
 		inline ExternalAPIFailureException(const char* _name_api, size_t _size_name_api, const void* _address_api) noexcept {
 			if (_name_api && _size_name_api) {
 				this->size_name_api = _size_name_api;
-				this->name_api = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_api * sizeof(char)));
+				this->name_api = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_name_api * sizeof(char), alignof(char[])));
 				memcpy(this->name_api, _name_api, this->size_name_api * sizeof(char));
 			}
 			if (_address_api) this->address_api = _address_api;
@@ -1494,7 +1501,7 @@ namespace YBWLib2 {
 		inline UnexpectedExceptionException(const char* _filename_source_code, size_t _size_filename_source_code, int _linenumber_source_code) noexcept {
 			if (_filename_source_code && _size_filename_source_code) {
 				this->size_filename_source_code = _size_filename_source_code;
-				this->filename_source_code = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_filename_source_code * sizeof(char)));
+				this->filename_source_code = reinterpret_cast<char*>(ExceptionAllocateMemory(this->size_filename_source_code * sizeof(char), alignof(char[])));
 				memcpy(this->filename_source_code, _filename_source_code, this->size_filename_source_code * sizeof(char));
 			}
 			if (_linenumber_source_code != -1) this->linenumber_source_code = _linenumber_source_code;

@@ -224,7 +224,7 @@ namespace YBWLib2 {
 						), description_ret, size_description_ret, should_null_terminate, _rawallocator);
 						if (err_inner) {
 							if (description_ret && *description_ret) {
-								if (!_rawallocator->Deallocate(*description_ret, *size_description_ret)) abort();
+								_rawallocator->Deallocate(*description_ret, *size_description_ret);
 								*description_ret = nullptr;
 							}
 							if (size_description_ret && *size_description_ret) {

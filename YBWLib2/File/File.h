@@ -2125,7 +2125,7 @@ namespace YBWLib2 {
 						{
 							if (size != holder_memory_block->size_memory_block) {
 								if (holder_memory_block->is_readonly || !holder_memory_block->rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SetFileSize); return; }
-								holder_memory_block->address_memory_block = holder_memory_block->rawallocator->Reallocate(holder_memory_block->address_memory_block, holder_memory_block->size_memory_block, size);
+								holder_memory_block->address_memory_block = holder_memory_block->rawallocator->Reallocate(holder_memory_block->address_memory_block, holder_memory_block->size_memory_block, size, 1);
 								if (!holder_memory_block->address_memory_block) {
 									holder_memory_block->size_memory_block = 0;
 									{ err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
@@ -2530,7 +2530,7 @@ namespace YBWLib2 {
 			inline MemoryBlockHolder(allocate_memory_t, const rawallocator_t* _rawallocator, size_t _size_memory_block_initial) noexcept(false)
 				: rawallocator(_rawallocator) {
 				this->size_memory_block = _size_memory_block_initial;
-				this->address_memory_block = this->rawallocator->Allocate(this->size_memory_block);
+				this->address_memory_block = this->rawallocator->Allocate(this->size_memory_block, 1);
 				if (!this->address_memory_block) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
 			inline MemoryBlockHolder(adopt_allocated_memory_t, const rawallocator_t* _rawallocator, void* _address_memory_block, size_t _size_memory_block_initial) noexcept(false)

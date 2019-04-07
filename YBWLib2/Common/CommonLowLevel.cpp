@@ -61,9 +61,9 @@ namespace YBWLib2 {
 		try {
 			if (!_rawallocator) abort();
 			this->rawallocator = _rawallocator;
-			this->map_entry = reinterpret_cast<map_entry_t*>(this->rawallocator->Allocate(sizeof(map_entry_t)));
+			this->map_entry = reinterpret_cast<map_entry_t*>(this->rawallocator->Allocate(sizeof(map_entry_t), alignof(map_entry_t)));
 			if (!this->map_entry) abort();
-			this->map_entry = ::std::launder(new (this->map_entry) map_entry_t(allocator_rawallocator_t<value_map_entry_t>(this->rawallocator)));
+			this->map_entry = ::std::launder(new (this->map_entry) map_entry_t(allocator_rawallocator_t<value_map_entry_t>(*this->rawallocator)));
 		} catch (...) {
 			abort();
 		}
@@ -85,7 +85,7 @@ namespace YBWLib2 {
 		try {
 			if (this->map_entry) {
 				this->map_entry->~map_entry_t();
-				if (!this->rawallocator->Deallocate(this->map_entry, sizeof(map_entry_t))) abort();
+				this->rawallocator->Deallocate(this->map_entry, sizeof(map_entry_t));
 				this->map_entry = nullptr;
 			}
 		} catch (...) {
@@ -99,19 +99,19 @@ namespace YBWLib2 {
 				this->map_entry->~map_entry_t();
 			}
 			if (this->map_entry && (!x->map_entry || this->rawallocator != x->rawallocator)) {
-				if (!this->rawallocator->Deallocate(this->map_entry, sizeof(map_entry_t))) abort();
+				this->rawallocator->Deallocate(this->map_entry, sizeof(map_entry_t));
 				this->map_entry = nullptr;
 			}
 			this->rawallocator = x->rawallocator;
 			x->rawallocator = nullptr;
 			if (!this->map_entry && x->map_entry) {
-				this->map_entry = reinterpret_cast<map_entry_t*>(this->rawallocator->Allocate(sizeof(map_entry_t)));
+				this->map_entry = reinterpret_cast<map_entry_t*>(this->rawallocator->Allocate(sizeof(map_entry_t), alignof(map_entry_t)));
 				if (!this->map_entry) abort();
 			}
 			if (x->map_entry) {
-				this->map_entry = ::std::launder(new (this->map_entry) map_entry_t(::std::move(*x->map_entry), allocator_rawallocator_t<value_map_entry_t>(this->rawallocator)));
+				this->map_entry = ::std::launder(new (this->map_entry) map_entry_t(::std::move(*x->map_entry), allocator_rawallocator_t<value_map_entry_t>(*this->rawallocator)));
 				x->map_entry->~map_entry_t();
-				if (!x->rawallocator->Deallocate(x->map_entry, sizeof(map_entry_t))) abort();
+				x->rawallocator->Deallocate(x->map_entry, sizeof(map_entry_t));
 				x->map_entry = nullptr;
 			}
 		} catch (...) {
@@ -138,25 +138,59 @@ namespace YBWLib2 {
 		if (!byte_order_unsigned_long_long->is_le) *is_byte_order_le = false;
 		if (!byte_order_unsigned_long_long->is_be) *is_byte_order_be = false;
 		rawallocator_crt_YBWLib2 = new rawallocator_t(
-			[](size_t size, uintptr_t context) noexcept->void* {
+			nullptr, nullptr, nullptr,
+			[](size_t size, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
-				if (!size) size = 1;
-				return malloc(size);
+				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+				if (!size) size = align;
+				void* ptr_allocated = malloc(size + align - 1);
+				if (!ptr_allocated) abort();
+				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+				if (!ptr_allocdata) abort();
+				*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
+				return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);
 			},
-			[](void* ptr, size_t size, uintptr_t context) noexcept->bool {
+			[](void* ptr, size_t size, uintptr_t context) noexcept->void {
 				static_cast<void>(size);
 				static_cast<void>(context);
-				if (ptr) free(ptr);
-				return true;
+				if (ptr) {
+					void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr) - 1);
+					void* ptr_allocated = *reinterpret_cast<void**>(ptr_allocdata);
+					if (!ptr_allocated) abort();
+					free(ptr_allocated);
+				}
 			},
-			[](void* ptr_old, size_t size_old, size_t size_new, uintptr_t context) noexcept->void* {
+			[](void* ptr_old, size_t size_old, size_t size_new, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(size_old);
 				static_cast<void>(context);
-				if (!size_new) size_new = 1;
-				if (ptr_old)
-					return realloc(ptr_old, size_new);
-				else
-					return malloc(size_new);
+				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+				if (!size_new) size_new = align;
+				if (ptr_old) {
+					void* ptr_allocdata_old = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_old) - 1);
+					void* ptr_allocated_old = *reinterpret_cast<void**>(ptr_allocdata_old);
+					if (!ptr_allocated_old || ptr_allocated_old > ptr_allocdata_old) abort();
+					size_t offset_allocdata_old = reinterpret_cast<uintptr_t>(ptr_allocdata_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
+					size_t offset_old = reinterpret_cast<uintptr_t>(ptr_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
+					void* ptr_allocated_new = realloc(ptr_allocated_old, size_new + align - 1);
+					if (!ptr_allocated_new) abort();
+					void* ptr_allocdata_new = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated_new) + (sizeof(void*) - 1)), align) - 1);
+					void* ptr_new = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata_new) + 1);
+					if (ptr_allocdata_new != reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_allocdata_old)) {
+						memmove(ptr_new, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_old), size_new < size_old ? size_new : size_old);
+						*reinterpret_cast<void**>(ptr_allocdata_new) = ptr_allocated_new;
+						return ptr_new;
+					} else {
+						*reinterpret_cast<void**>(ptr_allocdata_new) = ptr_allocated_new;
+						return ptr_new;
+					}
+				} else {
+					void* ptr_allocated = malloc(size_new + align - 1);
+					if (!ptr_allocated) abort();
+					void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+					if (!ptr_allocdata) abort();
+					*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
+					return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);
+				}
 			},
 			[](uintptr_t context) noexcept->size_t {
 				static_cast<void>(context);

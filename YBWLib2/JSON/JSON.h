@@ -122,7 +122,7 @@ namespace YBWLib2 {
 		inline ParseErrorJSONException(size_t _offset_parse_error, const char* _str_parse_error) noexcept : offset_parse_error(_offset_parse_error) {
 			if (_str_parse_error) {
 				size_t size_str_parse_error = strlen(_str_parse_error);
-				this->str_parse_error = reinterpret_cast<char*>(ExceptionAllocateMemory((size_str_parse_error + 1) * sizeof(char)));
+				this->str_parse_error = reinterpret_cast<char*>(ExceptionAllocateMemory((size_str_parse_error + 1) * sizeof(char), alignof(char[])));
 				memcpy(this->str_parse_error, _str_parse_error, (size_str_parse_error + 1) * sizeof(char));
 			}
 		}

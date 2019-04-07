@@ -37,18 +37,18 @@ namespace YBWLib2 {
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
 				if (!size_str_in) {
 					*size_str_out_ret = 0;
-					*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t)));
+					*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t), alignof(char16_t[])));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				} else {
 					if (size_str_in > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8StringToUtf16String); return; }
 					*size_str_out_ret = MultiByteToWideChar(CP_UTF8, 0, str_in, size_str_in & ~(unsigned int)0, nullptr, 0);
 					if (*size_str_out_ret > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar); return; }
 					if (*size_str_out_ret) {
-						*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t)));
+						*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t), alignof(char16_t[])));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 						if (size_str_in > INT_MAX) {
 							err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8StringToUtf16String);
-							if (!rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char16_t))) abort();
+							rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char16_t));
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 							return;
@@ -56,13 +56,13 @@ namespace YBWLib2 {
 						if (*size_str_out_ret > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 						if ((size_t)MultiByteToWideChar(CP_UTF8, 0, str_in, size_str_in & ~(unsigned int)0, reinterpret_cast<wchar_t*>(*str_out_ret), *size_str_out_ret & ~(unsigned int)0) != *size_str_out_ret) {
 							err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(MultiByteToWideChar);
-							if (!rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char16_t))) abort();
+							rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char16_t));
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 							return;
 						}
 					} else {
-						*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t)));
+						*str_out_ret = reinterpret_cast<char16_t*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char16_t), alignof(char16_t[])));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					}
 				}
@@ -102,18 +102,18 @@ namespace YBWLib2 {
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
 				if (!size_str_in) {
 					*size_str_out_ret = 0;
-					*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+					*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 					if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				} else {
 					if (size_str_in > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf16StringToUtf8String); return; }
 					*size_str_out_ret = WideCharToMultiByte(CP_UTF8, 0, reinterpret_cast<const wchar_t*>(str_in), size_str_in & ~(unsigned int)0, nullptr, 0, nullptr, nullptr);
 					if (*size_str_out_ret > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte); return; }
 					if (*size_str_out_ret) {
-						*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+						*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 						if (size_str_in > INT_MAX) {
 							err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf16StringToUtf8String);
-							if (!rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char))) abort();
+							rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char));
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 							return;
@@ -121,13 +121,13 @@ namespace YBWLib2 {
 						if (*size_str_out_ret > INT_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 						if ((size_t)WideCharToMultiByte(CP_UTF8, 0, reinterpret_cast<const wchar_t*>(str_in), size_str_in & ~(unsigned int)0, *str_out_ret, *size_str_out_ret & ~(unsigned int)0, nullptr, nullptr) != *size_str_out_ret) {
 							err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WideCharToMultiByte);
-							if (!rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char))) abort();
+							rawallocator->Deallocate(*str_out_ret, *size_str_out_ret * sizeof(char));
 							*str_out_ret = nullptr;
 							*size_str_out_ret = 0;
 							return;
 						}
 					} else {
-						*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+						*str_out_ret = reinterpret_cast<char*>(rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 						if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					}
 				}
@@ -175,7 +175,7 @@ namespace YBWLib2 {
 				if (!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_base64_in.get()), holder_u16str_base64_in.get_count() & ~(DWORD)0, CRYPT_STRING_BASE64, nullptr, &dword_size_data_out, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW); return; }
 				if (dword_size_data_out > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				*size_data_out_ret = dword_size_data_out & ~(size_t)0;
-				*data_out_ret = reinterpret_cast<uint8_t*>(rawallocator->Allocate(*size_data_out_ret * sizeof(uint8_t)));
+				*data_out_ret = reinterpret_cast<uint8_t*>(rawallocator->Allocate(*size_data_out_ret * sizeof(uint8_t), alignof(uint8_t[])));
 				if (!*data_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (holder_u16str_base64_in.get_count() > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (
@@ -183,7 +183,7 @@ namespace YBWLib2 {
 					|| dword_size_data_out != *size_data_out_ret
 					) {
 					err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW);
-					if (!rawallocator->Deallocate(*data_out_ret, *size_data_out_ret * sizeof(uint8_t))) abort();
+					rawallocator->Deallocate(*data_out_ret, *size_data_out_ret * sizeof(uint8_t));
 					*data_out_ret = nullptr;
 					*size_data_out_ret = 0;
 					return;
@@ -231,7 +231,7 @@ namespace YBWLib2 {
 				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &dword_size_u16str_out)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptBinaryToStringW); return; }
 				if (dword_size_u16str_out > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				holder_u16str_base64_out.get_ref_count_element_element_as_mem() = dword_size_u16str_out;
-				holder_u16str_base64_out.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(rawallocator->Allocate(holder_u16str_base64_out.get_count() * sizeof(char16_t)));
+				holder_u16str_base64_out.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(rawallocator->Allocate(holder_u16str_base64_out.get_count() * sizeof(char16_t), alignof(char16_t[])));
 				if (!holder_u16str_base64_out.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (size_data_in > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, reinterpret_cast<wchar_t*>(holder_u16str_base64_out.get()), &dword_size_u16str_out)) {
@@ -240,7 +240,7 @@ namespace YBWLib2 {
 				}
 				err_inner = Utf16StringToUtf8String(rawallocator, str_base64_out_ret, size_str_base64_out_ret, holder_u16str_base64_out.get(), holder_u16str_base64_out.get_count());
 				if (err_inner) {
-					if (!rawallocator->Deallocate(*str_base64_out_ret, *size_str_base64_out_ret * sizeof(char16_t))) abort();
+					rawallocator->Deallocate(*str_base64_out_ret, *size_str_base64_out_ret * sizeof(char16_t));
 					*str_base64_out_ret = nullptr;
 					*size_str_base64_out_ret = 0;
 					return;
@@ -301,7 +301,7 @@ namespace YBWLib2 {
 				objholder_rawallocator_t<uint8_t[]> holder_data_hashobj(rawallocator);
 				if (ulong_size_hashobj > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				holder_data_hashobj.get_ref_count_element_element_as_mem() = ulong_size_hashobj;
-				holder_data_hashobj.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hashobj.get_count() * sizeof(uint8_t)));
+				holder_data_hashobj.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hashobj.get_count() * sizeof(uint8_t), alignof(uint8_t[])));
 				if (!holder_data_hashobj.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				{
 					struct holder_hhash_t {
@@ -341,7 +341,7 @@ namespace YBWLib2 {
 					objholder_rawallocator_t<uint8_t[]> holder_data_hash(rawallocator);
 					if (ulong_size_hash > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 					holder_data_hash.get_ref_count_element_element_as_mem() = ulong_size_hash;
-					holder_data_hash.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hash.get_count() * sizeof(uint8_t)));
+					holder_data_hash.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hash.get_count() * sizeof(uint8_t), alignof(uint8_t[])));
 					if (!holder_data_hash.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (holder_data_hash.get_count() > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 					ntstatus = BCryptFinishHash(holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hash.get()), holder_data_hash.get_count() & ~(ULONG)0, 0);

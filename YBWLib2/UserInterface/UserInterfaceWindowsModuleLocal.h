@@ -53,7 +53,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(*_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[Win32Handle "s;
@@ -71,7 +71,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -84,7 +84,7 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -92,7 +92,7 @@ namespace YBWLib2 {
 		}
 		if (err_inner) {
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -120,7 +120,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(*_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[GetLastError "s;
@@ -147,7 +147,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -160,7 +160,7 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -168,7 +168,7 @@ namespace YBWLib2 {
 		}
 		if (err_inner) {
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -197,7 +197,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(*_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[WSAGetLastError "s;
@@ -224,7 +224,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -237,7 +237,7 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -245,7 +245,7 @@ namespace YBWLib2 {
 		}
 		if (err_inner) {
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -275,7 +275,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(*_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[NTSTATUS "s;
@@ -302,7 +302,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -315,7 +315,7 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -323,7 +323,7 @@ namespace YBWLib2 {
 		}
 		if (err_inner) {
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -353,7 +353,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &str_out_ret, &size_str_out_ret, &should_null_terminate, &_rawallocator, &err_inner]() noexcept(false)->void {
 				if (!_rawallocator) _rawallocator = this->GetRawAllocator();
-				allocator_rawallocator_t<char> allocator_rawallocator_char(_rawallocator);
+				allocator_rawallocator_t<char> allocator_rawallocator_char(*_rawallocator);
 				using str_out_t = ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>;
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[HRESULT "s;
@@ -369,7 +369,7 @@ namespace YBWLib2 {
 				}
 				str_out += u8"]"s;
 				*size_str_out_ret = should_null_terminate ? str_out.size() + 1 : str_out.size();
-				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char)));
+				*str_out_ret = reinterpret_cast<char*>(_rawallocator->Allocate(*size_str_out_ret * sizeof(char), alignof(char[])));
 				if (!*str_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (*size_str_out_ret) {
 					memcpy(*str_out_ret, str_out.c_str(), *size_str_out_ret * sizeof(char));
@@ -382,7 +382,7 @@ namespace YBWLib2 {
 				err_inner = nullptr;
 			}
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}
@@ -390,7 +390,7 @@ namespace YBWLib2 {
 		}
 		if (err_inner) {
 			if (*str_out_ret) {
-				if (!_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret)) abort();
+				_rawallocator->Deallocate(*str_out_ret, *size_str_out_ret);
 				*str_out_ret = nullptr;
 				*size_str_out_ret = 0;
 			}

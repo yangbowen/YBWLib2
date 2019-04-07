@@ -37,7 +37,7 @@ namespace YBWLib2 {
 					static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
 					objholder_rawallocator_t<char16_t[]> holder_u16str_filename_file(_rawallocator);
 					holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 1;
-					holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Allocate(holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+					holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Allocate(holder_u16str_filename_file.get_count() * sizeof(char16_t), alignof(char16_t[])));
 					if (!holder_u16str_filename_file.get()) {
 						holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
 						err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
@@ -52,7 +52,7 @@ namespace YBWLib2 {
 							return;
 						} else {
 							holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
-							holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+							holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t), alignof(char16_t[])));
 							if (!holder_u16str_filename_file.get()) {
 								holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
 								err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
@@ -66,7 +66,7 @@ namespace YBWLib2 {
 						}
 					} else {
 						holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
-						holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+						holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t), alignof(char16_t[])));
 						if (!holder_u16str_filename_file.get()) {
 							holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
 							err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
@@ -80,7 +80,7 @@ namespace YBWLib2 {
 								return;
 							} else {
 								holder_u16str_filename_file.get_ref_count_element_element_as_mem() = dword_size_filename_file;
-								holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t)));
+								holder_u16str_filename_file.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<char16_t*>(_rawallocator->Reallocate(holder_u16str_filename_file.get(), 1 * sizeof(char16_t), holder_u16str_filename_file.get_count() * sizeof(char16_t), alignof(char16_t[])));
 								if (!holder_u16str_filename_file.get()) {
 									holder_u16str_filename_file.get_ref_count_element_element_as_mem() = 0;
 									err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION();
@@ -111,7 +111,7 @@ namespace YBWLib2 {
 				), description_ret, size_description_ret, should_null_terminate, _rawallocator);
 				if (err_inner) {
 					if (description_ret && *description_ret) {
-						if (!_rawallocator->Deallocate(*description_ret, *size_description_ret)) abort();
+						_rawallocator->Deallocate(*description_ret, *size_description_ret);
 						*description_ret = nullptr;
 					}
 					if (size_description_ret && *size_description_ret) {
