@@ -583,13 +583,55 @@ namespace YBWLib2 {
 			this->context = 0;
 		}
 		inline rawallocator_t& operator=(const rawallocator_t& x) noexcept {
-			this->~rawallocator_t();
-			new(this) rawallocator_t(x);
+			if (this->fnptr_cleanup_rawallocator) (*this->fnptr_cleanup_rawallocator)(this);
+			this->fnptr_cleanup_rawallocator = nullptr;
+			this->fnptr_copy_rawallocator = nullptr;
+			this->fnptr_is_equal_rawallocator = nullptr;
+			this->fnptr_allocate = nullptr;
+			this->fnptr_deallocate = nullptr;
+			this->fnptr_reallocate = nullptr;
+			this->fnptr_get_max_size = nullptr;
+			this->context = 0;
+			if (x.fnptr_copy_rawallocator) {
+				(*x.fnptr_copy_rawallocator)(this, &x);
+			} else {
+				this->fnptr_cleanup_rawallocator = x.fnptr_cleanup_rawallocator;
+				this->fnptr_copy_rawallocator = x.fnptr_copy_rawallocator;
+				this->fnptr_is_equal_rawallocator = x.fnptr_is_equal_rawallocator;
+				this->fnptr_allocate = x.fnptr_allocate;
+				this->fnptr_deallocate = x.fnptr_deallocate;
+				this->fnptr_reallocate = x.fnptr_reallocate;
+				this->fnptr_get_max_size = x.fnptr_get_max_size;
+				this->context = x.context;
+			}
 			return *this;
 		}
 		inline rawallocator_t& operator=(rawallocator_t&& x) noexcept {
-			this->~rawallocator_t();
-			new(this) rawallocator_t(::std::move(x));
+			if (this->fnptr_cleanup_rawallocator) (*this->fnptr_cleanup_rawallocator)(this);
+			this->fnptr_cleanup_rawallocator = nullptr;
+			this->fnptr_copy_rawallocator = nullptr;
+			this->fnptr_is_equal_rawallocator = nullptr;
+			this->fnptr_allocate = nullptr;
+			this->fnptr_deallocate = nullptr;
+			this->fnptr_reallocate = nullptr;
+			this->fnptr_get_max_size = nullptr;
+			this->context = 0;
+			this->fnptr_cleanup_rawallocator = ::std::move(x.fnptr_cleanup_rawallocator);
+			x.fnptr_cleanup_rawallocator = nullptr;
+			this->fnptr_copy_rawallocator = ::std::move(x.fnptr_copy_rawallocator);
+			x.fnptr_copy_rawallocator = nullptr;
+			this->fnptr_is_equal_rawallocator = ::std::move(x.fnptr_is_equal_rawallocator);
+			x.fnptr_is_equal_rawallocator = nullptr;
+			this->fnptr_allocate = ::std::move(x.fnptr_allocate);
+			x.fnptr_allocate = nullptr;
+			this->fnptr_deallocate = ::std::move(x.fnptr_deallocate);
+			x.fnptr_deallocate = nullptr;
+			this->fnptr_reallocate = ::std::move(x.fnptr_reallocate);
+			x.fnptr_reallocate = nullptr;
+			this->fnptr_get_max_size = ::std::move(x.fnptr_get_max_size);
+			x.fnptr_get_max_size = nullptr;
+			this->context = ::std::move(x.context);
+			x.context = 0;
 			return *this;
 		}
 		inline bool operator==(const rawallocator_t& x) const noexcept {
