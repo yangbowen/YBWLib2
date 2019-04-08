@@ -114,6 +114,8 @@ namespace YBWLib2 {
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::true_type;
 		inline constexpr allocator_exception_t() noexcept = default;
+		inline constexpr allocator_exception_t(const allocator_exception_t&) noexcept : allocator_exception_t() {}
+		inline constexpr allocator_exception_t(allocator_exception_t&&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
@@ -166,6 +168,8 @@ namespace YBWLib2 {
 		using propagate_on_container_swap = ::std::true_type;
 		using is_always_equal = ::std::true_type;
 		inline constexpr allocator_exception_t() noexcept = default;
+		inline constexpr allocator_exception_t(const allocator_exception_t&) noexcept : allocator_exception_t() {}
+		inline constexpr allocator_exception_t(allocator_exception_t&&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
 		template<typename _Rebind_From_Ty>
