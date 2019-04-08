@@ -743,6 +743,8 @@ namespace YBWLib2 {
 		rawallocator_t rawallocator;
 		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
@@ -807,6 +809,8 @@ namespace YBWLib2 {
 		rawallocator_t rawallocator;
 		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
