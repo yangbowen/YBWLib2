@@ -746,7 +746,15 @@ namespace YBWLib2 {
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(::std::move(x.rawallocator)) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
+			this->rawallocator = x.rawallocator;
+		}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
+			this->rawallocator = x.rawallocator;
+		}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
 		template<typename _Allocator_Ty>
@@ -802,7 +810,15 @@ namespace YBWLib2 {
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(::std::move(x.rawallocator)) {}
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
+			this->rawallocator = x.rawallocator;
+		}
+		template<typename _Rebind_From_Ty>
+		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
+			this->rawallocator = x.rawallocator;
+		}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
 		template<typename _Allocator_Ty>
