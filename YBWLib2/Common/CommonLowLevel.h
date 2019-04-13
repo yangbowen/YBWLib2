@@ -85,35 +85,39 @@ namespace YBWLib2 {
 	extern YBWLIB2_API bool* is_byte_order_le;
 	extern YBWLIB2_API bool* is_byte_order_be;
 
+	/// <summary>Gets the smallest power of <c>2</c> that's greater than an unsigned integral value.</summary>
+	template<typename _Uint_Ty>
+	inline constexpr _Uint_Ty ceil_to_power_of_two(_Uint_Ty x) noexcept {
+		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		if ((x & (x - 1)) && (x << 1) < x) abort();
+		bool should_increment_exponent = false;
+		if (!x) {
+			return 0;
+		}
+		for (; x & (x - 1); x = x & (x - 1)) should_increment_exponent = true;
+		return should_increment_exponent ? x << 1 : x;
+	}
+
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	// Helpers for count_leading_zero.
-	template<size_t x, bool no_increment = false>
-	struct count_leading_zero_expand_helper {
-		static constexpr size_t value =
-			!x
-			? 0
-			: (
-				x & (x - 1)
-				? (no_increment ? count_leading_zero_expand_helper<x & (x - 1), true>::value : count_leading_zero_expand_helper<x & (x - 1), true>::value << 1)
-				: x
-				);
-	};
-
 	template<typename _Uint_Ty, size_t bitsize>
 	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
 		static_assert(bitsize <= sizeof(_Uint_Ty) * 0x8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
-		if constexpr (bitsize & (bitsize - 1)) {
+		if constexpr ((bitsize & (bitsize - 1)) != 0) {
 			static_assert(
-				!(count_leading_zero_expand_helper<bitsize> & ((count_leading_zero_expand_helper<bitsize>) - 1))
-				&& count_leading_zero_expand_helper<bitsize> > bitsize
-				&& count_leading_zero_expand_helper<bitsize> <= sizeof(_Uint_Ty) * 0x8
+				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
+				&& ceil_to_power_of_two(bitsize) > bitsize
+				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * 0x8
 				, "Unexpected error."
 				);
-			x |= (((_Uint_Ty)1 << ((count_leading_zero_expand_helper<bitsize>) - bitsize)) - 1);
-			count_leading_zero_helper<_Uint_Ty, count_leading_zero_expand_helper<bitsize>>(x, n);
+			// Shifts the bits to the left.
+			x <<= ceil_to_power_of_two(bitsize) - bitsize;
+			// Sets the trailing bits.
+			x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1);
+			count_leading_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
 		} else if constexpr (!bitsize) {
 			return;
 		} else if constexpr (bitsize == 0x1) {
@@ -141,6 +145,54 @@ namespace YBWLib2 {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
 		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 0x8>(x, n);
+		return n;
+	}
+
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	// Helpers for count_trailing_zero.
+	template<typename _Uint_Ty, size_t bitsize>
+	inline constexpr void count_trailing_zero_helper(_Uint_Ty& x, size_t& n) {
+		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
+		static_assert(bitsize <= sizeof(_Uint_Ty) * 0x8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		if constexpr ((bitsize & (bitsize - 1)) != 0) {
+			static_assert(
+				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
+				&& ceil_to_power_of_two(bitsize) > bitsize
+				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * 0x8
+				, "Unexpected error."
+				);
+			// Sets the leading bits.
+			x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1) << bitsize;
+			count_trailing_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
+		} else if constexpr (!bitsize) {
+			return;
+		} else if constexpr (bitsize == 0x1) {
+			static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
+			n += table_1[x & (((size_t)1 << 0x1) - 1)];
+		} else if constexpr (bitsize == 0x2) {
+			static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x0, 0x1, 0x0 };
+			n += table_2[x & (((size_t)1 << 0x2) - 1)];
+		} else if constexpr (bitsize == 0x4) {
+			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0, 0x3, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0 };
+			n += table_4[x & (((size_t)1 << 0x4) - 1)];
+		} else {
+			static_assert(!(bitsize & 1), "Unexpected error.");
+			if (!(x & (((_Uint_Ty)1 << (bitsize >> 1)) - 1))) {
+				n += (bitsize >> 1);
+				x >>= (bitsize >> 1);
+			}
+			count_trailing_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
+		}
+	}
+
+	/// <summary>Count trailing zeros in an unsigned integral value.</summary>
+	template<typename _Uint_Ty>
+	inline constexpr size_t count_trailing_zero(_Uint_Ty x) {
+		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+		size_t n = 0;
+		count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 0x8>(x, n);
 		return n;
 	}
 
@@ -235,10 +287,14 @@ namespace YBWLib2 {
 		if (divisor > 0x10)
 			return dividend % divisor;
 		size_t value_lookup_table_bitmask_mod_alignment = lookup_table_bitmask_mod_alignment[divisor - 0x1];
-		if (!value_lookup_table_bitmask_mod_alignment)
-			return dividend % divisor;
-		else
+		if (!value_lookup_table_bitmask_mod_alignment) {
+			if (divisor & (divisor - 1))
+				return dividend % divisor;
+			else
+				return dividend & (divisor - 1);
+		} else {
 			return dividend & ~value_lookup_table_bitmask_mod_alignment;
+		}
 	}
 
 	// Helpers for hash_trivially_copyable_t.
@@ -743,8 +799,8 @@ namespace YBWLib2 {
 		rawallocator_t rawallocator;
 		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
-		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
@@ -809,8 +865,8 @@ namespace YBWLib2 {
 		rawallocator_t rawallocator;
 		inline allocator_rawallocator_t(const rawallocator_t& _rawallocator) noexcept : rawallocator(_rawallocator) {}
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
-		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		inline allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		template<typename _Rebind_From_Ty>
