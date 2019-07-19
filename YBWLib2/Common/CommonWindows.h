@@ -83,15 +83,17 @@ namespace YBWLib2 {
 	) noexcept;
 
 	/// <summary>Win32 handle holder.</summary>
-	class Win32HandleHolder {
+	class Win32HandleHolder final {
 	public:
 		struct view_handle_t {};
 		struct own_handle_t {};
 		struct no_eliminate_invalid_handle_value_t {};
+		struct change_desired_access_t {};
 
 		static constexpr view_handle_t view_handle {};
 		static constexpr own_handle_t own_handle {};
 		static constexpr no_eliminate_invalid_handle_value_t no_eliminate_invalid_handle_value {};
+		static constexpr change_desired_access_t change_desired_access {};
 
 		inline constexpr Win32HandleHolder() noexcept {}
 		inline constexpr Win32HandleHolder(view_handle_t, const HANDLE& _win32handle) noexcept : win32handle(_win32handle == INVALID_HANDLE_VALUE ? NULL : _win32handle), is_owned_handle(false) {}
@@ -112,13 +114,23 @@ namespace YBWLib2 {
 				this->is_owned_handle = false;
 			}
 		}
+		inline Win32HandleHolder(const Win32HandleHolder& x, change_desired_access_t, DWORD _desiredaccess) noexcept(false) {
+			if (x.win32handle) {
+				IException* err = Win32HandleHolder::CopyWin32HandleChangeDesiredAccess(x.win32handle, &this->win32handle, _desiredaccess);
+				if (err) throw(err);
+				this->is_owned_handle = true;
+			} else {
+				this->win32handle = NULL;
+				this->is_owned_handle = false;
+			}
+		}
 		inline Win32HandleHolder(Win32HandleHolder&& x) noexcept {
 			this->win32handle = ::std::move(x.win32handle);
 			x.win32handle = NULL;
 			this->is_owned_handle = ::std::move(x.is_owned_handle);
 			x.is_owned_handle = false;
 		}
-		inline virtual ~Win32HandleHolder() {
+		inline ~Win32HandleHolder() {
 			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;
 		}
@@ -133,6 +145,7 @@ namespace YBWLib2 {
 				this->win32handle = NULL;
 				this->is_owned_handle = false;
 			}
+			return *this;
 		}
 		inline Win32HandleHolder& operator=(Win32HandleHolder&& x) noexcept {
 			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
@@ -141,6 +154,7 @@ namespace YBWLib2 {
 			x.win32handle = NULL;
 			this->is_owned_handle = ::std::move(x.is_owned_handle);
 			x.is_owned_handle = false;
+			return *this;
 		}
 		inline void swap(Win32HandleHolder& x) noexcept {
 			HANDLE win32handle_temp = this->win32handle;
@@ -183,7 +197,9 @@ namespace YBWLib2 {
 		bool is_owned_handle = false;
 		static YBWLIB2_API void YBWLIB2_CALLTYPE ClearWin32Handle(HANDLE* _win32handle, bool _is_owned_handle) noexcept;
 		[[nodiscard]] static YBWLIB2_API IException* YBWLIB2_CALLTYPE CopyWin32Handle(HANDLE _win32handle_from, HANDLE* _win32handle_to) noexcept;
+		[[nodiscard]] static YBWLIB2_API IException* YBWLIB2_CALLTYPE CopyWin32HandleChangeDesiredAccess(HANDLE _win32handle_from, HANDLE* _win32handle_to, DWORD _desiredaccess) noexcept;
 	};
+	static_assert(::std::is_standard_layout_v<Win32HandleHolder>, "Win32HandleHolder is not standard-layout.");
 	template<typename _Char_Ty, typename _Traits_Ty>
 	inline ::std::basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(::std::basic_ostream<_Char_Ty, _Traits_Ty>& os, const Win32HandleHolder& x) {
 		return os << x.get();

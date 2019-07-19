@@ -49,6 +49,12 @@
     <Filter Include="Header Files\JSON">
       <UniqueIdentifier>{6f8d4b68-db15-4666-9432-080254b97d39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugging">
+      <UniqueIdentifier>{b6c239ee-e57e-4645-8917-a7b60c81dff1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugging">
+      <UniqueIdentifier>{09df7181-7ea1-43d2-8cac-bca53aab2beb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -129,9 +135,6 @@
     <ClInclude Include="DynamicType\DynamicTypeHighLevel.h">
       <Filter>Header Files\DynamicType</Filter>
     </ClInclude>
-    <ClInclude Include="YBWLib2RawData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="YBWLib2InternalConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -158,6 +161,15 @@
     </ClInclude>
     <ClInclude Include="File\FileWindowsModuleLocal.h">
       <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugging\DebuggingWindowsModuleLocal.h">
+      <Filter>Header Files\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugging\DebuggingWindows.h">
+      <Filter>Header Files\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="YBWLib2RawData.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +223,9 @@
     </ClCompile>
     <ClCompile Include="File\FileWindows.cpp">
       <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugging\DebuggingWindows.cpp">
+      <Filter>Source Files\Debugging</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

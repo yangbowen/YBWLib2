@@ -26,5 +26,8 @@
 #ifdef _WIN32_WINNT
 #include "File/FileWindowsModuleLocal.h"
 #endif
+#ifdef _WIN32_WINNT
+#include "Debugging/DebuggingWindowsModuleLocal.h"
+#endif
 
 #endif

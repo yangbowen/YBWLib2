@@ -27,6 +27,8 @@
     <ClInclude Include="Common\CommonSTLHelperWindows.h" />
     <ClInclude Include="Common\CommonWindows.h" />
     <ClInclude Include="Common\CommonWindowsModuleLocal.h" />
+    <ClInclude Include="Debugging\DebuggingWindows.h" />
+    <ClInclude Include="Debugging\DebuggingWindowsModuleLocal.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
     <ClInclude Include="DynamicType\DynamicTypeHighLevel.h" />
     <ClInclude Include="DynamicType\DynamicTypeMacroUndef.h" />
@@ -60,6 +62,7 @@
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\CommonLowLevel.cpp" />
     <ClCompile Include="Common\CommonWindows.cpp" />
+    <ClCompile Include="Debugging\DebuggingWindows.cpp" />
     <ClCompile Include="DynamicType\DynamicType.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />
     <ClCompile Include="Exception\ExceptionLowLevel.cpp" />

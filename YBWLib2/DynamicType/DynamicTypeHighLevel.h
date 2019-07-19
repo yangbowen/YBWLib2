@@ -33,7 +33,7 @@ namespace YBWLib2 {
 		using map_fnptr_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash_ConstructorID_t>;
 		static const map_fnptr_create_t map_fnptr_create(_it_begin_fnptr_create, _it_end_fnptr_create);
 		return [](const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
-			if (_dtclassobj != GetDynamicTypeThisClassObject<_Class_Ty>()) abort();
+			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
@@ -86,7 +86,7 @@ namespace YBWLib2 {
 		using map_fnptr_placement_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash_ConstructorID_t>;
 		static const map_fnptr_placement_create_t map_fnptr_placement_create(_it_begin_fnptr_placement_create, _it_end_fnptr_placement_create);
 		return [](const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
-			if (_dtclassobj != GetDynamicTypeThisClassObject<_Class_Ty>()) abort();
+			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_ptr_placement || !_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
@@ -134,7 +134,7 @@ namespace YBWLib2 {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
 		return [](const DynamicTypeClassObj* _dtclassobj, uintptr_t _ptr_obj) noexcept->void {
-			if (_dtclassobj != GetDynamicTypeThisClassObject<_Class_Ty>()) abort();
+			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_ptr_obj) abort();
 			try {
 				delete reinterpret_cast<_Class_Ty*>(_ptr_obj);

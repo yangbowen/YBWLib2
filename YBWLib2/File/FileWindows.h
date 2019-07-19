@@ -614,7 +614,7 @@ namespace YBWLib2 {
 		/// Destructs the object and frees any resources allocated for the object.
 		/// This function is intended to be called only by <c>DecReferenceCount</c>.
 		/// </summary>
-		inline virtual void DeleteMe() override {
+		inline virtual void DeleteMe() noexcept override {
 			delete this;
 		}
 	};

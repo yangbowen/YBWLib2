@@ -280,14 +280,14 @@ namespace YBWLib2 {
 				str_out_t str_out(allocator_rawallocator_char);
 				str_out += u8"[NTSTATUS "s;
 				{
-					char str_ntstatus[sizeof(int) / sizeof(uint8_t) * 2 + 16];
+					char str_ntstatus[sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 2 + 16];
 					static constexpr char str_prefix_fmt[] = u8"0x%0*";
 					char str_fmt[(sizeof(str_prefix_fmt) / sizeof(char) - 1) + (sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char))];
 					memcpy(str_fmt, str_prefix_fmt, sizeof(str_prefix_fmt) - sizeof(char));
 					memcpy(str_fmt + sizeof(str_prefix_fmt) / sizeof(char) - 1, inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8, sizeof(inttype_traits_t<::std::make_unsigned_t<NTSTATUS>>::fmtspec_printf_X_utf8) / sizeof(char));
 					err_inner = SnPrintfUtf8(_rawallocator, str_ntstatus, sizeof(str_ntstatus) / sizeof(char), str_fmt, sizeof(str_fmt) / sizeof(char), (int)(sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 2), (::std::make_unsigned_t<NTSTATUS>)this->GetNTSTATUSCode());
 					if (err_inner) return;
-					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(int) / sizeof(uint8_t) * 2 + 16), allocator_rawallocator_char);
+					str_out += str_out_t(str_ntstatus, strnlen(str_ntstatus, sizeof(::std::make_unsigned_t<NTSTATUS>) / sizeof(uint8_t) * 2 + 16), allocator_rawallocator_char);
 				}
 				str_out += u8" "s;
 				{
@@ -402,61 +402,61 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE UserInterfaceWindows_RealInitModuleLocal() noexcept {
 		Win32HandleStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<Win32HandleStringTemplateParameter>(),
+			GetDynamicTypeClassID<Win32HandleStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<Win32HandleStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<Win32HandleStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(Win32HandleStringTemplateParameter), alignof(Win32HandleStringTemplateParameter));
 		LastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<LastErrorStringTemplateParameter>(),
+			GetDynamicTypeClassID<LastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<LastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<LastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(LastErrorStringTemplateParameter), alignof(LastErrorStringTemplateParameter));
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		WSALastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<WSALastErrorStringTemplateParameter>(),
+			GetDynamicTypeClassID<WSALastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<WSALastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<WSALastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(WSALastErrorStringTemplateParameter), alignof(WSALastErrorStringTemplateParameter));
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		NTSTATUSStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<NTSTATUSStringTemplateParameter>(),
+			GetDynamicTypeClassID<NTSTATUSStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<NTSTATUSStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<NTSTATUSStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(NTSTATUSStringTemplateParameter), alignof(NTSTATUSStringTemplateParameter));
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		HRESULTStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<HRESULTStringTemplateParameter>(),
+			GetDynamicTypeClassID<HRESULTStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<HRESULTStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<HRESULTStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(HRESULTStringTemplateParameter), alignof(HRESULTStringTemplateParameter));
 #endif
-		GetDynamicTypeThisClassObject<Win32HandleStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Win32HandleStringTemplateParameter)), module_info_current);
-		GetDynamicTypeThisClassObject<LastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(LastErrorStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<Win32HandleStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Win32HandleStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<LastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(LastErrorStringTemplateParameter)), module_info_current);
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
-		GetDynamicTypeThisClassObject<WSALastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(WSALastErrorStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<WSALastErrorStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(WSALastErrorStringTemplateParameter)), module_info_current);
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
-		GetDynamicTypeThisClassObject<NTSTATUSStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(NTSTATUSStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<NTSTATUSStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(NTSTATUSStringTemplateParameter)), module_info_current);
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
-		GetDynamicTypeThisClassObject<HRESULTStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(HRESULTStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<HRESULTStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(HRESULTStringTemplateParameter)), module_info_current);
 #endif
 	}
 
 	void YBWLIB2_CALLTYPE UserInterfaceWindows_RealUnInitModuleLocal() noexcept {
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
-		GetDynamicTypeThisClassObject<HRESULTStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<HRESULTStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
-		GetDynamicTypeThisClassObject<NTSTATUSStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<NTSTATUSStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
-		GetDynamicTypeThisClassObject<WSALastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<WSALastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #endif
-		GetDynamicTypeThisClassObject<LastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<Win32HandleStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<LastErrorStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<Win32HandleStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		delete HRESULTStringTemplateParameter::DynamicTypeThisClassObject;
 		HRESULTStringTemplateParameter::DynamicTypeThisClassObject = nullptr;

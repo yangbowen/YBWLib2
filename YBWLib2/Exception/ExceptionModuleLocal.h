@@ -589,25 +589,25 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<IException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IException)), module_info_current);
-		GetDynamicTypeThisClassObject<IDoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDoubleExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<IInvalidParameterException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInvalidParameterException)), module_info_current);
-		GetDynamicTypeThisClassObject<IInvalidCallException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInvalidCallException)), module_info_current);
-		GetDynamicTypeThisClassObject<IInsufficientBufferException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInsufficientBufferException)), module_info_current);
-		GetDynamicTypeThisClassObject<IMemoryAllocFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IMemoryAllocFailureException)), module_info_current);
-		GetDynamicTypeThisClassObject<IKeyAlreadyExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IKeyAlreadyExistException)), module_info_current);
-		GetDynamicTypeThisClassObject<IKeyNotExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IKeyNotExistException)), module_info_current);
-		GetDynamicTypeThisClassObject<IUnhandledUnknownExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IUnhandledUnknownExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<ISTLExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ISTLExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<IExternalAPIFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureException)), module_info_current);
-		GetDynamicTypeThisClassObject<IUnexpectedExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IUnexpectedExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<IException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IException)), module_info_current);
+		GetDynamicTypeClassObject<IDoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDoubleExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<IInvalidParameterException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInvalidParameterException)), module_info_current);
+		GetDynamicTypeClassObject<IInvalidCallException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInvalidCallException)), module_info_current);
+		GetDynamicTypeClassObject<IInsufficientBufferException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IInsufficientBufferException)), module_info_current);
+		GetDynamicTypeClassObject<IMemoryAllocFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IMemoryAllocFailureException)), module_info_current);
+		GetDynamicTypeClassObject<IKeyAlreadyExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IKeyAlreadyExistException)), module_info_current);
+		GetDynamicTypeClassObject<IKeyNotExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IKeyNotExistException)), module_info_current);
+		GetDynamicTypeClassObject<IUnhandledUnknownExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IUnhandledUnknownExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<ISTLExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ISTLExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<IExternalAPIFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureException)), module_info_current);
+		GetDynamicTypeClassObject<IUnexpectedExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IUnexpectedExceptionException)), module_info_current);
 		Exception::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<Exception>(),
+			GetDynamicTypeClassID<Exception>(),
 			IsDynamicTypeModuleLocalClass<Exception>(),
 			{ DynamicTypeBaseClassDef<Exception, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(Exception), alignof(Exception));
 		DoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<DoubleExceptionException>(),
+			GetDynamicTypeClassID<DoubleExceptionException>(),
 			IsDynamicTypeModuleLocalClass<DoubleExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<DoubleExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -615,7 +615,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(DoubleExceptionException), alignof(DoubleExceptionException));
 		InvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<InvalidParameterException>(),
+			GetDynamicTypeClassID<InvalidParameterException>(),
 			IsDynamicTypeModuleLocalClass<InvalidParameterException>(),
 			{
 				DynamicTypeBaseClassDef<InvalidParameterException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -623,7 +623,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InvalidParameterException), alignof(InvalidParameterException));
 		InvalidCallException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<InvalidCallException>(),
+			GetDynamicTypeClassID<InvalidCallException>(),
 			IsDynamicTypeModuleLocalClass<InvalidCallException>(),
 			{
 				DynamicTypeBaseClassDef<InvalidCallException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -631,7 +631,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InvalidCallException), alignof(InvalidCallException));
 		InsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<InsufficientBufferException>(),
+			GetDynamicTypeClassID<InsufficientBufferException>(),
 			IsDynamicTypeModuleLocalClass<InsufficientBufferException>(),
 			{
 				DynamicTypeBaseClassDef<InsufficientBufferException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -639,7 +639,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InsufficientBufferException), alignof(InsufficientBufferException));
 		MemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<MemoryAllocFailureException>(),
+			GetDynamicTypeClassID<MemoryAllocFailureException>(),
 			IsDynamicTypeModuleLocalClass<MemoryAllocFailureException>(),
 			{
 				DynamicTypeBaseClassDef<MemoryAllocFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -647,7 +647,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(MemoryAllocFailureException), alignof(MemoryAllocFailureException));
 		KeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<KeyAlreadyExistException>(),
+			GetDynamicTypeClassID<KeyAlreadyExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyAlreadyExistException>(),
 			{
 				DynamicTypeBaseClassDef<KeyAlreadyExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -655,7 +655,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(KeyAlreadyExistException), alignof(KeyAlreadyExistException));
 		KeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<KeyNotExistException>(),
+			GetDynamicTypeClassID<KeyNotExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyNotExistException>(),
 			{
 				DynamicTypeBaseClassDef<KeyNotExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -663,7 +663,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(KeyNotExistException), alignof(KeyNotExistException));
 		UnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<UnhandledUnknownExceptionException>(),
+			GetDynamicTypeClassID<UnhandledUnknownExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnhandledUnknownExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<UnhandledUnknownExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -671,7 +671,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(UnhandledUnknownExceptionException), alignof(UnhandledUnknownExceptionException));
 		STLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<STLExceptionException>(),
+			GetDynamicTypeClassID<STLExceptionException>(),
 			IsDynamicTypeModuleLocalClass<STLExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<STLExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -679,7 +679,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(STLExceptionException), alignof(STLExceptionException));
 		ExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<ExternalAPIFailureException>(),
+			GetDynamicTypeClassID<ExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -687,43 +687,43 @@ namespace YBWLib2 {
 			},
 			0, sizeof(ExternalAPIFailureException), alignof(ExternalAPIFailureException));
 		UnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<UnexpectedExceptionException>(),
+			GetDynamicTypeClassID<UnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnexpectedExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<UnexpectedExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
 				DynamicTypeBaseClassDef<UnexpectedExceptionException, IUnexpectedExceptionException, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(UnexpectedExceptionException), alignof(UnexpectedExceptionException));
-		GetDynamicTypeThisClassObject<Exception>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Exception)), module_info_current);
-		GetDynamicTypeThisClassObject<DoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(DoubleExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<InvalidParameterException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InvalidParameterException)), module_info_current);
-		GetDynamicTypeThisClassObject<InvalidCallException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InvalidCallException)), module_info_current);
-		GetDynamicTypeThisClassObject<InsufficientBufferException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InsufficientBufferException)), module_info_current);
-		GetDynamicTypeThisClassObject<MemoryAllocFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(MemoryAllocFailureException)), module_info_current);
-		GetDynamicTypeThisClassObject<KeyAlreadyExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(KeyAlreadyExistException)), module_info_current);
-		GetDynamicTypeThisClassObject<KeyNotExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(KeyNotExistException)), module_info_current);
-		GetDynamicTypeThisClassObject<UnhandledUnknownExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(UnhandledUnknownExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<STLExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(STLExceptionException)), module_info_current);
-		GetDynamicTypeThisClassObject<ExternalAPIFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureException)), module_info_current);
-		GetDynamicTypeThisClassObject<UnexpectedExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(UnexpectedExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<Exception>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Exception)), module_info_current);
+		GetDynamicTypeClassObject<DoubleExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(DoubleExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<InvalidParameterException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InvalidParameterException)), module_info_current);
+		GetDynamicTypeClassObject<InvalidCallException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InvalidCallException)), module_info_current);
+		GetDynamicTypeClassObject<InsufficientBufferException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(InsufficientBufferException)), module_info_current);
+		GetDynamicTypeClassObject<MemoryAllocFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(MemoryAllocFailureException)), module_info_current);
+		GetDynamicTypeClassObject<KeyAlreadyExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(KeyAlreadyExistException)), module_info_current);
+		GetDynamicTypeClassObject<KeyNotExistException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(KeyNotExistException)), module_info_current);
+		GetDynamicTypeClassObject<UnhandledUnknownExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(UnhandledUnknownExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<STLExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(STLExceptionException)), module_info_current);
+		GetDynamicTypeClassObject<ExternalAPIFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ExternalAPIFailureException)), module_info_current);
+		GetDynamicTypeClassObject<UnexpectedExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(UnexpectedExceptionException)), module_info_current);
 		fnptr_wrap_function_catch_exceptions_raw_old_Exception = ExchangeRawWrapFunctionCatchExceptionsFnptr(ptr_atomic_fnptr_wrap_function_catch_exceptions_raw_module_local, &WrapFunctionCatchExceptionsRaw_Exception);
 	}
 
 	void YBWLIB2_CALLTYPE Exception_RealUnInitModuleLocal() noexcept {
 		ExchangeRawWrapFunctionCatchExceptionsFnptr(ptr_atomic_fnptr_wrap_function_catch_exceptions_raw_module_local, fnptr_wrap_function_catch_exceptions_raw_old_Exception);
 		fnptr_wrap_function_catch_exceptions_raw_old_Exception = nullptr;
-		GetDynamicTypeThisClassObject<UnexpectedExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<ExternalAPIFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<STLExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<UnhandledUnknownExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<KeyNotExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<KeyAlreadyExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<MemoryAllocFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<InsufficientBufferException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<InvalidCallException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<InvalidParameterException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<DoubleExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<Exception>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<UnexpectedExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<ExternalAPIFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<STLExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<UnhandledUnknownExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<KeyNotExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<KeyAlreadyExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<MemoryAllocFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<InsufficientBufferException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<InvalidCallException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<InvalidParameterException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<DoubleExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<Exception>()->UnRegisterTypeInfoWrapper(module_info_current);
 		delete UnexpectedExceptionException::DynamicTypeThisClassObject;
 		UnexpectedExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete ExternalAPIFailureException::DynamicTypeThisClassObject;
@@ -748,18 +748,18 @@ namespace YBWLib2 {
 		DoubleExceptionException::DynamicTypeThisClassObject = nullptr;
 		delete Exception::DynamicTypeThisClassObject;
 		Exception::DynamicTypeThisClassObject = nullptr;
-		GetDynamicTypeThisClassObject<IUnexpectedExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IExternalAPIFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<ISTLExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IUnhandledUnknownExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IKeyNotExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IKeyAlreadyExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IMemoryAllocFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IInsufficientBufferException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IInvalidCallException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IInvalidParameterException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IDoubleExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IUnexpectedExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IExternalAPIFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<ISTLExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IUnhandledUnknownExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IKeyNotExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IKeyAlreadyExistException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IMemoryAllocFailureException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IInsufficientBufferException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IInvalidCallException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IInvalidParameterException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IDoubleExceptionException>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IException>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
 
 	static IException* YBWLIB2_CALLTYPE WrapFunctionCatchExceptionsRaw_Exception(void(YBWLIB2_CALLTYPE* _fnptr_inner)(uintptr_t _context), uintptr_t _context) noexcept {

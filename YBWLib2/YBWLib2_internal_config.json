@@ -270,5 +270,23 @@
         ]
       }
     ]
+  },
+  "DebuggingWindows": {
+    "strtmpl_description": [
+      {
+        // UnsupportedTargetWin32ArchitectureException
+        "dtclassid_object": "bde4d166-b08d-4d0b-bee3-e20c98401c3a",
+        // SubstitutionStringTemplate
+        "dtclassid_strtmpl": "2a489e78-61b3-4da1-b7a2-d6fa6f73cb7d",
+        "jsonval_strtmpl": [
+          "The Win32 processor architecture of the target process is not supported.\nNative image file machine word: ",
+          { "name_parameter": "machine_native" },
+          "\nCurrent process image file machine word: ",
+          { "name_parameter": "machine_process_current" },
+          "\nTarget process image file machine word: ",
+          { "name_parameter": "machine_process_target" }
+        ]
+      }
+    ]
   }
 }

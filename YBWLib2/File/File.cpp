@@ -21,42 +21,42 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE File_RealInitGlobal() noexcept {
 		IFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IFileException>(),
+			GetDynamicTypeClassID<IFileException>(),
 			IsDynamicTypeModuleLocalClass<IFileException>(),
 			{ DynamicTypeBaseClassDef<IFileException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IFileException), alignof(IFileException));
 		IBofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IBofFileException>(),
+			GetDynamicTypeClassID<IBofFileException>(),
 			IsDynamicTypeModuleLocalClass<IBofFileException>(),
 			{ DynamicTypeBaseClassDef<IBofFileException, IFileException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IBofFileException), alignof(IBofFileException));
 		IEofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IEofFileException>(),
+			GetDynamicTypeClassID<IEofFileException>(),
 			IsDynamicTypeModuleLocalClass<IEofFileException>(),
 			{ DynamicTypeBaseClassDef<IEofFileException, IFileException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IEofFileException), alignof(IEofFileException));
 		IFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IFile>(),
+			GetDynamicTypeClassID<IFile>(),
 			IsDynamicTypeModuleLocalClass<IFile>(),
 			{ DynamicTypeBaseClassDef<IFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IFile), alignof(IFile));
 		ISizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<ISizedFile>(),
+			GetDynamicTypeClassID<ISizedFile>(),
 			IsDynamicTypeModuleLocalClass<ISizedFile>(),
 			{ DynamicTypeBaseClassDef<ISizedFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISizedFile), alignof(ISizedFile));
 		ISeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<ISeekableFile>(),
+			GetDynamicTypeClassID<ISeekableFile>(),
 			IsDynamicTypeModuleLocalClass<ISeekableFile>(),
 			{ DynamicTypeBaseClassDef<ISeekableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISeekableFile), alignof(ISeekableFile));
 		IReadableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IReadableFile>(),
+			GetDynamicTypeClassID<IReadableFile>(),
 			IsDynamicTypeModuleLocalClass<IReadableFile>(),
 			{ DynamicTypeBaseClassDef<IReadableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IReadableFile), alignof(IReadableFile));
 		IWriteableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IWriteableFile>(),
+			GetDynamicTypeClassID<IWriteableFile>(),
 			IsDynamicTypeModuleLocalClass<IWriteableFile>(),
 			{ DynamicTypeBaseClassDef<IWriteableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IWriteableFile), alignof(IWriteableFile));
@@ -85,10 +85,10 @@ namespace YBWLib2 {
 		try {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
-				{ GetDynamicTypeThisClassID<FileException>(), &FileException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<BofFileException>(), &BofFileException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<EofFileException>(), &EofFileException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<MemoryFile>(), &MemoryFile::strtmpl_description }
+				{ GetDynamicTypeClassID<FileException>(), &FileException::strtmpl_description },
+				{ GetDynamicTypeClassID<BofFileException>(), &BofFileException::strtmpl_description },
+				{ GetDynamicTypeClassID<EofFileException>(), &EofFileException::strtmpl_description },
+				{ GetDynamicTypeClassID<MemoryFile>(), &MemoryFile::strtmpl_description }
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_File = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"File"));
 			if (jsonmemberit_config_internal_File == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_File->value.IsObject()) abort();
@@ -131,7 +131,7 @@ namespace YBWLib2 {
 						RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_File_strtmpl_description_element_jsonval_strtmpl->value);
 						JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 						if (!*it_map_strtmpl_description->second) abort();
 						objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 							[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {

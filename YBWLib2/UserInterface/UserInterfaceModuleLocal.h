@@ -536,36 +536,36 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<IStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplateParameter)), module_info_current);
-		GetDynamicTypeThisClassObject<IStringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplateParameterList)), module_info_current);
-		GetDynamicTypeThisClassObject<IStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplate)), module_info_current);
+		GetDynamicTypeClassObject<IStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<IStringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplateParameterList)), module_info_current);
+		GetDynamicTypeClassObject<IStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IStringTemplate)), module_info_current);
 		StringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<StringTemplateParameter>(),
+			GetDynamicTypeClassID<StringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<StringTemplateParameter, IStringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(StringTemplateParameter), alignof(StringTemplateParameter));
 		StringStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<StringStringTemplateParameter>(),
+			GetDynamicTypeClassID<StringStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<StringStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<StringStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(StringStringTemplateParameter), alignof(StringStringTemplateParameter));
 		AddressStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<AddressStringTemplateParameter>(),
+			GetDynamicTypeClassID<AddressStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<AddressStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<AddressStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(AddressStringTemplateParameter), alignof(AddressStringTemplateParameter));
 		StringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<StringTemplateParameterList>(),
+			GetDynamicTypeClassID<StringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<StringTemplateParameterList>(),
 			{ DynamicTypeBaseClassDef<StringTemplateParameterList, IStringTemplateParameterList, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(StringTemplateParameterList), alignof(StringTemplateParameterList));
 		StringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<StringTemplate>(),
+			GetDynamicTypeClassID<StringTemplate>(),
 			IsDynamicTypeModuleLocalClass<StringTemplate>(),
 			{ DynamicTypeBaseClassDef<StringTemplate, IStringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(StringTemplate), alignof(StringTemplate));
 		FixedStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<FixedStringTemplate>(),
+			GetDynamicTypeClassID<FixedStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<FixedStringTemplate>(),
 			{ DynamicTypeBaseClassDef<FixedStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(FixedStringTemplate), alignof(FixedStringTemplate),
@@ -573,30 +573,30 @@ namespace YBWLib2 {
 			DynamicTypeGetPlacementCreateObjectFnptr<FixedStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.end()),
 			DynamicTypeGetDefaultDeleteObjectFnptr<FixedStringTemplate>());
 		SubstitutionStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<SubstitutionStringTemplate>(),
+			GetDynamicTypeClassID<SubstitutionStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<SubstitutionStringTemplate>(),
 			{ DynamicTypeBaseClassDef<SubstitutionStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(SubstitutionStringTemplate), alignof(SubstitutionStringTemplate),
 			DynamicTypeGetCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
 			DynamicTypeGetPlacementCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
 			DynamicTypeGetDefaultDeleteObjectFnptr<SubstitutionStringTemplate>());
-		GetDynamicTypeThisClassObject<StringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameter)), module_info_current);
-		GetDynamicTypeThisClassObject<StringStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringStringTemplateParameter)), module_info_current);
-		GetDynamicTypeThisClassObject<AddressStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(AddressStringTemplateParameter)), module_info_current);
-		GetDynamicTypeThisClassObject<StringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameterList)), module_info_current);
-		GetDynamicTypeThisClassObject<StringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplate)), module_info_current);
-		GetDynamicTypeThisClassObject<FixedStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(FixedStringTemplate)), module_info_current);
-		GetDynamicTypeThisClassObject<SubstitutionStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SubstitutionStringTemplate)), module_info_current);
+		GetDynamicTypeClassObject<StringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<StringStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<AddressStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(AddressStringTemplateParameter)), module_info_current);
+		GetDynamicTypeClassObject<StringTemplateParameterList>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameterList)), module_info_current);
+		GetDynamicTypeClassObject<StringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplate)), module_info_current);
+		GetDynamicTypeClassObject<FixedStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(FixedStringTemplate)), module_info_current);
+		GetDynamicTypeClassObject<SubstitutionStringTemplate>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(SubstitutionStringTemplate)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealUnInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<SubstitutionStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<FixedStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<StringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<StringTemplateParameterList>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<AddressStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<StringStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<StringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<SubstitutionStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<FixedStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<StringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<StringTemplateParameterList>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<AddressStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<StringStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<StringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 		delete SubstitutionStringTemplate::DynamicTypeThisClassObject;
 		SubstitutionStringTemplate::DynamicTypeThisClassObject = nullptr;
 		delete FixedStringTemplate::DynamicTypeThisClassObject;
@@ -611,9 +611,9 @@ namespace YBWLib2 {
 		StringStringTemplateParameter::DynamicTypeThisClassObject = nullptr;
 		delete StringTemplateParameter::DynamicTypeThisClassObject;
 		StringTemplateParameter::DynamicTypeThisClassObject = nullptr;
-		GetDynamicTypeThisClassObject<IStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IStringTemplateParameterList>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IStringTemplate>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IStringTemplateParameterList>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IStringTemplateParameter>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
 }
 

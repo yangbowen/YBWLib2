@@ -22,6 +22,9 @@
 #ifdef _WIN32_WINNT
 #include "File/FileWindows.h"
 #endif
+#ifdef _WIN32_WINNT
+#include "Debugging/DebuggingWindows.h"
+#endif
 
 namespace YBWLib2 {
 	static ::std::atomic<uintptr_t> usecount_YBWLib2_DLL(0);
@@ -70,6 +73,11 @@ namespace YBWLib2 {
 			FileWindows_RealInitModuleLocal();
 			FileWindowsUserInterface_RealInitGlobal();
 #endif
+#ifdef _WIN32_WINNT
+			DebuggingWindows_RealInitGlobal();
+			DebuggingWindows_RealInitModuleLocal();
+			DebuggingWindowsUserInterface_RealInitGlobal();
+#endif
 		} catch (...) {
 			abort();
 		}
@@ -77,6 +85,11 @@ namespace YBWLib2 {
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitDLL() noexcept {
 		try {
+#ifdef _WIN32_WINNT
+			DebuggingWindowsUserInterface_RealUnInitGlobal();
+			DebuggingWindows_RealUnInitModuleLocal();
+			DebuggingWindows_RealUnInitGlobal();
+#endif
 #ifdef _WIN32_WINNT
 			FileWindowsUserInterface_RealUnInitGlobal();
 			FileWindows_RealUnInitModuleLocal();

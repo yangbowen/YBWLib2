@@ -428,7 +428,7 @@ namespace YBWLib2 {
 		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
 		if (!map_dtclassobj_global) abort();
 		IDynamicTypeObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IDynamicTypeObject>(),
+			GetDynamicTypeClassID<IDynamicTypeObject>(),
 			IsDynamicTypeModuleLocalClass<IDynamicTypeObject>(),
 			{},
 			0, sizeof(IDynamicTypeObject), alignof(IDynamicTypeObject));

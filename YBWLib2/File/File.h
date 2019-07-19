@@ -552,120 +552,7 @@ namespace YBWLib2 {
 		virtual ~IWriteableFile() = default;
 	};
 
-	/// <summary>Converts an unsigned integer buffer to an unsigned integral value.</summary>
-	/// <param name="buf_uint">
-	/// An unsigned integer buffer that specifies the value to be converted.
-	/// The value must be stored in machine byte order.
-	/// If the value is too large, the function call will fail.
-	/// </param>
-	/// <param name="size_buf_uint">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint</c>.</param>
-	/// <returns>
-	/// Returns a pointer to the exception object if the function fails.
-	/// Returns an empty pointer otherwise.
-	/// The caller is responsible for destructing and freeing the object pointed to.
-	/// </returns>
-	template<typename _Uint_Ty>
-	[[nodiscard]] inline IException* GenericUintFromLarge(_Uint_Ty* uint_ret, const void* buf_uint, size_t size_buf_uint) noexcept {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-		if (!uint_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-		if (!size_buf_uint) {
-			*uint_ret = 0;
-			return nullptr;
-		}
-		if (!buf_uint) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-		*uint_ret = 0;
-		if (sizeof(_Uint_Ty) >= size_buf_uint) {
-			if (*is_byte_order_le) {
-				memcpy(reinterpret_cast<void*>(uint_ret), buf_uint, size_buf_uint);
-				return nullptr;
-			} else if (*is_byte_order_be) {
-				memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(uint_ret) + (sizeof(_Uint_Ty) - size_buf_uint)), buf_uint, size_buf_uint);
-				return nullptr;
-			} else {
-				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-			}
-		} else {
-			if (*is_byte_order_le) {
-				{
-					const uint8_t* limit_p = reinterpret_cast<const uint8_t*>(buf_uint) + size_buf_uint;
-					for (const uint8_t* p = reinterpret_cast<const uint8_t*>(buf_uint) + sizeof(_Uint_Ty); p < limit_p; ++p)
-						if (*p)
-							return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-				}
-				memcpy(reinterpret_cast<void*>(uint_ret), buf_uint, sizeof(_Uint_Ty));
-				return nullptr;
-			} else if (*is_byte_order_be) {
-				{
-					const uint8_t* limit_p = reinterpret_cast<const uint8_t*>(buf_uint) + (size_buf_uint - sizeof(_Uint_Ty));
-					for (const uint8_t* p = reinterpret_cast<const uint8_t*>(buf_uint); p < limit_p; ++p)
-						if (*p)
-							return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-				}
-				memcpy(reinterpret_cast<void*>(uint_ret), reinterpret_cast<const void*>(reinterpret_cast<const uint8_t*>(buf_uint) + (size_buf_uint - sizeof(_Uint_Ty))), sizeof(_Uint_Ty));
-				return nullptr;
-			} else {
-				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
-			}
-		}
-	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
-
-	/// <summary>Converts an unsigned integral value to an unsigned integer buffer.</summary>
-	/// <param name="buf_uint">
-	/// An unsigned integer buffer that receives the converted value.
-	/// The value will be stored in machine byte order.
-	/// </param>
-	/// <param name="size_buf_uint">
-	/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint</c>.
-	/// If the buffer is insufficient to contain the value, the function call will fail.
-	/// </param>
-	/// <returns>
-	/// Returns a pointer to the exception object if the function fails.
-	/// Returns an empty pointer otherwise.
-	/// The caller is responsible for destructing and freeing the object pointed to.
-	/// </returns>
-	template<typename _Uint_Ty>
-	[[nodiscard]] inline IException* GenericUintToLarge(_Uint_Ty uint, void* buf_uint, size_t size_buf_uint) noexcept {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-		if (!size_buf_uint) {
-			if (uint)
-				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-			else
-				return nullptr;
-		}
-		if (!buf_uint) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-		if (size_buf_uint >= sizeof(_Uint_Ty)) {
-			if (*is_byte_order_le) {
-				memcpy(buf_uint, reinterpret_cast<const void*>(&uint), sizeof(_Uint_Ty));
-				memset(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(buf_uint) + sizeof(_Uint_Ty)), 0, size_buf_uint - sizeof(_Uint_Ty));
-				return nullptr;
-			} else if (*is_byte_order_be) {
-				memset(buf_uint, 0, size_buf_uint - sizeof(_Uint_Ty));
-				memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(buf_uint) + (size_buf_uint - sizeof(_Uint_Ty))), reinterpret_cast<const void*>(&uint), sizeof(_Uint_Ty));
-				return nullptr;
-			} else {
-				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-			}
-		} else {
-			size_t size_needed_uint = (sizeof(_Uint_Ty) - count_leading_zero<_Uint_Ty>(uint) - 1) / 0x8 + 1;
-			if (size_buf_uint >= size_needed_uint) {
-				if (*is_byte_order_le) {
-					memcpy(buf_uint, reinterpret_cast<const void*>(&uint), size_needed_uint);
-					memset(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(buf_uint) + size_needed_uint), 0, size_buf_uint - size_needed_uint);
-					return nullptr;
-				} else if (*is_byte_order_be) {
-					memset(buf_uint, 0, size_buf_uint - size_needed_uint);
-					memcpy(reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(buf_uint) + (size_buf_uint - size_needed_uint)), reinterpret_cast<const void*>(&uint), size_needed_uint);
-					return nullptr;
-				} else {
-					return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-				}
-			} else {
-				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-			}
-		}
-	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+	// TODO: Add file memory mapping interface.
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -1097,7 +984,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SetFileSizeLarge(const void* buf_size, size_t size_buf_size) noexcept override {
 			size_t size = 0;
-			IException* err_inner = GenericUintFromLarge<size_t>(&size, buf_size, size_buf_size);
+			IException* err_inner = GenericUintFromLarge<size_t>(size, buf_size, size_buf_size);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSizedFile, SetFileSizeLarge);
@@ -1212,7 +1099,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromBeginLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			size_t distance = 0;
-			IException* err_inner = GenericUintFromLarge<size_t>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<size_t>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSeekableFile, SeekFromBeginLarge);
@@ -1245,7 +1132,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromEndLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			size_t distance = 0;
-			IException* err_inner = GenericUintFromLarge<size_t>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<size_t>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSeekableFile, SeekFromEndLarge);
@@ -1278,7 +1165,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekForwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			size_t distance = 0;
-			IException* err_inner = GenericUintFromLarge<size_t>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<size_t>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSeekableFile, SeekForwardLarge);
@@ -1311,7 +1198,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekBackwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			size_t distance = 0;
-			IException* err_inner = GenericUintFromLarge<size_t>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<size_t>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SizetSeekableFile, SeekBackwardLarge);
@@ -1489,7 +1376,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SetFileSizeLarge(const void* buf_size, size_t size_buf_size) noexcept override {
 			unsigned long long size = 0;
-			IException* err_inner = GenericUintFromLarge<unsigned long long>(&size, buf_size, size_buf_size);
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(size, buf_size, size_buf_size);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSizedFile, SetFileSizeLarge);
@@ -1682,7 +1569,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromBeginLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			unsigned long long distance = 0;
-			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromBeginLarge);
@@ -1715,7 +1602,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekFromEndLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			unsigned long long distance = 0;
-			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekFromEndLarge);
@@ -1748,7 +1635,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekForwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			unsigned long long distance = 0;
-			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekForwardLarge);
@@ -1781,7 +1668,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] inline virtual IException* SeekBackwardLarge(const void* buf_distance, size_t size_buf_distance) noexcept override {
 			unsigned long long distance = 0;
-			IException* err_inner = GenericUintFromLarge<unsigned long long>(&distance, buf_distance, size_buf_distance);
+			IException* err_inner = GenericUintFromLarge<unsigned long long>(distance, buf_distance, size_buf_distance);
 			if (err_inner) {
 				if (DynamicTypeCanCast<IInvalidParameterException, IException>(err_inner)) {
 					IException* err = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::ULongLongSeekableFile, SeekBackwardLarge);
@@ -2616,7 +2503,7 @@ namespace YBWLib2 {
 			/// Destructs the object and frees any resources allocated for the object.
 			/// This function is intended to be called only by <c>DecReferenceCount</c>.
 			/// </summary>
-			inline virtual void DeleteMe() override {
+			inline virtual void DeleteMe() noexcept override {
 				delete this;
 			}
 		};
@@ -2632,7 +2519,7 @@ namespace YBWLib2 {
 		/// Destructs the object and frees any resources allocated for the object.
 		/// This function is intended to be called only by <c>DecReferenceCount</c>.
 		/// </summary>
-		inline virtual void DeleteMe() override {
+		inline virtual void DeleteMe() noexcept override {
 			delete this;
 		}
 	};

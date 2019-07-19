@@ -17,7 +17,7 @@ namespace YBWLib2 {
 		try {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
-				{ GetDynamicTypeThisClassID<Win32File>(), &Win32File::strtmpl_description }
+				{ GetDynamicTypeClassID<Win32File>(), &Win32File::strtmpl_description }
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_FileWindows = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"FileWindows"));
 			if (jsonmemberit_config_internal_FileWindows == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_FileWindows->value.IsObject()) abort();
@@ -60,7 +60,7 @@ namespace YBWLib2 {
 						RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_FileWindows_strtmpl_description_element_jsonval_strtmpl->value);
 						JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 						if (!*it_map_strtmpl_description->second) abort();
 						objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 							[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {

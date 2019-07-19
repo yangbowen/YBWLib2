@@ -264,37 +264,14 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Integer modulus operation optimized for alignment calculations.</summary>
-	inline constexpr size_t mod_alignment(size_t dividend, size_t divisor) {
-		constexpr size_t lookup_table_bitmask_mod_alignment[0x10] = {
-			~(size_t)0x0,
-			~(size_t)0x1,
-			0x0,
-			~(size_t)0x3,
-			0x0,
-			0x0,
-			0x0,
-			~(size_t)0x7,
-			0x0,
-			0x0,
-			0x0,
-			0x0,
-			0x0,
-			0x0,
-			0x0,
-			~(size_t)0xF
-		};
+	template<typename _Ty>
+	inline constexpr _Ty mod_alignment(_Ty dividend, _Ty divisor) {
+		static_assert(::std::is_integral_v<_Ty> && ::std::is_unsigned_v<_Ty>, "The specified type is not an unsigned integral type.");
 		if (!divisor) abort();
-		if (divisor > 0x10)
+		if (divisor & (divisor - 1))
 			return dividend % divisor;
-		size_t value_lookup_table_bitmask_mod_alignment = lookup_table_bitmask_mod_alignment[divisor - 0x1];
-		if (!value_lookup_table_bitmask_mod_alignment) {
-			if (divisor & (divisor - 1))
-				return dividend % divisor;
-			else
-				return dividend & (divisor - 1);
-		} else {
-			return dividend & ~value_lookup_table_bitmask_mod_alignment;
-		}
+		else
+			return dividend & (divisor - 1);
 	}
 
 	// Helpers for hash_trivially_copyable_t.
@@ -329,7 +306,7 @@ namespace YBWLib2 {
 		static constexpr size_t fnv1a_prime = 0x100000001B3;
 	};
 
-	/// <summary>Hashes a trivially copyable object.</summarY>
+	/// <summary>Hashes a trivially copyable object.</summary>
 	template<typename _Ty, typename _Hash_Ty>
 	struct hash_trivially_copyable_t {
 		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) { return hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
@@ -465,8 +442,8 @@ namespace YBWLib2 {
 	static_assert(::std::is_standard_layout_v<UUID>, "UUID is not standard-layout.");
 
 	struct hash_UUID_t {
-		inline size_t operator()(const UUID& t) const {
-			return t.hash();
+		inline size_t operator()(const UUID& x) const {
+			return x.hash();
 		}
 	};
 	constexpr hash_UUID_t hash_UUID {};
@@ -763,7 +740,7 @@ namespace YBWLib2 {
 					this->Deallocate(ptr_old, size_old);
 					return nullptr;
 				} else {
-					memcpy(ptr_new, ptr_old, size_new < size_old ? size_new : size_old);
+					if (ptr_old) memcpy(ptr_new, ptr_old, size_new < size_old ? size_new : size_old);
 					this->Deallocate(ptr_old, size_old);
 					return ptr_new;
 				}
@@ -1302,8 +1279,8 @@ namespace YBWLib2 {
 	};
 
 	struct hash_IndexedDataEntryID_t {
-		inline size_t operator()(const IndexedDataEntryID& t) const {
-			return t.hash();
+		inline size_t operator()(const IndexedDataEntryID& x) const {
+			return x.hash();
 		}
 	};
 	constexpr hash_IndexedDataEntryID_t hash_IndexedDataEntryID {};

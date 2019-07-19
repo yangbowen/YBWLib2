@@ -174,83 +174,6 @@ namespace YBWLib2 {
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>
-	/// Reference counted object.
-	/// Has a reference count of <c>1</c> when constructed.
-	/// </summary>
-	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
-	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
-		inline ReferenceCountedObject() noexcept : ref_count(1) {}
-		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept : ref_count(1) {
-			static_cast<void>(x);
-		}
-		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept : ref_count(1) {
-			static_cast<void>(x);
-		}
-		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
-			return *this;
-		}
-		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
-			return *this;
-		}
-		/// <summary>
-		/// Gets the reference count.
-		/// This function must be thread-safe.
-		/// </summary>
-		/// <returns>The current reference count.</returns>
-		inline virtual uintptr_t GetReferenceCount() const override {
-			if (this)
-				return this->ref_count.load();
-			else
-				return 0;
-		}
-		/// <summary>
-		/// Increments the reference count.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t IncReferenceCount() const override {
-			if (this) {
-				uintptr_t ret = ++this->ref_count;
-				return ret;
-			} else {
-				return 0;
-			}
-		}
-		/// <summary>
-		/// Decrements the reference count.
-		/// Frees the object if the reference count reaches <c>0</c>.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t DecReferenceCount() const override {
-			if (this) {
-				uintptr_t ret = --this->ref_count;
-				if (!ret) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
-				return ret;
-			} else {
-				return 0;
-			}
-		}
-	protected:
-		/// <summary>
-		/// Destructor intentionally declared protected.
-		/// Object users should use the reference counting mechanism instead.
-		/// </summary>
-		virtual ~ReferenceCountedObject() = default;
-		/// <summary>
-		/// Destructs the object and frees any resources allocated for the object.
-		/// This function is intended to be called only by <c>DecReferenceCount</c>.
-		/// </summary>
-		inline virtual void DeleteMe() = 0;
-	private:
-		mutable ::std::atomic<uintptr_t> ref_count = 1;
-	};
-
-	/// <summary>
 	/// Reference counted object that keeps an STL shared pointer of itself.
 	/// Objects of this class must be managed by an STL shared pointer before <c>IncReferenceCount</c> is called.
 	/// Has a reference count of <c>0</c> when constructed.
@@ -285,13 +208,17 @@ namespace YBWLib2 {
 		}
 		/// <summary>
 		/// Gets the reference count.
-		/// This function must be thread-safe.
+		/// This function is thread-safe.
 		/// </summary>
 		/// <returns>The current reference count.</returns>
-		inline virtual uintptr_t GetReferenceCount() const override {
+		inline virtual uintptr_t GetReferenceCount() const noexcept override {
 			if (this) {
-				::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
-				return this->ref_count;
+				try {
+					::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
+					return this->ref_count;
+				} catch (...) {
+					abort();
+				}
 			} else {
 				return 0;
 			}
@@ -301,16 +228,20 @@ namespace YBWLib2 {
 		/// This function is thread-safe.
 		/// </summary>
 		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t IncReferenceCount() const override {
+		inline virtual uintptr_t IncReferenceCount() const noexcept override {
 			if (this) {
-				::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
-				uintptr_t ret = ++this->ref_count;
-				if (ret == 1) {
-					// The reference count is incremented from 0.
-					// Keep a shared pointer of *this to prevent destruction.
-					ptr = this->shared_from_this();
+				try {
+					::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
+					uintptr_t ret = ++this->ref_count;
+					if (ret == 1) {
+						// The reference count is incremented from 0.
+						// Keep a shared pointer of *this to prevent destruction.
+						ptr = this->shared_from_this();
+					}
+					return ret;
+				} catch (...) {
+					abort();
 				}
-				return ret;
 			} else {
 				return 0;
 			}
@@ -321,21 +252,25 @@ namespace YBWLib2 {
 		/// This function is thread-safe.
 		/// </summary>
 		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t DecReferenceCount() const override {
+		inline virtual uintptr_t DecReferenceCount() const noexcept override {
 			if (this) {
-				::std::unique_lock<::std::mutex> unique_lock_this(this->mtx_this);
-				uintptr_t ret = --this->ref_count;
-				if (!ret) {
-					// The reference count is decremented to 0.
-					// If the shared pointer keeped is unique, *this, including this->mtx_this, will be destructed after clearing the shared pointer,
-					// so unique_lock_this must stop owning this->mtx_this before clearing the shared pointer.
-					// If the shared pointer keeped is not unique, other threads holding shared pointers to this object may access this->ref_count and/or this->ptr,
-					// so unique_lock_this must lock this->mtx_this until after clearing the shared pointer.
-					if (ptr.unique()) unique_lock_this = ::std::unique_lock<::std::mutex>();
-					// Clear the shared pointer.
-					ptr = ::std::shared_ptr<_Concrete_Class_Ty>();
+				try {
+					::std::unique_lock<::std::mutex> unique_lock_this(this->mtx_this);
+					uintptr_t ret = --this->ref_count;
+					if (!ret) {
+						// The reference count is decremented to 0.
+						// If the shared pointer keeped is unique, *this, including this->mtx_this, will be destructed after clearing the shared pointer,
+						// so unique_lock_this must stop owning this->mtx_this before clearing the shared pointer.
+						// If the shared pointer keeped is not unique, other threads holding shared pointers to this object may access this->ref_count and/or this->ptr,
+						// so unique_lock_this must lock this->mtx_this until after clearing the shared pointer.
+						if (ptr.unique()) unique_lock_this = ::std::unique_lock<::std::mutex>();
+						// Clear the shared pointer.
+						ptr = ::std::shared_ptr<_Concrete_Class_Ty>();
+					}
+					return ret;
+				} catch (...) {
+					abort();
 				}
-				return ret;
 			} else {
 				return 0;
 			}
@@ -656,19 +591,50 @@ namespace YBWLib2 {
 			return *this;
 		}
 		/// <summary>Get a reference to the wrapped object.</summary>
-		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() { return this->obj; }
+		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() noexcept { return this->obj; }
 		/// <summary>Get a reference to the wrapped object.</summary>
-		inline const ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() const { return this->obj; }
+		inline const ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() const noexcept { return this->obj; }
 		/// <summary>Locks the object. Blocks if necessary.</summary>
-		inline virtual void Lock() override { this->obj.lock(); }
+		inline virtual void Lock() noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::lock), _Ty>) {
+				this->obj.lock();
+			} else {
+				try {
+					this->obj.lock();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
 		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		inline virtual bool TryLock() override { return this->obj.try_lock(); }
+		inline virtual bool TryLock() noexcept override {
+			bool ret = false;
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::try_lock), _Ty>) {
+				ret = this->obj.try_lock();
+			} else {
+				try {
+					ret = this->obj.try_lock();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
 		/// <summary>Unlocks the object.</summary>
-		inline virtual void Unlock() noexcept override { this->obj.unlock(); }
+		inline virtual void Unlock() noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::unlock), _Ty>) {
+				this->obj.unlock();
+			} else {
+				try {
+					this->obj.unlock();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
 	private:
 		_Ty obj;
 	};
@@ -681,13 +647,13 @@ namespace YBWLib2 {
 		/// <summary>Get a reference to the wrapped object.</summary>
 		inline ILockableObject& GetWrappedLockableObject() const { return this->obj; }
 		/// <summary>Locks the object. Blocks if necessary.</summary>
-		inline virtual void lock() { this->obj.Lock(); }
+		inline virtual void lock() noexcept { this->obj.Lock(); }
 		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		inline virtual bool try_lock() { return this->obj.TryLock(); }
+		inline virtual bool try_lock() noexcept { return this->obj.TryLock(); }
 		/// <summary>Unlocks the object.</summary>
 		inline virtual void unlock() noexcept { this->obj.Unlock(); }
 	private:

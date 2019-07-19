@@ -13,23 +13,23 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ReferenceCountedObject, );
 
 	void YBWLIB2_CALLTYPE Common_RealInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<IReferenceCountedObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IReferenceCountedObject)), module_info_current);
-		GetDynamicTypeThisClassObject<ILockableObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ILockableObject)), module_info_current);
+		GetDynamicTypeClassObject<IReferenceCountedObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IReferenceCountedObject)), module_info_current);
+		GetDynamicTypeClassObject<ILockableObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ILockableObject)), module_info_current);
 		ReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<ReferenceCountedObject>(),
+			GetDynamicTypeClassID<ReferenceCountedObject>(),
 			IsDynamicTypeModuleLocalClass<ReferenceCountedObject>(),
 			{ DynamicTypeBaseClassDef<ReferenceCountedObject, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ReferenceCountedObject), alignof(ReferenceCountedObject)
 		);
-		GetDynamicTypeThisClassObject<ReferenceCountedObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ReferenceCountedObject)), module_info_current);
+		GetDynamicTypeClassObject<ReferenceCountedObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ReferenceCountedObject)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealUnInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<ReferenceCountedObject>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<ReferenceCountedObject>()->UnRegisterTypeInfoWrapper(module_info_current);
 		delete ReferenceCountedObject::DynamicTypeThisClassObject;
 		ReferenceCountedObject::DynamicTypeThisClassObject = nullptr;
-		GetDynamicTypeThisClassObject<ILockableObject>()->UnRegisterTypeInfoWrapper(module_info_current);
-		GetDynamicTypeThisClassObject<IReferenceCountedObject>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<ILockableObject>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IReferenceCountedObject>()->UnRegisterTypeInfoWrapper(module_info_current);
 	}
 }
 

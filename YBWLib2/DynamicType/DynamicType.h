@@ -43,8 +43,8 @@ namespace YBWLib2 {
 	};
 
 	struct hash_DynamicTypeClassID_t {
-		inline size_t operator()(const DynamicTypeClassID& t) const {
-			return t.hash();
+		inline size_t operator()(const DynamicTypeClassID& x) const {
+			return x.hash();
 		}
 	};
 	constexpr hash_DynamicTypeClassID_t hash_DynamicTypeClassID {};
@@ -99,7 +99,7 @@ namespace YBWLib2 {
 	/// Provide specializations for this template to support classes that do not declare the pointer to the <c>DynamicTypeClassObj</c> object as the static member variable <c>DynamicTypeThisClassObject</c>.
 	/// </summary>
 	template<typename _Class_Ty>
-	inline constexpr DynamicTypeClassObj* GetDynamicTypeThisClassObject() {
+	inline constexpr DynamicTypeClassObj* GetDynamicTypeClassObject() {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
 		return _Class_Ty::DynamicTypeThisClassObject;
@@ -111,7 +111,7 @@ namespace YBWLib2 {
 	/// Notice that this identifier must be either <c>constexpr</c> or statically initialized, so that it's available before global constructors get executed.
 	/// </summary>
 	template<typename _Class_Ty>
-	inline constexpr const DynamicTypeClassID& GetDynamicTypeThisClassID() {
+	inline constexpr const DynamicTypeClassID& GetDynamicTypeClassID() {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
 		return _Class_Ty::DynamicTypeThisClassID;
@@ -463,8 +463,8 @@ namespace YBWLib2 {
 	static_assert(::std::is_standard_layout_v<DynamicTypeBaseClassDefObj>, "DynamicTypeBaseClassDefObj is not standard-layout.");
 
 	struct hash_DynamicTypeBaseClassDefObj_t {
-		inline size_t operator()(const DynamicTypeBaseClassDefObj& t) const {
-			return t.hash();
+		inline size_t operator()(const DynamicTypeBaseClassDefObj& x) const {
+			return x.hash();
 		}
 	};
 	constexpr hash_DynamicTypeBaseClassDefObj_t hash_DynamicTypeBaseClassDefObj {};
@@ -500,8 +500,8 @@ namespace YBWLib2 {
 	};
 
 	struct hash_ConstructorID_t {
-		inline size_t operator()(const ConstructorID& t) const {
-			return t.hash();
+		inline size_t operator()(const ConstructorID& x) const {
+			return x.hash();
 		}
 	};
 	constexpr hash_ConstructorID_t hash_ConstructorID {};
@@ -663,7 +663,7 @@ namespace YBWLib2 {
 			);
 		inline operator DynamicTypeBaseClassDefObj() const {
 			return DynamicTypeBaseClassDefObj(
-				GetDynamicTypeThisClassID<_Base_Class_Ty>(),
+				GetDynamicTypeClassID<_Base_Class_Ty>(),
 				IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
 				dtbaseclassflags,
 				DynamicTypeGetStaticCastFnptr<_Base_Class_Ty, _This_Class_Ty>()
@@ -748,7 +748,7 @@ namespace YBWLib2 {
 	inline uintptr_t DynamicTypeDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
 		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
-		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeThisClassObject<_Most_Derived_DT_Class_Ty>();
+		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Most_Derived_DT_Class_Ty>();
 		if (!dtclassobj) abort();
 		return dtclassobj->DynamicUpcastTo(ptr, dtclassobj_target);
 	}
@@ -757,7 +757,7 @@ namespace YBWLib2 {
 	inline uintptr_t DynamicTypeCanDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
 		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
-		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeThisClassObject<_Most_Derived_DT_Class_Ty>();
+		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Most_Derived_DT_Class_Ty>();
 		if (!dtclassobj) abort();
 		return dtclassobj->CanDynamicUpcastTo(ptr, dtclassobj_target);
 	}
@@ -816,7 +816,7 @@ namespace YBWLib2 {
 				) {
 				return ptr ? static_cast<_Class_To_Ty*>(ptr) : nullptr;
 			} else {
-				return ptr ? reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>())) : nullptr;
+				return ptr ? reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeClassObject<_Class_To_Ty>())) : nullptr;
 			}
 		}
 	};
@@ -842,7 +842,7 @@ namespace YBWLib2 {
 					) {
 					return ptr;
 				} else {
-					return ptr && ptr->DynamicTypeRawCanCastTo(GetDynamicTypeThisClassObject<_Class_To_Ty>());
+					return ptr && ptr->DynamicTypeRawCanCastTo(GetDynamicTypeClassObject<_Class_To_Ty>());
 				}
 			} else {
 				return false;
@@ -887,14 +887,14 @@ specifiers_vfunc virtual uintptr_t DynamicTypeRawCastTo(const ::YBWLib2::Dynamic
 specifiers_vfunc virtual bool DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(classname) \
-inline virtual const ::YBWLib2::DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &::YBWLib2::GetDynamicTypeThisClassID<classname>(); }\
-inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeThisClassObject<classname>(); }\
+inline virtual const ::YBWLib2::DynamicTypeClassID* DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &::YBWLib2::GetDynamicTypeClassID<classname>(); }\
+inline virtual ::YBWLib2::DynamicTypeClassObj* DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeClassObject<classname>(); }\
 inline virtual uintptr_t DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }\
 inline virtual bool DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeCanDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }
 
 #define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_IOBJECT(classname, specifiers_vfunc) \
-specifiers_vfunc const ::YBWLib2::DynamicTypeClassID* classname::DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &::YBWLib2::GetDynamicTypeThisClassID<classname>(); }\
-specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeThisClassObject<classname>(); }\
+specifiers_vfunc const ::YBWLib2::DynamicTypeClassID* classname::DynamicTypeGetMostDerivedClassID() const noexcept override { static_assert(::std::is_same_v<::std::remove_cv_t<::std::remove_pointer_t<decltype(this)>>, classname>, "The specified class name is not correct."); return &::YBWLib2::GetDynamicTypeClassID<classname>(); }\
+specifiers_vfunc ::YBWLib2::DynamicTypeClassObj* classname::DynamicTypeGetMostDerivedClassObj() const noexcept override { return ::YBWLib2::GetDynamicTypeClassObject<classname>(); }\
 specifiers_vfunc uintptr_t classname::DynamicTypeRawCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }\
 specifiers_vfunc bool classname::DynamicTypeRawCanCastTo(const ::YBWLib2::DynamicTypeClassObj* dtclassobj_target) const volatile override { return ::YBWLib2::DynamicTypeCanDynamicUpcastTo<classname>(reinterpret_cast<uintptr_t>(static_cast<const volatile classname*>(this)), dtclassobj_target); }
 

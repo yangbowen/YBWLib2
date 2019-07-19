@@ -116,17 +116,17 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {
 		IStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IStringTemplateParameter>(),
+			GetDynamicTypeClassID<IStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<IStringTemplateParameter, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplateParameter), alignof(IStringTemplateParameter));
 		IStringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IStringTemplateParameterList>(),
+			GetDynamicTypeClassID<IStringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameterList>(),
 			{ DynamicTypeBaseClassDef<IStringTemplateParameterList, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplateParameterList), alignof(IStringTemplateParameterList));
 		IStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IStringTemplate>(),
+			GetDynamicTypeClassID<IStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplate>(),
 			{ DynamicTypeBaseClassDef<IStringTemplate, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplate), alignof(IStringTemplate));

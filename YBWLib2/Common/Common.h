@@ -17,6 +17,410 @@
 #include "../Exception/Exception.h"
 
 namespace YBWLib2 {
+	/// <summary>Reads an unsigned integer from a buffer and writes it to an unsigned integral value.</summary>
+	/// <param name="buf_uint_from">
+	/// An unsigned integer buffer that specifies the value.
+	/// The value must be stored in machine byte order.
+	/// If the value is too large, the function call will fail.
+	/// </param>
+	/// <param name="size_buf_uint_from">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint_from</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	template<typename _Uint_Ty>
+	[[nodiscard]] inline IException* GenericUintFromLarge(_Uint_Ty& uint_ret, const void* buf_uint_from, size_t size_buf_uint_from) noexcept {
+		static_assert(::std::is_object_v<_Uint_Ty>, "The specified unsigned integral type is not an object type.");
+		static_assert(::std::is_integral_v<_Uint_Ty>, "The specified unsigned integral type is not integral.");
+		static_assert(::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not unsigned.");
+		if (!size_buf_uint_from) {
+			uint_ret = 0;
+			return nullptr;
+		}
+		if (!buf_uint_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+		uint_ret = 0;
+		if (sizeof(_Uint_Ty) >= size_buf_uint_from) {
+			if (*is_byte_order_le) {
+				memcpy(&uint_ret, buf_uint_from, size_buf_uint_from);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memcpy(reinterpret_cast<uint8_t*>(&uint_ret) + (sizeof(_Uint_Ty) - size_buf_uint_from), buf_uint_from, size_buf_uint_from);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+			}
+		} else {
+			if (*is_byte_order_le) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + size_buf_uint_from;
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + sizeof(_Uint_Ty); p_from < limit_p_from; ++p_from)
+						if (*p_from)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+				}
+				memcpy(&uint_ret, buf_uint_from, sizeof(_Uint_Ty));
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(_Uint_Ty));
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from); p_from < limit_p_from; ++p_from)
+						if (*p_from)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+				}
+				memcpy(&uint_ret, reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(_Uint_Ty)), sizeof(_Uint_Ty));
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Reads an unsigned integer from an unsigned integral value and writes it to a buffer.</summary>
+	/// <param name="buf_uint_to">
+	/// An unsigned integer buffer that receives the value.
+	/// The value will be stored in machine byte order.
+	/// </param>
+	/// <param name="size_buf_uint_to">
+	/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint_to</c>.
+	/// If the buffer is insufficient to contain the value, the function call will fail.
+	/// </param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	template<typename _Uint_Ty>
+	[[nodiscard]] inline IException* GenericUintToLarge(_Uint_Ty uint, void* buf_uint_to, size_t size_buf_uint_to) noexcept {
+		static_assert(::std::is_object_v<_Uint_Ty>, "The specified unsigned integral type is not an object type.");
+		static_assert(::std::is_integral_v<_Uint_Ty>, "The specified unsigned integral type is not integral.");
+		static_assert(::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not unsigned.");
+		if (!size_buf_uint_to) {
+			if (uint)
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+			else
+				return nullptr;
+		}
+		if (!buf_uint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+		if (size_buf_uint_to >= sizeof(_Uint_Ty)) {
+			if (*is_byte_order_le) {
+				memcpy(buf_uint_to, &uint, sizeof(_Uint_Ty));
+				memset(reinterpret_cast<uint8_t*>(buf_uint_to) + sizeof(_Uint_Ty), 0, size_buf_uint_to - sizeof(_Uint_Ty));
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memset(buf_uint_to, 0, size_buf_uint_to - sizeof(_Uint_Ty));
+				memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - sizeof(_Uint_Ty)), &uint, sizeof(_Uint_Ty));
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+			}
+		} else {
+			size_t size_needed_uint = sizeof(_Uint_Ty) - count_leading_zero<_Uint_Ty>(uint) / 0x8;
+			if (size_buf_uint_to >= size_needed_uint) {
+				if (*is_byte_order_le) {
+					memcpy(buf_uint_to, &uint, size_needed_uint);
+					memset(reinterpret_cast<uint8_t*>(buf_uint_to) + size_needed_uint, 0, size_buf_uint_to - size_needed_uint);
+					return nullptr;
+				} else if (*is_byte_order_be) {
+					memset(buf_uint_to, 0, size_buf_uint_to - size_needed_uint);
+					memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - size_needed_uint), reinterpret_cast<const uint8_t*>(&uint) + (sizeof(_Uint_Ty) - size_needed_uint), size_needed_uint);
+					return nullptr;
+				} else {
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+				}
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Reads an unsigned integer from a buffer and writes it to another buffer.</summary>
+	/// <param name="buf_uint_to">
+	/// An unsigned integer buffer that receives the value.
+	/// The value will be stored in machine byte order.
+	/// </param>
+	/// <param name="size_buf_uint_to">
+	/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint_to</c>.
+	/// If the buffer is insufficient to contain the value, the function call will fail.
+	/// </param>
+	/// <param name="buf_uint_from">
+	/// An unsigned integer buffer that specifies the value.
+	/// The value must be stored in machine byte order.
+	/// If the value is too large, the function call will fail.
+	/// </param>
+	/// <param name="size_buf_uint_from">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_uint_from</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] inline IException* GenericUintBetweenLarge(void* buf_uint_to, size_t size_buf_uint_to, const void* buf_uint_from, size_t size_buf_uint_from) noexcept {
+		if (!size_buf_uint_to) {
+			const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + size_buf_uint_from;
+			for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from); p_from < limit_p_from; ++p_from)
+				if (*p_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+			return nullptr;
+		}
+		if (!buf_uint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+		if (!size_buf_uint_from) {
+			memset(buf_uint_to, 0, size_buf_uint_to);
+			return nullptr;
+		}
+		if (!buf_uint_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+		if (size_buf_uint_to >= size_buf_uint_from) {
+			if (*is_byte_order_le) {
+				memcpy(buf_uint_to, buf_uint_from, size_buf_uint_from);
+				memset(reinterpret_cast<uint8_t*>(buf_uint_to) + size_buf_uint_from, 0, size_buf_uint_to - size_buf_uint_from);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memset(buf_uint_to, 0, size_buf_uint_to - size_buf_uint_from);
+				memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - size_buf_uint_from), buf_uint_from, size_buf_uint_from);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+			}
+		} else {
+			if (*is_byte_order_le) {
+				{
+					const uint8_t* limit_p = reinterpret_cast<const uint8_t*>(buf_uint_from) + size_buf_uint_from;
+					for (const uint8_t* p = reinterpret_cast<const uint8_t*>(buf_uint_from) + size_buf_uint_to; p < limit_p; ++p)
+						if (*p)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+				}
+				memcpy(buf_uint_to, buf_uint_from, size_buf_uint_to);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				{
+					const uint8_t* limit_p = reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - size_buf_uint_to);
+					for (const uint8_t* p = reinterpret_cast<const uint8_t*>(buf_uint_from); p < limit_p; ++p)
+						if (*p)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+				}
+				memcpy(buf_uint_to, reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - size_buf_uint_to), size_buf_uint_to);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintBetweenLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Reads a signed integer from a buffer and writes it to a signed integral value.</summary>
+	/// <param name="buf_sint_from">
+	/// A signed integer buffer that specifies the value.
+	/// The value must be stored in machine byte order.
+	/// If the value has a magnitude that's too large, the function call will fail.
+	/// </param>
+	/// <param name="size_buf_sint_from">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_sint_from</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	template<typename _Sint_Ty>
+	[[nodiscard]] inline IException* GenericSintFromLarge(_Sint_Ty& sint_ret, const void* buf_sint_from, size_t size_buf_sint_from) noexcept {
+		static_assert(::std::is_object_v<_Sint_Ty>, "The specified signed integral type is not an object type.");
+		static_assert(::std::is_integral_v<_Sint_Ty>, "The specified signed integral type is not integral.");
+		static_assert(::std::is_signed_v<_Sint_Ty>, "The specified signed integral type is not signed.");
+		if (!size_buf_sint_from) {
+			sint_ret = 0;
+			return nullptr;
+		}
+		if (!buf_sint_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+		uint8_t byte_sign_extend = 0;
+		if (*is_byte_order_le) {
+			byte_sign_extend = ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - 1))) >> (0x8 - 1)) * ~(uint8_t)0;
+		} else if (*is_byte_order_be) {
+			byte_sign_extend = ((*reinterpret_cast<const uint8_t*>(buf_sint_from)) >> (0x8 - 1)) * ~(uint8_t)0;
+		} else {
+			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+		}
+		if (sizeof(_Sint_Ty) >= size_buf_sint_from) {
+			if (*is_byte_order_le) {
+				memcpy(&sint_ret, buf_sint_from, size_buf_sint_from);
+				memset(reinterpret_cast<uint8_t*>(&sint_ret) + size_buf_sint_from, byte_sign_extend, sizeof(_Sint_Ty) - size_buf_sint_from);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memset(&sint_ret, byte_sign_extend, sizeof(_Sint_Ty) - size_buf_sint_from);
+				memcpy(reinterpret_cast<uint8_t*>(&sint_ret) + (sizeof(_Sint_Ty) - size_buf_sint_from), buf_sint_from, size_buf_sint_from);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+			}
+		} else {
+			if (*is_byte_order_le) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + size_buf_sint_from;
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + sizeof(_Sint_Ty); p_from < limit_p_from; ++p_from)
+						if (*p_from != byte_sign_extend)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+				}
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (sizeof(_Sint_Ty) - 1)) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+				memcpy(&sint_ret, buf_sint_from, sizeof(_Sint_Ty));
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty));
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from); p_from < limit_p_from; ++p_from)
+						if (*p_from != byte_sign_extend)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+				}
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty))) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+				memcpy(&sint_ret, reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty)), sizeof(_Sint_Ty));
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Reads a signed integer from a signed integral value and writes it to a buffer.</summary>
+	/// <param name="buf_sint_to">
+	/// A signed integer buffer that receives the value.
+	/// The value will be stored in machine byte order.
+	/// </param>
+	/// <param name="size_buf_sint_to">
+	/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_sint_to</c>.
+	/// If the buffer is insufficient to contain the value, the function call will fail.
+	/// </param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	template<typename _Sint_Ty>
+	[[nodiscard]] inline IException* GenericSintToLarge(_Sint_Ty sint, void* buf_sint_to, size_t size_buf_sint_to) noexcept {
+		static_assert(::std::is_object_v<_Sint_Ty>, "The specified signed integral type is not an object type.");
+		static_assert(::std::is_integral_v<_Sint_Ty>, "The specified signed integral type is not integral.");
+		static_assert(::std::is_signed_v<_Sint_Ty>, "The specified signed integral type is not signed.");
+		if (!size_buf_sint_to) {
+			if (sint)
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
+			else
+				return nullptr;
+		}
+		if (!buf_sint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
+		uint8_t byte_sign_extend = sint < 0 ? ~(uint8_t)0 : 0;
+		if (size_buf_sint_to >= sizeof(_Sint_Ty)) {
+			if (*is_byte_order_le) {
+				memcpy(buf_sint_to, &sint, sizeof(_Sint_Ty));
+				memset(reinterpret_cast<uint8_t*>(buf_sint_to) + sizeof(_Sint_Ty), byte_sign_extend, size_buf_sint_to - sizeof(_Sint_Ty));
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - sizeof(_Sint_Ty));
+				memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - sizeof(_Sint_Ty)), &sint, sizeof(_Sint_Ty));
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
+			}
+		} else {
+			size_t size_needed_sint = sizeof(_Sint_Ty) - (count_leading_zero<::std::make_unsigned_t<_Sint_Ty>>(sint < 0 ? ~(::std::make_unsigned_t<_Sint_Ty>)sint : (::std::make_unsigned_t<_Sint_Ty>)sint) - 1) / 0x8;
+			if (size_buf_sint_to >= size_needed_sint) {
+				if (*is_byte_order_le) {
+					memcpy(buf_sint_to, &sint, size_needed_sint);
+					memset(reinterpret_cast<uint8_t*>(buf_sint_to) + size_needed_sint, byte_sign_extend, size_buf_sint_to - size_needed_sint);
+					return nullptr;
+				} else if (*is_byte_order_be) {
+					memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - size_needed_sint);
+					memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - size_needed_sint), reinterpret_cast<const uint8_t*>(&sint) + (sizeof(_Sint_Ty) - size_needed_sint), size_needed_sint);
+					return nullptr;
+				} else {
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
+				}
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
+	/// <summary>Reads a signed integer from a buffer and writes it to another buffer.</summary>
+	/// <param name="buf_sint_to">
+	/// A signed integer buffer that receives the value.
+	/// The value will be stored in machine byte order.
+	/// </param>
+	/// <param name="size_buf_sint_to">
+	/// The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_sint_to</c>.
+	/// If the buffer is insufficient to contain the value, the function call will fail.
+	/// </param>
+	/// <param name="buf_sint_from">
+	/// A signed integer buffer that specifies the value.
+	/// The value must be stored in machine byte order.
+	/// If the value has a magnitude that's too large, the function call will fail.
+	/// </param>
+	/// <param name="size_buf_sint_from">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_sint_from</c>.</param>
+	/// <returns>
+	/// Returns a pointer to the exception object if the function fails.
+	/// Returns an empty pointer otherwise.
+	/// The caller is responsible for destructing and freeing the object pointed to.
+	/// </returns>
+	[[nodiscard]] inline IException* GenericSintBetweenLarge(void* buf_sint_to, size_t size_buf_sint_to, const void* buf_sint_from, size_t size_buf_sint_from) noexcept {
+		if (!size_buf_sint_to) {
+			const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + size_buf_sint_from;
+			for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from); p_from < limit_p_from; ++p_from)
+				if (*p_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+			return nullptr;
+		}
+		if (!buf_sint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+		if (!size_buf_sint_from) {
+			memset(buf_sint_to, 0, size_buf_sint_to);
+			return nullptr;
+		}
+		if (!buf_sint_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+		uint8_t byte_sign_extend = 0;
+		if (*is_byte_order_le) {
+			byte_sign_extend = ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - 1))) >> (0x8 - 1)) * ~(uint8_t)0;
+		} else if (*is_byte_order_be) {
+			byte_sign_extend = ((*reinterpret_cast<const uint8_t*>(buf_sint_from)) >> (0x8 - 1)) * ~(uint8_t)0;
+		} else {
+			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+		}
+		if (size_buf_sint_to >= size_buf_sint_from) {
+			if (*is_byte_order_le) {
+				memcpy(buf_sint_to, buf_sint_from, size_buf_sint_from);
+				memset(reinterpret_cast<uint8_t*>(buf_sint_to) + size_buf_sint_from, byte_sign_extend, size_buf_sint_to - size_buf_sint_from);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - size_buf_sint_from);
+				memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - size_buf_sint_from), buf_sint_from, size_buf_sint_from);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+			}
+		} else {
+			if (*is_byte_order_le) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + size_buf_sint_from;
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + size_buf_sint_to; p_from < limit_p_from; ++p_from)
+						if (*p_from != byte_sign_extend)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+				}
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_to - 1)) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+				memcpy(buf_sint_to, buf_sint_from, size_buf_sint_to);
+				return nullptr;
+			} else if (*is_byte_order_be) {
+				{
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - size_buf_sint_to);
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from); p_from < limit_p_from; ++p_from)
+						if (*p_from != byte_sign_extend)
+							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+				}
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - size_buf_sint_to)) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+				memcpy(buf_sint_to, reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - size_buf_sint_to), size_buf_sint_to);
+				return nullptr;
+			} else {
+				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintBetweenLarge);
+			}
+		}
+	}
+	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
+
 	/// <summary>An object for holding a pointer to another object that's placement-created in memory allocated by a <c>rawallocator_t</c> object.</summary>
 	template<typename _Element_Ty>
 	struct objholder_rawallocator_t final {
@@ -223,7 +627,7 @@ namespace YBWLib2 {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
 			}
 		}
@@ -239,7 +643,7 @@ namespace YBWLib2 {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
 			}
 		}
@@ -266,7 +670,7 @@ namespace YBWLib2 {
 				this->size_mem = sizeof(_Element_Ty);
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) != this->ptr_mem + this->size_mem) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				this->free();
 				this->size_mem = sizeof(_Element_Ty);
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
@@ -322,7 +726,6 @@ namespace YBWLib2 {
 		template<typename... _Args_Ty>
 		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false)
 			: rawallocator(_rawallocator) {
-			static_assert(::std::is_constructible_v<_Element_Ty, ::std::result_of_t<_Args_Ty::operator[], _Args_Ty, size_t>...>, "The element type is not constructible with the specified arguments.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			this->size_mem = sizeof(_Element_Ty) * _count_element;
 			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
@@ -330,7 +733,7 @@ namespace YBWLib2 {
 			try {
 				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
-					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<_Args_Ty>(args[this->count_element])...);
+					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<decltype(::std::declval<_Args_Ty>()[this->count_element])>(args[this->count_element])...);
 			} catch (...) {
 				for (; this->count_element; --this->count_element)
 					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
@@ -532,7 +935,6 @@ namespace YBWLib2 {
 		}
 		template<typename... _Args_Ty>
 		inline void construct(size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false) {
-			static_assert(::std::is_constructible_v<_Element_Ty, ::std::result_of_t<_Args_Ty::operator[], _Args_Ty, size_t>...>, "The element type is not constructible with the specified arguments.");
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
@@ -542,11 +944,11 @@ namespace YBWLib2 {
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			try {
 				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
-					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<_Args_Ty>(args[this->count_element])...);
+					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<decltype(::std::declval<_Args_Ty>()[this->count_element])>(args[this->count_element])...);
 			} catch (...) {
 				for (; this->count_element; --this->count_element)
 					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
@@ -566,7 +968,7 @@ namespace YBWLib2 {
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > this->ptr_mem + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->count_element = _count_element;
 			try {
 				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
@@ -599,7 +1001,7 @@ namespace YBWLib2 {
 				this->size_mem = sizeof(_Element_Ty) * _count_element;
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element != this->ptr_mem + this->size_mem) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				this->free();
 				this->size_mem = sizeof(_Element_Ty) * _count_element;
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
@@ -792,20 +1194,20 @@ namespace YBWLib2 {
 		/// This function must be thread-safe.
 		/// </summary>
 		/// <returns>The current reference count.</returns>
-		virtual uintptr_t GetReferenceCount() const = 0;
+		virtual uintptr_t GetReferenceCount() const noexcept = 0;
 		/// <summary>
 		/// Increments the reference count.
 		/// This function must be thread-safe.
 		/// </summary>
 		/// <returns>The new reference count.</returns>
-		virtual uintptr_t IncReferenceCount() const = 0;
+		virtual uintptr_t IncReferenceCount() const noexcept = 0;
 		/// <summary>
 		/// Decrements the reference count.
 		/// Permits the object to be freed if the reference count reaches <c>0</c>.
 		/// This function must be thread-safe.
 		/// </summary>
 		/// <returns>The new reference count.</returns>
-		virtual uintptr_t DecReferenceCount() const = 0;
+		virtual uintptr_t DecReferenceCount() const noexcept = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -820,15 +1222,92 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ILockableObject, YBWLIB2_API, "6fdf58be-4668-4967-8f62-9ab35b5cc271");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ILockableObject);
 		/// <summary>Locks the object. Blocks if necessary.</summary>
-		virtual void Lock() = 0;
+		virtual void Lock() noexcept = 0;
 		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		virtual bool TryLock() = 0;
+		virtual bool TryLock() noexcept = 0;
 		/// <summary>Unlocks the object.</summary>
 		virtual void Unlock() noexcept = 0;
+	};
+
+	/// <summary>
+	/// Reference counted object.
+	/// Has a reference count of <c>1</c> when constructed.
+	/// </summary>
+	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
+		inline ReferenceCountedObject() noexcept : ref_count(1) {}
+		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept : ref_count(1) {
+			static_cast<void>(x);
+		}
+		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept : ref_count(1) {
+			static_cast<void>(x);
+		}
+		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+			return *this;
+		}
+		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
+			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+			return *this;
+		}
+		/// <summary>
+		/// Gets the reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current reference count.</returns>
+		inline virtual uintptr_t GetReferenceCount() const noexcept override {
+			if (this)
+				return this->ref_count.load();
+			else
+				return 0;
+		}
+		/// <summary>
+		/// Increments the reference count.
+		/// This function is thread-safe.
+		/// </summary>
+		/// <returns>The new reference count.</returns>
+		inline virtual uintptr_t IncReferenceCount() const noexcept override {
+			if (this) {
+				uintptr_t ret = ++this->ref_count;
+				return ret;
+			} else {
+				return 0;
+			}
+		}
+		/// <summary>
+		/// Decrements the reference count.
+		/// Frees the object if the reference count reaches <c>0</c>.
+		/// This function is thread-safe.
+		/// </summary>
+		/// <returns>The new reference count.</returns>
+		inline virtual uintptr_t DecReferenceCount() const noexcept override {
+			if (this) {
+				uintptr_t ret = --this->ref_count;
+				if (!ret) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
+				return ret;
+			} else {
+				return 0;
+			}
+		}
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~ReferenceCountedObject() = default;
+		/// <summary>
+		/// Destructs the object and frees any resources allocated for the object.
+		/// This function is intended to be called only by <c>DecReferenceCount</c>.
+		/// </summary>
+		virtual void DeleteMe() noexcept = 0;
+	private:
+		mutable ::std::atomic<uintptr_t> ref_count = 1;
 	};
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept;

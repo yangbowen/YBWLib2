@@ -161,62 +161,62 @@ namespace YBWLib2 {
 		if (!rawallocator_exception) abort();
 
 		IException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IException>(),
+			GetDynamicTypeClassID<IException>(),
 			IsDynamicTypeModuleLocalClass<IException>(),
 			{ DynamicTypeBaseClassDef<IException, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IException), alignof(IException));
 		IDoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IDoubleExceptionException>(),
+			GetDynamicTypeClassID<IDoubleExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IDoubleExceptionException>(),
 			{ DynamicTypeBaseClassDef<IDoubleExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IDoubleExceptionException), alignof(IDoubleExceptionException));
 		IInvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IInvalidParameterException>(),
+			GetDynamicTypeClassID<IInvalidParameterException>(),
 			IsDynamicTypeModuleLocalClass<IInvalidParameterException>(),
 			{ DynamicTypeBaseClassDef<IInvalidParameterException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInvalidParameterException), alignof(IInvalidParameterException));
 		IInvalidCallException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IInvalidCallException>(),
+			GetDynamicTypeClassID<IInvalidCallException>(),
 			IsDynamicTypeModuleLocalClass<IInvalidCallException>(),
 			{ DynamicTypeBaseClassDef<IInvalidCallException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInvalidCallException), alignof(IInvalidCallException));
 		IInsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IInsufficientBufferException>(),
+			GetDynamicTypeClassID<IInsufficientBufferException>(),
 			IsDynamicTypeModuleLocalClass<IInsufficientBufferException>(),
 			{ DynamicTypeBaseClassDef<IInsufficientBufferException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInsufficientBufferException), alignof(IInsufficientBufferException));
 		IMemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IMemoryAllocFailureException>(),
+			GetDynamicTypeClassID<IMemoryAllocFailureException>(),
 			IsDynamicTypeModuleLocalClass<IMemoryAllocFailureException>(),
 			{ DynamicTypeBaseClassDef<IMemoryAllocFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IMemoryAllocFailureException), alignof(IMemoryAllocFailureException));
 		IKeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IKeyAlreadyExistException>(),
+			GetDynamicTypeClassID<IKeyAlreadyExistException>(),
 			IsDynamicTypeModuleLocalClass<IKeyAlreadyExistException>(),
 			{ DynamicTypeBaseClassDef<IKeyAlreadyExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IKeyAlreadyExistException), alignof(IKeyAlreadyExistException));
 		IKeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IKeyNotExistException>(),
+			GetDynamicTypeClassID<IKeyNotExistException>(),
 			IsDynamicTypeModuleLocalClass<IKeyNotExistException>(),
 			{ DynamicTypeBaseClassDef<IKeyNotExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IKeyNotExistException), alignof(IKeyNotExistException));
 		IUnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IUnhandledUnknownExceptionException>(),
+			GetDynamicTypeClassID<IUnhandledUnknownExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IUnhandledUnknownExceptionException>(),
 			{ DynamicTypeBaseClassDef<IUnhandledUnknownExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IUnhandledUnknownExceptionException), alignof(IUnhandledUnknownExceptionException));
 		ISTLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<ISTLExceptionException>(),
+			GetDynamicTypeClassID<ISTLExceptionException>(),
 			IsDynamicTypeModuleLocalClass<ISTLExceptionException>(),
 			{ DynamicTypeBaseClassDef<ISTLExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISTLExceptionException), alignof(ISTLExceptionException));
 		IExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IExternalAPIFailureException>(),
+			GetDynamicTypeClassID<IExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureException), alignof(IExternalAPIFailureException));
 		IUnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IUnexpectedExceptionException>(),
+			GetDynamicTypeClassID<IUnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IUnexpectedExceptionException>(),
 			{ DynamicTypeBaseClassDef<IUnexpectedExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IUnexpectedExceptionException), alignof(IUnexpectedExceptionException));
@@ -261,18 +261,18 @@ namespace YBWLib2 {
 		try {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
-				{ GetDynamicTypeThisClassID<Exception>(), &Exception::strtmpl_description },
-				{ GetDynamicTypeThisClassID<DoubleExceptionException>(), &DoubleExceptionException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<InvalidParameterException>(), &InvalidParameterException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<InvalidCallException>(), &InvalidCallException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<InsufficientBufferException>(), &InsufficientBufferException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<MemoryAllocFailureException>(), &MemoryAllocFailureException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<KeyAlreadyExistException>(), &KeyAlreadyExistException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<KeyNotExistException>(), &KeyNotExistException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<UnhandledUnknownExceptionException>(), &UnhandledUnknownExceptionException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<STLExceptionException>(), &STLExceptionException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<ExternalAPIFailureException>(), &ExternalAPIFailureException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<UnexpectedExceptionException>(), &UnexpectedExceptionException::strtmpl_description }
+				{ GetDynamicTypeClassID<Exception>(), &Exception::strtmpl_description },
+				{ GetDynamicTypeClassID<DoubleExceptionException>(), &DoubleExceptionException::strtmpl_description },
+				{ GetDynamicTypeClassID<InvalidParameterException>(), &InvalidParameterException::strtmpl_description },
+				{ GetDynamicTypeClassID<InvalidCallException>(), &InvalidCallException::strtmpl_description },
+				{ GetDynamicTypeClassID<InsufficientBufferException>(), &InsufficientBufferException::strtmpl_description },
+				{ GetDynamicTypeClassID<MemoryAllocFailureException>(), &MemoryAllocFailureException::strtmpl_description },
+				{ GetDynamicTypeClassID<KeyAlreadyExistException>(), &KeyAlreadyExistException::strtmpl_description },
+				{ GetDynamicTypeClassID<KeyNotExistException>(), &KeyNotExistException::strtmpl_description },
+				{ GetDynamicTypeClassID<UnhandledUnknownExceptionException>(), &UnhandledUnknownExceptionException::strtmpl_description },
+				{ GetDynamicTypeClassID<STLExceptionException>(), &STLExceptionException::strtmpl_description },
+				{ GetDynamicTypeClassID<ExternalAPIFailureException>(), &ExternalAPIFailureException::strtmpl_description },
+				{ GetDynamicTypeClassID<UnexpectedExceptionException>(), &UnexpectedExceptionException::strtmpl_description }
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_Exception = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"Exception"));
 			if (jsonmemberit_config_internal_Exception == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_Exception->value.IsObject()) abort();
@@ -301,7 +301,7 @@ namespace YBWLib2 {
 					RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 					ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_Exception_strtmpl_delimiter_cause_description_exception_jsonval_strtmpl->value);
 					JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-					strtmpl_delimiter_cause_description_exception = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+					strtmpl_delimiter_cause_description_exception = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 					if (!strtmpl_delimiter_cause_description_exception) abort();
 					objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 						[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {
@@ -349,7 +349,7 @@ namespace YBWLib2 {
 							RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 							ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_Exception_strtmpl_description_element_jsonval_strtmpl->value);
 							JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-							*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+							*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 							if (!*it_map_strtmpl_description->second) abort();
 							objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 								[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {

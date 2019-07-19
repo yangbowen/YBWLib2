@@ -34,27 +34,27 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitGlobal() noexcept {
 		IExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IExternalAPIFailureWithLastErrorException>(),
+			GetDynamicTypeClassID<IExternalAPIFailureWithLastErrorException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithLastErrorException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithLastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithLastErrorException), alignof(IExternalAPIFailureWithLastErrorException));
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		IExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IExternalAPIFailureWithWSALastErrorException>(),
+			GetDynamicTypeClassID<IExternalAPIFailureWithWSALastErrorException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithWSALastErrorException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithWSALastErrorException), alignof(IExternalAPIFailureWithWSALastErrorException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		IExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IExternalAPIFailureWithNTSTATUSException>(),
+			GetDynamicTypeClassID<IExternalAPIFailureWithNTSTATUSException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithNTSTATUSException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithNTSTATUSException), alignof(IExternalAPIFailureWithNTSTATUSException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IExternalAPIFailureWithHRESULTException>(),
+			GetDynamicTypeClassID<IExternalAPIFailureWithHRESULTException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithHRESULTException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithHRESULTException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithHRESULTException), alignof(IExternalAPIFailureWithHRESULTException));
@@ -82,15 +82,15 @@ namespace YBWLib2 {
 		try {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
-				{ GetDynamicTypeThisClassID<ExternalAPIFailureWithLastErrorException>(), &ExternalAPIFailureWithLastErrorException::strtmpl_description }
+				{ GetDynamicTypeClassID<ExternalAPIFailureWithLastErrorException>(), &ExternalAPIFailureWithLastErrorException::strtmpl_description }
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
-				, { GetDynamicTypeThisClassID<ExternalAPIFailureWithWSALastErrorException>(), &ExternalAPIFailureWithWSALastErrorException::strtmpl_description }
+				, { GetDynamicTypeClassID<ExternalAPIFailureWithWSALastErrorException>(), &ExternalAPIFailureWithWSALastErrorException::strtmpl_description }
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
-				, { GetDynamicTypeThisClassID<ExternalAPIFailureWithNTSTATUSException>(), &ExternalAPIFailureWithNTSTATUSException::strtmpl_description }
+				, { GetDynamicTypeClassID<ExternalAPIFailureWithNTSTATUSException>(), &ExternalAPIFailureWithNTSTATUSException::strtmpl_description }
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
-				, { GetDynamicTypeThisClassID<ExternalAPIFailureWithHRESULTException>(), &ExternalAPIFailureWithHRESULTException::strtmpl_description }
+				, { GetDynamicTypeClassID<ExternalAPIFailureWithHRESULTException>(), &ExternalAPIFailureWithHRESULTException::strtmpl_description }
 #endif
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_ExceptionWindows = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"ExceptionWindows"));
@@ -134,7 +134,7 @@ namespace YBWLib2 {
 						RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl->value);
 						JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 						if (!*it_map_strtmpl_description->second) abort();
 						objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 							[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {

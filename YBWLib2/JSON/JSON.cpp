@@ -17,22 +17,22 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE JSON_RealInitGlobal() noexcept {
 		IJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IJSONException>(),
+			GetDynamicTypeClassID<IJSONException>(),
 			IsDynamicTypeModuleLocalClass<IJSONException>(),
 			{ DynamicTypeBaseClassDef<IJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONException), alignof(IJSONException));
 		IParseErrorJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IParseErrorJSONException>(),
+			GetDynamicTypeClassID<IParseErrorJSONException>(),
 			IsDynamicTypeModuleLocalClass<IParseErrorJSONException>(),
 			{ DynamicTypeBaseClassDef<IParseErrorJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IParseErrorJSONException), alignof(IParseErrorJSONException));
 		IJSONSAXHandler::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IJSONSAXHandler>(),
+			GetDynamicTypeClassID<IJSONSAXHandler>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXHandler>(),
 			{ DynamicTypeBaseClassDef<IJSONSAXHandler, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONSAXHandler), alignof(IJSONSAXHandler));
 		IJSONSAXGenerator::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<IJSONSAXGenerator>(),
+			GetDynamicTypeClassID<IJSONSAXGenerator>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXGenerator>(),
 			{ DynamicTypeBaseClassDef<IJSONSAXGenerator, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONSAXGenerator), alignof(IJSONSAXGenerator));
@@ -53,8 +53,8 @@ namespace YBWLib2 {
 		try {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
-				{ GetDynamicTypeThisClassID<JSONException>(), &JSONException::strtmpl_description },
-				{ GetDynamicTypeThisClassID<ParseErrorJSONException>(), &ParseErrorJSONException::strtmpl_description }
+				{ GetDynamicTypeClassID<JSONException>(), &JSONException::strtmpl_description },
+				{ GetDynamicTypeClassID<ParseErrorJSONException>(), &ParseErrorJSONException::strtmpl_description }
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_JSON = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"JSON"));
 			if (jsonmemberit_config_internal_JSON == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_JSON->value.IsObject()) abort();
@@ -97,7 +97,7 @@ namespace YBWLib2 {
 						RawAllocatorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, RawAllocatorParameterIndexedDataEntry(rawallocator_crt_YBWLib2));
 						ValueJSONSAXGeneratorWrapper<const Internal::jsonval_config_internal_t> jsonsaxgeneratorwrapper(jsonmemberit_config_internal_JSON_strtmpl_description_element_jsonval_strtmpl->value);
 						JSONSAXGeneratorParameterIndexedDataEntry::AddToStore(indexeddatastore_parameters, JSONSAXGeneratorParameterIndexedDataEntry(&jsonsaxgeneratorwrapper));
-						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeThisClassObject<IStringTemplate>(), indexeddatastore_parameters));
+						*it_map_strtmpl_description->second = reinterpret_cast<IStringTemplate*>(dtclassobj_strtmpl->CreateObject(GetDynamicTypeClassObject<IStringTemplate>(), indexeddatastore_parameters));
 						if (!*it_map_strtmpl_description->second) abort();
 						objholder_local_t<ExceptionReturnParameterIndexedDataEntry> objholder_indexeddataentry_parameter_exception_return(
 							[&indexeddatastore_parameters](void* ptr_placement) noexcept->ExceptionReturnParameterIndexedDataEntry* {

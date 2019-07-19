@@ -87,7 +87,6 @@ namespace YBWLib2 {
 				}
 			},
 			[](void* ptr_old, size_t size_old, size_t size_new, size_t align, uintptr_t context) noexcept->void* {
-				static_cast<void>(size_old);
 				static_cast<void>(context);
 				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
 				if (!size_new) size_new = align;

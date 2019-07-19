@@ -52,7 +52,7 @@ namespace YBWLib2 {
 				}
 			)->uintptr_ptr_obj;
 			if (!ptr_obj_from_base) abort();
-			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
 			uintptr_t ptr_obj_from_derived = ptr_obj_from_iobject->DynamicTypeRawCastTo(this);
 			if (!ptr_obj_from_derived) abort();
@@ -89,7 +89,7 @@ namespace YBWLib2 {
 				}
 			)->uintptr_ptr_obj;
 			if (!ptr_obj_from_base) abort();
-			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+			IDynamicTypeObject* ptr_obj_from_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(ptr_obj_from_base, GetDynamicTypeClassObject<IDynamicTypeObject>()));
 			if (!ptr_obj_from_iobject) abort();
 			uintptr_t ptr_obj_from_derived = ptr_obj_from_iobject->DynamicTypeRawCastTo(this);
 			if (!ptr_obj_from_derived) abort();
@@ -113,7 +113,7 @@ namespace YBWLib2 {
 
 	void DynamicTypeClassObj::DeleteObject(const DynamicTypeClassObj* _dtclassobj_base, uintptr_t _ptr_obj) const noexcept {
 		if (!_dtclassobj_base || !this->fnptr_delete_object) abort();
-		IDynamicTypeObject* ptr_obj_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(_ptr_obj, GetDynamicTypeThisClassObject<IDynamicTypeObject>()));
+		IDynamicTypeObject* ptr_obj_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(_ptr_obj, GetDynamicTypeClassObject<IDynamicTypeObject>()));
 		if (!ptr_obj_iobject) abort();
 		uintptr_t ptr_obj_derived = ptr_obj_iobject->DynamicTypeRawCastTo(this);
 		if (!ptr_obj_derived) abort();
@@ -192,11 +192,11 @@ namespace YBWLib2 {
 		).second) abort();
 		map_dtclassobj_module_local = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
 		if (!map_dtclassobj_module_local) abort();
-		GetDynamicTypeThisClassObject<IDynamicTypeObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDynamicTypeObject)), module_info_current);
+		GetDynamicTypeClassObject<IDynamicTypeObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDynamicTypeObject)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE DynamicType_RealUnInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<IDynamicTypeObject>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<IDynamicTypeObject>()->UnRegisterTypeInfoWrapper(module_info_current);
 		if (!map_dtclassobj_module_local->empty()) abort();
 		delete map_dtclassobj_module_local;
 		map_dtclassobj_module_local = nullptr;

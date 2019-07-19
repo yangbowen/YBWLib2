@@ -135,7 +135,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE FileWindows_RealInitModuleLocal() noexcept {
 		Win32File::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeThisClassID<Win32File>(),
+			GetDynamicTypeClassID<Win32File>(),
 			IsDynamicTypeModuleLocalClass<Win32File>(),
 			{
 				DynamicTypeBaseClassDef<Win32File, ULongLongSizedFile, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -144,11 +144,11 @@ namespace YBWLib2 {
 				DynamicTypeBaseClassDef<Win32File, WriteableFile, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(Win32File), alignof(Win32File));
-		GetDynamicTypeThisClassObject<Win32File>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Win32File)), module_info_current);
+		GetDynamicTypeClassObject<Win32File>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(Win32File)), module_info_current);
 	}
 
 	void YBWLIB2_CALLTYPE FileWindows_RealUnInitModuleLocal() noexcept {
-		GetDynamicTypeThisClassObject<Win32File>()->UnRegisterTypeInfoWrapper(module_info_current);
+		GetDynamicTypeClassObject<Win32File>()->UnRegisterTypeInfoWrapper(module_info_current);
 		delete Win32File::DynamicTypeThisClassObject;
 		Win32File::DynamicTypeThisClassObject = nullptr;
 	}
