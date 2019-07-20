@@ -164,6 +164,10 @@ namespace YBWLib2 {
 			x.win32handle = win32handle_temp;
 			x.is_owned_handle = is_owned_handle_temp;
 		}
+		inline void reset() noexcept {
+			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
+			this->is_owned_handle = false;
+		}
 		inline void reset(view_handle_t, const HANDLE& _win32handle) noexcept {
 			Win32HandleHolder::ClearWin32Handle(&this->win32handle, this->is_owned_handle);
 			this->is_owned_handle = false;

@@ -358,7 +358,7 @@ namespace YBWLib2 {
 				if (this->uint32 < r.uint32) {
 					Win32DebuggingTargetAddressDiff ret(r);
 					ret.uint32 -= this->uint32;
-					// TODO: Will this unintentional fallthrough cause a warning?
+					return ret;
 				} else {
 					Win32DebuggingTargetAddressDiff ret(*this);
 					ret.uint32 -= r.uint32;
@@ -1492,6 +1492,317 @@ namespace YBWLib2 {
 #endif
 		default:
 			throw(YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::Win32DebuggingTargetAddress, SetRawCurrentProcessAddress));
+		}
+	}
+
+	Win32DebuggingSuspendThreadsInProcess::Win32DebuggingSuspendThreadsInProcess(
+		const Win32HandleHolder& _win32handleholder_process,
+		const ::std::unordered_set<DWORD>& _vec_threadid_exempted,
+		const ::std::vector<::std::pair<Win32DebuggingTargetAddress, Win32DebuggingTargetAddress>> _vec_range_targetaddress_code_lock
+	) noexcept(false) : win32handleholder_process(_win32handleholder_process),
+		set_threadid_exempted(_vec_threadid_exempted.cbegin(), _vec_threadid_exempted.cend()) {
+		this->architecture = Win32DebuggingProcess::GetProcessWin32Architecture(this->win32handleholder_process);
+		for (const ::std::pair<Win32DebuggingTargetAddress, Win32DebuggingTargetAddress>& val_vec_range_targetaddress_code_lock : _vec_range_targetaddress_code_lock) {
+			if (
+				val_vec_range_targetaddress_code_lock.first > val_vec_range_targetaddress_code_lock.second
+				|| val_vec_range_targetaddress_code_lock.first.GetWin32Architecture() != this->architecture
+				|| val_vec_range_targetaddress_code_lock.second.GetWin32Architecture() != this->architecture
+				) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(Win32DebuggingSuspendThreadsInProcess, Win32DebuggingSuspendThreadsInProcess));
+			Win32DebuggingTargetAddress targetaddress_begin_range(val_vec_range_targetaddress_code_lock.first);
+			Win32DebuggingTargetAddress targetaddress_end_range(val_vec_range_targetaddress_code_lock.second);
+			map_targetaddress_code_lock_t::const_iterator it_map_targetaddress_code_lock_begin_merge, it_map_targetaddress_code_lock_end_merge;
+			// Find the beginning of existing range boundaries whose ranges overlap with the range currently being processed.
+			it_map_targetaddress_code_lock_begin_merge = this->map_targetaddress_code_lock.lower_bound(targetaddress_begin_range);
+			if (
+				it_map_targetaddress_code_lock_begin_merge != this->map_targetaddress_code_lock.cend()
+				&& it_map_targetaddress_code_lock_begin_merge->second
+				) {
+				// If the boundary found is an upper boundary, go to the corresponding lower boundary instead.
+				if (it_map_targetaddress_code_lock_begin_merge == this->map_targetaddress_code_lock.cbegin()) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				--it_map_targetaddress_code_lock_begin_merge;
+				if (it_map_targetaddress_code_lock_begin_merge->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				targetaddress_begin_range = it_map_targetaddress_code_lock_begin_merge->first;
+			}
+			// Find the end of existing range boundaries whose ranges overlap with the range currently being processed.
+			it_map_targetaddress_code_lock_end_merge = this->map_targetaddress_code_lock.upper_bound(targetaddress_end_range);
+			if (
+				it_map_targetaddress_code_lock_end_merge != this->map_targetaddress_code_lock.cend()
+				&& it_map_targetaddress_code_lock_end_merge->second
+				) {
+				// If the boundary found is an upper boundary, go to the corresponding lower boundary instead.
+				if (it_map_targetaddress_code_lock_end_merge == this->map_targetaddress_code_lock.cbegin()) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				targetaddress_end_range = it_map_targetaddress_code_lock_end_merge->first;
+				++it_map_targetaddress_code_lock_end_merge;
+				if (it_map_targetaddress_code_lock_end_merge != this->map_targetaddress_code_lock.cend() && it_map_targetaddress_code_lock_end_merge->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			}
+			// Erase overlapping range boundaries.
+			this->map_targetaddress_code_lock.erase(it_map_targetaddress_code_lock_begin_merge, it_map_targetaddress_code_lock_end_merge);
+			// Insert new range boundaries.
+			this->map_targetaddress_code_lock.insert(::std::make_pair(targetaddress_begin_range, false));
+			this->map_targetaddress_code_lock.insert(::std::make_pair(targetaddress_end_range, true));
+		}
+	}
+
+	Win32DebuggingSuspendThreadsInProcess::Win32DebuggingSuspendThreadsInProcess(Win32DebuggingSuspendThreadsInProcess&& x) noexcept(false)
+		: has_suspended(::std::move(x.has_suspended)),
+		win32handleholder_process(::std::move(x.win32handleholder_process)),
+		architecture(::std::move(x.architecture)),
+		set_threadid_exempted(::std::move(x.set_threadid_exempted)),
+		map_targetaddress_code_lock(::std::move(x.map_targetaddress_code_lock)),
+		list_thread_suspended(::std::move(x.list_thread_suspended)) {
+		x.list_thread_suspended.clear();
+		x.map_targetaddress_code_lock.clear();
+		x.set_threadid_exempted.clear();
+		x.architecture = Win32Architecture::Win32Architecture_Invalid;
+		x.win32handleholder_process.reset();
+		x.has_suspended = false;
+	}
+
+	Win32DebuggingSuspendThreadsInProcess& Win32DebuggingSuspendThreadsInProcess::operator=(Win32DebuggingSuspendThreadsInProcess&& x) noexcept(false) {
+		this->list_thread_suspended.clear();
+		this->map_targetaddress_code_lock.clear();
+		this->set_threadid_exempted.clear();
+		this->architecture = Win32Architecture::Win32Architecture_Invalid;
+		this->win32handleholder_process.reset();
+		this->has_suspended = false;
+		this->has_suspended = ::std::move(x.has_suspended);
+		x.has_suspended = false;
+		this->win32handleholder_process = ::std::move(x.win32handleholder_process);
+		x.win32handleholder_process.reset();
+		this->architecture = ::std::move(x.architecture);
+		x.architecture = Win32Architecture::Win32Architecture_Invalid;
+		this->set_threadid_exempted = ::std::move(x.set_threadid_exempted);
+		x.set_threadid_exempted.clear();
+		this->map_targetaddress_code_lock = ::std::move(x.map_targetaddress_code_lock);
+		x.map_targetaddress_code_lock.clear();
+		this->list_thread_suspended = ::std::move(x.list_thread_suspended);
+		x.list_thread_suspended.clear();
+		return *this;
+	}
+
+	void Win32DebuggingSuspendThreadsInProcess::AddExemptedThread(DWORD threadid) noexcept(false) {
+		this->set_threadid_exempted.insert(threadid);
+	}
+
+	void Win32DebuggingSuspendThreadsInProcess::RemoveExemptedThread(DWORD threadid) noexcept(false) {
+		this->set_threadid_exempted.erase(threadid);
+	}
+
+	void Win32DebuggingSuspendThreadsInProcess::SuspendThreads() noexcept(false) {
+		this->has_suspended = true;
+		this->UpdateThreadSuspendResume();
+	}
+
+	void Win32DebuggingSuspendThreadsInProcess::ResumeThreads() noexcept {
+		if (this->win32handleholder_process) {
+			this->has_suspended = false;
+			try {
+				this->UpdateThreadSuspendResume();
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+
+	void Win32DebuggingSuspendThreadsInProcess::UpdateThreadSuspendResume() noexcept(false) {
+		if (!this->win32handleholder_process) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(Win32DebuggingSuspendThreadsInProcess, UpdateThreadSuspendResume));
+		DWORD processid_process_current = GetCurrentProcessId();
+		DWORD processid_process_target = GetProcessId(this->win32handleholder_process.get());
+		if (!processid_process_target) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetProcessId));
+		DWORD threadid_thread_current = GetCurrentThreadId();
+		if (this->has_suspended) {
+			bool is_stable = false;
+			do {
+				is_stable = true;
+				std::vector<Win32HandleHolder> vec_win32handleholder_thread;
+				{
+					Win32HandleHolder win32handleholder_snapshot(Win32HandleHolder::own_handle, CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, processid_process_target));
+					if (!win32handleholder_snapshot) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CreateToolhelp32Snapshot));
+					bool has_finished = false;
+					if (!has_finished) {
+						THREADENTRY32 threadentry32;
+						memset(&threadentry32, 0, sizeof(THREADENTRY32));
+						threadentry32.dwSize = sizeof(THREADENTRY32);
+						if (Thread32First(win32handleholder_snapshot.get(), &threadentry32)) {
+							if (
+								threadentry32.th32OwnerProcessID == processid_process_target
+								&& !(threadentry32.th32OwnerProcessID == processid_process_current && threadentry32.th32ThreadID == threadid_thread_current)
+								&& !this->set_threadid_exempted.count(threadentry32.th32ThreadID)
+								) {
+								Win32HandleHolder win32handleholder_thread(
+									Win32HandleHolder::own_handle,
+									OpenThread(THREAD_QUERY_INFORMATION | THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | READ_CONTROL, FALSE, threadentry32.th32ThreadID)
+								);
+								if (win32handleholder_thread) {
+									DWORD processid_process_thread = GetProcessIdOfThread(win32handleholder_thread.get());
+									if (!processid_process_thread) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetProcessIdOfThread));
+									DWORD threadid_thread = GetThreadId(win32handleholder_thread.get());
+									if (!threadid_thread) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadId));
+									if (processid_process_thread != threadentry32.th32OwnerProcessID || threadid_thread != threadentry32.th32ThreadID) {
+										is_stable = false;
+									} else {
+										vec_win32handleholder_thread.push_back(win32handleholder_thread);
+									}
+								}
+							}
+						} else {
+							if (GetLastError() == ERROR_NO_MORE_FILES)
+								has_finished = true;
+							else
+								throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(Thread32First));
+						}
+					}
+					while (!has_finished) {
+						THREADENTRY32 threadentry32;
+						memset(&threadentry32, 0, sizeof(THREADENTRY32));
+						threadentry32.dwSize = sizeof(THREADENTRY32);
+						if (Thread32Next(win32handleholder_snapshot.get(), &threadentry32)) {
+							if (
+								threadentry32.th32OwnerProcessID == processid_process_target
+								&& !(threadentry32.th32OwnerProcessID == processid_process_current && threadentry32.th32ThreadID == threadid_thread_current)
+								&& !this->set_threadid_exempted.count(threadentry32.th32ThreadID)
+								) {
+								Win32HandleHolder win32handleholder_thread(
+									Win32HandleHolder::own_handle,
+									OpenThread(THREAD_QUERY_INFORMATION | THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | READ_CONTROL, FALSE, threadentry32.th32ThreadID)
+								);
+								if (win32handleholder_thread) {
+									DWORD processid_process_thread = GetProcessIdOfThread(win32handleholder_thread.get());
+									if (!processid_process_thread) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetProcessIdOfThread));
+									DWORD threadid_thread = GetThreadId(win32handleholder_thread.get());
+									if (!threadid_thread) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadId));
+									if (processid_process_thread != threadentry32.th32OwnerProcessID || threadid_thread != threadentry32.th32ThreadID) {
+										is_stable = false;
+									} else {
+										vec_win32handleholder_thread.push_back(win32handleholder_thread);
+									}
+								}
+							}
+						} else {
+							if (GetLastError() == ERROR_NO_MORE_FILES)
+								has_finished = true;
+							else
+								throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(Thread32Next));
+						}
+					}
+				}
+				::std::unordered_map<DWORD, list_thread_suspended_t::iterator> map_thread_suspended_remaining;
+				for (list_thread_suspended_t::iterator it_list_thread_suspended = this->list_thread_suspended.begin(); it_list_thread_suspended != this->list_thread_suspended.end(); ++it_list_thread_suspended) {
+					DWORD threadid_thread_suspended = GetThreadId(it_list_thread_suspended->first.get());
+					if (!threadid_thread_suspended) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadId));
+					map_thread_suspended_remaining.insert(::std::make_pair(threadid_thread_suspended, it_list_thread_suspended));
+				}
+				for (const Win32HandleHolder& val_vec_win32handleholder_thread : vec_win32handleholder_thread) {
+					DWORD threadid_thread = GetThreadId(val_vec_win32handleholder_thread.get());
+					if (!threadid_thread) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadId));
+					bool should_suspend = false;
+					if (!map_thread_suspended_remaining.count(threadid_thread)) {
+						should_suspend = true;
+					} else {
+						list_thread_suspended_t::iterator it_list_thread_suspended = map_thread_suspended_remaining.at(threadid_thread);
+						{
+							map_targetaddress_code_lock_t::const_iterator it_map_targetaddress_code_lock = this->map_targetaddress_code_lock.upper_bound(it_list_thread_suspended->second);
+							if (
+								it_map_targetaddress_code_lock != this->map_targetaddress_code_lock.cend()
+								&& it_map_targetaddress_code_lock->second
+								) {
+								if (ResumeThread(val_vec_win32handleholder_thread.get()) == static_cast<DWORD>(-1)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(ResumeThread));
+								this->list_thread_suspended.erase(it_list_thread_suspended);
+								if (SleepEx(Win32DebuggingSuspendThreadsInProcess::timeduration_sleep_retry_suspend, FALSE)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(SleepEx));
+								should_suspend = true;
+							}
+						}
+						map_thread_suspended_remaining.erase(threadid_thread);
+					}
+					if (should_suspend) {
+						bool should_retry_suspend = false;
+						do {
+							if (SuspendThread(val_vec_win32handleholder_thread.get()) == static_cast<DWORD>(-1)) {
+								DWORD waitresult = WaitForSingleObject(val_vec_win32handleholder_thread.get(), 0);
+								if (waitresult == WAIT_OBJECT_0)
+									throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(SuspendThread));
+								else if (waitresult != WAIT_TIMEOUT)
+									throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WaitForSingleObject));
+							} else {
+								try {
+									is_stable = false;
+									Win32DebuggingTargetAddress targetaddress_programcounter(architecture);
+									switch (architecture) {
+#if defined(_M_AMD64) || defined(__amd64__)
+									case Win32Architecture::Win32Architecture_x64: {
+										CONTEXT context;
+										memset(&context, 0, sizeof(CONTEXT));
+										context.ContextFlags = CONTEXT_CONTROL;
+										if (!GetThreadContext(val_vec_win32handleholder_thread.get(), &context)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadContext));
+										targetaddress_programcounter.SetInt(context.Rip);
+										break;
+									}
+									case Win32Architecture::Win32Architecture_x86: {
+										WOW64_CONTEXT context;
+										memset(&context, 0, sizeof(WOW64_CONTEXT));
+										context.ContextFlags = WOW64_CONTEXT_CONTROL;
+										if (!Wow64GetThreadContext(val_vec_win32handleholder_thread.get(), &context)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(Wow64GetThreadContext));
+										targetaddress_programcounter.SetInt(context.Eip);
+										break;
+									}
+#elif defined (_M_IX86) || defined (__i386__)
+									case Win32Architecture::Win32Architecture_x86: {
+										CONTEXT context;
+										memset(&context, 0, sizeof(CONTEXT));
+										context.ContextFlags = CONTEXT_CONTROL;
+										if (!GetThreadContext(val_vec_win32handleholder_thread.get(), &context)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadContext));
+										targetaddress_programcounter.SetInt(context.Eip);
+										break;
+									}
+#else
+#error Unrecognized architecture.
+#endif
+									default:
+										throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+									}
+									{
+										map_targetaddress_code_lock_t::const_iterator it_map_targetaddress_code_lock = this->map_targetaddress_code_lock.upper_bound(targetaddress_programcounter);
+										if (
+											it_map_targetaddress_code_lock != this->map_targetaddress_code_lock.cend()
+											&& it_map_targetaddress_code_lock->second
+											) {
+											should_retry_suspend = true;
+										}
+									}
+									if (!should_retry_suspend) this->list_thread_suspended.push_back(::std::make_pair(val_vec_win32handleholder_thread, targetaddress_programcounter));
+								} catch (...) {
+									if (ResumeThread(val_vec_win32handleholder_thread.get()) == static_cast<DWORD>(-1)) abort();
+									throw;
+								}
+								if (should_retry_suspend) {
+									if (ResumeThread(val_vec_win32handleholder_thread.get()) == static_cast<DWORD>(-1)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(ResumeThread));
+									if (SleepEx(Win32DebuggingSuspendThreadsInProcess::timeduration_sleep_retry_suspend, FALSE)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(SleepEx));
+								}
+							}
+						} while (should_retry_suspend);
+					}
+				}
+				if (map_thread_suspended_remaining.size()) {
+					is_stable = false;
+					list_thread_suspended_t::iterator it_list_thread_suspended = this->list_thread_suspended.begin();
+					while (it_list_thread_suspended != this->list_thread_suspended.end()) {
+						list_thread_suspended_t::iterator it_list_thread_suspended_current = it_list_thread_suspended++;
+						DWORD threadid_thread_suspended = GetThreadId(it_list_thread_suspended_current->first.get());
+						if (!threadid_thread_suspended) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(GetThreadId));
+						if (map_thread_suspended_remaining.count(threadid_thread_suspended)) {
+							if (ResumeThread(it_list_thread_suspended_current->first.get()) == static_cast<DWORD>(-1)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(ResumeThread));
+							this->list_thread_suspended.erase(it_list_thread_suspended_current);
+						}
+					}
+				}
+			} while (!is_stable);
+		} else {
+			list_thread_suspended_t::iterator it_list_thread_suspended = this->list_thread_suspended.begin();
+			while (it_list_thread_suspended != this->list_thread_suspended.end()) {
+				list_thread_suspended_t::iterator it_list_thread_suspended_current = it_list_thread_suspended++;
+				if (ResumeThread(it_list_thread_suspended_current->first.get()) == static_cast<DWORD>(-1)) throw(YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(ResumeThread));
+				this->list_thread_suspended.erase(it_list_thread_suspended_current);
+			}
 		}
 	}
 

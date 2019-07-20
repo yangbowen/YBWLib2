@@ -15,6 +15,10 @@
 #include <cstdlib>
 #include <type_traits>
 #include <vector>
+#include <list>
+#include <unordered_set>
+#include <unordered_map>
+#include <map>
 #include <mutex>
 #include <minwindef.h>
 #include "../Exception/ExceptionLowLevel.h"
@@ -323,8 +327,6 @@ namespace YBWLib2 {
 	};
 	constexpr hash_Win32DebuggingTargetAddressDiff_t hash_Win32DebuggingTargetAddressDiff {};
 
-	// TODO: Replace intmax_t and uintmax_t with Win32DebuggingTargetAddressDiff;
-
 	struct Win32DebuggingTargetAddress final {
 		friend struct Win32DebuggingTargetAddressDiff;
 		static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
@@ -516,6 +518,62 @@ namespace YBWLib2 {
 		inline size_t operator()(const Win32DebuggingTargetAddress& x) const noexcept(false) { return x.Hash(); }
 	};
 	constexpr hash_Win32DebuggingTargetAddress_t hash_Win32DebuggingTargetAddress {};
+
+	/// <summary>
+	/// Suspends all threads in a process except those specified.
+	/// The threads are resumed when the object is destructed.
+	/// </summary>
+	class Win32DebuggingSuspendThreadsInProcess final {
+	public:
+		inline Win32DebuggingSuspendThreadsInProcess() noexcept {}
+		/// <summary>Constructs a <c>Win32DebuggingSuspendThreadsInProcess</c> object.</summary>
+		/// <param name="_win32handleholder_process">A handle to the target process, in which the threads are to be suspended.</param>
+		/// <param name="_vec_threadid_exempted">
+		/// A vector of thread IDs of threads that should be exempted from being suspended.
+		/// The current thread is automatically exempted even if it's not included in this vector.
+		/// </param>
+		/// <param name="_vec_range_targetaddress_code_lock">
+		/// The locked code target address range vector.
+		/// Each element in the vector represents a range [first, second) in the virtual memory space of the target.
+		/// The program counters of the threads to be suspended will be checked against the ranges.
+		/// If the program counter of one of the threads happens to be in one of the ranges,
+		/// the thread will be resumed and suspended again until it's program counter is no longer in the ranges.
+		/// Overlapping ranges will be automatically merged.
+		/// </param>
+		Win32DebuggingSuspendThreadsInProcess(
+			const Win32HandleHolder& _win32handleholder_process = Win32HandleHolder(Win32HandleHolder::view_handle, GetCurrentProcess()),
+			const ::std::unordered_set<DWORD>& _vec_threadid_exempted = ::std::unordered_set<DWORD>(),
+			const ::std::vector<::std::pair<Win32DebuggingTargetAddress, Win32DebuggingTargetAddress>> _vec_range_targetaddress_code_lock = ::std::vector<::std::pair<Win32DebuggingTargetAddress, Win32DebuggingTargetAddress>>()
+		) noexcept(false);
+		Win32DebuggingSuspendThreadsInProcess(const Win32DebuggingSuspendThreadsInProcess&) = delete;
+		Win32DebuggingSuspendThreadsInProcess(Win32DebuggingSuspendThreadsInProcess&& x) noexcept(false);
+		inline ~Win32DebuggingSuspendThreadsInProcess() {
+			if (this->win32handleholder_process) this->ResumeThreads();
+		}
+		Win32DebuggingSuspendThreadsInProcess& operator=(const Win32DebuggingSuspendThreadsInProcess&) = delete;
+		Win32DebuggingSuspendThreadsInProcess& operator=(Win32DebuggingSuspendThreadsInProcess&& x) noexcept(false);
+		inline bool GetHasSuspended() const noexcept { return this->has_suspended; }
+		/// <summary>Adds a thread that should be exempted from being suspended.</summary>
+		/// <param name="threadid">The thread ID of the thread.</param>
+		void AddExemptedThread(DWORD threadid) noexcept(false);
+		/// <summary>Removes a thread from those that should be exempted from being suspended.</summary>
+		/// <param name="threadid">The thread ID of the thread.</param>
+		void RemoveExemptedThread(DWORD threadid) noexcept(false);
+		void SuspendThreads() noexcept(false);
+		void ResumeThreads() noexcept;
+		void UpdateThreadSuspendResume() noexcept(false);
+	protected:
+		using set_threadid_exempted_t = ::std::unordered_set<DWORD>;
+		using map_targetaddress_code_lock_t = ::std::map<Win32DebuggingTargetAddress, bool>;
+		using list_thread_suspended_t = ::std::list<::std::pair<Win32HandleHolder, Win32DebuggingTargetAddress>>;
+		static constexpr DWORD timeduration_sleep_retry_suspend = 100;
+		bool has_suspended = false;
+		Win32HandleHolder win32handleholder_process;
+		Win32Architecture architecture = Win32Architecture::Win32Architecture_Invalid;
+		set_threadid_exempted_t set_threadid_exempted;
+		map_targetaddress_code_lock_t map_targetaddress_code_lock;
+		list_thread_suspended_t list_thread_suspended;
+	};
 
 	class IWin32DebuggingTargetMemoryRegionInfo : public virtual IDynamicTypeObject {
 	public:

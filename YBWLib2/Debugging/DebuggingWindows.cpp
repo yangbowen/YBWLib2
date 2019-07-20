@@ -20,7 +20,6 @@ namespace YBWLib2 {
 	YBWLIB2_API rawallocator_t* rawallocator_virtual_Win32 = nullptr;
 
 	YBWLIB2_API IStringTemplate* UnsupportedTargetWin32ArchitectureException::strtmpl_description = nullptr;
-	// TODO YBWLIB2_API IStringTemplate* Win32DebugContext::strtmpl_description = nullptr;
 
 	void YBWLIB2_CALLTYPE DebuggingWindows_RealInitGlobal() noexcept {
 		{
@@ -125,7 +124,6 @@ namespace YBWLib2 {
 			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<UnsupportedTargetWin32ArchitectureException>(), &UnsupportedTargetWin32ArchitectureException::strtmpl_description }
-				// TODO { GetDynamicTypeClassID<Win32DebugContext>(), &Win32DebugContext::strtmpl_description }
 				});
 			Internal::jsonval_config_internal_t::ConstMemberIterator jsonmemberit_config_internal_DebuggingWindows = Internal::jsondoc_config_internal->FindMember(Internal::ConstStringToInternalConfigJsonval(u8"DebuggingWindows"));
 			if (jsonmemberit_config_internal_DebuggingWindows == Internal::jsondoc_config_internal->MemberEnd() || !jsonmemberit_config_internal_DebuggingWindows->value.IsObject()) abort();
@@ -186,7 +184,7 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE DebuggingWindowsUserInterface_RealUnInitGlobal() noexcept {
-		/* TODO delete Win32DebugContext::strtmpl_description;
-		Win32DebugContext::strtmpl_description = nullptr;*/
+		delete UnsupportedTargetWin32ArchitectureException::strtmpl_description;
+		UnsupportedTargetWin32ArchitectureException::strtmpl_description = nullptr;
 	}
 }
