@@ -21,42 +21,42 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE File_RealInitGlobal() noexcept {
 		IFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IFileException>(),
+			GetDynamicTypeClassPersistentID<IFileException>(),
 			IsDynamicTypeModuleLocalClass<IFileException>(),
 			{ DynamicTypeBaseClassDef<IFileException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IFileException), alignof(IFileException));
 		IBofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IBofFileException>(),
+			GetDynamicTypeClassPersistentID<IBofFileException>(),
 			IsDynamicTypeModuleLocalClass<IBofFileException>(),
 			{ DynamicTypeBaseClassDef<IBofFileException, IFileException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IBofFileException), alignof(IBofFileException));
 		IEofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IEofFileException>(),
+			GetDynamicTypeClassPersistentID<IEofFileException>(),
 			IsDynamicTypeModuleLocalClass<IEofFileException>(),
 			{ DynamicTypeBaseClassDef<IEofFileException, IFileException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IEofFileException), alignof(IEofFileException));
 		IFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IFile>(),
+			GetDynamicTypeClassPersistentID<IFile>(),
 			IsDynamicTypeModuleLocalClass<IFile>(),
 			{ DynamicTypeBaseClassDef<IFile, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IFile), alignof(IFile));
 		ISizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ISizedFile>(),
+			GetDynamicTypeClassPersistentID<ISizedFile>(),
 			IsDynamicTypeModuleLocalClass<ISizedFile>(),
 			{ DynamicTypeBaseClassDef<ISizedFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISizedFile), alignof(ISizedFile));
 		ISeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ISeekableFile>(),
+			GetDynamicTypeClassPersistentID<ISeekableFile>(),
 			IsDynamicTypeModuleLocalClass<ISeekableFile>(),
 			{ DynamicTypeBaseClassDef<ISeekableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISeekableFile), alignof(ISeekableFile));
 		IReadableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IReadableFile>(),
+			GetDynamicTypeClassPersistentID<IReadableFile>(),
 			IsDynamicTypeModuleLocalClass<IReadableFile>(),
 			{ DynamicTypeBaseClassDef<IReadableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IReadableFile), alignof(IReadableFile));
 		IWriteableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IWriteableFile>(),
+			GetDynamicTypeClassPersistentID<IWriteableFile>(),
 			IsDynamicTypeModuleLocalClass<IWriteableFile>(),
 			{ DynamicTypeBaseClassDef<IWriteableFile, IFile, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IWriteableFile), alignof(IWriteableFile));
@@ -83,7 +83,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE FileUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<FileException>(), &FileException::strtmpl_description },
 				{ GetDynamicTypeClassID<BofFileException>(), &BofFileException::strtmpl_description },
@@ -109,18 +109,18 @@ namespace YBWLib2 {
 							|| jsonmemberit_config_internal_File_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_File_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_File_strtmpl_description_element_dtclassid_object->value.GetString(),
 							jsonmemberit_config_internal_File_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						is_successful = true;
-						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_File_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 							jsonmemberit_config_internal_File_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

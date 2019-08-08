@@ -14,31 +14,34 @@ namespace YBWLib2 {
 
 	YBWLIB2_API IStringTemplate* JSONException::strtmpl_description = nullptr;
 	YBWLIB2_API IStringTemplate* ParseErrorJSONException::strtmpl_description = nullptr;
+	YBWLIB2_API IndexedDataEntryID JSONSAXGeneratorParameterIndexedDataEntry::entryid;
 
 	void YBWLIB2_CALLTYPE JSON_RealInitGlobal() noexcept {
 		IJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IJSONException>(),
+			GetDynamicTypeClassPersistentID<IJSONException>(),
 			IsDynamicTypeModuleLocalClass<IJSONException>(),
 			{ DynamicTypeBaseClassDef<IJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONException), alignof(IJSONException));
 		IParseErrorJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IParseErrorJSONException>(),
+			GetDynamicTypeClassPersistentID<IParseErrorJSONException>(),
 			IsDynamicTypeModuleLocalClass<IParseErrorJSONException>(),
 			{ DynamicTypeBaseClassDef<IParseErrorJSONException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IParseErrorJSONException), alignof(IParseErrorJSONException));
 		IJSONSAXHandler::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IJSONSAXHandler>(),
+			GetDynamicTypeClassPersistentID<IJSONSAXHandler>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXHandler>(),
 			{ DynamicTypeBaseClassDef<IJSONSAXHandler, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONSAXHandler), alignof(IJSONSAXHandler));
 		IJSONSAXGenerator::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IJSONSAXGenerator>(),
+			GetDynamicTypeClassPersistentID<IJSONSAXGenerator>(),
 			IsDynamicTypeModuleLocalClass<IJSONSAXGenerator>(),
 			{ DynamicTypeBaseClassDef<IJSONSAXGenerator, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IJSONSAXGenerator), alignof(IJSONSAXGenerator));
+		JSONSAXGeneratorParameterIndexedDataEntry::entryid = IndexedDataEntryID(JSONSAXGeneratorParameterIndexedDataEntry::persistentid_entryid);
 	}
 
 	void YBWLIB2_CALLTYPE JSON_RealUnInitGlobal() noexcept {
+		JSONSAXGeneratorParameterIndexedDataEntry::entryid = IndexedDataEntryID();
 		delete IJSONSAXGenerator::DynamicTypeThisClassObject;
 		IJSONSAXGenerator::DynamicTypeThisClassObject = nullptr;
 		delete IJSONSAXHandler::DynamicTypeThisClassObject;
@@ -51,7 +54,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE JSONUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<JSONException>(), &JSONException::strtmpl_description },
 				{ GetDynamicTypeClassID<ParseErrorJSONException>(), &ParseErrorJSONException::strtmpl_description }
@@ -75,18 +78,18 @@ namespace YBWLib2 {
 							|| jsonmemberit_config_internal_JSON_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_JSON_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_object->value.GetString(),
 							jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						is_successful = true;
-						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 							jsonmemberit_config_internal_JSON_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

@@ -602,12 +602,12 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IExternalAPIFailureException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureException)), module_info_current);
 		GetDynamicTypeClassObject<IUnexpectedExceptionException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IUnexpectedExceptionException)), module_info_current);
 		Exception::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Exception>(),
+			GetDynamicTypeClassPersistentID<Exception>(),
 			IsDynamicTypeModuleLocalClass<Exception>(),
 			{ DynamicTypeBaseClassDef<Exception, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(Exception), alignof(Exception));
 		DoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<DoubleExceptionException>(),
+			GetDynamicTypeClassPersistentID<DoubleExceptionException>(),
 			IsDynamicTypeModuleLocalClass<DoubleExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<DoubleExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -615,7 +615,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(DoubleExceptionException), alignof(DoubleExceptionException));
 		InvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<InvalidParameterException>(),
+			GetDynamicTypeClassPersistentID<InvalidParameterException>(),
 			IsDynamicTypeModuleLocalClass<InvalidParameterException>(),
 			{
 				DynamicTypeBaseClassDef<InvalidParameterException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -623,7 +623,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InvalidParameterException), alignof(InvalidParameterException));
 		InvalidCallException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<InvalidCallException>(),
+			GetDynamicTypeClassPersistentID<InvalidCallException>(),
 			IsDynamicTypeModuleLocalClass<InvalidCallException>(),
 			{
 				DynamicTypeBaseClassDef<InvalidCallException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -631,7 +631,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InvalidCallException), alignof(InvalidCallException));
 		InsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<InsufficientBufferException>(),
+			GetDynamicTypeClassPersistentID<InsufficientBufferException>(),
 			IsDynamicTypeModuleLocalClass<InsufficientBufferException>(),
 			{
 				DynamicTypeBaseClassDef<InsufficientBufferException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -639,7 +639,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(InsufficientBufferException), alignof(InsufficientBufferException));
 		MemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<MemoryAllocFailureException>(),
+			GetDynamicTypeClassPersistentID<MemoryAllocFailureException>(),
 			IsDynamicTypeModuleLocalClass<MemoryAllocFailureException>(),
 			{
 				DynamicTypeBaseClassDef<MemoryAllocFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -647,7 +647,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(MemoryAllocFailureException), alignof(MemoryAllocFailureException));
 		KeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<KeyAlreadyExistException>(),
+			GetDynamicTypeClassPersistentID<KeyAlreadyExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyAlreadyExistException>(),
 			{
 				DynamicTypeBaseClassDef<KeyAlreadyExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -655,7 +655,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(KeyAlreadyExistException), alignof(KeyAlreadyExistException));
 		KeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<KeyNotExistException>(),
+			GetDynamicTypeClassPersistentID<KeyNotExistException>(),
 			IsDynamicTypeModuleLocalClass<KeyNotExistException>(),
 			{
 				DynamicTypeBaseClassDef<KeyNotExistException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -663,7 +663,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(KeyNotExistException), alignof(KeyNotExistException));
 		UnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<UnhandledUnknownExceptionException>(),
+			GetDynamicTypeClassPersistentID<UnhandledUnknownExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnhandledUnknownExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<UnhandledUnknownExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -671,7 +671,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(UnhandledUnknownExceptionException), alignof(UnhandledUnknownExceptionException));
 		STLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<STLExceptionException>(),
+			GetDynamicTypeClassPersistentID<STLExceptionException>(),
 			IsDynamicTypeModuleLocalClass<STLExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<STLExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -679,7 +679,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(STLExceptionException), alignof(STLExceptionException));
 		ExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ExternalAPIFailureException>(),
+			GetDynamicTypeClassPersistentID<ExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -687,7 +687,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(ExternalAPIFailureException), alignof(ExternalAPIFailureException));
 		UnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<UnexpectedExceptionException>(),
+			GetDynamicTypeClassPersistentID<UnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<UnexpectedExceptionException>(),
 			{
 				DynamicTypeBaseClassDef<UnexpectedExceptionException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,

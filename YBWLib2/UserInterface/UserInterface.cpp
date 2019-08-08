@@ -23,6 +23,7 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameter, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplateParameterList, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IStringTemplate, YBWLIB2_API);
+	YBWLIB2_API ConstructorID ConstructorID_StringTemplateFromJSONSAXGenerator;
 
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE VsnPrintfUtf8(
 		const rawallocator_t* rawallocator,
@@ -116,23 +117,25 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE UserInterface_RealInitGlobal() noexcept {
 		IStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<IStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<IStringTemplateParameter, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplateParameter), alignof(IStringTemplateParameter));
 		IStringTemplateParameterList::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IStringTemplateParameterList>(),
+			GetDynamicTypeClassPersistentID<IStringTemplateParameterList>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplateParameterList>(),
 			{ DynamicTypeBaseClassDef<IStringTemplateParameterList, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplateParameterList), alignof(IStringTemplateParameterList));
 		IStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IStringTemplate>(),
+			GetDynamicTypeClassPersistentID<IStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<IStringTemplate>(),
 			{ DynamicTypeBaseClassDef<IStringTemplate, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IStringTemplate), alignof(IStringTemplate));
+		ConstructorID_StringTemplateFromJSONSAXGenerator = ConstructorID(PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator);
 	}
 
 	void YBWLIB2_CALLTYPE UserInterface_RealUnInitGlobal() noexcept {
+		ConstructorID_StringTemplateFromJSONSAXGenerator = ConstructorID();
 		delete IStringTemplate::DynamicTypeThisClassObject;
 		IStringTemplate::DynamicTypeThisClassObject = nullptr;
 		delete IStringTemplateParameterList::DynamicTypeThisClassObject;

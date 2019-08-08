@@ -16,7 +16,7 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IReferenceCountedObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IReferenceCountedObject)), module_info_current);
 		GetDynamicTypeClassObject<ILockableObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ILockableObject)), module_info_current);
 		ReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ReferenceCountedObject>(),
+			GetDynamicTypeClassPersistentID<ReferenceCountedObject>(),
 			IsDynamicTypeModuleLocalClass<ReferenceCountedObject>(),
 			{ DynamicTypeBaseClassDef<ReferenceCountedObject, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ReferenceCountedObject), alignof(ReferenceCountedObject)

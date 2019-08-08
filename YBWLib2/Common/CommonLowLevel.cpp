@@ -11,7 +11,56 @@ namespace YBWLib2 {
 	YBWLIB2_API bool* is_byte_order_le = nullptr;
 	YBWLIB2_API bool* is_byte_order_be = nullptr;
 	YBWLIB2_API dummy_t dummy;
+	YBWLIB2_API ::std::mutex* VolatileIDAnchor::mtx_map_volatileidanchor = nullptr;
+	YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>* VolatileIDAnchor::map_volatileidanchor = nullptr;
 	YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2 = nullptr;
+	YBWLIB2_API IndexedDataEntryID RawAllocatorParameterIndexedDataEntry::entryid;
+
+	YBWLIB2_API VolatileIDAnchor* VolatileIDAnchor::ReferenceVolatileIDAnchorFromPersistentID(const PersistentID* _persistentid) noexcept {
+		assert(_persistentid);
+		VolatileIDAnchor* volatileidanchor_ret = nullptr;
+		try {
+			::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
+			::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>::const_iterator it_map_volatileidanchor = map_volatileidanchor->find(*_persistentid);
+			if (it_map_volatileidanchor == map_volatileidanchor->cend()) {
+				::std::pair<::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>::iterator, bool> ret_emplace = map_volatileidanchor->emplace(*_persistentid, new VolatileIDAnchor(*_persistentid));
+				assert(ret_emplace.second);
+				volatileidanchor_ret = ret_emplace.first->second.get();
+			} else {
+				volatileidanchor_ret = it_map_volatileidanchor->second.get();
+				volatileidanchor_ret->IncrementReferenceCount();
+			}
+		} catch (...) {
+			abort();
+		}
+		assert(volatileidanchor_ret);
+		return volatileidanchor_ret;
+	}
+
+	YBWLIB2_API void VolatileIDAnchor::IncrementReferenceCount() const noexcept {
+		this->refcount.fetch_add(1, ::std::memory_order_relaxed);
+	}
+
+	YBWLIB2_API void VolatileIDAnchor::DecrementReferenceCount() const noexcept {
+		try {
+			uintptr_t value_refcount = this->refcount.load(::std::memory_order_relaxed);
+			while (true) {
+				assert(value_refcount);
+				if (value_refcount == 1) {
+					::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
+					if (this->refcount.compare_exchange_weak(value_refcount, 0, ::std::memory_order_acq_rel, ::std::memory_order_relaxed)) {
+						bool is_ok_erase = map_volatileidanchor->erase(this->persistentid);
+						assert(is_ok_erase);
+						break;
+					}
+				} else {
+					if (this->refcount.compare_exchange_weak(value_refcount, value_refcount - 1, ::std::memory_order_release, ::std::memory_order_relaxed)) break;
+				}
+			}
+		} catch (...) {
+			abort();
+		}
+	}
 
 	YBWLIB2_API const IndexedDataRawValue* YBWLIB2_CALLTYPE IndexedDataStore::GetRawValueByEntryID(const IndexedDataEntryID* _entryid) const noexcept {
 		if (!_entryid) abort();
@@ -137,6 +186,8 @@ namespace YBWLib2 {
 		if (!byte_order_unsigned_long->is_be) *is_byte_order_be = false;
 		if (!byte_order_unsigned_long_long->is_le) *is_byte_order_le = false;
 		if (!byte_order_unsigned_long_long->is_be) *is_byte_order_be = false;
+		VolatileIDAnchor::mtx_map_volatileidanchor = new ::std::mutex();
+		VolatileIDAnchor::map_volatileidanchor = new ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>();
 		rawallocator_crt_YBWLib2 = new rawallocator_t(
 			nullptr, nullptr, nullptr,
 			[](size_t size, size_t align, uintptr_t context) noexcept->void* {
@@ -195,11 +246,17 @@ namespace YBWLib2 {
 				static_cast<void>(context);
 				return SIZE_MAX;
 			});
+		RawAllocatorParameterIndexedDataEntry::entryid = IndexedDataEntryID(RawAllocatorParameterIndexedDataEntry::persistentid_entryid);
 	}
 
 	void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept {
+		RawAllocatorParameterIndexedDataEntry::entryid = IndexedDataEntryID();
 		delete rawallocator_crt_YBWLib2;
 		rawallocator_crt_YBWLib2 = nullptr;
+		delete VolatileIDAnchor::map_volatileidanchor;
+		VolatileIDAnchor::map_volatileidanchor = nullptr;
+		delete VolatileIDAnchor::mtx_map_volatileidanchor;
+		VolatileIDAnchor::mtx_map_volatileidanchor = nullptr;
 		delete is_byte_order_be;
 		is_byte_order_be = nullptr;
 		delete is_byte_order_le;

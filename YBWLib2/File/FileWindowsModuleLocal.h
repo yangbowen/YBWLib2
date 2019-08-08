@@ -135,7 +135,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE FileWindows_RealInitModuleLocal() noexcept {
 		Win32File::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32File>(),
+			GetDynamicTypeClassPersistentID<Win32File>(),
 			IsDynamicTypeModuleLocalClass<Win32File>(),
 			{
 				DynamicTypeBaseClassDef<Win32File, ULongLongSizedFile, DynamicTypeBaseClassFlag_VirtualBase>,

@@ -14,6 +14,7 @@ namespace YBWLib2 {
 	YBWLIB2_API const size_t size_atomic_fnptr_delete_iexception = sizeof(atomic_fnptr_delete_iexception_t);
 	static atomic_fnptr_delete_iexception_t atomic_fnptr_delete_iexception_global(&DeleteIException_Initial);
 	YBWLIB2_API atomic_fnptr_delete_iexception_t* const ptr_atomic_fnptr_delete_iexception_global = &atomic_fnptr_delete_iexception_global;
+	YBWLIB2_API IndexedDataEntryID ExceptionReturnParameterIndexedDataEntry::entryid;
 
 	YBWLIB2_API atomic_fnptr_delete_iexception_t* YBWLIB2_CALLTYPE ConstructDeleteIExceptionFnptrAtomic(
 		void* _ptr_placement,
@@ -45,9 +46,13 @@ namespace YBWLib2 {
 		return _ptr_atomic_fnptr_delete_iexception->exchange(_fnptr_delete_iexception_new);
 	}
 
-	void YBWLIB2_CALLTYPE ExceptionLowLevel_RealInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE ExceptionLowLevel_RealInitGlobal() noexcept {
+		ExceptionReturnParameterIndexedDataEntry::entryid = IndexedDataEntryID(ExceptionReturnParameterIndexedDataEntry::persistentid_entryid);
+	}
 
-	void YBWLIB2_CALLTYPE ExceptionLowLevel_RealUnInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE ExceptionLowLevel_RealUnInitGlobal() noexcept {
+		ExceptionReturnParameterIndexedDataEntry::entryid = IndexedDataEntryID();
+	}
 
 	static void YBWLIB2_CALLTYPE DeleteIException_Initial(IException* _ptr) noexcept {
 		static_cast<void>(_ptr);

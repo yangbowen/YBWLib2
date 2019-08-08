@@ -214,7 +214,7 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IExternalAPIFailureWithHRESULTException>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IExternalAPIFailureWithHRESULTException)), module_info_current);
 #endif
 		ExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ExternalAPIFailureWithLastErrorException>(),
+			GetDynamicTypeClassPersistentID<ExternalAPIFailureWithLastErrorException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithLastErrorException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithLastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -223,7 +223,7 @@ namespace YBWLib2 {
 			0, sizeof(ExternalAPIFailureWithLastErrorException), alignof(ExternalAPIFailureWithLastErrorException));
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		ExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ExternalAPIFailureWithWSALastErrorException>(),
+			GetDynamicTypeClassPersistentID<ExternalAPIFailureWithWSALastErrorException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithWSALastErrorException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithWSALastErrorException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -233,7 +233,7 @@ namespace YBWLib2 {
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		ExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ExternalAPIFailureWithNTSTATUSException>(),
+			GetDynamicTypeClassPersistentID<ExternalAPIFailureWithNTSTATUSException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithNTSTATUSException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithNTSTATUSException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -243,7 +243,7 @@ namespace YBWLib2 {
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		ExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ExternalAPIFailureWithHRESULTException>(),
+			GetDynamicTypeClassPersistentID<ExternalAPIFailureWithHRESULTException>(),
 			IsDynamicTypeModuleLocalClass<ExternalAPIFailureWithHRESULTException>(),
 			{
 				DynamicTypeBaseClassDef<ExternalAPIFailureWithHRESULTException, ExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase>,

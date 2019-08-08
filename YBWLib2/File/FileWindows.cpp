@@ -15,7 +15,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE FileWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<Win32File>(), &Win32File::strtmpl_description }
 				});
@@ -38,18 +38,18 @@ namespace YBWLib2 {
 							|| jsonmemberit_config_internal_FileWindows_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_FileWindows_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_FileWindows_strtmpl_description_element_dtclassid_object->value.GetString(),
 							jsonmemberit_config_internal_FileWindows_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						is_successful = true;
-						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_FileWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 							jsonmemberit_config_internal_FileWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

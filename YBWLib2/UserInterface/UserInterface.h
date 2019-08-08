@@ -1122,26 +1122,32 @@ namespace YBWLib2 {
 	/// <summary>
 	/// String template from JSON SAX generator constructor.
 	/// The pointer to the raw allocator is passed as a parameter using <c>RawAllocatorParameterIndexedDataEntry</c>.
-	/// The pointer to the <c></c> object that generates the JSON value representation of the template is passed as a parameter using <c>JSONSAXGeneratorParameterIndexedDataEntry</c>.
+	/// The pointer to the <c>IJSONSAXGenerator</c> object that generates the JSON value representation of the template is passed as a parameter using <c>JSONSAXGeneratorParameterIndexedDataEntry</c>.
 	/// </summary>
-	constexpr ConstructorID ConstructorID_StringTemplateFromJSONSAXGenerator = ConstructorIDFromUUIDString_CompileTime("2a02e0f3-3fc8-46c8-8d85-13b624bf5d35");
+	constexpr PersistentID PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator = PersistentID(UUIDFromUUIDString_CompileTime("2a02e0f3-3fc8-46c8-8d85-13b624bf5d35"));
+	/// <summary>
+	/// String template from JSON SAX generator constructor.
+	/// The pointer to the raw allocator is passed as a parameter using <c>RawAllocatorParameterIndexedDataEntry</c>.
+	/// The pointer to the <c>IJSONSAXGenerator</c> object that generates the JSON value representation of the template is passed as a parameter using <c>JSONSAXGeneratorParameterIndexedDataEntry</c>.
+	/// </summary>
+	extern YBWLIB2_API ConstructorID ConstructorID_StringTemplateFromJSONSAXGenerator;
 
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create_Default_StringTemplate = {
-		{ ConstructorID_StringTemplateFromJSONSAXGenerator, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+	const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create_Default_StringTemplate = {
+		{ PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			return new _Class_Ty(
 				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
 				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
 			);
 		} },
-		{ ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+		{ PersistentID_ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
 			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 			return new _Class_Ty(*ptr_obj_from);
 		} },
-		{ ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+		{ PersistentID_ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
 			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
@@ -1150,21 +1156,21 @@ namespace YBWLib2 {
 	};
 
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create_Default_StringTemplate = {
-		{ ConstructorID_StringTemplateFromJSONSAXGenerator, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+	const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create_Default_StringTemplate = {
+		{ PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			return new(_ptr_placement) _Class_Ty(
 				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
 				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
 			);
 		} },
-		{ ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+		{ PersistentID_ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
 			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 			return new(_ptr_placement) _Class_Ty(*ptr_obj_from);
 		} },
-		{ ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+		{ PersistentID_ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 			if (!_indexeddatastore_parameters) abort();
 			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
 			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));

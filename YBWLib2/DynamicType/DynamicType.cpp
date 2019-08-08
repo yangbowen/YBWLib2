@@ -8,11 +8,16 @@
 namespace YBWLib2 {
 	YBWLIB2_API wrapper_lockable_t* wrapper_lockable_dtenv = nullptr;
 	YBWLIB2_API ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>* map_fnptr_FindDynamicTypeClassObject_module = nullptr;
+	YBWLIB2_API ConstructorID ConstructorID_Default;
+	YBWLIB2_API ConstructorID ConstructorID_Copy;
+	YBWLIB2_API ConstructorID ConstructorID_Move;
+	YBWLIB2_API IndexedDataEntryID ConstructorIDParameterIndexedDataEntry::entryid;
+	YBWLIB2_API IndexedDataEntryID ObjectPointerFromParameterIndexedDataEntry::entryid;
 
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDynamicTypeObject, YBWLIB2_API);
 
 	static ::std::recursive_mutex* mtx_dtenv = nullptr;
-	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>* map_dtclassobj_global = nullptr;
+	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash<DynamicTypeClassID>>* map_dtclassobj_global = nullptr;
 
 	class DynamicTypeTotalBaseClass {
 	public:
@@ -78,13 +83,13 @@ namespace YBWLib2 {
 		/// The set of direct base classes of this class.
 		/// This member variable is only modified during the construction and destruction of this object.
 		/// </summary>
-		::std::unordered_set<DynamicTypeBaseClassDefObj, hash_DynamicTypeBaseClassDefObj_t> set_baseclass_direct;
+		::std::unordered_set<DynamicTypeBaseClassDefObj, hash<DynamicTypeBaseClassDefObj>> set_baseclass_direct;
 		/// <summary>
 		/// The map of unique base classes (direct or indirect) of this class.
 		/// Base classes that share a common offset in this class are considered the same base class.
 		/// This member variable is only modified during the construction and destruction of this object.
 		/// </summary>
-		::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t> map_baseclass_total;
+		::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>> map_baseclass_total;
 		_impl_DynamicTypeClassObj(DynamicTypeClassObj* _pdecl, const DynamicTypeBaseClassDefObj* _begin_dtbaseclassdef, const DynamicTypeBaseClassDefObj* _end_dtbaseclassdef)
 			: dtclassid(_pdecl->GetDynamicTypeClassID()), pdecl(_pdecl) {
 			try {
@@ -101,10 +106,10 @@ namespace YBWLib2 {
 		inline DynamicTypeTotalBaseClass* FindTotalBaseClass(const DynamicTypeClassID* dtclassid_base) {
 			DynamicTypeTotalBaseClass* ret = nullptr;
 			try {
-				if (dtclassid_base && *dtclassid_base != DynamicTypeClassID_Null) {
+				if (dtclassid_base && *dtclassid_base) {
 					{
 						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-						::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator it_baseclass_total = this->map_baseclass_total.find(*dtclassid_base);
+						::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>>::iterator it_baseclass_total = this->map_baseclass_total.find(*dtclassid_base);
 						if (it_baseclass_total != this->map_baseclass_total.end()) ret = &it_baseclass_total->second;
 					}
 				}
@@ -116,10 +121,10 @@ namespace YBWLib2 {
 		inline const DynamicTypeTotalBaseClass* FindTotalBaseClass(const DynamicTypeClassID* dtclassid_base) const {
 			const DynamicTypeTotalBaseClass* ret = nullptr;
 			try {
-				if (dtclassid_base && *dtclassid_base != DynamicTypeClassID_Null) {
+				if (dtclassid_base && *dtclassid_base) {
 					{
 						::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-						::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::const_iterator it_baseclass_total = this->map_baseclass_total.find(*dtclassid_base);
+						::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>>::const_iterator it_baseclass_total = this->map_baseclass_total.find(*dtclassid_base);
 						if (it_baseclass_total != this->map_baseclass_total.end()) ret = &it_baseclass_total->second;
 					}
 				}
@@ -133,10 +138,10 @@ namespace YBWLib2 {
 	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindDynamicTypeClassObjectGlobal(const DynamicTypeClassID* _dtclassid) noexcept {
 		DynamicTypeClassObj* ret = nullptr;
 		try {
-			if (_dtclassid && *_dtclassid != DynamicTypeClassID_Null) {
+			if (_dtclassid && *_dtclassid) {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
+					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash<DynamicTypeClassID>>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
 					if (it_dtclassobj != map_dtclassobj_global->end()) ret = &it_dtclassobj->second;
 				}
 			}
@@ -180,10 +185,10 @@ namespace YBWLib2 {
 	YBWLIB2_API DynamicTypeClassObj* YBWLIB2_CALLTYPE DynamicTypeClassObj::FindBaseClassObject(const DynamicTypeClassID* dtclassid_base) const {
 		DynamicTypeClassObj* ret = nullptr;
 		try {
-			if (dtclassid_base && *dtclassid_base != DynamicTypeClassID_Null) {
+			if (dtclassid_base && *dtclassid_base) {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-					::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::const_iterator it_baseclass_total = this->pimpl->map_baseclass_total.find(*dtclassid_base);
+					::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>>::const_iterator it_baseclass_total = this->pimpl->map_baseclass_total.find(*dtclassid_base);
 					if (it_baseclass_total != this->pimpl->map_baseclass_total.cend()) ret = &it_baseclass_total->second.dtclassobj_baseclass;
 				}
 			}
@@ -277,7 +282,7 @@ namespace YBWLib2 {
 					if (!_it_dtbaseclassdef || _it_dtbaseclassdef->IsModuleLocal()) abort();
 			}
 			this->pimpl = new _impl_DynamicTypeClassObj(this, _begin_dtbaseclassdef, _end_dtbaseclassdef);
-			::std::unordered_set<DynamicTypeClassID, hash_DynamicTypeClassID_t> set_dtclassid_baseclass_conflict;
+			::std::unordered_set<DynamicTypeClassID, hash<DynamicTypeClassID>> set_dtclassid_baseclass_conflict;
 			{
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				for (const DynamicTypeBaseClassDefObj& val_baseclass_direct : this->pimpl->set_baseclass_direct) {
@@ -292,7 +297,7 @@ namespace YBWLib2 {
 					if (!set_dtclassid_baseclass_conflict.count(val_baseclass_direct.GetDynamicTypeClassID())) {
 						DynamicTypeClassObj* const dtclassobj_top_virtual_along_route =
 							val_baseclass_direct.GetDynamicTypeBaseClassFlags() & DynamicTypeBaseClassFlag_VirtualBase ? dtclassobj_baseclass : nullptr;
-						::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+						::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
 							::std::piecewise_construct,
 							::std::forward_as_tuple(val_baseclass_direct.GetDynamicTypeClassID()),
 							::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeClassObj*, ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>&&>(
@@ -339,7 +344,7 @@ namespace YBWLib2 {
 								val_baseclass_indirect.second.dtclassobj_top_virtual_along_route
 								? val_baseclass_indirect.second.dtclassobj_top_virtual_along_route
 								: (val_baseclass_direct.GetDynamicTypeBaseClassFlags() & DynamicTypeBaseClassFlag_VirtualBase ? dtclassobj_baseclass : nullptr);
-							::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash_DynamicTypeClassID_t>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
+							::std::pair<::std::unordered_map<DynamicTypeClassID, DynamicTypeTotalBaseClass, hash<DynamicTypeClassID>>::iterator, bool> ret_emplace = this->pimpl->map_baseclass_total.emplace(
 								::std::piecewise_construct,
 								::std::forward_as_tuple(val_baseclass_indirect.first),
 								::std::tuple<const DynamicTypeClassID&, const DynamicTypeClassID&, DynamicTypeClassObj&, DynamicTypeClassObj*, const ::std::vector<DynamicTypeTotalBaseClass::upcast_step_t>&>(
@@ -425,10 +430,15 @@ namespace YBWLib2 {
 		if (!wrapper_lockable_dtenv) abort();
 		map_fnptr_FindDynamicTypeClassObject_module = new ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>();
 		if (!map_fnptr_FindDynamicTypeClassObject_module) abort();
-		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash_DynamicTypeClassID_t>();
+		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&, hash<DynamicTypeClassID>>();
 		if (!map_dtclassobj_global) abort();
+		ConstructorID_Default = ConstructorID(PersistentID_ConstructorID_Default);
+		ConstructorID_Copy = ConstructorID(PersistentID_ConstructorID_Copy);
+		ConstructorID_Move = ConstructorID(PersistentID_ConstructorID_Move);
+		ConstructorIDParameterIndexedDataEntry::entryid = IndexedDataEntryID(ConstructorIDParameterIndexedDataEntry::persistentid_entryid);
+		ObjectPointerFromParameterIndexedDataEntry::entryid = IndexedDataEntryID(ObjectPointerFromParameterIndexedDataEntry::persistentid_entryid);
 		IDynamicTypeObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IDynamicTypeObject>(),
+			GetDynamicTypeClassPersistentID<IDynamicTypeObject>(),
 			IsDynamicTypeModuleLocalClass<IDynamicTypeObject>(),
 			{},
 			0, sizeof(IDynamicTypeObject), alignof(IDynamicTypeObject));
@@ -437,6 +447,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE DynamicType_RealUnInitGlobal() noexcept {
 		delete IDynamicTypeObject::DynamicTypeThisClassObject;
 		IDynamicTypeObject::DynamicTypeThisClassObject = nullptr;
+		ObjectPointerFromParameterIndexedDataEntry::entryid = IndexedDataEntryID();
+		ConstructorIDParameterIndexedDataEntry::entryid = IndexedDataEntryID();
+		ConstructorID_Move = ConstructorID();
+		ConstructorID_Copy = ConstructorID();
+		ConstructorID_Default = ConstructorID();
 		if (!map_dtclassobj_global->empty()) abort();
 		delete map_dtclassobj_global;
 		map_dtclassobj_global = nullptr;

@@ -30,7 +30,7 @@ namespace YBWLib2 {
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_fnptr_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash_ConstructorID_t>;
+		using map_fnptr_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash<ConstructorID>>;
 		static const map_fnptr_create_t map_fnptr_create(_it_begin_fnptr_create, _it_end_fnptr_create);
 		return [](const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
 			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
@@ -52,19 +52,19 @@ namespace YBWLib2 {
 	/// <summary>Gets the default dynamic object creation function pointer.</summary>
 	template<typename _Class_Ty>
 	inline DynamicTypeClassObj::fnptr_create_object_t DynamicTypeGetDefaultCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create(
+		static const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create(
 			{
-				{ ConstructorID_Default, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Default, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);
 					return new _Class_Ty();
 				} },
-				{ ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new _Class_Ty(*ptr_obj_from);
 				} },
-				{ ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
@@ -83,7 +83,7 @@ namespace YBWLib2 {
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_fnptr_placement_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash_ConstructorID_t>;
+		using map_fnptr_placement_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash<ConstructorID>>;
 		static const map_fnptr_placement_create_t map_fnptr_placement_create(_it_begin_fnptr_placement_create, _it_end_fnptr_placement_create);
 		return [](const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
 			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
@@ -105,19 +105,19 @@ namespace YBWLib2 {
 	/// <summary>Gets the default dynamic object placement-creation function pointer.</summary>
 	template<typename _Class_Ty>
 	inline DynamicTypeClassObj::fnptr_placement_create_object_t DynamicTypeGetDefaultPlacementCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create(
+		static const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create(
 			{
-				{ ConstructorID_Default, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Default, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);
 					return new(_ptr_placement) _Class_Ty();
 				} },
-				{ ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new(_ptr_placement) _Class_Ty(*ptr_obj_from);
 				} },
-				{ ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));

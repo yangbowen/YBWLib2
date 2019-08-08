@@ -373,12 +373,12 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept {
 		IReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IReferenceCountedObject>(),
+			GetDynamicTypeClassPersistentID<IReferenceCountedObject>(),
 			IsDynamicTypeModuleLocalClass<IReferenceCountedObject>(),
 			{ DynamicTypeBaseClassDef<IReferenceCountedObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IReferenceCountedObject), alignof(IReferenceCountedObject));
 		ILockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ILockableObject>(),
+			GetDynamicTypeClassPersistentID<ILockableObject>(),
 			IsDynamicTypeModuleLocalClass<ILockableObject>(),
 			{ DynamicTypeBaseClassDef<ILockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ILockableObject), alignof(ILockableObject));

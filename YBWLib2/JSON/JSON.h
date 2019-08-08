@@ -450,7 +450,8 @@ namespace YBWLib2 {
 
 	class JSONSAXGeneratorParameterIndexedDataEntry final {
 	public:
-		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("e95a6b6a-2c71-414e-8f3c-b49b9f9471ad");
+		static constexpr PersistentID persistentid_entryid = PersistentID(UUIDFromUUIDString_CompileTime("e95a6b6a-2c71-414e-8f3c-b49b9f9471ad"));
+		static YBWLIB2_API IndexedDataEntryID entryid;
 		inline static JSONSAXGeneratorParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
 			if (!_ptr_placement) abort();
 			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(JSONSAXGeneratorParameterIndexedDataEntry::entryid);
@@ -498,12 +499,11 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.context.uintptr_context[0])) {}
-		inline explicit JSONSAXGeneratorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.context.uintptr_context[0])) {
-			_indexeddatarawvalue.context.~context_t();
-			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.contextvalue)) {}
+		inline explicit JSONSAXGeneratorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : jsonsaxgenerator(::std::move(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.contextvalue))) {
+			_indexeddatarawvalue.contextvalue = 0;
 		}
-		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->jsonsaxgenerator), 0); }
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->jsonsaxgenerator)); }
 	};
 	static_assert(::std::is_standard_layout_v<JSONSAXGeneratorParameterIndexedDataEntry>, "JSONSAXGeneratorParameterIndexedDataEntry is not standard-layout.");
 

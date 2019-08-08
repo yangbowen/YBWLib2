@@ -402,32 +402,32 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE UserInterfaceWindows_RealInitModuleLocal() noexcept {
 		Win32HandleStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32HandleStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<Win32HandleStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<Win32HandleStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<Win32HandleStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(Win32HandleStringTemplateParameter), alignof(Win32HandleStringTemplateParameter));
 		LastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<LastErrorStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<LastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<LastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<LastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(LastErrorStringTemplateParameter), alignof(LastErrorStringTemplateParameter));
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_WSA
 		WSALastErrorStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<WSALastErrorStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<WSALastErrorStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<WSALastErrorStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<WSALastErrorStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(WSALastErrorStringTemplateParameter), alignof(WSALastErrorStringTemplateParameter));
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_NTSTATUS
 		NTSTATUSStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<NTSTATUSStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<NTSTATUSStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<NTSTATUSStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<NTSTATUSStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(NTSTATUSStringTemplateParameter), alignof(NTSTATUSStringTemplateParameter));
 #endif
 #ifndef YBWLIB2_USERINTERFACE_WINDOWS_NO_HRESULT
 		HRESULTStringTemplateParameter::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<HRESULTStringTemplateParameter>(),
+			GetDynamicTypeClassPersistentID<HRESULTStringTemplateParameter>(),
 			IsDynamicTypeModuleLocalClass<HRESULTStringTemplateParameter>(),
 			{ DynamicTypeBaseClassDef<HRESULTStringTemplateParameter, StringTemplateParameter, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(HRESULTStringTemplateParameter), alignof(HRESULTStringTemplateParameter));

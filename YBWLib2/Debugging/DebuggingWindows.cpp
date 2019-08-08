@@ -60,7 +60,7 @@ namespace YBWLib2 {
 				return SIZE_MAX;
 			});
 		IUnsupportedTargetWin32ArchitectureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IUnsupportedTargetWin32ArchitectureException>(),
+			GetDynamicTypeClassPersistentID<IUnsupportedTargetWin32ArchitectureException>(),
 			IsDynamicTypeModuleLocalClass<IUnsupportedTargetWin32ArchitectureException>(),
 			{
 				DynamicTypeBaseClassDef<IUnsupportedTargetWin32ArchitectureException, IException, DynamicTypeBaseClassFlag_VirtualBase>
@@ -68,7 +68,7 @@ namespace YBWLib2 {
 			0, sizeof(IUnsupportedTargetWin32ArchitectureException), alignof(IUnsupportedTargetWin32ArchitectureException)
 		);
 		IWin32DebuggingTargetMemoryRegionInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IWin32DebuggingTargetMemoryRegionInfo>(),
+			GetDynamicTypeClassPersistentID<IWin32DebuggingTargetMemoryRegionInfo>(),
 			IsDynamicTypeModuleLocalClass<IWin32DebuggingTargetMemoryRegionInfo>(),
 			{
 				DynamicTypeBaseClassDef<IWin32DebuggingTargetMemoryRegionInfo, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase>
@@ -76,7 +76,7 @@ namespace YBWLib2 {
 			0, sizeof(IWin32DebuggingTargetMemoryRegionInfo), alignof(IWin32DebuggingTargetMemoryRegionInfo)
 		);
 		IWin32DebuggingTargetExecutableModuleInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IWin32DebuggingTargetExecutableModuleInfo>(),
+			GetDynamicTypeClassPersistentID<IWin32DebuggingTargetExecutableModuleInfo>(),
 			IsDynamicTypeModuleLocalClass<IWin32DebuggingTargetExecutableModuleInfo>(),
 			{
 				DynamicTypeBaseClassDef<IWin32DebuggingTargetExecutableModuleInfo, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase>
@@ -84,7 +84,7 @@ namespace YBWLib2 {
 			0, sizeof(IWin32DebuggingTargetExecutableModuleInfo), alignof(IWin32DebuggingTargetExecutableModuleInfo)
 		);
 		IWin32DebuggingTargetExportSymbolInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IWin32DebuggingTargetExportSymbolInfo>(),
+			GetDynamicTypeClassPersistentID<IWin32DebuggingTargetExportSymbolInfo>(),
 			IsDynamicTypeModuleLocalClass<IWin32DebuggingTargetExportSymbolInfo>(),
 			{
 				DynamicTypeBaseClassDef<IWin32DebuggingTargetExportSymbolInfo, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase>
@@ -92,7 +92,7 @@ namespace YBWLib2 {
 			0, sizeof(IWin32DebuggingTargetExportSymbolInfo), alignof(IWin32DebuggingTargetExportSymbolInfo)
 		);
 		IWin32DebuggingProcess::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IWin32DebuggingProcess>(),
+			GetDynamicTypeClassPersistentID<IWin32DebuggingProcess>(),
 			IsDynamicTypeModuleLocalClass<IWin32DebuggingProcess>(),
 			{
 				DynamicTypeBaseClassDef<IWin32DebuggingProcess, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>
@@ -121,7 +121,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE DebuggingWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<UnsupportedTargetWin32ArchitectureException>(), &UnsupportedTargetWin32ArchitectureException::strtmpl_description }
 				});
@@ -144,18 +144,18 @@ namespace YBWLib2 {
 							|| jsonmemberit_config_internal_DebuggingWindows_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_DebuggingWindows_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_DebuggingWindows_strtmpl_description_element_dtclassid_object->value.GetString(),
 							jsonmemberit_config_internal_DebuggingWindows_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						is_successful = true;
-						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_DebuggingWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 							jsonmemberit_config_internal_DebuggingWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

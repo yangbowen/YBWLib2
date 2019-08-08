@@ -258,7 +258,7 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IReadableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IReadableFile)), module_info_current);
 		GetDynamicTypeClassObject<IWriteableFile>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IWriteableFile)), module_info_current);
 		FileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<FileException>(),
+			GetDynamicTypeClassPersistentID<FileException>(),
 			IsDynamicTypeModuleLocalClass<FileException>(),
 			{
 				DynamicTypeBaseClassDef<FileException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -266,7 +266,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(FileException), alignof(FileException));
 		BofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<BofFileException>(),
+			GetDynamicTypeClassPersistentID<BofFileException>(),
 			IsDynamicTypeModuleLocalClass<BofFileException>(),
 			{
 				DynamicTypeBaseClassDef<BofFileException, FileException, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -274,7 +274,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(BofFileException), alignof(BofFileException));
 		EofFileException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<EofFileException>(),
+			GetDynamicTypeClassPersistentID<EofFileException>(),
 			IsDynamicTypeModuleLocalClass<EofFileException>(),
 			{
 				DynamicTypeBaseClassDef<EofFileException, FileException, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -282,7 +282,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(EofFileException), alignof(EofFileException));
 		File::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<File>(),
+			GetDynamicTypeClassPersistentID<File>(),
 			IsDynamicTypeModuleLocalClass<File>(),
 			{
 				DynamicTypeBaseClassDef<File, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -290,7 +290,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(File), alignof(File));
 		SizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<SizedFile>(),
+			GetDynamicTypeClassPersistentID<SizedFile>(),
 			IsDynamicTypeModuleLocalClass<SizedFile>(),
 			{
 				DynamicTypeBaseClassDef<SizedFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -298,7 +298,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(SizedFile), alignof(SizedFile));
 		SeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<SeekableFile>(),
+			GetDynamicTypeClassPersistentID<SeekableFile>(),
 			IsDynamicTypeModuleLocalClass<SeekableFile>(),
 			{
 				DynamicTypeBaseClassDef<SeekableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -306,7 +306,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(SeekableFile), alignof(SeekableFile));
 		ReadableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ReadableFile>(),
+			GetDynamicTypeClassPersistentID<ReadableFile>(),
 			IsDynamicTypeModuleLocalClass<ReadableFile>(),
 			{
 				DynamicTypeBaseClassDef<ReadableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -314,7 +314,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(ReadableFile), alignof(ReadableFile));
 		WriteableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<WriteableFile>(),
+			GetDynamicTypeClassPersistentID<WriteableFile>(),
 			IsDynamicTypeModuleLocalClass<WriteableFile>(),
 			{
 				DynamicTypeBaseClassDef<WriteableFile, File, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -322,35 +322,35 @@ namespace YBWLib2 {
 			},
 			0, sizeof(WriteableFile), alignof(WriteableFile));
 		SizetSizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<SizetSizedFile>(),
+			GetDynamicTypeClassPersistentID<SizetSizedFile>(),
 			IsDynamicTypeModuleLocalClass<SizetSizedFile>(),
 			{
 				DynamicTypeBaseClassDef<SizetSizedFile, SizedFile, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(SizetSizedFile), alignof(SizetSizedFile));
 		SizetSeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<SizetSeekableFile>(),
+			GetDynamicTypeClassPersistentID<SizetSeekableFile>(),
 			IsDynamicTypeModuleLocalClass<SizetSeekableFile>(),
 			{
 				DynamicTypeBaseClassDef<SizetSeekableFile, SeekableFile, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(SizetSeekableFile), alignof(SizetSeekableFile));
 		ULongLongSizedFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ULongLongSizedFile>(),
+			GetDynamicTypeClassPersistentID<ULongLongSizedFile>(),
 			IsDynamicTypeModuleLocalClass<ULongLongSizedFile>(),
 			{
 				DynamicTypeBaseClassDef<ULongLongSizedFile, SizedFile, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(ULongLongSizedFile), alignof(ULongLongSizedFile));
 		ULongLongSeekableFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ULongLongSeekableFile>(),
+			GetDynamicTypeClassPersistentID<ULongLongSeekableFile>(),
 			IsDynamicTypeModuleLocalClass<ULongLongSeekableFile>(),
 			{
 				DynamicTypeBaseClassDef<ULongLongSeekableFile, SeekableFile, DynamicTypeBaseClassFlag_VirtualBase>
 			},
 			0, sizeof(ULongLongSeekableFile), alignof(ULongLongSeekableFile));
 		MemoryFile::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<MemoryFile>(),
+			GetDynamicTypeClassPersistentID<MemoryFile>(),
 			IsDynamicTypeModuleLocalClass<MemoryFile>(),
 			{
 				DynamicTypeBaseClassDef<MemoryFile, SizetSizedFile, DynamicTypeBaseClassFlag_VirtualBase>,

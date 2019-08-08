@@ -80,7 +80,8 @@ namespace YBWLib2 {
 
 	class ExceptionReturnParameterIndexedDataEntry final {
 	public:
-		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("6a63caff-efc1-4a3f-adf0-43b506e2f787");
+		static constexpr PersistentID persistentid_entryid = PersistentID(UUIDFromUUIDString_CompileTime("6a63caff-efc1-4a3f-adf0-43b506e2f787"));
+		static YBWLIB2_API IndexedDataEntryID entryid;
 		inline static ExceptionReturnParameterIndexedDataEntry* MoveFromStore(IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
 			if (!_ptr_placement) abort();
 			IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid);
@@ -124,20 +125,20 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit ExceptionReturnParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : exception(reinterpret_cast<IException*>(_indexeddatarawvalue.context.uintptr_context[0])) {
-			_indexeddatarawvalue.context.~context_t();
-			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		inline explicit ExceptionReturnParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : exception(::std::move(reinterpret_cast<IException*>(_indexeddatarawvalue.contextvalue))) {
+			_indexeddatarawvalue.contextvalue = 0;
+			_indexeddatarawvalue.fnptr_cleanup = nullptr;
 		}
 		inline operator IndexedDataRawValue() noexcept {
 			IException* _exception = this->exception;
 			this->exception = nullptr;
 			return IndexedDataRawValue(
 				[](IndexedDataRawValue* _indexeddatarawvalue) noexcept->void {
-					if (_indexeddatarawvalue && _indexeddatarawvalue->context.uintptr_context[0]) {
-						DeleteIException(reinterpret_cast<IException*>(_indexeddatarawvalue->context.uintptr_context[0]));
-						_indexeddatarawvalue->context.uintptr_context[0] = 0;
+					if (_indexeddatarawvalue && _indexeddatarawvalue->contextvalue) {
+						DeleteIException(reinterpret_cast<IException*>(_indexeddatarawvalue->contextvalue));
+						_indexeddatarawvalue->contextvalue = 0;
 					}
-				}, reinterpret_cast<uintptr_t>(_exception), 0);
+				}, reinterpret_cast<uintptr_t>(_exception));
 		}
 	};
 	static_assert(::std::is_standard_layout_v<ExceptionReturnParameterIndexedDataEntry>, "ExceptionReturnParameterIndexedDataEntry is not standard-layout.");

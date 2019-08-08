@@ -34,27 +34,27 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionWindows_RealInitGlobal() noexcept {
 		IExternalAPIFailureWithLastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IExternalAPIFailureWithLastErrorException>(),
+			GetDynamicTypeClassPersistentID<IExternalAPIFailureWithLastErrorException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithLastErrorException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithLastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithLastErrorException), alignof(IExternalAPIFailureWithLastErrorException));
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
 		IExternalAPIFailureWithWSALastErrorException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IExternalAPIFailureWithWSALastErrorException>(),
+			GetDynamicTypeClassPersistentID<IExternalAPIFailureWithWSALastErrorException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithWSALastErrorException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithWSALastErrorException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithWSALastErrorException), alignof(IExternalAPIFailureWithWSALastErrorException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_NTSTATUS
 		IExternalAPIFailureWithNTSTATUSException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IExternalAPIFailureWithNTSTATUSException>(),
+			GetDynamicTypeClassPersistentID<IExternalAPIFailureWithNTSTATUSException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithNTSTATUSException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithNTSTATUSException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithNTSTATUSException), alignof(IExternalAPIFailureWithNTSTATUSException));
 #endif
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_HRESULT
 		IExternalAPIFailureWithHRESULTException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IExternalAPIFailureWithHRESULTException>(),
+			GetDynamicTypeClassPersistentID<IExternalAPIFailureWithHRESULTException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureWithHRESULTException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureWithHRESULTException, IExternalAPIFailureException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureWithHRESULTException), alignof(IExternalAPIFailureWithHRESULTException));
@@ -80,7 +80,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<ExternalAPIFailureWithLastErrorException>(), &ExternalAPIFailureWithLastErrorException::strtmpl_description }
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA
@@ -112,18 +112,18 @@ namespace YBWLib2 {
 							|| jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_ExceptionWindows_strtmpl_description_element.MemberEnd()
 							) abort();
 						bool is_successful = true;
-						DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object->value.GetString(),
 							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						is_successful = true;
-						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+						DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 							jsonmemberit_config_internal_ExceptionWindows_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 							is_successful
-						);
+						)));
 						if (!is_successful) abort();
 						map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 						if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

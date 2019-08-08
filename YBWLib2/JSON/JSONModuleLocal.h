@@ -128,7 +128,7 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IJSONSAXHandler>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IJSONSAXHandler)), module_info_current);
 		GetDynamicTypeClassObject<IJSONSAXGenerator>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IJSONSAXGenerator)), module_info_current);
 		JSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<JSONException>(),
+			GetDynamicTypeClassPersistentID<JSONException>(),
 			IsDynamicTypeModuleLocalClass<JSONException>(),
 			{
 				DynamicTypeBaseClassDef<JSONException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -136,7 +136,7 @@ namespace YBWLib2 {
 			},
 			0, sizeof(JSONException), alignof(JSONException));
 		ParseErrorJSONException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ParseErrorJSONException>(),
+			GetDynamicTypeClassPersistentID<ParseErrorJSONException>(),
 			IsDynamicTypeModuleLocalClass<ParseErrorJSONException>(),
 			{
 				DynamicTypeBaseClassDef<ParseErrorJSONException, JSONException, DynamicTypeBaseClassFlag_VirtualBase>,

@@ -22,41 +22,34 @@ namespace YBWLib2 {
 	//{ DynamicTypeClassID
 
 	/// <summary>Unique identifier used to identify a dynamic type class.</summary>
-	struct DynamicTypeClassID {
-		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-		/// <summary>An equal-to comparing function for <c>DynamicTypeClassID</c>.</summary>
-		static inline bool IsEqualTo(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
-		/// <summary>
-		/// A less-than comparing function for <c>DynamicTypeClassID</c>.
-		/// The behaviour is equivalent to comparing the binary representation of the <c>DynamicTypeClassID</c> from byte to byte lexicographically.
-		/// </summary>
-		static inline bool IsLessThan(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
-		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const DynamicTypeClassID& l, const DynamicTypeClassID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
-		inline bool operator==(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsEqualTo(*this, r); }
-		inline bool operator!=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsEqualTo(*this, r); }
-		inline bool operator<(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(*this, r); }
-		inline bool operator<=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(r, *this); }
-		inline bool operator>(const DynamicTypeClassID& r) const { return DynamicTypeClassID::IsLessThan(r, *this); }
-		inline bool operator>=(const DynamicTypeClassID& r) const { return !DynamicTypeClassID::IsLessThan(*this, r); }
-		inline size_t hash() const { return this->uuid.hash(); }
+	struct DynamicTypeClassID : public VolatileID {
+		constexpr DynamicTypeClassID() noexcept = default;
+		explicit DynamicTypeClassID(const VolatileID& _volatileid) noexcept : VolatileID(_volatileid) {}
+		explicit DynamicTypeClassID(VolatileID&& _volatileid) noexcept : VolatileID(::std::move(_volatileid)) {}
+		explicit DynamicTypeClassID(const PersistentID& _persistentid) noexcept : VolatileID(_persistentid) {}
+		DynamicTypeClassID(const DynamicTypeClassID& x) noexcept = default;
+		DynamicTypeClassID(DynamicTypeClassID&& x) noexcept = default;
+		~DynamicTypeClassID() = default;
+		DynamicTypeClassID& operator=(const DynamicTypeClassID& x) noexcept = default;
+		DynamicTypeClassID& operator=(DynamicTypeClassID&& x) noexcept = default;
+		bool operator==(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) == static_cast<const VolatileID&>(r); }
+		bool operator!=(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) != static_cast<const VolatileID&>(r); }
+		bool operator<(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) < static_cast<const VolatileID&>(r); }
+		bool operator<=(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
+		bool operator>(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
+		bool operator>=(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
+		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
+		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
-
-	struct hash_DynamicTypeClassID_t {
+	static_assert(::std::is_standard_layout_v<DynamicTypeClassID>, "DynamicTypeClassID is not standard-layout.");
+	
+	template<>
+	struct hash<DynamicTypeClassID> {
 		inline size_t operator()(const DynamicTypeClassID& x) const {
 			return x.hash();
 		}
 	};
-	constexpr hash_DynamicTypeClassID_t hash_DynamicTypeClassID {};
-	/// <summary>
-	/// A null <c>DynamicTypeClassID</c>.
-	/// Classes with a null <c>DynamicTypeClassID</c> are not registered and therefore cannot be further inherited from.
-	/// </summary>
-	constexpr DynamicTypeClassID DynamicTypeClassID_Null = { UUID_Null };
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>DynamicTypeClassID</c> identifier at compile time.</summary>
-	inline constexpr DynamicTypeClassID DynamicTypeClassIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>DynamicTypeClassID</c> identifier at run time.</summary>
-	inline DynamicTypeClassID DynamicTypeClassIDFromUUIDString_RunTime(const char* str, size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	//}
 #pragma endregion DynamicTypeClassID is used to uniquely identify a dynamic type class. Keep in mind that module-local dynamic type classes can have the same DynamicTypeClassID in different executable modules.
@@ -105,16 +98,25 @@ namespace YBWLib2 {
 		return _Class_Ty::DynamicTypeThisClassObject;
 	}
 	/// <summary>
-	/// Gets a reference to the <c>DynamicTypeClassID</c> identifier that identifies the specified class type.
-	/// Use this template function instead of directly referencing the <c>DynamicTypeThisClassID</c> static member variable.
-	/// Provide specializations for this template to support classes that do not declare the <c>DynamicTypeClassID</c> identifier as the static member variable <c>DynamicTypeThisClassID</c>.
+	/// Gets a reference to the <c>PersistentID</c> identifier that persistently identifies the specified class type.
+	/// Use this template function instead of directly referencing the <c>DynamicTypeThisClassPersistentID</c> static member variable.
+	/// Provide specializations for this template to support classes that do not declare the <c>PersistentID</c> identifier as the static member variable <c>DynamicTypeThisClassPersistentID</c>.
 	/// Notice that this identifier must be either <c>constexpr</c> or statically initialized, so that it's available before global constructors get executed.
 	/// </summary>
+	template<typename _Class_Ty>
+	inline constexpr const PersistentID& GetDynamicTypeClassPersistentID() {
+		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
+		return _Class_Ty::DynamicTypeThisClassPersistentID;
+	}
+	/// <summary>Gets a reference to the <c>DynamicTypeClassID</c> identifier that identifies the specified class type.</summary>
 	template<typename _Class_Ty>
 	inline constexpr const DynamicTypeClassID& GetDynamicTypeClassID() {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
-		return _Class_Ty::DynamicTypeThisClassID;
+		DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Class_Ty>();
+		assert(dtclassobj);
+		return dtclassobj->GetDynamicTypeClassID();
 	}
 	/// <summary>
 	/// Gets a function pointer to a function that statically casts a pointer from one dynamic type class to another.
@@ -197,7 +199,7 @@ namespace YBWLib2 {
 		/// </returns>
 		static DynamicTypeClassObj* FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) noexcept;
 		inline DynamicTypeClassObj(
-			const DynamicTypeClassID& _dtclassid,
+			const PersistentID& _persistentid_dtclassid,
 			bool _is_module_local,
 			::std::initializer_list<DynamicTypeBaseClassDefObj> _dtbaseclassdef,
 			size_t _extent_before,
@@ -207,7 +209,7 @@ namespace YBWLib2 {
 			fnptr_placement_create_object_t _fnptr_placement_create_object = nullptr,
 			fnptr_delete_object_t _fnptr_delete_object = nullptr
 		)
-			: dtclassid(_dtclassid),
+			: dtclassid(_persistentid_dtclassid),
 			is_module_local(_is_module_local),
 			extent_before(_extent_before),
 			extent_after(_extent_after),
@@ -216,12 +218,12 @@ namespace YBWLib2 {
 			fnptr_placement_create_object(_fnptr_placement_create_object),
 			fnptr_delete_object(_fnptr_delete_object) {
 			this->CreateImplObject(_dtbaseclassdef.begin(), _dtbaseclassdef.end());
-			if (this->dtclassid != DynamicTypeClassID_Null) this->Register();
+			if (this->dtclassid) this->Register();
 		}
 		DynamicTypeClassObj(const DynamicTypeClassObj&) = delete;
 		DynamicTypeClassObj(DynamicTypeClassObj&&) = delete;
 		inline ~DynamicTypeClassObj() {
-			if (this->dtclassid != DynamicTypeClassID_Null) this->UnRegister();
+			if (this->dtclassid) this->UnRegister();
 			this->DestroyImplObject();
 		}
 		DynamicTypeClassObj& operator=(const DynamicTypeClassObj&) = delete;
@@ -386,7 +388,7 @@ namespace YBWLib2 {
 			module_info(_is_module_local ? module_info_current : nullptr),
 			dtbaseclassflags(_dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(_fnptr_dynamic_type_static_upcast) {
-			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			if (!this->dtclassid) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
@@ -405,7 +407,7 @@ namespace YBWLib2 {
 			module_info(x.module_info),
 			dtbaseclassflags(x.dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
-			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			if (!this->dtclassid) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
@@ -424,7 +426,7 @@ namespace YBWLib2 {
 			module_info(x.module_info),
 			dtbaseclassflags(x.dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
-			if (this->dtclassid == DynamicTypeClassID_Null) abort();
+			if (!this->dtclassid) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
@@ -462,12 +464,12 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<DynamicTypeBaseClassDefObj>, "DynamicTypeBaseClassDefObj is not standard-layout.");
 
-	struct hash_DynamicTypeBaseClassDefObj_t {
+	template<>
+	struct hash<DynamicTypeBaseClassDefObj> {
 		inline size_t operator()(const DynamicTypeBaseClassDefObj& x) const {
 			return x.hash();
 		}
 	};
-	constexpr hash_DynamicTypeBaseClassDefObj_t hash_DynamicTypeBaseClassDefObj {};
 
 	//}
 #pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
@@ -479,56 +481,70 @@ namespace YBWLib2 {
 	/// Unique identifier used to identify a constructor.
 	/// Constructors in different classes may have the same constructor ID.
 	/// </summary>
-	struct ConstructorID {
-		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-		/// <summary>An equal-to comparing function for <c>ConstructorID</c>.</summary>
-		static inline bool IsEqualTo(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
-		/// <summary>
-		/// A less-than comparing function for <c>ConstructorID</c>.
-		/// The behaviour is equivalent to comparing the binary representation of the <c>ConstructorID</c> from byte to byte lexicographically.
-		/// </summary>
-		static inline bool IsLessThan(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
-		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const ConstructorID& l, const ConstructorID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
-		inline bool operator==(const ConstructorID& r) const { return ConstructorID::IsEqualTo(*this, r); }
-		inline bool operator!=(const ConstructorID& r) const { return !ConstructorID::IsEqualTo(*this, r); }
-		inline bool operator<(const ConstructorID& r) const { return ConstructorID::IsLessThan(*this, r); }
-		inline bool operator<=(const ConstructorID& r) const { return !ConstructorID::IsLessThan(r, *this); }
-		inline bool operator>(const ConstructorID& r) const { return ConstructorID::IsLessThan(r, *this); }
-		inline bool operator>=(const ConstructorID& r) const { return !ConstructorID::IsLessThan(*this, r); }
-		inline size_t hash() const { return this->uuid.hash(); }
+	struct ConstructorID : public VolatileID {
+		constexpr ConstructorID() noexcept = default;
+		explicit ConstructorID(const VolatileID& _volatileid) noexcept : VolatileID(_volatileid) {}
+		explicit ConstructorID(VolatileID&& _volatileid) noexcept : VolatileID(::std::move(_volatileid)) {}
+		explicit ConstructorID(const PersistentID& _persistentid) noexcept : VolatileID(_persistentid) {}
+		ConstructorID(const ConstructorID& x) noexcept = default;
+		ConstructorID(ConstructorID&& x) noexcept = default;
+		~ConstructorID() = default;
+		ConstructorID& operator=(const ConstructorID& x) noexcept = default;
+		ConstructorID& operator=(ConstructorID&& x) noexcept = default;
+		bool operator==(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) == static_cast<const VolatileID&>(r); }
+		bool operator!=(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) != static_cast<const VolatileID&>(r); }
+		bool operator<(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) < static_cast<const VolatileID&>(r); }
+		bool operator<=(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
+		bool operator>(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
+		bool operator>=(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
+		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
+		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
+	static_assert(::std::is_standard_layout_v<ConstructorID>, "ConstructorID is not standard-layout.");
 
-	struct hash_ConstructorID_t {
+	template<>
+	struct hash<ConstructorID> {
 		inline size_t operator()(const ConstructorID& x) const {
 			return x.hash();
 		}
 	};
-	constexpr hash_ConstructorID_t hash_ConstructorID {};
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>ConstructorID</c> identifier at compile time.</summary>
-	inline constexpr ConstructorID ConstructorIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>ConstructorID</c> identifier at run time.</summary>
-	inline ConstructorID ConstructorIDFromUUIDString_RunTime(const char* str, size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	/// <summary>
 	/// Default constructor.
 	/// No additional parameters are defined.
 	/// </summary>
-	constexpr ConstructorID ConstructorID_Default = ConstructorIDFromUUIDString_CompileTime("47b6f6f3-0981-4475-85b6-72c9ea1ed269");
+	constexpr PersistentID PersistentID_ConstructorID_Default = PersistentID(UUIDFromUUIDString_CompileTime("47b6f6f3-0981-4475-85b6-72c9ea1ed269"));
 	/// <summary>
 	/// Copy constructor.
 	/// The pointer to the object to be copied from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
 	/// </summary>
-	constexpr ConstructorID ConstructorID_Copy = ConstructorIDFromUUIDString_CompileTime("c3cee6f1-891a-4a77-85bf-47e3eaf06ee2");
+	constexpr PersistentID PersistentID_ConstructorID_Copy = PersistentID(UUIDFromUUIDString_CompileTime("c3cee6f1-891a-4a77-85bf-47e3eaf06ee2"));
 	/// <summary>
 	/// Move constructor.
 	/// The pointer to the object to be moved from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
 	/// </summary>
-	constexpr ConstructorID ConstructorID_Move = ConstructorIDFromUUIDString_CompileTime("d554cab4-ecc4-43f6-9171-bb4ba483de05");
+	constexpr PersistentID PersistentID_ConstructorID_Move = PersistentID(UUIDFromUUIDString_CompileTime("d554cab4-ecc4-43f6-9171-bb4ba483de05"));
+	/// <summary>
+	/// Default constructor.
+	/// No additional parameters are defined.
+	/// </summary>
+	extern YBWLIB2_API ConstructorID ConstructorID_Default;
+	/// <summary>
+	/// Copy constructor.
+	/// The pointer to the object to be copied from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
+	/// </summary>
+	extern YBWLIB2_API ConstructorID ConstructorID_Copy;
+	/// <summary>
+	/// Move constructor.
+	/// The pointer to the object to be moved from is passed as a parameter using <c>ObjectPointerFromParameterIndexedDataEntry</c>.
+	/// </summary>
+	extern YBWLIB2_API ConstructorID ConstructorID_Move;
 
 	class ConstructorIDParameterIndexedDataEntry final {
 	public:
-		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("1ad0e374-8406-40c9-86f5-1f686ca45a03");
+		static constexpr PersistentID persistentid_entryid = PersistentID(UUIDFromUUIDString_CompileTime("1ad0e374-8406-40c9-86f5-1f686ca45a03"));
+		static YBWLIB2_API IndexedDataEntryID entryid;
 		inline static ConstructorIDParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
 			if (!_ptr_placement) abort();
 			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
@@ -558,9 +574,9 @@ namespace YBWLib2 {
 			_indexeddatastore.RemoveEntryByEntryID(ConstructorIDParameterIndexedDataEntry::entryid);
 		}
 		ConstructorID ctorid;
-		inline explicit constexpr ConstructorIDParameterIndexedDataEntry(const ConstructorID& _ctorid) noexcept : ctorid(_ctorid) {}
-		inline constexpr ConstructorIDParameterIndexedDataEntry(const ConstructorIDParameterIndexedDataEntry& x) noexcept : ctorid(x.ctorid) {}
-		inline constexpr ConstructorIDParameterIndexedDataEntry(ConstructorIDParameterIndexedDataEntry&& x) noexcept : ctorid(x.ctorid) {
+		inline explicit ConstructorIDParameterIndexedDataEntry(const ConstructorID& _ctorid) noexcept : ctorid(_ctorid) {}
+		inline ConstructorIDParameterIndexedDataEntry(const ConstructorIDParameterIndexedDataEntry& x) noexcept : ctorid(x.ctorid) {}
+		inline ConstructorIDParameterIndexedDataEntry(ConstructorIDParameterIndexedDataEntry&& x) noexcept : ctorid(::std::move(x.ctorid)) {
 			x.ctorid = ConstructorID();
 		}
 		inline ~ConstructorIDParameterIndexedDataEntry() {
@@ -576,18 +592,28 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr ConstructorIDParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : ctorid { _indexeddatarawvalue.context.uuid_context } {}
-		inline explicit ConstructorIDParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : ctorid { _indexeddatarawvalue.context.uuid_context } {
-			_indexeddatarawvalue.context.~context_t();
-			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		inline explicit ConstructorIDParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : ctorid(*reinterpret_cast<const ConstructorID*>(&_indexeddatarawvalue.contextvalue)) {}
+		inline explicit ConstructorIDParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : ctorid(::std::move(*reinterpret_cast<ConstructorID*>(&_indexeddatarawvalue.contextvalue))) {}
+		inline operator IndexedDataRawValue() const noexcept {
+			uintptr_t _contextvalue = 0;
+			new (&_contextvalue) ConstructorID(this->ctorid);
+			return IndexedDataRawValue(
+				[](IndexedDataRawValue* x) noexcept->void {
+					if (x) {
+						reinterpret_cast<ConstructorID*>(&x->contextvalue)->~ConstructorID();
+						x->contextvalue = 0;
+					}
+				},
+				_contextvalue
+				);
 		}
-		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, this->ctorid.uuid); }
 	};
 	static_assert(::std::is_standard_layout_v<ConstructorIDParameterIndexedDataEntry>, "ConstructorIDParameterIndexedDataEntry is not standard-layout.");
 
 	class ObjectPointerFromParameterIndexedDataEntry final {
 	public:
-		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("95ca9ad6-1718-4e19-8491-8915aeadf6d1");
+		static constexpr PersistentID persistentid_entryid = PersistentID(UUIDFromUUIDString_CompileTime("95ca9ad6-1718-4e19-8491-8915aeadf6d1"));
+		static YBWLIB2_API IndexedDataEntryID entryid;
 		inline static ObjectPointerFromParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
 			if (!_ptr_placement) abort();
 			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid);
@@ -619,7 +645,7 @@ namespace YBWLib2 {
 		uintptr_t uintptr_ptr_obj = 0;
 		inline explicit constexpr ObjectPointerFromParameterIndexedDataEntry(uintptr_t _uintptr_ptr_obj) noexcept : uintptr_ptr_obj(_uintptr_ptr_obj) {}
 		inline constexpr ObjectPointerFromParameterIndexedDataEntry(const ObjectPointerFromParameterIndexedDataEntry& x) noexcept : uintptr_ptr_obj(x.uintptr_ptr_obj) {}
-		inline constexpr ObjectPointerFromParameterIndexedDataEntry(ObjectPointerFromParameterIndexedDataEntry&& x) noexcept : uintptr_ptr_obj(x.uintptr_ptr_obj) {
+		inline constexpr ObjectPointerFromParameterIndexedDataEntry(ObjectPointerFromParameterIndexedDataEntry&& x) noexcept : uintptr_ptr_obj(::std::move(x.uintptr_ptr_obj)) {
 			x.uintptr_ptr_obj = 0;
 		}
 		inline ~ObjectPointerFromParameterIndexedDataEntry() {
@@ -635,12 +661,11 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr ObjectPointerFromParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.context.uintptr_context[0]) {}
-		inline explicit ObjectPointerFromParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.context.uintptr_context[0]) {
-			_indexeddatarawvalue.context.~context_t();
-			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		inline explicit ObjectPointerFromParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : uintptr_ptr_obj(_indexeddatarawvalue.contextvalue) {}
+		inline explicit ObjectPointerFromParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : uintptr_ptr_obj(::std::move(_indexeddatarawvalue.contextvalue)) {
+			_indexeddatarawvalue.contextvalue = 0;
 		}
-		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, this->uintptr_ptr_obj, 0); }
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, this->uintptr_ptr_obj); }
 	};
 	static_assert(::std::is_standard_layout_v<ObjectPointerFromParameterIndexedDataEntry>, "ObjectPointerFromParameterIndexedDataEntry is not standard-layout.");
 
@@ -698,25 +723,25 @@ static constexpr bool DynamicTypeNoClass = true
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(classname, specifiers_dtclassobj, string_dtclassid) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = false;\
-static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassIDFromUUIDString_CompileTime(string_dtclassid);\
+static constexpr ::YBWLib2::PersistentID DynamicTypeThisClassPersistentID = ::YBWLib2::PersistentID(::YBWLib2::UUIDFromUUIDString_CompileTime(string_dtclassid));\
 static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_NULL_ID_GLOBAL(classname, specifiers_dtclassobj) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = false;\
-static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassID_Null;\
+static constexpr ::YBWLib2::PersistentID DynamicTypeThisClassPersistentID = ::YBWLib2::PersistentID();\
 static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(classname, specifiers_dtclassobj, string_dtclassid) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = true;\
-static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassIDFromUUIDString_CompileTime(string_dtclassid);\
+static constexpr ::YBWLib2::PersistentID DynamicTypeThisClassPersistentID = ::YBWLib2::PersistentID(::YBWLib2::UUIDFromUUIDString_CompileTime(string_dtclassid));\
 static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_NULL_ID_MODULE_LOCAL(classname, specifiers_dtclassobj) \
 static constexpr bool DynamicTypeNoClass = false;\
 static constexpr bool DynamicTypeModuleLocalClass = true;\
-static constexpr ::YBWLib2::DynamicTypeClassID DynamicTypeThisClassID = ::YBWLib2::DynamicTypeClassID_Null;\
+static constexpr ::YBWLib2::PersistentID DynamicTypeThisClassPersistentID = ::YBWLib2::PersistentID();\
 static specifiers_dtclassobj ::YBWLib2::DynamicTypeClassObj* DynamicTypeThisClassObject
 
 #define YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(classname, specifiers_dtclassobj) \

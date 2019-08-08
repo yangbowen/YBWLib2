@@ -161,62 +161,62 @@ namespace YBWLib2 {
 		if (!rawallocator_exception) abort();
 
 		IException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IException>(),
+			GetDynamicTypeClassPersistentID<IException>(),
 			IsDynamicTypeModuleLocalClass<IException>(),
 			{ DynamicTypeBaseClassDef<IException, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IException), alignof(IException));
 		IDoubleExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IDoubleExceptionException>(),
+			GetDynamicTypeClassPersistentID<IDoubleExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IDoubleExceptionException>(),
 			{ DynamicTypeBaseClassDef<IDoubleExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IDoubleExceptionException), alignof(IDoubleExceptionException));
 		IInvalidParameterException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IInvalidParameterException>(),
+			GetDynamicTypeClassPersistentID<IInvalidParameterException>(),
 			IsDynamicTypeModuleLocalClass<IInvalidParameterException>(),
 			{ DynamicTypeBaseClassDef<IInvalidParameterException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInvalidParameterException), alignof(IInvalidParameterException));
 		IInvalidCallException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IInvalidCallException>(),
+			GetDynamicTypeClassPersistentID<IInvalidCallException>(),
 			IsDynamicTypeModuleLocalClass<IInvalidCallException>(),
 			{ DynamicTypeBaseClassDef<IInvalidCallException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInvalidCallException), alignof(IInvalidCallException));
 		IInsufficientBufferException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IInsufficientBufferException>(),
+			GetDynamicTypeClassPersistentID<IInsufficientBufferException>(),
 			IsDynamicTypeModuleLocalClass<IInsufficientBufferException>(),
 			{ DynamicTypeBaseClassDef<IInsufficientBufferException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IInsufficientBufferException), alignof(IInsufficientBufferException));
 		IMemoryAllocFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IMemoryAllocFailureException>(),
+			GetDynamicTypeClassPersistentID<IMemoryAllocFailureException>(),
 			IsDynamicTypeModuleLocalClass<IMemoryAllocFailureException>(),
 			{ DynamicTypeBaseClassDef<IMemoryAllocFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IMemoryAllocFailureException), alignof(IMemoryAllocFailureException));
 		IKeyAlreadyExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IKeyAlreadyExistException>(),
+			GetDynamicTypeClassPersistentID<IKeyAlreadyExistException>(),
 			IsDynamicTypeModuleLocalClass<IKeyAlreadyExistException>(),
 			{ DynamicTypeBaseClassDef<IKeyAlreadyExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IKeyAlreadyExistException), alignof(IKeyAlreadyExistException));
 		IKeyNotExistException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IKeyNotExistException>(),
+			GetDynamicTypeClassPersistentID<IKeyNotExistException>(),
 			IsDynamicTypeModuleLocalClass<IKeyNotExistException>(),
 			{ DynamicTypeBaseClassDef<IKeyNotExistException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IKeyNotExistException), alignof(IKeyNotExistException));
 		IUnhandledUnknownExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IUnhandledUnknownExceptionException>(),
+			GetDynamicTypeClassPersistentID<IUnhandledUnknownExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IUnhandledUnknownExceptionException>(),
 			{ DynamicTypeBaseClassDef<IUnhandledUnknownExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IUnhandledUnknownExceptionException), alignof(IUnhandledUnknownExceptionException));
 		ISTLExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<ISTLExceptionException>(),
+			GetDynamicTypeClassPersistentID<ISTLExceptionException>(),
 			IsDynamicTypeModuleLocalClass<ISTLExceptionException>(),
 			{ DynamicTypeBaseClassDef<ISTLExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(ISTLExceptionException), alignof(ISTLExceptionException));
 		IExternalAPIFailureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IExternalAPIFailureException>(),
+			GetDynamicTypeClassPersistentID<IExternalAPIFailureException>(),
 			IsDynamicTypeModuleLocalClass<IExternalAPIFailureException>(),
 			{ DynamicTypeBaseClassDef<IExternalAPIFailureException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IExternalAPIFailureException), alignof(IExternalAPIFailureException));
 		IUnexpectedExceptionException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<IUnexpectedExceptionException>(),
+			GetDynamicTypeClassPersistentID<IUnexpectedExceptionException>(),
 			IsDynamicTypeModuleLocalClass<IUnexpectedExceptionException>(),
 			{ DynamicTypeBaseClassDef<IUnexpectedExceptionException, IException, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IUnexpectedExceptionException), alignof(IUnexpectedExceptionException));
@@ -259,7 +259,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash_DynamicTypeClassID_t> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<Exception>(), &Exception::strtmpl_description },
 				{ GetDynamicTypeClassID<DoubleExceptionException>(), &DoubleExceptionException::strtmpl_description },
@@ -288,11 +288,11 @@ namespace YBWLib2 {
 						|| jsonmemberit_config_internal_Exception_strtmpl_delimiter_cause_description_exception_jsonval_strtmpl == jsonmemberit_config_internal_Exception_strtmpl_delimiter_cause_description_exception->value.MemberEnd()
 						) abort();
 					bool is_successful = true;
-					DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+					DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 						jsonmemberit_config_internal_Exception_strtmpl_delimiter_cause_description_exception_dtclassid_strtmpl->value.GetString(),
 						jsonmemberit_config_internal_Exception_strtmpl_delimiter_cause_description_exception_dtclassid_strtmpl->value.GetStringLength(),
 						is_successful
-					);
+					)));
 					if (!is_successful) abort();
 					DynamicTypeClassObj* dtclassobj_strtmpl = DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(&dtclassid_strtmpl);
 					if (!dtclassobj_strtmpl) abort();
@@ -327,18 +327,18 @@ namespace YBWLib2 {
 								|| jsonmemberit_config_internal_Exception_strtmpl_description_element_jsonval_strtmpl == jsonval_config_internal_Exception_strtmpl_description_element.MemberEnd()
 								) abort();
 							bool is_successful = true;
-							DynamicTypeClassID dtclassid_object = DynamicTypeClassIDFromUUIDString_RunTime(
+							DynamicTypeClassID dtclassid_object = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 								jsonmemberit_config_internal_Exception_strtmpl_description_element_dtclassid_object->value.GetString(),
 								jsonmemberit_config_internal_Exception_strtmpl_description_element_dtclassid_object->value.GetStringLength(),
 								is_successful
-							);
+							)));
 							if (!is_successful) abort();
 							is_successful = true;
-							DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassIDFromUUIDString_RunTime(
+							DynamicTypeClassID dtclassid_strtmpl = DynamicTypeClassID(PersistentID(UUIDFromUUIDString_RunTime(
 								jsonmemberit_config_internal_Exception_strtmpl_description_element_dtclassid_strtmpl->value.GetString(),
 								jsonmemberit_config_internal_Exception_strtmpl_description_element_dtclassid_strtmpl->value.GetStringLength(),
 								is_successful
-							);
+							)));
 							if (!is_successful) abort();
 							map_strtmpl_description_t::iterator it_map_strtmpl_description = map_strtmpl_description.find(dtclassid_object);
 							if (it_map_strtmpl_description == map_strtmpl_description.end()) continue;

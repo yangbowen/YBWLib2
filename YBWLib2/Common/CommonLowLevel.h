@@ -4,10 +4,14 @@
 #include <cstdint>
 #include <cinttypes>
 #include <cstdlib>
+#include <cassert>
 #include <type_traits>
 #include <utility>
 #include <new>
+#include <memory>
 #include <unordered_map>
+#include <atomic>
+#include <mutex>
 #include <typeinfo>
 #include "../YBWLib2Api.h"
 
@@ -32,6 +36,9 @@ namespace YBWLib2 {
 			typename ::std::conditional_t<::std::is_volatile_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
 			>>;
 	};
+
+	template<typename _Ty>
+	struct hash;
 
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
@@ -197,8 +204,18 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Calculates the greatest common denominator of two values.</summary>
-	template<typename _Ty>
-	inline constexpr _Ty greatest_common_denominator(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> a, std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> b) {
+	template<typename _Ty, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline constexpr _Ty greatest_common_denominator(_Ty a, _Ty b) {
+		_Ty c(a % b);
+		if (!c)
+			return b;
+		else
+			return greatest_common_denominator<_Ty>(b, c);
+	}
+
+	/// <summary>Calculates the greatest common denominator of two values.</summary>
+	template<typename _Ty, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline constexpr _Ty greatest_common_denominator(const _Ty& a, const _Ty& b) {
 		_Ty c(a % b);
 		if (!c)
 			return b;
@@ -207,8 +224,14 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Calculates the least common multiple of two values.</summary>
-	template<typename _Ty>
-	inline constexpr _Ty least_common_multiple(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> a, std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> b) {
+	template<typename _Ty, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline constexpr _Ty least_common_multiple(_Ty a, _Ty b) {
+		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
+	}
+
+	/// <summary>Calculates the least common multiple of two values.</summary>
+	template<typename _Ty, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline constexpr _Ty least_common_multiple(const _Ty& a, const _Ty& b) {
 		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
 	}
 
@@ -258,8 +281,14 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed>
-	inline _Ty least_common_multiple_optimized1(std::conditional_t<std::is_fundamental_v<_Ty>, _Ty, const _Ty&> value_runtime) {
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline _Ty least_common_multiple_optimized1(_Ty value_runtime) {
+		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+	}
+
+	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
+	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
+	inline _Ty least_common_multiple_optimized1(const _Ty& value_runtime) {
 		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
 	}
 
@@ -431,6 +460,12 @@ namespace YBWLib2 {
 			}
 		}
 		uint8_t data[0x10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		constexpr UUID() noexcept = default;
+		constexpr UUID(const UUID& x) noexcept = default;
+		constexpr UUID(UUID&& x) noexcept = default;
+		~UUID() = default;
+		UUID& operator=(const UUID& x) noexcept = default;
+		UUID& operator=(UUID&& x) noexcept = default;
 		inline bool operator==(const UUID& r) const { return UUID::IsEqualTo(*this, r); }
 		inline bool operator!=(const UUID& r) const { return !UUID::IsEqualTo(*this, r); }
 		inline bool operator<(const UUID& r) const { return UUID::IsLessThan(*this, r); }
@@ -441,14 +476,12 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<UUID>, "UUID is not standard-layout.");
 
-	struct hash_UUID_t {
+	template<>
+	struct hash<UUID> {
 		inline size_t operator()(const UUID& x) const {
 			return x.hash();
 		}
 	};
-	constexpr hash_UUID_t hash_UUID {};
-	/// <summary>A null <c>UUID</c>.</summary>
-	constexpr UUID UUID_Null = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>UUID</c> identifier at compile time.</summary>
 	inline constexpr UUID UUIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept {
 		if (str[8] != '-'
@@ -489,6 +522,132 @@ namespace YBWLib2 {
 
 	//}
 #pragma endregion Universally unique identifier.
+
+	struct PersistentID;
+	class VolatileIDAnchor;
+	struct VolatileID;
+
+	struct PersistentID {
+		UUID uuid;
+		constexpr PersistentID() noexcept = default;
+		explicit constexpr PersistentID(const UUID& _uuid) noexcept : uuid(_uuid) {}
+		explicit constexpr PersistentID(UUID&& _uuid) noexcept : uuid(_uuid) {}
+		constexpr PersistentID(const PersistentID& x) noexcept = default;
+		constexpr PersistentID(PersistentID&& x) noexcept = default;
+		~PersistentID() = default;
+		PersistentID& operator=(const PersistentID& x) noexcept = default;
+		PersistentID& operator=(PersistentID&& x) noexcept = default;
+		bool operator==(const PersistentID& r) const { return this->uuid == r.uuid; }
+		bool operator!=(const PersistentID& r) const { return this->uuid != r.uuid; }
+		bool operator<(const PersistentID& r) const { return this->uuid < r.uuid; }
+		bool operator<=(const PersistentID& r) const { return this->uuid <= r.uuid; }
+		bool operator>(const PersistentID& r) const { return this->uuid > r.uuid; }
+		bool operator>=(const PersistentID& r) const { return this->uuid >= r.uuid; }
+		size_t hash() const { return this->uuid.hash(); }
+	};
+	static_assert(::std::is_standard_layout_v<PersistentID>, "PersistentID is not standard-layout.");
+
+	template<>
+	struct hash<PersistentID> {
+		inline size_t operator()(const PersistentID& x) const {
+			return x.hash();
+		}
+	};
+
+	class VolatileIDAnchor final {
+		friend struct VolatileID;
+		friend void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept;
+		friend void YBWLIB2_CALLTYPE CommonLowLevel_RealUnInitGlobal() noexcept;
+	public:
+		VolatileIDAnchor(const VolatileIDAnchor&) = delete;
+		VolatileIDAnchor(VolatileIDAnchor&&) = delete;
+		~VolatileIDAnchor() {
+			assert(!this->refcount.load(::std::memory_order_acquire));
+		}
+		VolatileIDAnchor& operator=(const VolatileIDAnchor&) = delete;
+		VolatileIDAnchor& operator=(VolatileIDAnchor&&) = delete;
+		const PersistentID& GetPersistentID() const noexcept { return this->persistentid; }
+	protected:
+		static YBWLIB2_API ::std::mutex* mtx_map_volatileidanchor;
+		static YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>* map_volatileidanchor;
+		static YBWLIB2_API VolatileIDAnchor* ReferenceVolatileIDAnchorFromPersistentID(const PersistentID* _persistentid) noexcept;
+		YBWLIB2_API void IncrementReferenceCount() const noexcept;
+		YBWLIB2_API void DecrementReferenceCount() const noexcept;
+	private:
+		mutable ::std::atomic<uintptr_t> refcount = 1;
+		const PersistentID persistentid;
+		explicit VolatileIDAnchor(const PersistentID& _persistentid) noexcept : persistentid(_persistentid) {}
+	};
+
+	struct VolatileID {
+	public:
+		constexpr VolatileID() noexcept = default;
+		explicit VolatileID(const PersistentID& _persistentid) noexcept : VolatileID() {
+			this->ptr_volatileidanchor = VolatileIDAnchor::ReferenceVolatileIDAnchorFromPersistentID(&_persistentid);
+		}
+		VolatileID(const VolatileID& x) noexcept {
+			this->ptr_volatileidanchor = x.ptr_volatileidanchor;
+			if (this->ptr_volatileidanchor)
+				this->ptr_volatileidanchor->IncrementReferenceCount();
+		}
+		VolatileID(VolatileID&& x) noexcept {
+			this->ptr_volatileidanchor = ::std::move(x.ptr_volatileidanchor);
+			x.ptr_volatileidanchor = nullptr;
+		}
+		~VolatileID() {
+			if (this->ptr_volatileidanchor)
+				this->ptr_volatileidanchor->DecrementReferenceCount();
+			this->ptr_volatileidanchor = nullptr;
+		}
+		VolatileID& operator=(const VolatileID& x) noexcept {
+			if (this->ptr_volatileidanchor)
+				this->ptr_volatileidanchor->DecrementReferenceCount();
+			this->ptr_volatileidanchor = x.ptr_volatileidanchor;
+			if (this->ptr_volatileidanchor)
+				this->ptr_volatileidanchor->IncrementReferenceCount();
+			return *this;
+		}
+		VolatileID& operator=(VolatileID&& x) noexcept {
+			if (this->ptr_volatileidanchor)
+				this->ptr_volatileidanchor->DecrementReferenceCount();
+			this->ptr_volatileidanchor = ::std::move(x.ptr_volatileidanchor);
+			x.ptr_volatileidanchor = nullptr;
+			return *this;
+		}
+		bool operator==(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor == r.ptr_volatileidanchor; }
+		bool operator!=(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor != r.ptr_volatileidanchor; }
+		bool operator<(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor < r.ptr_volatileidanchor; }
+		bool operator<=(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor <= r.ptr_volatileidanchor; }
+		bool operator>(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor > r.ptr_volatileidanchor; }
+		bool operator>=(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor >= r.ptr_volatileidanchor; }
+		operator bool() const noexcept { return this->ptr_volatileidanchor; }
+		explicit operator PersistentID() const noexcept { return this->GetPersistentID(); }
+		size_t hash() const noexcept { return hash_trivially_copyable_t<const VolatileIDAnchor*, size_t>()(this->ptr_volatileidanchor); }
+		const VolatileIDAnchor& GetVolatileIDAnchor() const noexcept {
+			assert(this->ptr_volatileidanchor);
+			return *this->ptr_volatileidanchor;
+		}
+		const PersistentID& GetPersistentID() const noexcept {
+			return this->ptr_volatileidanchor ? this->ptr_volatileidanchor->GetPersistentID() : PersistentID();
+		}
+	protected:
+		const VolatileIDAnchor* ptr_volatileidanchor = nullptr;
+	};
+	static_assert(::std::is_standard_layout_v<VolatileID>, "VolatileID is not standard-layout.");
+	static_assert(sizeof(VolatileID) == sizeof(void*), "The size of VolatileID doesn't match the pointer size.");
+
+	inline bool operator==(const VolatileID& l, const PersistentID& r) noexcept { return static_cast<PersistentID>(l) == r; }
+	inline bool operator==(const PersistentID& l, const VolatileID& r) noexcept { return l == static_cast<PersistentID>(r); }
+
+	inline bool operator!=(const VolatileID& l, const PersistentID& r) noexcept { return static_cast<PersistentID>(l) != r; }
+	inline bool operator!=(const PersistentID& l, const VolatileID& r) noexcept { return l != static_cast<PersistentID>(r); }
+
+	template<>
+	struct hash<VolatileID> {
+		inline size_t operator()(const VolatileID& x) const {
+			return x.hash();
+		}
+	};
 
 	/// <summary>An allocator for allocating raw memory.</summary>
 	struct rawallocator_t final {
@@ -1258,86 +1417,67 @@ namespace YBWLib2 {
 	//{ IndexedDataStore
 
 	/// <summary>Unique identifier used to identify an indexed data entry.</summary>
-	struct IndexedDataEntryID {
-		UUID uuid = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-		/// <summary>An equal-to comparing function for <c>IndexedDataEntryID</c>.</summary>
-		static inline bool IsEqualTo(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::IsEqualTo(l.uuid, r.uuid); }
-		/// <summary>
-		/// A less-than comparing function for <c>IndexedDataEntryID</c>.
-		/// The behaviour is equivalent to comparing the binary representation of the <c>IndexedDataEntryID</c> from byte to byte lexicographically.
-		/// </summary>
-		static inline bool IsLessThan(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::IsLessThan(l.uuid, r.uuid); }
-		/// <summary>A secure version of <c>IsEqualTo</c> that does not leak information about the length before the first mismatch is found through execution time.</summary>
-		static inline bool SecureIsEqualTo(const IndexedDataEntryID& l, const IndexedDataEntryID& r) noexcept { return UUID::SecureIsEqualTo(l.uuid, r.uuid); }
-		inline bool operator==(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsEqualTo(*this, r); }
-		inline bool operator!=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsEqualTo(*this, r); }
-		inline bool operator<(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(*this, r); }
-		inline bool operator<=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(r, *this); }
-		inline bool operator>(const IndexedDataEntryID& r) const { return IndexedDataEntryID::IsLessThan(r, *this); }
-		inline bool operator>=(const IndexedDataEntryID& r) const { return !IndexedDataEntryID::IsLessThan(*this, r); }
-		inline size_t hash() const { return this->uuid.hash(); }
+	struct IndexedDataEntryID : public VolatileID {
+		constexpr IndexedDataEntryID() noexcept = default;
+		explicit IndexedDataEntryID(const VolatileID& _volatileid) noexcept : VolatileID(_volatileid) {}
+		explicit IndexedDataEntryID(VolatileID&& _volatileid) noexcept : VolatileID(::std::move(_volatileid)) {}
+		explicit IndexedDataEntryID(const PersistentID& _persistentid) noexcept : VolatileID(_persistentid) {}
+		IndexedDataEntryID(const IndexedDataEntryID& x) noexcept = default;
+		IndexedDataEntryID(IndexedDataEntryID&& x) noexcept = default;
+		~IndexedDataEntryID() = default;
+		IndexedDataEntryID& operator=(const IndexedDataEntryID& x) noexcept = default;
+		IndexedDataEntryID& operator=(IndexedDataEntryID&& x) noexcept = default;
+		bool operator==(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) == static_cast<const VolatileID&>(r); }
+		bool operator!=(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) != static_cast<const VolatileID&>(r); }
+		bool operator<(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) < static_cast<const VolatileID&>(r); }
+		bool operator<=(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
+		bool operator>(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
+		bool operator>=(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
+		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
+		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
+	static_assert(::std::is_standard_layout_v<IndexedDataEntryID>, "IndexedDataEntryID is not standard-layout.");
 
-	struct hash_IndexedDataEntryID_t {
+	template<>
+	struct hash<IndexedDataEntryID> {
 		inline size_t operator()(const IndexedDataEntryID& x) const {
 			return x.hash();
 		}
 	};
-	constexpr hash_IndexedDataEntryID_t hash_IndexedDataEntryID {};
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>IndexedDataEntryID</c> identifier at compile time.</summary>
-	inline constexpr IndexedDataEntryID IndexedDataEntryIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept { return { UUIDFromUUIDString_CompileTime(str) }; }
-	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>IndexedDataEntryID</c> identifier at run time.</summary>
-	inline IndexedDataEntryID IndexedDataEntryIDFromUUIDString_RunTime(const char(&str)[37], size_t size_str, bool& is_successful) noexcept { return { UUIDFromUUIDString_RunTime(str, size_str, is_successful) }; }
 
 	/// <summary>A raw value in an indexed data entry.</summary>
 	struct IndexedDataRawValue final {
 		/// <summary>Function pointer type for cleaning up the raw value before it's destructed.</summary>
 		typedef void(YBWLIB2_CALLTYPE* fnptr_cleanup_t)(IndexedDataRawValue* x) noexcept;
 		fnptr_cleanup_t fnptr_cleanup = nullptr;
-		union context_t {
-			uintptr_t uintptr_context[2];
-			UUID uuid_context;
-			inline context_t() noexcept : uuid_context() { memset(this, 0, sizeof(context_t)); }
-			inline ~context_t() { memset(this, 0, sizeof(context_t)); }
-		} context;
+		uintptr_t contextvalue = 0;
 		inline IndexedDataRawValue(
 			fnptr_cleanup_t _fnptr_cleanup,
-			uintptr_t _uintptr_context_0,
-			uintptr_t _uintptr_context_1
+			uintptr_t _contextvalue
 		) noexcept
-			: fnptr_cleanup(_fnptr_cleanup) {
-			this->context.uintptr_context[0] = _uintptr_context_0;
-			this->context.uintptr_context[1] = _uintptr_context_1;
-		}
-		inline IndexedDataRawValue(
-			fnptr_cleanup_t _fnptr_cleanup,
-			const UUID& _uuid_context
-		) noexcept
-			: fnptr_cleanup(_fnptr_cleanup) {
-			this->context.uuid_context = _uuid_context;
+			: fnptr_cleanup(_fnptr_cleanup),
+			contextvalue(_contextvalue) {
 		}
 		IndexedDataRawValue(const IndexedDataRawValue&) = delete;
-		inline IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(x.fnptr_cleanup), context(x.context) {
+		inline IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(::std::move(x.fnptr_cleanup)), contextvalue(::std::move(x.contextvalue)) {
+			x.contextvalue = 0;
 			x.fnptr_cleanup = nullptr;
-			x.context.~context_t();
-			new (&x.context) context_t();
 		}
 		inline ~IndexedDataRawValue() {
 			if (this->fnptr_cleanup)
-				(*fnptr_cleanup)(this);
+				(*this->fnptr_cleanup)(this);
+			this->contextvalue = 0;
 			this->fnptr_cleanup = nullptr;
-			this->context.~context_t();
-			new (&this->context) context_t();
 		}
 		IndexedDataRawValue& operator=(const IndexedDataRawValue&) = delete;
 		inline IndexedDataRawValue& operator=(IndexedDataRawValue&& x) noexcept {
 			if (this->fnptr_cleanup)
-				(*fnptr_cleanup)(this);
-			this->fnptr_cleanup = x.fnptr_cleanup;
-			this->context = x.context;
+				(*this->fnptr_cleanup)(this);
+			this->fnptr_cleanup = ::std::move(x.fnptr_cleanup);
+			this->contextvalue = ::std::move(x.contextvalue);
+			x.contextvalue = 0;
 			x.fnptr_cleanup = nullptr;
-			x.context.~context_t();
-			new (&x.context) context_t();
 			return *this;
 		}
 	};
@@ -1416,7 +1556,7 @@ namespace YBWLib2 {
 		YBWLIB2_API void YBWLIB2_CALLTYPE RemoveEntryByEntryID(const IndexedDataEntryID* _entryid) noexcept;
 	private:
 		using value_map_entry_t = ::std::pair<const IndexedDataEntryID, IndexedDataRawValue>;
-		using map_entry_t = ::std::unordered_map<IndexedDataEntryID, IndexedDataRawValue, hash_IndexedDataEntryID_t, ::std::equal_to<IndexedDataEntryID>, allocator_rawallocator_t<value_map_entry_t>>;
+		using map_entry_t = ::std::unordered_map<IndexedDataEntryID, IndexedDataRawValue, hash<IndexedDataEntryID>, ::std::equal_to<IndexedDataEntryID>, allocator_rawallocator_t<value_map_entry_t>>;
 		const rawallocator_t* rawallocator = nullptr;
 		map_entry_t* map_entry = nullptr;
 		YBWLIB2_API void YBWLIB2_CALLTYPE ConstructWithRawAllocator(const rawallocator_t* _rawallocator) noexcept;
@@ -1431,7 +1571,8 @@ namespace YBWLib2 {
 
 	class RawAllocatorParameterIndexedDataEntry final {
 	public:
-		static constexpr IndexedDataEntryID entryid = IndexedDataEntryIDFromUUIDString_CompileTime("88817185-e459-4527-a44b-33621380b9a4");
+		static constexpr PersistentID persistentid_entryid = PersistentID(UUIDFromUUIDString_CompileTime("88817185-e459-4527-a44b-33621380b9a4"));
+		static YBWLIB2_API IndexedDataEntryID entryid;
 		inline static RawAllocatorParameterIndexedDataEntry* CopyFromStore(const IndexedDataStore& _indexeddatastore, void* _ptr_placement) noexcept {
 			if (!_ptr_placement) abort();
 			const IndexedDataRawValue* _indexeddatarawvalue = _indexeddatastore.GetRawValueByEntryID(RawAllocatorParameterIndexedDataEntry::entryid);
@@ -1479,12 +1620,11 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.context.uintptr_context[0])) {}
-		inline explicit RawAllocatorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.context.uintptr_context[0])) {
-			_indexeddatarawvalue.context.~context_t();
-			new (&_indexeddatarawvalue.context) IndexedDataRawValue::context_t();
+		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.contextvalue)) {}
+		inline explicit RawAllocatorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : rawalloctor(::std::move(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.contextvalue))) {
+			_indexeddatarawvalue.contextvalue = 0;
 		}
-		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->rawalloctor), 0); }
+		inline operator IndexedDataRawValue() const noexcept { return IndexedDataRawValue(nullptr, reinterpret_cast<uintptr_t>(this->rawalloctor)); }
 	};
 	static_assert(::std::is_standard_layout_v<RawAllocatorParameterIndexedDataEntry>, "RawAllocatorParameterIndexedDataEntry is not standard-layout.");
 

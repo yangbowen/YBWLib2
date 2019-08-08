@@ -322,10 +322,12 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<Win32DebuggingTargetAddressDiff>, "Win32DebuggingTargetAddressDiff is not standard-layout.");
 
-	struct hash_Win32DebuggingTargetAddressDiff_t {
-		inline size_t operator()(const Win32DebuggingTargetAddressDiff& x) const noexcept(false) { return x.Hash(); }
+	template<>
+	struct hash<Win32DebuggingTargetAddressDiff> {
+		inline size_t operator()(const Win32DebuggingTargetAddressDiff& x) const {
+			return x.Hash();
+		}
 	};
-	constexpr hash_Win32DebuggingTargetAddressDiff_t hash_Win32DebuggingTargetAddressDiff {};
 
 	struct Win32DebuggingTargetAddress final {
 		friend struct Win32DebuggingTargetAddressDiff;
@@ -514,10 +516,12 @@ namespace YBWLib2 {
 
 	inline Win32DebuggingTargetAddress operator+(const Win32DebuggingTargetAddressDiff& l, const Win32DebuggingTargetAddress& r) noexcept(false) { return r + l; }
 
-	struct hash_Win32DebuggingTargetAddress_t {
-		inline size_t operator()(const Win32DebuggingTargetAddress& x) const noexcept(false) { return x.Hash(); }
+	template<>
+	struct hash<Win32DebuggingTargetAddress> {
+		inline size_t operator()(const Win32DebuggingTargetAddress& x) const {
+			return x.Hash();
+		}
 	};
-	constexpr hash_Win32DebuggingTargetAddress_t hash_Win32DebuggingTargetAddress {};
 
 	/// <summary>
 	/// Suspends all threads in a process except those specified.

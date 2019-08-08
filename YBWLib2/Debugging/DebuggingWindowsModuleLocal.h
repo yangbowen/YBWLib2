@@ -3160,7 +3160,7 @@ namespace YBWLib2 {
 		GetDynamicTypeClassObject<IWin32DebuggingTargetExportSymbolInfo>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IWin32DebuggingTargetExportSymbolInfo)), module_info_current);
 		GetDynamicTypeClassObject<IWin32DebuggingProcess>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IWin32DebuggingProcess)), module_info_current);
 		UnsupportedTargetWin32ArchitectureException::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<UnsupportedTargetWin32ArchitectureException>(),
+			GetDynamicTypeClassPersistentID<UnsupportedTargetWin32ArchitectureException>(),
 			IsDynamicTypeModuleLocalClass<UnsupportedTargetWin32ArchitectureException>(),
 			{
 				DynamicTypeBaseClassDef<UnsupportedTargetWin32ArchitectureException, Exception, DynamicTypeBaseClassFlag_VirtualBase>,
@@ -3169,7 +3169,7 @@ namespace YBWLib2 {
 			0, sizeof(UnsupportedTargetWin32ArchitectureException), alignof(UnsupportedTargetWin32ArchitectureException)
 		);
 		Win32DebuggingTargetMemoryRegionInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32DebuggingTargetMemoryRegionInfo>(),
+			GetDynamicTypeClassPersistentID<Win32DebuggingTargetMemoryRegionInfo>(),
 			IsDynamicTypeModuleLocalClass<Win32DebuggingTargetMemoryRegionInfo>(),
 			{
 				DynamicTypeBaseClassDef<Win32DebuggingTargetMemoryRegionInfo, IWin32DebuggingTargetMemoryRegionInfo, DynamicTypeBaseClassFlag_VirtualBase>
@@ -3177,7 +3177,7 @@ namespace YBWLib2 {
 			0, sizeof(Win32DebuggingTargetMemoryRegionInfo), alignof(Win32DebuggingTargetMemoryRegionInfo)
 		);
 		Win32DebuggingTargetExecutableModuleInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32DebuggingTargetExecutableModuleInfo>(),
+			GetDynamicTypeClassPersistentID<Win32DebuggingTargetExecutableModuleInfo>(),
 			IsDynamicTypeModuleLocalClass<Win32DebuggingTargetExecutableModuleInfo>(),
 			{
 				DynamicTypeBaseClassDef<Win32DebuggingTargetExecutableModuleInfo, IWin32DebuggingTargetExecutableModuleInfo, DynamicTypeBaseClassFlag_VirtualBase>
@@ -3185,7 +3185,7 @@ namespace YBWLib2 {
 			0, sizeof(Win32DebuggingTargetExecutableModuleInfo), alignof(Win32DebuggingTargetExecutableModuleInfo)
 		);
 		Win32DebuggingTargetExportSymbolInfo::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32DebuggingTargetExportSymbolInfo>(),
+			GetDynamicTypeClassPersistentID<Win32DebuggingTargetExportSymbolInfo>(),
 			IsDynamicTypeModuleLocalClass<Win32DebuggingTargetExportSymbolInfo>(),
 			{
 				DynamicTypeBaseClassDef<Win32DebuggingTargetExportSymbolInfo, IWin32DebuggingTargetExportSymbolInfo, DynamicTypeBaseClassFlag_VirtualBase>
@@ -3193,7 +3193,7 @@ namespace YBWLib2 {
 			0, sizeof(Win32DebuggingTargetExportSymbolInfo), alignof(Win32DebuggingTargetExportSymbolInfo)
 		);
 		Win32DebuggingProcess::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassID<Win32DebuggingProcess>(),
+			GetDynamicTypeClassPersistentID<Win32DebuggingProcess>(),
 			IsDynamicTypeModuleLocalClass<Win32DebuggingProcess>(),
 			{
 				DynamicTypeBaseClassDef<Win32DebuggingProcess, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>,
