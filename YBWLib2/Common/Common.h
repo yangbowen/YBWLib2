@@ -12,6 +12,7 @@
 #define _INCLUDE_GUARD_30119E3B_9939_4A65_A63A_B13F0B7928DC
 
 #include <cstdint>
+#include <atomic>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
@@ -589,7 +590,7 @@ namespace YBWLib2 {
 			x.rawallocator = nullptr;
 			return *this;
 		}
-		inline operator bool() const noexcept { return this->ptr_element; }
+		inline explicit operator bool() const noexcept { return this->ptr_element; }
 		inline _Element_Ty& operator*() const noexcept { return *this->ptr_element; }
 		inline _Element_Ty* operator->() const noexcept { return this->ptr_element; }
 		inline _Element_Ty* get() const noexcept { return this->ptr_element; }
@@ -904,7 +905,7 @@ namespace YBWLib2 {
 			x.rawallocator = nullptr;
 			return *this;
 		}
-		inline operator bool() const noexcept { return this->ptr_array_element; }
+		inline explicit operator bool() const noexcept { return this->ptr_array_element; }
 		inline _Element_Ty& operator[](size_t idx_element) const noexcept { return this->ptr_array_element[idx_element]; }
 		inline _Element_Ty* get() const noexcept { return this->ptr_array_element; }
 		inline size_t get_count() const noexcept { return this->count_element; }
@@ -1263,7 +1264,7 @@ namespace YBWLib2 {
 		/// <returns>The current reference count.</returns>
 		inline virtual uintptr_t GetReferenceCount() const noexcept override {
 			if (this)
-				return this->ref_count.load();
+				return this->ref_count.load(::std::memory_order_relaxed);
 			else
 				return 0;
 		}
@@ -1274,8 +1275,8 @@ namespace YBWLib2 {
 		/// <returns>The new reference count.</returns>
 		inline virtual uintptr_t IncReferenceCount() const noexcept override {
 			if (this) {
-				uintptr_t ret = ++this->ref_count;
-				return ret;
+				uintptr_t ref_count_old = this->ref_count.fetch_add(1, ::std::memory_order_relaxed);
+				return ref_count_old + 1;
 			} else {
 				return 0;
 			}
@@ -1288,9 +1289,10 @@ namespace YBWLib2 {
 		/// <returns>The new reference count.</returns>
 		inline virtual uintptr_t DecReferenceCount() const noexcept override {
 			if (this) {
-				uintptr_t ret = --this->ref_count;
-				if (!ret) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
-				return ret;
+				uintptr_t ref_count_old = this->ref_count.fetch_sub(1, ::std::memory_order_acq_rel);
+				assert(ref_count_old);
+				if (ref_count_old == 1) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
+				return ref_count_old - 1;
 			} else {
 				return 0;
 			}

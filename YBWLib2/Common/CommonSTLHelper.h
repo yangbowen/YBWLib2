@@ -12,6 +12,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <string>
 #include <vector>
 #include <ostream>
@@ -181,28 +182,28 @@ namespace YBWLib2 {
 	/// <typeparam name="_Concrete_Class_Ty">The concrete class that inherits from this class.</typeparam>
 	template<typename _Concrete_Class_Ty>
 	class SharedPtrReferenceCountedObject abstract
-		: public virtual ::std::enable_shared_from_this<_Concrete_Class_Ty>,
+		: public ::std::enable_shared_from_this<_Concrete_Class_Ty>,
 		public virtual IReferenceCountedObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedPtrReferenceCountedObject);
+		inline SharedPtrReferenceCountedObject() noexcept
+			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(),
+			ref_count(0),
+			ptr() {}
 		inline SharedPtrReferenceCountedObject(const SharedPtrReferenceCountedObject& x) noexcept
 			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x)),
-			mtx_this(),
 			ref_count(0),
 			ptr() {}
 		inline SharedPtrReferenceCountedObject(SharedPtrReferenceCountedObject&& x) noexcept
 			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x))),
-			mtx_this(),
 			ref_count(0),
 			ptr() {}
 		inline SharedPtrReferenceCountedObject& operator=(const SharedPtrReferenceCountedObject& x) noexcept {
-			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x);
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
 			return *this;
 		}
 		inline SharedPtrReferenceCountedObject& operator=(SharedPtrReferenceCountedObject&& x) noexcept {
-			static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&>(*this) = static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x));
 			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
 			return *this;
 		}
@@ -212,16 +213,8 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <returns>The current reference count.</returns>
 		inline virtual uintptr_t GetReferenceCount() const noexcept override {
-			if (this) {
-				try {
-					::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
-					return this->ref_count;
-				} catch (...) {
-					abort();
-				}
-			} else {
-				return 0;
-			}
+			if (!this) return 0;
+			return this->ref_count.load(::std::memory_order_relaxed);
 		}
 		/// <summary>
 		/// Increments the reference count.
@@ -229,22 +222,35 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <returns>The new reference count.</returns>
 		inline virtual uintptr_t IncReferenceCount() const noexcept override {
-			if (this) {
-				try {
-					::std::lock_guard<::std::mutex> lock_guard_this(this->mtx_this);
-					uintptr_t ret = ++this->ref_count;
-					if (ret == 1) {
-						// The reference count is incremented from 0.
-						// Keep a shared pointer of *this to prevent destruction.
-						ptr = this->shared_from_this();
-					}
-					return ret;
-				} catch (...) {
-					abort();
+			if (!this) return 0;
+			uintptr_t ref_count_old = this->ref_count.fetch_add(1, ::std::memory_order_acq_rel);
+			if (!ref_count_old) {
+				// The reference count is incremented from 0.
+				// Keep a shared pointer of *this to prevent destruction.
+				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired = this->shared_from_this();
+#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
+				while (true) {
+					static constexpr size_t count_spin = 0x10;
+					size_t i_spin = 0;
+					for (; i_spin < count_spin && this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
+					if (i_spin < count_spin)
+						break;
+					else
+						::std::this_thread::yield();
 				}
-			} else {
-				return 0;
+#else
+				while (true) {
+					static constexpr size_t count_spin = 0x10;
+					size_t i_spin = 0;
+					for (; i_spin < count_spin && ::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
+					if (i_spin < count_spin)
+						break;
+					else
+						::std::this_thread::yield();
+				}
+#endif
 			}
+			return ref_count_old + 1;
 		}
 		/// <summary>
 		/// Decrements the reference count.
@@ -253,27 +259,36 @@ namespace YBWLib2 {
 		/// </summary>
 		/// <returns>The new reference count.</returns>
 		inline virtual uintptr_t DecReferenceCount() const noexcept override {
-			if (this) {
-				try {
-					::std::unique_lock<::std::mutex> unique_lock_this(this->mtx_this);
-					uintptr_t ret = --this->ref_count;
-					if (!ret) {
-						// The reference count is decremented to 0.
-						// If the shared pointer keeped is unique, *this, including this->mtx_this, will be destructed after clearing the shared pointer,
-						// so unique_lock_this must stop owning this->mtx_this before clearing the shared pointer.
-						// If the shared pointer keeped is not unique, other threads holding shared pointers to this object may access this->ref_count and/or this->ptr,
-						// so unique_lock_this must lock this->mtx_this until after clearing the shared pointer.
-						if (ptr.unique()) unique_lock_this = ::std::unique_lock<::std::mutex>();
-						// Clear the shared pointer.
-						ptr = ::std::shared_ptr<_Concrete_Class_Ty>();
-					}
-					return ret;
-				} catch (...) {
-					abort();
+			if (!this) return 0;
+			uintptr_t ref_count_old = this->ref_count.fetch_sub(1, ::std::memory_order::memory_order_acq_rel);
+			assert(ref_count_old);
+			if (ref_count_old == 1) {
+				// The reference count is decremented to 0.
+				// Clear the shared pointer.
+				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired;
+#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
+				while (true) {
+					static constexpr size_t count_spin = 0x10;
+					size_t i_spin = 0;
+					for (; i_spin < count_spin && !this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
+					if (i_spin < count_spin)
+						break;
+					else
+						::std::this_thread::yield();
 				}
-			} else {
-				return 0;
+#else
+				while (true) {
+					static constexpr size_t count_spin = 0x10;
+					size_t i_spin = 0;
+					for (; i_spin < count_spin && !::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
+					if (i_spin < count_spin)
+						break;
+					else
+						::std::this_thread::yield();
+				}
+#endif
 			}
+			return ref_count_old - 1;
 		}
 	protected:
 		/// <summary>
@@ -282,9 +297,12 @@ namespace YBWLib2 {
 		/// </summary>
 		virtual ~SharedPtrReferenceCountedObject() = default;
 	private:
-		mutable ::std::mutex mtx_this;
-		mutable uintptr_t ref_count = 0;
-		mutable ::std::shared_ptr<_Concrete_Class_Ty> ptr;
+		mutable ::std::atomic<uintptr_t> ref_count = 0;
+#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
+		mutable ::std::atomic<::std::shared_ptr<const volatile _Concrete_Class_Ty>> ptr;
+#else
+		mutable ::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr;
+#endif
 	};
 
 	/// <summary>

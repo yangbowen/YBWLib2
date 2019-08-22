@@ -246,7 +246,7 @@ namespace YBWLib2 {
 		bool IsMin() const noexcept(false);
 		bool IsMax() const noexcept(false);
 		size_t Hash() const noexcept(false);
-		inline operator bool() const noexcept(false) { return !this->IsEmpty(); }
+		inline explicit operator bool() const noexcept(false) { return !this->IsEmpty(); }
 		/// <summary>Gets the value as an unsigned integer and writes it into the specified buffer.</summary>
 		/// <param name="buf_uint_to">
 		/// An unsigned integer buffer that receives the value.
@@ -423,7 +423,7 @@ namespace YBWLib2 {
 		bool IsMin() const noexcept(false);
 		bool IsMax() const noexcept(false);
 		size_t Hash() const noexcept(false);
-		inline operator bool() const noexcept(false) { return !this->IsEmpty(); }
+		inline explicit operator bool() const noexcept(false) { return !this->IsEmpty(); }
 		/// <summary>Gets the value as an unsigned integer and writes it into the specified buffer.</summary>
 		/// <param name="buf_uint_to">
 		/// An unsigned integer buffer that receives the value.

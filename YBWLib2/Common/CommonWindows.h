@@ -195,7 +195,7 @@ namespace YBWLib2 {
 			this->is_owned_handle = true;
 		}
 		inline HANDLE get() const noexcept { return this->win32handle; }
-		inline operator bool() const noexcept { return this->win32handle; }
+		inline explicit operator bool() const noexcept { return this->win32handle; }
 	protected:
 		HANDLE win32handle = NULL;
 		bool is_owned_handle = false;

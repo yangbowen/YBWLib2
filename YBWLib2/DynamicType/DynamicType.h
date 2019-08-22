@@ -38,7 +38,7 @@ namespace YBWLib2 {
 		bool operator<=(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
 		bool operator>(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
 		bool operator>=(const DynamicTypeClassID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
-		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
 		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
@@ -497,7 +497,7 @@ namespace YBWLib2 {
 		bool operator<=(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
 		bool operator>(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
 		bool operator>=(const ConstructorID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
-		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
 		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
