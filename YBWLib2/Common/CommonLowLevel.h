@@ -7,6 +7,7 @@
 #include <cassert>
 #include <type_traits>
 #include <utility>
+#include <tuple>
 #include <new>
 #include <memory>
 #include <unordered_map>
@@ -431,7 +432,7 @@ namespace YBWLib2 {
 	//{ UUID
 
 	/// <summary>Universally unique identifier.</summary>
-	struct UUID {
+		struct UUID {
 		/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
 		static inline bool IsEqualTo(const UUID& l, const UUID& r) noexcept {
 			return !memcmp(l.data, r.data, sizeof(UUID::data));
@@ -620,7 +621,7 @@ namespace YBWLib2 {
 		bool operator<=(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor <= r.ptr_volatileidanchor; }
 		bool operator>(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor > r.ptr_volatileidanchor; }
 		bool operator>=(const VolatileID& r) const noexcept { return this->ptr_volatileidanchor >= r.ptr_volatileidanchor; }
-		operator bool() const noexcept { return this->ptr_volatileidanchor; }
+		explicit operator bool() const noexcept { return this->ptr_volatileidanchor; }
 		explicit operator PersistentID() const noexcept { return this->GetPersistentID(); }
 		size_t hash() const noexcept { return hash_trivially_copyable_t<const VolatileIDAnchor*, size_t>()(this->ptr_volatileidanchor); }
 		const VolatileIDAnchor& GetVolatileIDAnchor() const noexcept {
@@ -1041,6 +1042,302 @@ namespace YBWLib2 {
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of YBWLib2.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2;
 
+#pragma region Delegate
+	//{ Delegate
+
+	enum DelegateFlags : unsigned int {
+		DelegateFlags_None = 0x0,
+		DelegateFlag_Noexcept = 0x1
+	};
+
+	template<unsigned int _delegateflags, typename _Return_Ty, typename... _Args_Ty>
+	struct Delegate final {
+	public:
+		using return_type = _Return_Ty;
+		using argument_tuple_type = ::std::tuple<_Args_Ty&&...>;
+		struct invoke_function_t {};
+		struct invoke_observe_callable_t {};
+		struct invoke_adopt_callable_t {};
+		struct invoke_construct_callable_t {};
+		struct address_insensitive_callable_t {};
+		struct invoke_member_function_t {};
+		static constexpr invoke_function_t invoke_function {};
+		static constexpr invoke_observe_callable_t invoke_observe_callable {};
+		static constexpr invoke_adopt_callable_t invoke_adopt_callable {};
+		static constexpr invoke_construct_callable_t invoke_construct_callable {};
+		static constexpr address_insensitive_callable_t address_insensitive_callable {};
+		static constexpr invoke_member_function_t invoke_member_function {};
+		static constexpr unsigned int delegateflags = _delegateflags;
+		typedef return_type (YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept);
+		typedef void (YBWLIB2_CALLTYPE* fnptr_cleanup_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
+		fnptr_invoke_t fnptr_invoke = nullptr;
+		uintptr_t contextvalue1 = 0;
+		uintptr_t contextvalue2 = 0;
+		fnptr_cleanup_t fnptr_cleanup = nullptr;
+		constexpr Delegate() noexcept {}
+		constexpr Delegate(
+			fnptr_invoke_t _fnptr_invoke = nullptr,
+			uintptr_t _contextvalue1 = 0,
+			uintptr_t _contextvalue2 = 0,
+			fnptr_cleanup_t _fnptr_cleanup = nullptr
+		) noexcept
+			: fnptr_invoke(_fnptr_invoke),
+			contextvalue1(_contextvalue1),
+			contextvalue2(_contextvalue2),
+			fnptr_cleanup(_fnptr_cleanup) {}
+		constexpr Delegate(
+			invoke_function_t,
+			return_type (YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept),
+			uintptr_t _contextvalue1 = 0
+		) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = _contextvalue1;
+			this->contextvalue2 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
+		}
+		constexpr Delegate(
+			invoke_function_t,
+			return_type (YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)
+		) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = _contextvalue1;
+			this->contextvalue2 = reinterpret_cast<uintptr_t>(&_callable_invoke);
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(&_callable_invoke);
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+			_ptr_callable_invoke = nullptr;
+			this->contextvalue1 = _contextvalue1;
+			this->contextvalue2 = reinterpret_cast<uintptr_t>(::std::move(_ptr_callable_invoke));
+			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+				static_cast<void>(_contextvalue1);
+				delete reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2);
+			};
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+			};
+			_ptr_callable_invoke = nullptr;
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(::std::move(_ptr_callable_invoke));
+			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+				static_cast<void>(_contextvalue2);
+				delete reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
+			};
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename _Tuple_Args_Ctor_Callable_Invoke_Ty,
+			typename _Allocator_Callable_Invoke_Ty = ::std::allocator<_Callable_Invoke_Ty>,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_construct_callable_t, _Tuple_Args_Ctor_Callable_Invoke_Ty&& _tuple_args_ctor_callable_invoke, const _Allocator_Callable_Invoke_Ty& _allocator_callable_invoke = _Allocator_Callable_Invoke_Ty())
+			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()));
+			this->contextvalue2 = reinterpret_cast<uintptr_t>(&_allocator_callable_invoke);
+			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+				_Callable_Invoke_Ty* ptr_callable_invoke = reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
+				ptr_callable_invoke->~_Callable_Invoke_Ty();
+				reinterpret_cast<const _Allocator_Callable_Invoke_Ty*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
+			};
+		}
+		template<
+			typename _Callable_Invoke_Ty,
+			typename _Tuple_Args_Ctor_Callable_Invoke_Ty,
+			typename _Allocator_Callable_Invoke_Ty = ::std::allocator<_Callable_Invoke_Ty>,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+		>
+			Delegate(invoke_construct_callable_t, address_insensitive_callable_t, _Tuple_Args_Ctor_Callable_Invoke_Ty&& _tuple_args_ctor_callable_invoke, const _Allocator_Callable_Invoke_Ty& _allocator_callable_invoke = _Allocator_Callable_Invoke_Ty())
+			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
+			if constexpr (::std::is_object_v<_Callable_Invoke_Ty> && sizeof(_Callable_Invoke_Ty) <= sizeof(uintptr_t)) {
+				static_cast<void>(_allocator_callable_invoke);
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+					static_cast<void>(_contextvalue2);
+					return (*reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				};
+				PlacementCreateTupleIndexSequenceImpl(reinterpret_cast<_Callable_Invoke_Ty*>(&this->contextvalue1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>());
+				this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+					static_cast<void>(_contextvalue2);
+					reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1)->~_Callable_Invoke_Ty();
+				};
+			} else {
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+					static_cast<void>(_contextvalue2);
+					return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				};
+				this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()));
+				this->contextvalue2 = reinterpret_cast<uintptr_t>(&_allocator_callable_invoke);
+				this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+					_Callable_Invoke_Ty* ptr_callable_invoke = reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
+					ptr_callable_invoke->~_Callable_Invoke_Ty();
+					reinterpret_cast<const _Allocator_Callable_Invoke_Ty*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
+				};
+			}
+		}
+		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		constexpr Delegate(
+			invoke_function_t,
+			uintptr_t _contextvalue1 = 0,
+			uintptr_t _contextvalue2 = 0
+		) noexcept
+			: fnptr_invoke(&_fn_invoke),
+			contextvalue1(_contextvalue1),
+			contextvalue2(_contextvalue2) {}
+		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		constexpr Delegate(
+			invoke_function_t,
+			uintptr_t _contextvalue1 = 0
+		) noexcept : contextvalue1(_contextvalue1) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return _fn_invoke(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+		}
+		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		constexpr Delegate(
+			invoke_function_t
+		) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue1);
+				static_cast<void>(_contextvalue2);
+				return _fn_invoke(::std::forward<_Args_Ty>(args)...);
+			};
+		}
+		template<typename _Class_Ty, return_type (_Class_Ty::* _mfnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		constexpr Delegate(
+			invoke_member_function_t,
+			_Class_Ty* _ptr_obj,
+			uintptr_t _contextvalue1 = 0
+		) noexcept : contextvalue1(_contextvalue1) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				return ::std::invoke(_mfnptr_invoke, static_cast<_Class_Ty*>(_contextvalue2), _contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = _contextvalue1;
+			this->contextvalue2 = reinterpret_cast<uintptr_t>(_ptr_obj);
+		}
+		template<typename _Class_Ty, return_type (_Class_Ty::* _mfnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		constexpr Delegate(
+			invoke_member_function_t,
+			_Class_Ty* _ptr_obj
+		) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return ::std::invoke(_mfnptr_invoke, static_cast<_Class_Ty*>(_contextvalue1), ::std::forward<_Args_Ty>(args)...);
+			};
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(_ptr_obj);
+		}
+		Delegate(const Delegate&) = delete;
+		template<
+			unsigned int _delegateflags_from,
+			typename _Return_From_Ty,
+			typename... _Args_From_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
+		>
+			constexpr Delegate(Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>&& x) noexcept
+			: fnptr_invoke(::std::move(x.fnptr_invoke)),
+			contextvalue1(::std::move(x.contextvalue1)),
+			contextvalue2(::std::move(x.contextvalue2)),
+			fnptr_cleanup(::std::move(x.fnptr_cleanup)) {
+			x.fnptr_cleanup = nullptr;
+			x.contextvalue2 = 0;
+			x.contextvalue1 = 0;
+			x.fnptr_invoke = nullptr;
+		}
+		~Delegate() {
+			assert(this);
+			if (this->fnptr_cleanup)
+				(*this->fnptr_cleanup)(this->contextvalue1, this->contextvalue2);
+			this->fnptr_cleanup = nullptr;
+			this->contextvalue2 = 0;
+			this->contextvalue1 = 0;
+			this->fnptr_invoke = nullptr;
+		}
+		Delegate& operator=(const Delegate&) = delete;
+		template<
+			unsigned int _delegateflags_from,
+			typename _Return_From_Ty,
+			typename... _Args_From_Ty,
+			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
+		>
+			constexpr Delegate& operator=(Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>&& x) noexcept {
+			assert(this);
+			if (this->fnptr_cleanup)
+				(*this->fnptr_cleanup)(this->contextvalue1, this->contextvalue2);
+			this->fnptr_invoke = ::std::move(x.fnptr_invoke);
+			x.fnptr_invoke = nullptr;
+			this->contextvalue1 = ::std::move(x.contextvalue1);
+			x.contextvalue1 = 0;
+			this->contextvalue2 = ::std::move(x.contextvalue2);
+			x.contextvalue2 = 0;
+			this->fnptr_cleanup = ::std::move(x.fnptr_cleanup);
+			x.fnptr_cleanup = nullptr;
+		}
+		return_type YBWLIB2_CALLTYPE operator()(_Args_Ty... args) const noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept) {
+			assert(this && this->fnptr_invoke);
+			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<_Args_Ty>(args)...);
+		}
+		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept) {
+			return (*this)(::std::move(_tuple_args), ::std::make_index_sequence<::std::tuple_size_v<argument_tuple_type>>());
+		}
+	private:
+		template<
+			typename _Ty,
+			typename _Tuple_Args_Ctor_Ty,
+			size_t... _index_tuple_args_ctor
+		>
+			static _Ty* PlacementCreateTupleIndexSequenceImpl(_Ty* _ptr, _Tuple_Args_Ctor_Ty&& _tuple_args_ctor, ::std::index_sequence<_index_tuple_args_ctor...>)
+			noexcept(noexcept(_Ty(::std::get<_index_tuple_args_ctor>(::std::forward<_Tuple_Args_Ctor_Ty>(_tuple_args_ctor))...))) {
+			return new (_ptr) _Ty(::std::get<_index_tuple_args_ctor>(::std::forward<_Tuple_Args_Ctor_Ty>(_tuple_args_ctor))...);
+		};
+		template<size_t... _index_tuple_args>
+		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args, ::std::index_sequence<_index_tuple_args...>)
+			noexcept(noexcept((*this)(::std::get<_index_tuple_args>(::std::move(_tuple_args))...))) {
+			return (*this)(::std::get<_index_tuple_args>(::std::move(_tuple_args))...);
+		}
+	};
+
+	//}
+#pragma endregion
+
 	/// <summary>An object for holding a pointer to another object that's placement-created in the storage of the former object.</summary>
 	template<typename _Element_Ty>
 	struct objholder_local_t final {
@@ -1102,7 +1399,7 @@ namespace YBWLib2 {
 			}
 			return *this;
 		}
-		inline operator bool() const noexcept { return this->ptr_element; }
+		inline explicit operator bool() const noexcept { return this->ptr_element; }
 		inline _Element_Ty& operator*() const noexcept { return *this->ptr_element; }
 		inline _Element_Ty* operator->() const noexcept { return this->ptr_element; }
 		inline _Element_Ty* get() const noexcept { return this->ptr_element; }
@@ -1218,12 +1515,12 @@ namespace YBWLib2 {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				obj->unlock();
 			},
-			[](uintptr_t context)->bool {
+				[](uintptr_t context)->bool {
 				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
 				return obj->try_lock();
 			},
 			reinterpret_cast<uintptr_t>(&_obj)
-		);
+			);
 	}
 
 	/// <summary>
@@ -1433,7 +1730,7 @@ namespace YBWLib2 {
 		bool operator<=(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) <= static_cast<const VolatileID&>(r); }
 		bool operator>(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) > static_cast<const VolatileID&>(r); }
 		bool operator>=(const IndexedDataEntryID& r) const noexcept { return static_cast<const VolatileID&>(*this) >= static_cast<const VolatileID&>(r); }
-		operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
+		explicit operator bool() const noexcept { return static_cast<bool>(static_cast<const VolatileID&>(*this)); }
 		explicit operator PersistentID() const noexcept { return static_cast<PersistentID>(static_cast<const VolatileID&>(*this)); }
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
@@ -1457,8 +1754,7 @@ namespace YBWLib2 {
 			uintptr_t _contextvalue
 		) noexcept
 			: fnptr_cleanup(_fnptr_cleanup),
-			contextvalue(_contextvalue) {
-		}
+			contextvalue(_contextvalue) {}
 		IndexedDataRawValue(const IndexedDataRawValue&) = delete;
 		inline IndexedDataRawValue(IndexedDataRawValue&& x) noexcept : fnptr_cleanup(::std::move(x.fnptr_cleanup)), contextvalue(::std::move(x.contextvalue)) {
 			x.contextvalue = 0;
