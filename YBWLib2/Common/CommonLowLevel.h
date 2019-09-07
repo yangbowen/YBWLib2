@@ -28,6 +28,13 @@ namespace YBWLib2 {
 #define YBWLIB2_TO_UTF8_HELPER(s) u8 ## s
 #define YBWLIB2_TO_UTF8(s) YBWLIB2_TO_UTF8_HELPER(s)
 
+	struct already_exclusive_locked_this_t {
+		explicit constexpr already_exclusive_locked_this_t() noexcept = default;
+	};
+	struct already_shared_locked_this_t {
+		explicit constexpr already_shared_locked_this_t() noexcept = default;
+	};
+
 	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
 	template<typename _Ty, typename _Cv_Ty>
 	struct move_cv_t {
@@ -945,10 +952,12 @@ namespace YBWLib2 {
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
 			this->rawallocator = x.rawallocator;
+			return *this;
 		}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
 			this->rawallocator = x.rawallocator;
+			return *this;
 		}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
@@ -1011,10 +1020,12 @@ namespace YBWLib2 {
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
 			this->rawallocator = x.rawallocator;
+			return *this;
 		}
 		template<typename _Rebind_From_Ty>
 		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
 			this->rawallocator = x.rawallocator;
+			return *this;
 		}
 		template<typename _Rebind_Ty>
 		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
@@ -1074,7 +1085,6 @@ namespace YBWLib2 {
 		uintptr_t contextvalue1 = 0;
 		uintptr_t contextvalue2 = 0;
 		fnptr_cleanup_t fnptr_cleanup = nullptr;
-		constexpr Delegate() noexcept {}
 		constexpr Delegate(
 			fnptr_invoke_t _fnptr_invoke = nullptr,
 			uintptr_t _contextvalue1 = 0,
@@ -1310,7 +1320,9 @@ namespace YBWLib2 {
 			x.contextvalue2 = 0;
 			this->fnptr_cleanup = ::std::move(x.fnptr_cleanup);
 			x.fnptr_cleanup = nullptr;
+			return *this;
 		}
+		explicit operator bool() const noexcept { return this->fnptr_invoke; }
 		return_type YBWLIB2_CALLTYPE operator()(_Args_Ty... args) const noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept) {
 			assert(this && this->fnptr_invoke);
 			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<_Args_Ty>(args)...);

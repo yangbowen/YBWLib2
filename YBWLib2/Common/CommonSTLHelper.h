@@ -228,25 +228,28 @@ namespace YBWLib2 {
 				// The reference count is incremented from 0.
 				// Keep a shared pointer of *this to prevent destruction.
 				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired = this->shared_from_this();
+				// TODO: Implement better mechanism to wait.
 #if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
 				while (true) {
 					static constexpr size_t count_spin = 0x10;
+					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
 					size_t i_spin = 0;
 					for (; i_spin < count_spin && this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
 					if (i_spin < count_spin)
 						break;
 					else
-						::std::this_thread::yield();
+						::std::this_thread::sleep_for(duration_sleep);
 				}
 #else
 				while (true) {
 					static constexpr size_t count_spin = 0x10;
+					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
 					size_t i_spin = 0;
 					for (; i_spin < count_spin && ::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
 					if (i_spin < count_spin)
 						break;
 					else
-						::std::this_thread::yield();
+						::std::this_thread::sleep_for(duration_sleep);
 				}
 #endif
 			}
@@ -266,25 +269,28 @@ namespace YBWLib2 {
 				// The reference count is decremented to 0.
 				// Clear the shared pointer.
 				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired;
+				// TODO: Implement better mechanism to wait.
 #if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
 				while (true) {
 					static constexpr size_t count_spin = 0x10;
+					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
 					size_t i_spin = 0;
 					for (; i_spin < count_spin && !this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
 					if (i_spin < count_spin)
 						break;
 					else
-						::std::this_thread::yield();
+						::std::this_thread::sleep_for(duration_sleep);
 				}
 #else
 				while (true) {
 					static constexpr size_t count_spin = 0x10;
+					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
 					size_t i_spin = 0;
 					for (; i_spin < count_spin && !::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
 					if (i_spin < count_spin)
 						break;
 					else
-						::std::this_thread::yield();
+						::std::this_thread::sleep_for(duration_sleep);
 				}
 #endif
 			}
@@ -311,7 +317,7 @@ namespace YBWLib2 {
 	/// </summary>
 	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
 	template<typename _Element_Ty>
-	class ReferenceCountedObjectHolder {
+	class ReferenceCountedObjectHolder final {
 		template<typename _Element_Ty_Other>
 		friend class ReferenceCountedObjectHolder;
 	public:
@@ -329,7 +335,7 @@ namespace YBWLib2 {
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty* p, inc_ref_count_t) {
+		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty* p, inc_ref_count_t) noexcept {
 			if (p) {
 				const IReferenceCountedObject* _ptr_owned = p;
 				_ptr_owned->IncReferenceCount();
@@ -342,7 +348,7 @@ namespace YBWLib2 {
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p, adopt_ref_count_t) {
+		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p, adopt_ref_count_t) noexcept {
 			if (p) {
 				this->ptr_stored = p;
 				this->ptr_owned = p;
@@ -350,7 +356,7 @@ namespace YBWLib2 {
 			}
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) {
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
 			if (x.ptr_owned) {
 				x.ptr_owned->IncReferenceCount();
 				this->ptr_owned = x.ptr_owned;
@@ -358,14 +364,14 @@ namespace YBWLib2 {
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) {
+		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 			this->ptr_owned = x.ptr_owned;
 			x.ptr_stored = nullptr;
 			x.ptr_owned = nullptr;
 		}
 		template<typename _Element_From_Ty>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, _Element_Ty* p) {
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, _Element_Ty* p) noexcept {
 			const IReferenceCountedObject* _ptr_owned = x.ptr_owned;
 			if (_ptr_owned) {
 				_ptr_owned->IncReferenceCount();
@@ -373,20 +379,20 @@ namespace YBWLib2 {
 			}
 			if (p) this->ptr_stored = p;
 		}
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder& x) {
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder& x) noexcept {
 			if (x.ptr_owned) {
 				x.ptr_owned->IncReferenceCount();
 				this->ptr_owned = x.ptr_owned;
 			}
 			this->ptr_stored = x.ptr_stored;
 		}
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder&& x) {
+		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder&& x) noexcept {
 			this->ptr_stored = x.ptr_stored;
 			this->ptr_owned = x.ptr_owned;
 			x.ptr_stored = nullptr;
 			x.ptr_owned = nullptr;
 		}
-		inline virtual ~ReferenceCountedObjectHolder() {
+		inline ~ReferenceCountedObjectHolder() {
 			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
 			if (_ptr_owned) {
 				this->ptr_stored = nullptr;
@@ -465,14 +471,23 @@ namespace YBWLib2 {
 			return *this;
 		}
 		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const { return this->ptr_owned < x.ptr_owned; }
-		inline void reset() noexcept {}
+		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->ptr_owned < x.ptr_owned; }
+		inline void reset() noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+		}
 		/// <summary>
 		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline void reset(_Element_From_Ty* p, inc_ref_count_t) {
+		inline void reset(_Element_From_Ty* p, inc_ref_count_t) noexcept {
 			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
 			if (_ptr_owned_old) {
 				this->ptr_stored = nullptr;
@@ -493,7 +508,7 @@ namespace YBWLib2 {
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline void reset(_Element_From_Ty*&& p, adopt_ref_count_t) {
+		inline void reset(_Element_From_Ty*&& p, adopt_ref_count_t) noexcept {
 			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
 			if (_ptr_owned_old) {
 				this->ptr_stored = nullptr;

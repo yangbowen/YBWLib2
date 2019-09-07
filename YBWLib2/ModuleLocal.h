@@ -17,6 +17,7 @@
 #ifdef _WIN32_WINNT
 #include "Common/CommonWindowsModuleLocal.h"
 #endif
+#include "Pipeline/PipelineModuleLocal.h"
 #include "JSON/JSONModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
 #ifdef _WIN32_WINNT

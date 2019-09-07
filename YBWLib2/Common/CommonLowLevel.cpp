@@ -50,6 +50,7 @@ namespace YBWLib2 {
 					::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
 					if (this->refcount.compare_exchange_weak(value_refcount, 0, ::std::memory_order_acq_rel, ::std::memory_order_relaxed)) {
 						bool is_ok_erase = map_volatileidanchor->erase(this->persistentid);
+						static_cast<void>(is_ok_erase);
 						assert(is_ok_erase);
 						break;
 					}

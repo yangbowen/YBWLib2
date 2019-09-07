@@ -55,6 +55,12 @@
     <Filter Include="Header Files\Debugging">
       <UniqueIdentifier>{09df7181-7ea1-43d2-8cac-bca53aab2beb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Pipeline">
+      <UniqueIdentifier>{7864a1de-0642-4837-8cfb-4ca844aec1a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Pipeline">
+      <UniqueIdentifier>{63fe595b-4742-4e2b-b26d-29b326e49517}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -171,6 +177,12 @@
     <ClInclude Include="YBWLib2RawData.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Pipeline\Pipeline.h">
+      <Filter>Header Files\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline\PipelineModuleLocal.h">
+      <Filter>Header Files\Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -226,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="Debugging\DebuggingWindows.cpp">
       <Filter>Source Files\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline\Pipeline.cpp">
+      <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

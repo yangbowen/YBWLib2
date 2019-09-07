@@ -13,6 +13,7 @@
 #ifdef _WIN32_WINNT
 #include "Common/CommonWindows.h"
 #endif
+#include "Pipeline/Pipeline.h"
 #include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
 #ifdef _WIN32_WINNT
@@ -51,6 +52,8 @@ namespace YBWLib2 {
 			CommonWindows_RealInitGlobal();
 			CommonWindows_RealInitModuleLocal();
 #endif
+			Pipeline_RealInitGlobal();
+			Pipeline_RealInitModuleLocal();
 			JSON_RealInitGlobal();
 			JSON_RealInitModuleLocal();
 			Internal::YBWLib2InternalConfig_RealInitGlobal();
@@ -64,6 +67,7 @@ namespace YBWLib2 {
 #ifdef _WIN32_WINNT
 			ExceptionWindowsUserInterface_RealInitGlobal();
 #endif
+			PipelineUserInterface_RealInitGlobal();
 			JSONUserInterface_RealInitGlobal();
 			File_RealInitGlobal();
 			File_RealInitModuleLocal();
@@ -99,6 +103,7 @@ namespace YBWLib2 {
 			File_RealUnInitModuleLocal();
 			File_RealUnInitGlobal();
 			JSONUserInterface_RealUnInitGlobal();
+			PipelineUserInterface_RealUnInitGlobal();
 #ifdef _WIN32_WINNT
 			ExceptionWindowsUserInterface_RealUnInitGlobal();
 #endif
@@ -112,6 +117,8 @@ namespace YBWLib2 {
 			Internal::YBWLib2InternalConfig_RealUnInitGlobal();
 			JSON_RealUnInitModuleLocal();
 			JSON_RealUnInitGlobal();
+			Pipeline_RealUnInitModuleLocal();
+			Pipeline_RealUnInitGlobal();
 #ifdef _WIN32_WINNT
 			CommonWindows_RealUnInitModuleLocal();
 			CommonWindows_RealUnInitGlobal();
