@@ -434,7 +434,7 @@ namespace YBWLib2 {
 	//{ UUID
 
 	/// <summary>Universally unique identifier.</summary>
-		struct UUID {
+	struct UUID {
 		/// <summary>An equal-to comparing function for <c>UUID</c>.</summary>
 		static inline bool IsEqualTo(const UUID& l, const UUID& r) noexcept {
 			return !memcmp(l.data, r.data, sizeof(UUID::data));
@@ -1074,7 +1074,7 @@ namespace YBWLib2 {
 		static constexpr address_insensitive_callable_t address_insensitive_callable {};
 		static constexpr invoke_member_function_t invoke_member_function {};
 		static constexpr unsigned int delegateflags = _delegateflags;
-		typedef return_type (YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept);
+		typedef return_type(YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept);
 		typedef void (YBWLIB2_CALLTYPE* fnptr_cleanup_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
@@ -1092,7 +1092,7 @@ namespace YBWLib2 {
 			fnptr_cleanup(_fnptr_cleanup) {}
 		constexpr Delegate(
 			invoke_function_t,
-			return_type (YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept),
+			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept),
 			uintptr_t _contextvalue1 = 0
 		) noexcept {
 			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
@@ -1103,7 +1103,7 @@ namespace YBWLib2 {
 		}
 		constexpr Delegate(
 			invoke_function_t,
-			return_type (YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)
+			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)
 		) noexcept {
 			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
@@ -1218,7 +1218,7 @@ namespace YBWLib2 {
 				};
 			}
 		}
-		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
 		constexpr Delegate(
 			invoke_function_t,
 			uintptr_t _contextvalue1 = 0,
@@ -1227,7 +1227,7 @@ namespace YBWLib2 {
 			: fnptr_invoke(&_fn_invoke),
 			contextvalue1(_contextvalue1),
 			contextvalue2(_contextvalue2) {}
-		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
 		constexpr Delegate(
 			invoke_function_t,
 			uintptr_t _contextvalue1 = 0
@@ -1237,7 +1237,7 @@ namespace YBWLib2 {
 				return _fn_invoke(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 		}
-		template<return_type (YBWLIB2_CALLTYPE& _fn_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
 		constexpr Delegate(
 			invoke_function_t
 		) noexcept {
@@ -1247,7 +1247,7 @@ namespace YBWLib2 {
 				return _fn_invoke(::std::forward<_Args_Ty>(args)...);
 			};
 		}
-		template<typename _Class_Ty, return_type (_Class_Ty::* _mfnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		template<typename _Class_Ty, return_type(_Class_Ty::* _mfnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
 		constexpr Delegate(
 			invoke_member_function_t,
 			_Class_Ty* _ptr_obj,
@@ -1259,7 +1259,7 @@ namespace YBWLib2 {
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(_ptr_obj);
 		}
-		template<typename _Class_Ty, return_type (_Class_Ty::* _mfnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
+		template<typename _Class_Ty, return_type(_Class_Ty::* _mfnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
 		constexpr Delegate(
 			invoke_member_function_t,
 			_Class_Ty* _ptr_obj
@@ -1527,7 +1527,7 @@ namespace YBWLib2 {
 				return obj->try_lock();
 			},
 			reinterpret_cast<uintptr_t>(&_obj)
-			);
+		);
 	}
 
 	/// <summary>
