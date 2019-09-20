@@ -2,6 +2,7 @@
 #define _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
 
 #include <cstdint>
+#include <climits>
 #include <cinttypes>
 #include <cstdlib>
 #include <cassert>
@@ -48,26 +49,24 @@ namespace YBWLib2 {
 	template<typename _Ty>
 	struct hash;
 
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
-
 	// Helpers for byte_order_t.
-	template<uint8_t i>
+	template<unsigned char i>
 	struct byte_order_bytearray_test_helper_t {
 		const byte_order_bytearray_test_helper_t<i - 1> prev;
-		const uint8_t current = i;
+		const unsigned char current = i;
 	};
 	template<>
 	struct byte_order_bytearray_test_helper_t<0> {
-		const uint8_t current = 0;
+		const unsigned char current = 0;
 	};
-	template<uint8_t i>
+	template<unsigned char i>
 	constexpr byte_order_bytearray_test_helper_t<i> byte_order_bytearray_test_helper {};
-	template<typename _Ty, uint8_t i>
-	constexpr _Ty byte_order_number_test_le_helper = byte_order_number_test_le_helper<_Ty, i - 1> | (((_Ty)i) << (i * 8));
+	template<typename _Ty, unsigned char i>
+	constexpr _Ty byte_order_number_test_le_helper = byte_order_number_test_le_helper<_Ty, i - 1> | (((_Ty)i) << (i * CHAR_BIT));
 	template<typename _Ty>
 	constexpr _Ty byte_order_number_test_le_helper<_Ty, 0> = 0;
-	template<typename _Ty, uint8_t i>
-	constexpr _Ty byte_order_number_test_be_helper = byte_order_number_test_be_helper<_Ty, i - 1> | (((_Ty)(sizeof(_Ty) - i - 1)) << (i * 8));
+	template<typename _Ty, unsigned char i>
+	constexpr _Ty byte_order_number_test_be_helper = byte_order_number_test_be_helper<_Ty, i - 1> | (((_Ty)(sizeof(_Ty) - i - 1)) << (i * CHAR_BIT));
 	template<typename _Ty>
 	constexpr _Ty byte_order_number_test_be_helper<_Ty, 0> = sizeof(_Ty) - 1;
 
@@ -113,19 +112,17 @@ namespace YBWLib2 {
 		return should_increment_exponent ? x << 1 : x;
 	}
 
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
-
 	// Helpers for count_leading_zero.
 	template<typename _Uint_Ty, size_t bitsize>
 	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-		static_assert(bitsize <= sizeof(_Uint_Ty) * 0x8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 		if constexpr ((bitsize & (bitsize - 1)) != 0) {
 			static_assert(
 				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
 				&& ceil_to_power_of_two(bitsize) > bitsize
-				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * 0x8
+				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
 				, "Unexpected error."
 				);
 			// Shifts the bits to the left.
@@ -137,16 +134,16 @@ namespace YBWLib2 {
 			return;
 		} else if constexpr (bitsize == 0x1) {
 			static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
-			n += table_1[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x1)) & (((size_t)1 << 0x1) - 1)];
+			n += table_1[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x1)) & (((size_t)1 << 0x1) - 1)];
 		} else if constexpr (bitsize == 0x2) {
 			static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x1, 0x0, 0x0 };
-			n += table_2[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x2)) & (((size_t)1 << 0x2) - 1)];
+			n += table_2[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x2)) & (((size_t)1 << 0x2) - 1)];
 		} else if constexpr (bitsize == 0x4) {
 			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
-			n += table_4[(x >> (sizeof(_Uint_Ty) * 0x8 - 0x4)) & (((size_t)1 << 0x4) - 1)];
+			n += table_4[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x4)) & (((size_t)1 << 0x4) - 1)];
 		} else {
 			static_assert(!(bitsize & 1), "Unexpected error.");
-			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * 0x8 - (bitsize >> 1))))) {
+			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * CHAR_BIT - (bitsize >> 1))))) {
 				n += (bitsize >> 1);
 				x <<= (bitsize >> 1);
 			}
@@ -159,23 +156,21 @@ namespace YBWLib2 {
 	inline constexpr size_t count_leading_zero(_Uint_Ty x) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 0x8>(x, n);
+		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
 		return n;
 	}
-
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	// Helpers for count_trailing_zero.
 	template<typename _Uint_Ty, size_t bitsize>
 	inline constexpr void count_trailing_zero_helper(_Uint_Ty& x, size_t& n) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-		static_assert(bitsize <= sizeof(_Uint_Ty) * 0x8, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 		if constexpr ((bitsize & (bitsize - 1)) != 0) {
 			static_assert(
 				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
 				&& ceil_to_power_of_two(bitsize) > bitsize
-				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * 0x8
+				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
 				, "Unexpected error."
 				);
 			// Sets the leading bits.
@@ -207,7 +202,7 @@ namespace YBWLib2 {
 	inline constexpr size_t count_trailing_zero(_Uint_Ty x) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * 0x8>(x, n);
+		count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
 		return n;
 	}
 
@@ -321,7 +316,7 @@ namespace YBWLib2 {
 		static_assert(sizeof(_Hash_Ty) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
 		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
 			_Hash_Ty _hash = fnv1a_offset_basis;
-			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const uint8_t*>(&data)[i]) * fnv1a_prime;
+			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i]) * fnv1a_prime;
 			return _hash;
 		}
 	private:
@@ -335,7 +330,7 @@ namespace YBWLib2 {
 		static_assert(sizeof(_Hash_Ty) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
 		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
 			_Hash_Ty _hash = fnv1a_offset_basis;
-			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const uint8_t*>(&data)[i]) * fnv1a_prime;
+			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i]) * fnv1a_prime;
 			return _hash;
 		}
 	private:
@@ -449,9 +444,9 @@ namespace YBWLib2 {
 		/// The behaviour is equivalent to comparing the binary representation of the <c>UUID</c> from byte to byte lexicographically.
 		/// </summary>
 		static inline bool IsLessThan(const UUID& l, const UUID& r) noexcept {
-			for (int i = 0; i < sizeof(UUID::data) / sizeof(uint8_t); ++i) {
-				if (reinterpret_cast<const uint8_t*>(l.data)[i] < reinterpret_cast<const uint8_t*>(r.data)[i]) return true;
-				if (reinterpret_cast<const uint8_t*>(l.data)[i] != reinterpret_cast<const uint8_t*>(r.data)[i]) return false;
+			for (int i = 0; i < sizeof(UUID::data); ++i) {
+				if (reinterpret_cast<const unsigned char*>(l.data)[i] < reinterpret_cast<const unsigned char*>(r.data)[i]) return true;
+				if (reinterpret_cast<const unsigned char*>(l.data)[i] != reinterpret_cast<const unsigned char*>(r.data)[i]) return false;
 			}
 			return false;
 		}
