@@ -68,18 +68,18 @@ namespace YBWLib2 {
 		~below_min_t() = default;
 		constexpr below_min_t& operator=(const below_min_t&) noexcept = default;
 		constexpr below_min_t& operator=(below_min_t&&) noexcept = default;
-		constexpr bool operator==(const below_min_t& r) const noexcept { return true; }
-		constexpr bool operator!=(const below_min_t& r) const noexcept { return false; }
-		constexpr bool operator<(const below_min_t& r) const noexcept { return false; }
-		constexpr bool operator<=(const below_min_t& r) const noexcept { return true; }
-		constexpr bool operator>(const below_min_t& r) const noexcept { return false; }
-		constexpr bool operator>=(const below_min_t& r) const noexcept { return true; }
-		constexpr bool operator==(const original_type& r) const noexcept { return false; }
-		constexpr bool operator!=(const original_type& r) const noexcept { return true; }
-		constexpr bool operator<(const original_type& r) const noexcept { return true; }
-		constexpr bool operator<=(const original_type& r) const noexcept { return true; }
-		constexpr bool operator>(const original_type& r) const noexcept { return false; }
-		constexpr bool operator>=(const original_type& r) const noexcept { return false; }
+		constexpr bool operator==(const below_min_t&) const noexcept { return true; }
+		constexpr bool operator!=(const below_min_t&) const noexcept { return false; }
+		constexpr bool operator<(const below_min_t&) const noexcept { return false; }
+		constexpr bool operator<=(const below_min_t&) const noexcept { return true; }
+		constexpr bool operator>(const below_min_t&) const noexcept { return false; }
+		constexpr bool operator>=(const below_min_t&) const noexcept { return true; }
+		constexpr bool operator==(const original_type&) const noexcept { return false; }
+		constexpr bool operator!=(const original_type&) const noexcept { return true; }
+		constexpr bool operator<(const original_type&) const noexcept { return true; }
+		constexpr bool operator<=(const original_type&) const noexcept { return true; }
+		constexpr bool operator>(const original_type&) const noexcept { return false; }
+		constexpr bool operator>=(const original_type&) const noexcept { return false; }
 	};
 
 	/// <summary>A helper type whose instances always compares greater than the specified original type.</summary>
@@ -93,18 +93,18 @@ namespace YBWLib2 {
 		~above_max_t() = default;
 		constexpr above_max_t& operator=(const above_max_t&) noexcept = default;
 		constexpr above_max_t& operator=(above_max_t&&) noexcept = default;
-		constexpr bool operator==(const above_max_t& r) const noexcept { return true; }
-		constexpr bool operator!=(const above_max_t& r) const noexcept { return false; }
-		constexpr bool operator<(const above_max_t& r) const noexcept { return false; }
-		constexpr bool operator<=(const above_max_t& r) const noexcept { return true; }
-		constexpr bool operator>(const above_max_t& r) const noexcept { return false; }
-		constexpr bool operator>=(const above_max_t& r) const noexcept { return true; }
-		constexpr bool operator==(const original_type& r) const noexcept { return false; }
-		constexpr bool operator!=(const original_type& r) const noexcept { return true; }
-		constexpr bool operator<(const original_type& r) const noexcept { return false; }
-		constexpr bool operator<=(const original_type& r) const noexcept { return false; }
-		constexpr bool operator>(const original_type& r) const noexcept { return true; }
-		constexpr bool operator>=(const original_type& r) const noexcept { return true; }
+		constexpr bool operator==(const above_max_t&) const noexcept { return true; }
+		constexpr bool operator!=(const above_max_t&) const noexcept { return false; }
+		constexpr bool operator<(const above_max_t&) const noexcept { return false; }
+		constexpr bool operator<=(const above_max_t&) const noexcept { return true; }
+		constexpr bool operator>(const above_max_t&) const noexcept { return false; }
+		constexpr bool operator>=(const above_max_t&) const noexcept { return true; }
+		constexpr bool operator==(const original_type&) const noexcept { return false; }
+		constexpr bool operator!=(const original_type&) const noexcept { return true; }
+		constexpr bool operator<(const original_type&) const noexcept { return false; }
+		constexpr bool operator<=(const original_type&) const noexcept { return false; }
+		constexpr bool operator>(const original_type&) const noexcept { return true; }
+		constexpr bool operator>=(const original_type&) const noexcept { return true; }
 	};
 
 	template<typename _Ty>
@@ -1171,6 +1171,8 @@ namespace YBWLib2 {
 	public:
 		using return_type = _Return_Ty;
 		using argument_tuple_type = ::std::tuple<_Args_Ty&&...>;
+		static constexpr unsigned int delegateflags = _delegateflags;
+		static constexpr bool is_noexcept = delegateflags & DelegateFlags::DelegateFlag_Noexcept;
 		struct invoke_constexpr_callable_t {};
 		struct invoke_function_t {};
 		struct invoke_observe_callable_t {};
@@ -1185,10 +1187,13 @@ namespace YBWLib2 {
 		static constexpr invoke_construct_callable_t invoke_construct_callable {};
 		static constexpr address_insensitive_callable_t address_insensitive_callable {};
 		static constexpr invoke_member_function_t invoke_member_function {};
-		static constexpr unsigned int delegateflags = _delegateflags;
-		static constexpr bool is_noexcept = delegateflags & DelegateFlags::DelegateFlag_Noexcept;
-		typedef return_type(YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept);
-		typedef void (YBWLIB2_CALLTYPE* fnptr_cleanup_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
+		using fnptr_invoke_t =
+			::std::conditional_t<
+			is_noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args)
+			>;
+		using fnptr_cleanup_t = void (YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
 		uintptr_t contextvalue2 = 0;
