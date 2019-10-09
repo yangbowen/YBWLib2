@@ -1367,7 +1367,7 @@ namespace YBWLib2 {
 		/// If no meaningful <c>what</c> string can be provided, <c>0</c> is returned.
 		/// </returns>
 		inline virtual size_t GetSTLExceptionWhatStringSize() const noexcept override {
-			return this->size_str_what_stlexception && this->size_str_what_stlexception ? this->size_str_what_stlexception : 0;
+			return this->size_str_what_stlexception ? this->size_str_what_stlexception : 0;
 		}
 	protected:
 		char* str_what_stlexception = nullptr;

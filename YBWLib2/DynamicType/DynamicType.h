@@ -382,7 +382,7 @@ namespace YBWLib2 {
 	/// </summary>
 	class DynamicTypeBaseClassDefObj final {
 	public:
-		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, DynamicTypeBaseClassFlags _dtbaseclassflags, fnptr_dynamic_type_upcast_t _fnptr_dynamic_type_static_upcast)
+		inline DynamicTypeBaseClassDefObj(const DynamicTypeClassID& _dtclassid, bool _is_module_local, DynamicTypeBaseClassFlags _dtbaseclassflags, fnptr_dynamic_type_upcast_t _fnptr_dynamic_type_static_upcast) noexcept
 			: dtclassid(_dtclassid),
 			is_module_local(_is_module_local),
 			module_info(_is_module_local ? module_info_current : nullptr),
@@ -401,7 +401,7 @@ namespace YBWLib2 {
 				abort();
 			}
 		}
-		inline DynamicTypeBaseClassDefObj(const DynamicTypeBaseClassDefObj& x)
+		inline DynamicTypeBaseClassDefObj(const DynamicTypeBaseClassDefObj& x) noexcept
 			: dtclassid(x.dtclassid),
 			is_module_local(x.is_module_local),
 			module_info(x.module_info),
@@ -420,7 +420,7 @@ namespace YBWLib2 {
 				abort();
 			}
 		}
-		inline DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj&& x)
+		inline DynamicTypeBaseClassDefObj(DynamicTypeBaseClassDefObj&& x) noexcept
 			: dtclassid(x.dtclassid),
 			is_module_local(x.is_module_local),
 			module_info(x.module_info),
@@ -832,7 +832,7 @@ namespace YBWLib2 {
 		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified source class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified source class type is not a dynamic type class.");
 		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
-		static_assert(::std::is_convertible_v<typename move_cv_t<void, _Class_From_Ty>::type, typename move_cv_t<void, _Class_To_Ty>::type>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
+		static_assert(::std::is_convertible_v<move_cv_t<void, _Class_From_Ty>, move_cv_t<void, _Class_To_Ty>>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
 		inline _Class_To_Ty* operator()(_Class_From_Ty* ptr) const {
 			if constexpr (
 				::std::is_convertible_v<::std::remove_cv_t<_Class_From_Ty>*, ::std::remove_cv_t<_Class_To_Ty>*>
@@ -859,7 +859,7 @@ namespace YBWLib2 {
 		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified source class type is not a dynamic type class.");
 		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
 		inline bool operator()(_Class_From_Ty* ptr) const {
-			if constexpr (::std::is_convertible_v<typename move_cv_t<void, _Class_From_Ty>::type, typename move_cv_t<void, _Class_To_Ty>::type>) {
+			if constexpr (::std::is_convertible_v<move_cv_t<void, _Class_From_Ty>, move_cv_t<void, _Class_To_Ty>>) {
 				if constexpr (
 					::std::is_convertible_v<::std::remove_cv_t<_Class_From_Ty>*, ::std::remove_cv_t<_Class_To_Ty>*>
 					&& !IsDynamicTypeModuleLocalClass<_Class_To_Ty>()

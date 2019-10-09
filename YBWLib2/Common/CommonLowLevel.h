@@ -38,13 +38,123 @@ namespace YBWLib2 {
 
 	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
 	template<typename _Ty, typename _Cv_Ty>
-	struct move_cv_t {
+	struct move_cv {
 		using type = typename ::std::conditional_t<::std::is_volatile_v<_Cv_Ty>, typename ::std::add_volatile_t<
 			typename ::std::conditional_t<::std::is_const_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
 		>, typename ::std::remove_volatile_t<
 			typename ::std::conditional_t<::std::is_volatile_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
 			>>;
 	};
+
+	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
+	template<typename _Ty, typename _Cv_Ty>
+	using move_cv_t = typename move_cv<_Ty, _Cv_Ty>::type;
+
+	/// <summary>A helper type that encloses a value known at compile time.</summary>
+	template<typename _Ty, _Ty _value>
+	struct enclose_constexpr_value_t {
+		using value_type = _Ty;
+		static constexpr value_type value = _value;
+	};
+
+	/// <summary>A helper type whose instances always compares less than the specified original type.</summary>
+	template<typename _Ty>
+	struct below_min_t {
+		using original_type = _Ty;
+		using is_always_equal = ::std::true_type;
+		constexpr below_min_t() noexcept = default;
+		constexpr below_min_t(const below_min_t&) noexcept = default;
+		constexpr below_min_t(below_min_t&&) noexcept = default;
+		~below_min_t() = default;
+		constexpr below_min_t& operator=(const below_min_t&) noexcept = default;
+		constexpr below_min_t& operator=(below_min_t&&) noexcept = default;
+		constexpr bool operator==(const below_min_t& r) const noexcept { return true; }
+		constexpr bool operator!=(const below_min_t& r) const noexcept { return false; }
+		constexpr bool operator<(const below_min_t& r) const noexcept { return false; }
+		constexpr bool operator<=(const below_min_t& r) const noexcept { return true; }
+		constexpr bool operator>(const below_min_t& r) const noexcept { return false; }
+		constexpr bool operator>=(const below_min_t& r) const noexcept { return true; }
+		constexpr bool operator==(const original_type& r) const noexcept { return false; }
+		constexpr bool operator!=(const original_type& r) const noexcept { return true; }
+		constexpr bool operator<(const original_type& r) const noexcept { return true; }
+		constexpr bool operator<=(const original_type& r) const noexcept { return true; }
+		constexpr bool operator>(const original_type& r) const noexcept { return false; }
+		constexpr bool operator>=(const original_type& r) const noexcept { return false; }
+	};
+
+	/// <summary>A helper type whose instances always compares greater than the specified original type.</summary>
+	template<typename _Ty>
+	struct above_max_t {
+		using original_type = _Ty;
+		using is_always_equal = ::std::true_type;
+		constexpr above_max_t() noexcept = default;
+		constexpr above_max_t(const above_max_t&) noexcept = default;
+		constexpr above_max_t(above_max_t&&) noexcept = default;
+		~above_max_t() = default;
+		constexpr above_max_t& operator=(const above_max_t&) noexcept = default;
+		constexpr above_max_t& operator=(above_max_t&&) noexcept = default;
+		constexpr bool operator==(const above_max_t& r) const noexcept { return true; }
+		constexpr bool operator!=(const above_max_t& r) const noexcept { return false; }
+		constexpr bool operator<(const above_max_t& r) const noexcept { return false; }
+		constexpr bool operator<=(const above_max_t& r) const noexcept { return true; }
+		constexpr bool operator>(const above_max_t& r) const noexcept { return false; }
+		constexpr bool operator>=(const above_max_t& r) const noexcept { return true; }
+		constexpr bool operator==(const original_type& r) const noexcept { return false; }
+		constexpr bool operator!=(const original_type& r) const noexcept { return true; }
+		constexpr bool operator<(const original_type& r) const noexcept { return false; }
+		constexpr bool operator<=(const original_type& r) const noexcept { return false; }
+		constexpr bool operator>(const original_type& r) const noexcept { return true; }
+		constexpr bool operator>=(const original_type& r) const noexcept { return true; }
+	};
+
+	template<typename _Ty>
+	constexpr bool operator==(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator!=(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator<=(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator>(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator>=(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator==(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator!=(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<=(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator>(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator>=(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator==(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator!=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator>(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator>=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator==(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator!=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator<(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator<=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
+	template<typename _Ty>
+	constexpr bool operator>(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename _Ty>
+	constexpr bool operator>=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
 
 	template<typename _Ty>
 	struct hash;
@@ -1061,12 +1171,14 @@ namespace YBWLib2 {
 	public:
 		using return_type = _Return_Ty;
 		using argument_tuple_type = ::std::tuple<_Args_Ty&&...>;
+		struct invoke_constexpr_callable_t {};
 		struct invoke_function_t {};
 		struct invoke_observe_callable_t {};
 		struct invoke_adopt_callable_t {};
 		struct invoke_construct_callable_t {};
 		struct address_insensitive_callable_t {};
 		struct invoke_member_function_t {};
+		static constexpr invoke_constexpr_callable_t invoke_constexpr_callable {};
 		static constexpr invoke_function_t invoke_function {};
 		static constexpr invoke_observe_callable_t invoke_observe_callable {};
 		static constexpr invoke_adopt_callable_t invoke_adopt_callable {};
@@ -1074,7 +1186,8 @@ namespace YBWLib2 {
 		static constexpr address_insensitive_callable_t address_insensitive_callable {};
 		static constexpr invoke_member_function_t invoke_member_function {};
 		static constexpr unsigned int delegateflags = _delegateflags;
-		typedef return_type(YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept);
+		static constexpr bool is_noexcept = delegateflags & DelegateFlags::DelegateFlag_Noexcept;
+		typedef return_type(YBWLIB2_CALLTYPE* fnptr_invoke_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept);
 		typedef void (YBWLIB2_CALLTYPE* fnptr_cleanup_t)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
@@ -1092,10 +1205,10 @@ namespace YBWLib2 {
 			fnptr_cleanup(_fnptr_cleanup) {}
 		constexpr Delegate(
 			invoke_function_t,
-			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept),
+			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(is_noexcept),
 			uintptr_t _contextvalue1 = 0
 		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
@@ -1103,9 +1216,9 @@ namespace YBWLib2 {
 		}
 		constexpr Delegate(
 			invoke_function_t,
-			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)
+			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(is_noexcept)
 		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
 				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 			};
@@ -1116,7 +1229,7 @@ namespace YBWLib2 {
 			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
 		>
 			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
@@ -1127,7 +1240,7 @@ namespace YBWLib2 {
 			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
 		>
 			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
 				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 			};
@@ -1138,7 +1251,7 @@ namespace YBWLib2 {
 			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
 		>
 			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 			_ptr_callable_invoke = nullptr;
@@ -1154,7 +1267,7 @@ namespace YBWLib2 {
 			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
 		>
 			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
 				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 			};
@@ -1173,7 +1286,7 @@ namespace YBWLib2 {
 		>
 			Delegate(invoke_construct_callable_t, _Tuple_Args_Ctor_Callable_Invoke_Ty&& _tuple_args_ctor_callable_invoke, const _Allocator_Callable_Invoke_Ty& _allocator_callable_invoke = _Allocator_Callable_Invoke_Ty())
 			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
 				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 			};
@@ -1195,7 +1308,7 @@ namespace YBWLib2 {
 			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
 			if constexpr (::std::is_object_v<_Callable_Invoke_Ty> && sizeof(_Callable_Invoke_Ty) <= sizeof(uintptr_t)) {
 				static_cast<void>(_allocator_callable_invoke);
-				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 					static_cast<void>(_contextvalue2);
 					return (*reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 				};
@@ -1205,7 +1318,7 @@ namespace YBWLib2 {
 					reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1)->~_Callable_Invoke_Ty();
 				};
 			} else {
-				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 					static_cast<void>(_contextvalue2);
 					return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 				};
@@ -1218,55 +1331,75 @@ namespace YBWLib2 {
 				};
 			}
 		}
-		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
-		constexpr Delegate(
-			invoke_function_t,
-			uintptr_t _contextvalue1 = 0,
-			uintptr_t _contextvalue2 = 0
-		) noexcept
-			: fnptr_invoke(&_fn_invoke),
-			contextvalue1(_contextvalue1),
-			contextvalue2(_contextvalue2) {}
-		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
-		constexpr Delegate(
-			invoke_function_t,
-			uintptr_t _contextvalue1 = 0
-		) noexcept : contextvalue1(_contextvalue1) {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
-				static_cast<void>(_contextvalue2);
-				return _fn_invoke(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+		template<
+			typename _Enclose_Constexpr_Value_Fn_Invoke_Ty,
+			typename ::std::enable_if<::std::is_invocable_r_v<return_type, typename _Enclose_Constexpr_Value_Fn_Invoke_Ty::value_type, uintptr_t, uintptr_t, _Args_Ty...>, int>::type = 0
+		>
+			constexpr Delegate(
+				invoke_constexpr_callable_t,
+				uintptr_t _contextvalue1 = 0,
+				uintptr_t _contextvalue2 = 0
+			) noexcept
+			: contextvalue1(_contextvalue1),
+			contextvalue2(_contextvalue2) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+				return _Enclose_Constexpr_Value_Fn_Invoke_Ty::value(_contextvalue1, _contextvalue2, ::std::forward<_Args_Ty>(args)...);
 			};
 		}
-		template<return_type(YBWLIB2_CALLTYPE& _fn_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
-		constexpr Delegate(
-			invoke_function_t
-		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+		template<
+			typename _Enclose_Constexpr_Value_Fn_Invoke_Ty,
+			typename ::std::enable_if<::std::is_invocable_r_v<return_type, typename _Enclose_Constexpr_Value_Fn_Invoke_Ty::value_type, uintptr_t, _Args_Ty...>, int>::type = 0
+		>
+			constexpr Delegate(
+				invoke_constexpr_callable_t,
+				uintptr_t _contextvalue1 = 0
+			) noexcept : contextvalue1(_contextvalue1) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+				static_cast<void>(_contextvalue2);
+				return _Enclose_Constexpr_Value_Fn_Invoke_Ty::value(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			};
+		}
+		template<
+			typename _Enclose_Constexpr_Value_Fn_Invoke_Ty,
+			typename ::std::enable_if<::std::is_invocable_r_v<return_type, typename _Enclose_Constexpr_Value_Fn_Invoke_Ty::value_type, _Args_Ty...>, int>::type = 0
+		>
+			constexpr Delegate(
+				invoke_constexpr_callable_t
+			) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue1);
 				static_cast<void>(_contextvalue2);
-				return _fn_invoke(::std::forward<_Args_Ty>(args)...);
+				return _Enclose_Constexpr_Value_Fn_Invoke_Ty::value(::std::forward<_Args_Ty>(args)...);
 			};
 		}
-		template<typename _Class_Ty, return_type(_Class_Ty::* _mfnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
-		constexpr Delegate(
-			invoke_member_function_t,
-			_Class_Ty* _ptr_obj,
-			uintptr_t _contextvalue1 = 0
-		) noexcept : contextvalue1(_contextvalue1) {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
-				return ::std::invoke(_mfnptr_invoke, static_cast<_Class_Ty*>(_contextvalue2), _contextvalue1, ::std::forward<_Args_Ty>(args)...);
+		template<
+			typename _Class_Ty,
+			typename _Enclose_Constexpr_Value_Mfnptr_Invoke_Ty,
+			typename ::std::enable_if<::std::is_invocable_r_v<return_type, typename _Enclose_Constexpr_Value_Mfnptr_Invoke_Ty::value_type, _Class_Ty*, uintptr_t, _Args_Ty...>, int>::type = 0
+		>
+			constexpr Delegate(
+				invoke_member_function_t,
+				_Class_Ty* _ptr_obj,
+				uintptr_t _contextvalue1 = 0
+			) noexcept : contextvalue1(_contextvalue1) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+				return ::std::invoke(_Enclose_Constexpr_Value_Mfnptr_Invoke_Ty::value, static_cast<_Class_Ty*>(_contextvalue2), _contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(_ptr_obj);
 		}
-		template<typename _Class_Ty, return_type(_Class_Ty::* _mfnptr_invoke)(_Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)>
-		constexpr Delegate(
-			invoke_member_function_t,
-			_Class_Ty* _ptr_obj
-		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept)->return_type {
+		template<
+			typename _Class_Ty,
+			typename _Enclose_Constexpr_Value_Mfnptr_Invoke_Ty,
+			typename ::std::enable_if<::std::is_invocable_r_v<return_type, typename _Enclose_Constexpr_Value_Mfnptr_Invoke_Ty::value_type, _Class_Ty*, _Args_Ty...>, int>::type = 0
+		>
+			constexpr Delegate(
+				invoke_member_function_t,
+				_Class_Ty* _ptr_obj
+			) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
-				return ::std::invoke(_mfnptr_invoke, static_cast<_Class_Ty*>(_contextvalue1), ::std::forward<_Args_Ty>(args)...);
+				return ::std::invoke(_Enclose_Constexpr_Value_Mfnptr_Invoke_Ty::value, static_cast<_Class_Ty*>(_contextvalue1), ::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = reinterpret_cast<uintptr_t>(_ptr_obj);
 		}
@@ -1318,11 +1451,11 @@ namespace YBWLib2 {
 			return *this;
 		}
 		explicit operator bool() const noexcept { return this->fnptr_invoke; }
-		return_type YBWLIB2_CALLTYPE operator()(_Args_Ty... args) const noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept) {
+		return_type YBWLIB2_CALLTYPE operator()(_Args_Ty... args) const noexcept(is_noexcept) {
 			assert(this && this->fnptr_invoke);
 			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<_Args_Ty>(args)...);
 		}
-		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args) noexcept(delegateflags & DelegateFlags::DelegateFlag_Noexcept) {
+		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args) noexcept(is_noexcept) {
 			return (*this)(::std::move(_tuple_args), ::std::make_index_sequence<::std::tuple_size_v<argument_tuple_type>>());
 		}
 	private:
@@ -1923,7 +2056,7 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.contextvalue)) {}
+		inline explicit RawAllocatorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : rawalloctor(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.contextvalue)) {}
 		inline explicit RawAllocatorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : rawalloctor(::std::move(reinterpret_cast<const rawallocator_t*>(_indexeddatarawvalue.contextvalue))) {
 			_indexeddatarawvalue.contextvalue = 0;
 		}

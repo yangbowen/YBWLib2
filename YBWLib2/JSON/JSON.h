@@ -499,7 +499,7 @@ namespace YBWLib2 {
 			return *this;
 		}
 	private:
-		inline explicit constexpr JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.contextvalue)) {}
+		inline explicit JSONSAXGeneratorParameterIndexedDataEntry(const IndexedDataRawValue& _indexeddatarawvalue) : jsonsaxgenerator(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.contextvalue)) {}
 		inline explicit JSONSAXGeneratorParameterIndexedDataEntry(IndexedDataRawValue&& _indexeddatarawvalue) : jsonsaxgenerator(::std::move(reinterpret_cast<IJSONSAXGenerator*>(_indexeddatarawvalue.contextvalue))) {
 			_indexeddatarawvalue.contextvalue = 0;
 		}
