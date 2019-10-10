@@ -130,6 +130,23 @@ namespace YBWLib2 {
 	constexpr size_t PipelineInvocationPacketDataSlotSize = alignof(::std::max_align_t);
 	constexpr size_t PipelineInvocationPacketDataSlotAlign = alignof(::std::max_align_t);
 
+	enum PipelineFilterPositionType : unsigned int {
+		PipelineFilterPositionType_Invalid = 0x0,
+		PipelineFilterPositionType_Front = 0x1,
+		PipelineFilterPositionType_Back = 0x2,
+		PipelineFilterPositionType_BeforeRef = 0x3,
+		PipelineFilterPositionType_AfterRef = 0x4
+	};
+
+	struct PipelineFilterPosition final {
+		PipelineFilterPositionType pipelinefilterpositiontype;
+		PipelineFilterID pipelinefilterid_ref;
+		constexpr PipelineFilterPosition() : pipelinefilterpositiontype(PipelineFilterPositionType_Invalid) {}
+		PipelineFilterPosition(PipelineFilterPositionType _pipelinefilterpositiontype, PipelineFilterID&& _pipelinefilterid_ref = PipelineFilterID())
+			: pipelinefilterpositiontype(_pipelinefilterpositiontype),
+			pipelinefilterid_ref(::std::move(_pipelinefilterid_ref)) {}
+	};
+
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept;
 
@@ -175,6 +192,7 @@ namespace YBWLib2 {
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_GetRawInvokeDelegate(const PipelineFilter* _pipelinefilter, const PipelineFilterRawInvokeDelegate** _delegate_rawinvoke_ret) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_ReleaseRawInvokeDelegate(PipelineFilter* _pipelinefilter, PipelineFilterRawInvokeDelegate* _delegate_rawinvoke_ret) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_SetRawInvokeDelegate(PipelineFilter* _pipelinefilter, PipelineFilterRawInvokeDelegate* _delegate_rawinvoke) noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_SetPipelineFilterPositionArray(PipelineFilter* _pipelinefilter, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept;
 
 		YBWLIB2_API const Pipeline* YBWLIB2_CALLTYPE PipelineInvocationPacket_GetPipeline(const PipelineInvocationPacket* _pipelineinvocationpacket) noexcept;
 		YBWLIB2_API const void* YBWLIB2_CALLTYPE PipelineInvocationPacket_GetInvocationPacketDataPtr(const PipelineInvocationPacket* _pipelineinvocationpacket) noexcept;
@@ -354,6 +372,10 @@ namespace YBWLib2 {
 
 	inline void PipelineFilter_SetRawInvokeDelegate(PipelineFilter& _pipelinefilter, PipelineFilterRawInvokeDelegate&& _delegate_rawinvoke) noexcept {
 		Internal::PipelineFilter_SetRawInvokeDelegate(&_pipelinefilter, &_delegate_rawinvoke);
+	}
+
+	inline void PipelineFilter_SetPipelineFilterPositionArray(PipelineFilter& _pipelinefilter, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
+		Internal::PipelineFilter_SetPipelineFilterPositionArray(&_pipelinefilter, _arr_pipelinefilterposition, _size_pipelinefilterposition);
 	}
 
 	inline const Pipeline* PipelineInvocationPacket_GetPipeline(const PipelineInvocationPacket& _pipelineinvocationpacket) noexcept {

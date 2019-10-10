@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits>
+#include <utility>
+#include <functional>
 #include <exception>
 #include <memory>
 #include <atomic>

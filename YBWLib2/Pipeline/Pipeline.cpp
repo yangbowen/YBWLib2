@@ -1,6 +1,9 @@
 ﻿#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
+#include <list>
+#include <unordered_map>
 #include <map>
+#include <stack>
 #include <shared_mutex>
 #include <thread>
 #include "../DynamicType/DynamicType.h"
@@ -19,7 +22,14 @@ namespace YBWLib2 {
 		) noexcept : pipelineid(_persistentid_pipelineid) {}
 		Pipeline(const Pipeline&) = delete;
 		Pipeline(Pipeline&&) = delete;
-		virtual ~Pipeline() {}
+		virtual ~Pipeline() {
+			for (const ::std::pair<const PipelineFilterID, PipelineFilterAttachment>& val_map_pipelinefilterattachment : this->map_pipelinefilterattachment) {
+				if (!val_map_pipelinefilterattachment.second.IsZombie()) {
+					assert(val_map_pipelinefilterattachment.second.pipelinefilter);
+					this->DetachPipelineFilter(val_map_pipelinefilterattachment.second.pipelinefilter.get(), false, already_exclusive_locked_this_t());
+				}
+			}
+		}
 		Pipeline& operator=(const Pipeline&) = delete;
 		Pipeline& operator=(Pipeline&&) = delete;
 		PipelineID GetPipelineID() const noexcept { return this->pipelineid; }
@@ -88,6 +98,8 @@ namespace YBWLib2 {
 		size_t GetInvocationDataSize(already_shared_locked_this_t) const noexcept;
 		void InitializeInvocationPacket(PipelineInvocationPacket*& _pipelineinvocationpacket_ret, void* _buf_invocationdata, size_t _size_buf_invocationdata, already_shared_locked_this_t) const noexcept;
 		void CleanupInvocationPacket(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t) const noexcept;
+		bool IsResolved(already_shared_locked_this_t) const noexcept;
+		bool IsResolved(already_exclusive_locked_this_t) const noexcept;
 		void RawInvoke(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t) const noexcept;
 		size_t RegisterInvocationPacketDataEntry(
 			const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
@@ -107,6 +119,9 @@ namespace YBWLib2 {
 			already_exclusive_locked_this_t
 		) noexcept;
 		void UnregisterInvocationPacketDataEntry(const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid, already_exclusive_locked_this_t) noexcept;
+		void AttachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t) noexcept;
+		void DetachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, already_exclusive_locked_this_t) noexcept;
+		void Resolve(already_exclusive_locked_this_t) noexcept;
 	protected:
 		struct PipelineInvocationPacketDataEntry final {
 			size_t idx_slot = SIZE_MAX;
@@ -116,6 +131,29 @@ namespace YBWLib2 {
 			PipelineInvocationPacketDataEntryInitializeDelegate delegate_initialize;
 			PipelineInvocationPacketDataEntryCleanupDelegate delegate_cleanup;
 		};
+		struct PipelineFilterAttachment final {
+			PipelineFilterID pipelinefilterid;
+			ReferenceCountedObjectHolder<PipelineFilter> pipelinefilter;
+			size_t idx_pipelinefilterposition_resolve = SIZE_MAX;
+			::std::list<PipelineFilterAttachment*>::iterator it_list_pipelinefilterattachment_invocation;
+			::std::vector<PipelineFilterPosition> vec_pipelinefilterposition_zombie;
+			PipelineFilterAttachment() noexcept {}
+			PipelineFilterAttachment(const PipelineFilterAttachment&) = delete;
+			PipelineFilterAttachment(PipelineFilterAttachment&&) = delete;
+			~PipelineFilterAttachment() = default;
+			PipelineFilterAttachment& operator=(const PipelineFilterAttachment&) = delete;
+			PipelineFilterAttachment& operator=(PipelineFilterAttachment&&) = delete;
+			/// <summary>
+			/// Whether this pipeline filter attachment is in zombie state.
+			/// When a pipeline filter is being detached, the corresponding attachment becomes zombie until the dependencies are resolved, allowing the pipeline filter to be released.
+			/// Such a zombie attachment is merely a placeholder for dependency resolution, and doesn't represent an actual attached pipeline filter.
+			/// </summary>
+			bool IsZombie() const noexcept { return !this->pipelinefilter; }
+		};
+		using map_invocationpacketdataentry_t = ::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>;
+		using map_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment, hash<PipelineFilterID>>;
+		using map_ptr_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment*, hash<PipelineFilterID>>;
+		using map_ptr_pipelinefilterattachment_dependency_t = ::std::map<::std::tuple<PipelineFilterID, PipelineFilterID>, PipelineFilterAttachment*, ::std::less<>>;
 		thread_local static ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>* map_lockcount_recursive;
 		/// <summary>A <c>::std::shared_mutex</c> object used to control concurrent accesses to this object.</summary>
 		mutable ::std::shared_mutex mtx_this;
@@ -125,20 +163,45 @@ namespace YBWLib2 {
 		/// </summary>
 		mutable ::std::shared_mutex mtx_this_prelock;
 		size_t count_slot_invocationpacketdata = 0;
-		::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>> map_invocationpacketdataentry;
+		map_invocationpacketdataentry_t map_invocationpacketdataentry;
 		::std::map<size_t, bool> map_slot_invocationpacketdata_rangeboundary_free;
-		::std::multimap<size_t, ::std::map<size_t, bool>::iterator> map_slot_invocationpacketdata_size_free;
+		::std::multimap<size_t, ::std::map<size_t, bool>::iterator> map_slot_invocationpacketdata_size_free;// TODO: Eliminate use of multimap.
+		/// <summary>An unordered map from pipeline filter IDs to <c>PipelineFilterAttachment</c> objects.</summary>
+		map_pipelinefilterattachment_t map_pipelinefilterattachment;
+		/// <summary>
+		/// A doubly-linked list of references to <c>PipelineFilterAttachment</c> objects.
+		/// This list represents the chain of invocation of this pipeline.
+		/// </summary>
+		::std::list<PipelineFilterAttachment*> list_pipelinefilterattachment_invocation;
+		/// <summary>
+		/// An unordered map that contains references to <c>PipelineFilterAttachment</c> objects that represent floating pipeline filter attachments.
+		/// Floating pipeline filter attachments correspond to pipeline filters that have just been attached or detached, but whose dependency relationships have not been resolved yet.
+		/// After resolving the dependencies, this map becomes empty, and invocations can take place.
+		/// </summary>
+		map_ptr_pipelinefilterattachment_t map_pipelinefilterattachment_floating;
+		/// <summary>
+		/// An unordered map that contains references to <c>PipelineFilterAttachment</c> objects that represent unchained pipeline filter attachments.
+		/// Unchained pipeline filter attachments correspond to pipeline filters that have been attached and are not floating, but would not be invoked because of unsatisfied dependencies.
+		/// </summary>
+		map_ptr_pipelinefilterattachment_t map_pipelinefilterattachment_unchained;
+		// TODO
+		map_ptr_pipelinefilterattachment_dependency_t map_pipelinefilterattachment_dependency_current;
+		// TODO
+		map_ptr_pipelinefilterattachment_dependency_t map_pipelinefilterattachment_dependency_expecting;
 		size_t AllocateInvocationPacketData(size_t _count_slot_invocationpacketdata_allocate, already_exclusive_locked_this_t) noexcept;
 		void DeallocateInvocationPacketData(size_t _idx_slot_invocationpacketdata_deallocate, size_t _count_slot_invocationpacketdata_deallocate, already_exclusive_locked_this_t) noexcept;
+		void AdjustPipelineFilterAttachmentDependencyMapsInitialize(PipelineFilterAttachment& _pipelinefilterattachment, already_exclusive_locked_this_t) noexcept;
+		void AdjustPipelineFilterAttachmentDependencyMapsClear(PipelineFilterAttachment& _pipelinefilterattachment, already_exclusive_locked_this_t) noexcept;
+		void AdjustPipelineFilterAttachmentDependencyMaps(PipelineFilterAttachment& _pipelinefilterattachment, size_t _idx_pipelinefilterposition_resolve_new, already_exclusive_locked_this_t) noexcept;
 	};
 
 	class PipelineFilter final : public SharedPtrReferenceCountedObject<PipelineFilter> {
+		friend class Pipeline;
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(PipelineFilter);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(PipelineFilter);
 		using delegate_rawinvoke_type = PipelineFilterRawInvokeDelegate;
 		const PipelineFilterID pipelinefilterid;
-		delegate_rawinvoke_type delegate_rawinvoke;
 		PipelineFilter(
 			const PersistentID& _persistentid_pipelinefilterid
 		) noexcept : pipelinefilterid(_persistentid_pipelinefilterid) {}
@@ -152,19 +215,30 @@ namespace YBWLib2 {
 			assert(_delegate_rawinvoke_ret);
 			*_delegate_rawinvoke_ret = &this->delegate_rawinvoke;
 		}
-		void ReleaseRawInvokeDelegate(delegate_rawinvoke_type* _delegate_rawinvoke_ret) noexcept {
-			assert(_delegate_rawinvoke_ret);
-			*_delegate_rawinvoke_ret = ::std::move(this->delegate_rawinvoke);
-		}
-		void SetRawInvokeDelegate(delegate_rawinvoke_type* _delegate_rawinvoke) noexcept {
-			assert(_delegate_rawinvoke);
-			this->delegate_rawinvoke = ::std::move(*_delegate_rawinvoke);
-		}
 		void RawInvoke(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 			if (this->delegate_rawinvoke) {
 				this->delegate_rawinvoke(&_pipelineinvocationpacket);
 			}
 		}
+		void ReleaseRawInvokeDelegate(delegate_rawinvoke_type* _delegate_rawinvoke_ret) noexcept {
+			assert(!this->pipeline);
+			assert(_delegate_rawinvoke_ret);
+			*_delegate_rawinvoke_ret = ::std::move(this->delegate_rawinvoke);
+		}
+		void SetRawInvokeDelegate(delegate_rawinvoke_type* _delegate_rawinvoke) noexcept {
+			assert(!this->pipeline);
+			assert(_delegate_rawinvoke);
+			this->delegate_rawinvoke = ::std::move(*_delegate_rawinvoke);
+		}
+		void SetPipelineFilterPositionArray(const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
+			assert(!this->pipeline);
+			assert(_arr_pipelinefilterposition || !_size_pipelinefilterposition);
+			this->vec_pipelinefilterposition.assign(_arr_pipelinefilterposition, _arr_pipelinefilterposition + _size_pipelinefilterposition);
+		}
+	protected:
+		delegate_rawinvoke_type delegate_rawinvoke;
+		::std::vector<PipelineFilterPosition> vec_pipelinefilterposition;
+		Pipeline* pipeline = nullptr;
 	};
 
 	class PipelineInvocationPacket final {
@@ -258,8 +332,20 @@ namespace YBWLib2 {
 		_pipelineinvocationpacket.~PipelineInvocationPacket();
 	}
 
-	void Pipeline::RawInvoke(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t) const noexcept {
-		// TODO: Implement Pipeline::RawInvoke.
+	bool Pipeline::IsResolved(already_shared_locked_this_t) const noexcept {
+		return this->map_pipelinefilterattachment_floating.empty();
+	}
+
+	bool Pipeline::IsResolved(already_exclusive_locked_this_t) const noexcept {
+		return this->map_pipelinefilterattachment_floating.empty();
+	}
+
+	void Pipeline::RawInvoke(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t _already_shared_locked_this) const noexcept {
+		assert(this->IsResolved(_already_shared_locked_this));
+		for (const PipelineFilterAttachment* pipelinefilterattachment : this->list_pipelinefilterattachment_invocation) {
+			assert(pipelinefilterattachment && pipelinefilterattachment->pipelinefilter);
+			pipelinefilterattachment->pipelinefilter->RawInvoke(_pipelineinvocationpacket);
+		}
 	}
 
 	size_t Pipeline::RegisterInvocationPacketDataEntry(
@@ -274,7 +360,7 @@ namespace YBWLib2 {
 		assert(_size_invocationpacketdataentry);
 		size_t count_slot_invocationpacketdataentry = ((_size_invocationpacketdataentry - 1) / size_slot_invocationpacketdata + 1);
 		size_t idx_slot_invocationpacketdataentry = SIZE_MAX;
-		::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
+		map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
 		if (it_map_invocationpacketdataentry == this->map_invocationpacketdataentry.end()) {
 			idx_slot_invocationpacketdataentry = this->AllocateInvocationPacketData(count_slot_invocationpacketdataentry, _already_exclusive_locked_this);
 			PipelineInvocationPacketDataEntry pipelineinvocationpacketdataentry;
@@ -322,7 +408,7 @@ namespace YBWLib2 {
 		assert(_size_invocationpacketdataentry);
 		size_t count_slot_invocationpacketdataentry = ((_size_invocationpacketdataentry - 1) / size_slot_invocationpacketdata + 1);
 		size_t idx_slot_invocationpacketdataentry = SIZE_MAX;
-		::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
+		map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
 		if (it_map_invocationpacketdataentry == this->map_invocationpacketdataentry.end()) {
 			idx_slot_invocationpacketdataentry = this->AllocateInvocationPacketData(count_slot_invocationpacketdataentry, _already_exclusive_locked_this);
 			PipelineInvocationPacketDataEntry pipelineinvocationpacketdataentry;
@@ -361,7 +447,7 @@ namespace YBWLib2 {
 
 	void Pipeline::UnregisterInvocationPacketDataEntry(const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 		assert(_pipelineinvocationpacketdataentryid);
-		::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
+		map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
 		assert(it_map_invocationpacketdataentry != this->map_invocationpacketdataentry.end());
 		bool should_erase = false;
 		{
@@ -373,6 +459,479 @@ namespace YBWLib2 {
 			}
 		}
 		if (should_erase) this->map_invocationpacketdataentry.erase(it_map_invocationpacketdataentry);
+	}
+
+	void Pipeline::AttachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+		assert(_pipelinefilter && !_pipelinefilter->pipeline);
+		PipelineFilterAttachment* pipelinefilterattachment = nullptr;
+		{
+			map_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment = this->map_pipelinefilterattachment.find(_pipelinefilter->GetPipelineFilterID());
+			if (it_map_pipelinefilterattachment != this->map_pipelinefilterattachment.end()) {
+				if (it_map_pipelinefilterattachment->second.IsZombie()) {
+					this->Resolve(_already_exclusive_locked_this);
+				} else {
+					// A pipeline filter with an identical pipeline filter ID has already been attached.
+					abort();
+				}
+			}
+			bool is_successful_emplace = false;
+			::std::tie(it_map_pipelinefilterattachment, is_successful_emplace) = this->map_pipelinefilterattachment.emplace(::std::piecewise_construct, ::std::tuple(_pipelinefilter->GetPipelineFilterID()), ::std::tuple());
+			assert(is_successful_emplace);
+			it_map_pipelinefilterattachment->second.pipelinefilterid = _pipelinefilter->pipelinefilterid;
+			it_map_pipelinefilterattachment->second.pipelinefilter.reset(_pipelinefilter, ReferenceCountedObjectHolder<PipelineFilter>::inc_ref_count);
+			pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
+			_pipelinefilter->pipeline = this;
+		}
+		{
+			bool is_successful_emplace = false;
+			::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_floating.emplace(_pipelinefilter->GetPipelineFilterID(), pipelinefilterattachment);
+			assert(is_successful_emplace);
+		}
+		this->AdjustPipelineFilterAttachmentDependencyMapsInitialize(*pipelinefilterattachment, _already_exclusive_locked_this);
+		{
+			bool is_successful_emplace = false;
+			::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_unchained.emplace(_pipelinefilter->GetPipelineFilterID(), pipelinefilterattachment);
+			assert(is_successful_emplace);
+		}
+		if (_should_resolve_immediately) this->Resolve(_already_exclusive_locked_this);
+		if (_idx_pipelinefilterposition_resolve_ret)
+			*_idx_pipelinefilterposition_resolve_ret = pipelinefilterattachment->idx_pipelinefilterposition_resolve;
+	}
+
+	void Pipeline::DetachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+		assert(_pipelinefilter);
+		if (_pipelinefilter->pipeline != this) {
+			// The specified pipeline filter hasn't been attached to this pipeline yet.
+			abort();
+		}
+		PipelineFilterID pipelinefilterid = _pipelinefilter->GetPipelineFilterID();
+		PipelineFilterAttachment* pipelinefilterattachment = nullptr;
+		map_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment = this->map_pipelinefilterattachment.find(pipelinefilterid);
+		assert(it_map_pipelinefilterattachment != this->map_pipelinefilterattachment.end());
+		pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
+		assert(pipelinefilterattachment->pipelinefilter.get() == _pipelinefilter);
+		_pipelinefilter->pipeline = nullptr;
+		::std::pair<
+			map_ptr_pipelinefilterattachment_dependency_t::iterator,
+			map_ptr_pipelinefilterattachment_dependency_t::iterator
+		> range_map_pipelinefilterattachment_dependency_current = ::std::pair(
+			this->map_pipelinefilterattachment_dependency_current.upper_bound(::std::tuple(pipelinefilterid, below_min_t<PipelineFilterID>())),
+			this->map_pipelinefilterattachment_dependency_current.lower_bound(::std::tuple(pipelinefilterid, above_max_t<PipelineFilterID>()))
+		);
+		if (range_map_pipelinefilterattachment_dependency_current.first == range_map_pipelinefilterattachment_dependency_current.second) {
+			// Pipeline filter attachments that are not currently depended on can be safely removed.
+			map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_unchained = this->map_pipelinefilterattachment_unchained.find(pipelinefilterid);
+			if (pipelinefilterattachment->idx_pipelinefilterposition_resolve != SIZE_MAX) {
+				// The pipeline filter attachment is currently chained.
+				assert(pipelinefilterattachment->idx_pipelinefilterposition_resolve < _pipelinefilter->vec_pipelinefilterposition.size());
+				assert(it_map_pipelinefilterattachment_unchained == this->map_pipelinefilterattachment_unchained.end());
+				this->list_pipelinefilterattachment_invocation.erase(pipelinefilterattachment->it_list_pipelinefilterattachment_invocation);
+			} else {
+				// The pipeline filter attachment is currently unchained.
+				assert(it_map_pipelinefilterattachment_unchained != this->map_pipelinefilterattachment_unchained.end());
+				this->map_pipelinefilterattachment_unchained.erase(it_map_pipelinefilterattachment_unchained);
+			}
+			this->AdjustPipelineFilterAttachmentDependencyMapsClear(*pipelinefilterattachment, _already_exclusive_locked_this);
+			this->map_pipelinefilterattachment.erase(it_map_pipelinefilterattachment);
+		} else {
+			// Pipeline filter attachments that are currently depended on must be made zombie.
+			// They will be removed later by Resolve.
+			pipelinefilterattachment->vec_pipelinefilterposition_zombie = _pipelinefilter->vec_pipelinefilterposition;
+			pipelinefilterattachment->pipelinefilter.reset();
+			this->map_pipelinefilterattachment_floating.emplace(pipelinefilterid, pipelinefilterattachment);
+		}
+		if (_should_resolve_immediately) this->Resolve(_already_exclusive_locked_this);
+	}
+
+	void Pipeline::Resolve(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+		/// <summary>An unordered map that contains references to <c>PipelineFilterAttachment</c> objects that represent pipeline filter attachments that needs to be updated later.</summary>
+		map_ptr_pipelinefilterattachment_t map_pipelinefilterattachment_pending_update;
+		// Fill map_pipelinefilterattachment_pending_update.
+		{
+			for (const ::std::pair<const PipelineFilterID, PipelineFilterAttachment*>& val_map_pipelinefilterattachment_floating : this->map_pipelinefilterattachment_floating) {
+				assert(val_map_pipelinefilterattachment_floating.second);
+				struct state_recurse_dependency_t final {
+					enum class Checkpoint : size_t {
+						Checkpoint_Initial = 0,
+						Checkpoint_AfterRecurse
+					} checkpoint = Checkpoint::Checkpoint_Initial;
+					const PipelineFilterID& pipelinefilterid;
+					PipelineFilterAttachment& pipelinefilterattachment;
+					::std::pair<
+						map_ptr_pipelinefilterattachment_dependency_t::iterator,
+						map_ptr_pipelinefilterattachment_dependency_t::iterator
+					> range_map_pipelinefilterattachment_dependency;
+					map_ptr_pipelinefilterattachment_dependency_t::iterator it_range_map_pipelinefilterattachment_dependency;
+					explicit state_recurse_dependency_t(PipelineFilterAttachment& _pipelinefilterattachment)
+						: pipelinefilterid(_pipelinefilterattachment.pipelinefilterid),
+						pipelinefilterattachment(_pipelinefilterattachment) {}
+					state_recurse_dependency_t(const state_recurse_dependency_t&) = delete;
+					state_recurse_dependency_t(state_recurse_dependency_t&&) = default;
+					~state_recurse_dependency_t() = default;
+					state_recurse_dependency_t& operator=(const state_recurse_dependency_t&) = delete;
+					state_recurse_dependency_t& operator=(state_recurse_dependency_t&&) = default;
+				};
+				::std::stack<state_recurse_dependency_t> stack_state_recurse_dependency;
+				::std::unordered_set<PipelineFilterID, hash<PipelineFilterID>> set_pipelinefilterid_depended;
+				stack_state_recurse_dependency.emplace(*val_map_pipelinefilterattachment_floating.second);
+				{
+					bool is_successful_emplace = false;
+					::std::tie(::std::ignore, is_successful_emplace) = set_pipelinefilterid_depended.emplace(val_map_pipelinefilterattachment_floating.first);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+				}
+				// Recursively fill map_pipelinefilterattachment_pending_update.
+				// The recursion is simulated using a stack and a loop.
+				while (!stack_state_recurse_dependency.empty()) {
+					state_recurse_dependency_t& state_recurse_dependency = stack_state_recurse_dependency.top();
+					switch (state_recurse_dependency.checkpoint) {
+					case state_recurse_dependency_t::Checkpoint::Checkpoint_Initial:
+					{
+						bool is_successful_emplace_map_pipelinefilterattachment_pending_update = false;
+						::std::tie(::std::ignore, is_successful_emplace_map_pipelinefilterattachment_pending_update) = map_pipelinefilterattachment_pending_update.emplace(state_recurse_dependency.pipelinefilterattachment.pipelinefilterid, &state_recurse_dependency.pipelinefilterattachment);
+						if (is_successful_emplace_map_pipelinefilterattachment_pending_update) {
+							// state_recurse_dependency.pipelinefilterattachment has not been processed yet.
+							// Recursively search for dependencies.
+							state_recurse_dependency.range_map_pipelinefilterattachment_dependency = ::std::pair(
+								this->map_pipelinefilterattachment_dependency_current.upper_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, below_min_t<PipelineFilterID>())),
+								this->map_pipelinefilterattachment_dependency_current.lower_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, above_max_t<PipelineFilterID>()))
+							);
+							if (state_recurse_dependency.range_map_pipelinefilterattachment_dependency.first != state_recurse_dependency.range_map_pipelinefilterattachment_dependency.second) {
+								assert(
+									this->map_pipelinefilterattachment_dependency_expecting.upper_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, below_min_t<PipelineFilterID>()))
+									== this->map_pipelinefilterattachment_dependency_expecting.lower_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, above_max_t<PipelineFilterID>()))
+								);
+							} else {
+								state_recurse_dependency.range_map_pipelinefilterattachment_dependency = ::std::pair(
+									this->map_pipelinefilterattachment_dependency_expecting.upper_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, below_min_t<PipelineFilterID>())),
+									this->map_pipelinefilterattachment_dependency_expecting.lower_bound(::std::tuple(state_recurse_dependency.pipelinefilterid, above_max_t<PipelineFilterID>()))
+								);
+							}
+							if (state_recurse_dependency.range_map_pipelinefilterattachment_dependency.first != state_recurse_dependency.range_map_pipelinefilterattachment_dependency.second) {
+								state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency = state_recurse_dependency.range_map_pipelinefilterattachment_dependency.first;
+								assert(state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second);
+								stack_state_recurse_dependency.emplace(*state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second);
+								{
+									bool is_successful_emplace = false;
+									::std::tie(::std::ignore, is_successful_emplace) = set_pipelinefilterid_depended.emplace(state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second->pipelinefilterid);
+									if (!is_successful_emplace) {
+										// Failure to emplace into set_pipelinefilterid_depended indicates that a cyclic dependency has been encountered.
+										abort();
+									}
+								}
+								++state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency;
+								state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse;
+							} else {
+								{
+									bool is_successful_erase = false;
+									is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+									assert(is_successful_erase); static_cast<void>(is_successful_erase);
+								}
+								stack_state_recurse_dependency.pop();
+								assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse);
+							}
+						} else {
+							// state_recurse_dependency.pipelinefilterattachment has already been processed.
+							// No need to recursively search for dependencies.
+							{
+								bool is_successful_erase = false;
+								is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+								assert(is_successful_erase); static_cast<void>(is_successful_erase);
+							}
+							stack_state_recurse_dependency.pop();
+							assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse);
+						}
+						break;
+					}
+					case state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse:
+					{
+						assert(state_recurse_dependency.range_map_pipelinefilterattachment_dependency.first != state_recurse_dependency.range_map_pipelinefilterattachment_dependency.second);
+						if (state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency != state_recurse_dependency.range_map_pipelinefilterattachment_dependency.second) {
+							assert(state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second);
+							stack_state_recurse_dependency.emplace(*state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second);
+							{
+								bool is_successful_emplace = false;
+								::std::tie(::std::ignore, is_successful_emplace) = set_pipelinefilterid_depended.emplace(state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency->second->pipelinefilterid);
+								if (!is_successful_emplace) {
+									// Failure to emplace into set_pipelinefilterid_depended indicates that a cyclic dependency has been encountered.
+									abort();
+								}
+							}
+							++state_recurse_dependency.it_range_map_pipelinefilterattachment_dependency;
+							assert(state_recurse_dependency.checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse);
+						} else {
+							{
+								bool is_successful_erase = false;
+								is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+								assert(is_successful_erase); static_cast<void>(is_successful_erase);
+							}
+							stack_state_recurse_dependency.pop();
+							assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterRecurse);
+						}
+						break;
+					}
+					default:
+						assert(false); abort();
+					}
+				}
+				assert(set_pipelinefilterid_depended.empty());
+			}
+		}
+		{
+			struct state_recurse_dependency_t final {
+				enum class Checkpoint : size_t {
+					Checkpoint_Initial = 0,
+					Checkpoint_Loop,
+					Checkpoint_AfterResolveDepended
+				} checkpoint = Checkpoint::Checkpoint_Initial;
+				const PipelineFilterID& pipelinefilterid;
+				PipelineFilterAttachment* pipelinefilterattachment = nullptr;
+				map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_pending_update;
+				size_t idx_pipelinefilterposition_resolving = SIZE_MAX;
+				const ::std::vector<PipelineFilterPosition>* vec_pipelinefilterposition = nullptr;
+				explicit state_recurse_dependency_t(const PipelineFilterID& _pipelinefilterid)
+					: pipelinefilterid(_pipelinefilterid) {}
+				state_recurse_dependency_t(const state_recurse_dependency_t&) = delete;
+				state_recurse_dependency_t(state_recurse_dependency_t&&) = default;
+				~state_recurse_dependency_t() = default;
+				state_recurse_dependency_t& operator=(const state_recurse_dependency_t&) = delete;
+				state_recurse_dependency_t& operator=(state_recurse_dependency_t&&) = default;
+			};
+			::std::stack<state_recurse_dependency_t> stack_state_recurse_dependency;
+			::std::unordered_set<PipelineFilterID, hash<PipelineFilterID>> set_pipelinefilterid_depended;
+			::std::list<PipelineFilterAttachment*>::const_iterator* it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+			::std::list<PipelineFilterAttachment*>::const_iterator it_list_pipelinefilterattachment_invocation_return_temp;
+			// Recursively resolve dependencies.
+			// The recursion is simulated using a stack and a loop.
+			while (true) {
+				if (!stack_state_recurse_dependency.empty()) {
+					// We're in a recursion.
+					state_recurse_dependency_t& state_recurse_dependency = stack_state_recurse_dependency.top();
+					switch (state_recurse_dependency.checkpoint) {
+					case state_recurse_dependency_t::Checkpoint::Checkpoint_Initial:
+					{
+						state_recurse_dependency.it_map_pipelinefilterattachment_pending_update = map_pipelinefilterattachment_pending_update.find(state_recurse_dependency.pipelinefilterid);
+						map_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment = this->map_pipelinefilterattachment.find(state_recurse_dependency.pipelinefilterid);
+						if (state_recurse_dependency.it_map_pipelinefilterattachment_pending_update == map_pipelinefilterattachment_pending_update.end()) {
+							// The pipeline filter attachment has already been updated.
+							// Return the result directly.
+							if (it_map_pipelinefilterattachment == this->map_pipelinefilterattachment.cend()) {
+								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+							} else {
+								state_recurse_dependency.pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
+								if (state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve == SIZE_MAX) {
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+								} else {
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+								}
+							}
+						} else {
+							// The pipeline filter attachment hasn't been updated yet.
+							// Update and return the result.
+							assert(it_map_pipelinefilterattachment != this->map_pipelinefilterattachment.end());
+							state_recurse_dependency.pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
+							if (state_recurse_dependency.pipelinefilterattachment->IsZombie()) {
+								// The pipeline filter attachment is zombie.
+								// Remove the pipeline filter attachment.
+								// Pipeline filter attachments dependent on this one will get updated later.
+								map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_unchained = this->map_pipelinefilterattachment_unchained.find(state_recurse_dependency.pipelinefilterid);
+								if (state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve != SIZE_MAX) {
+									// The pipeline filter attachment is currently chained.
+									assert(state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve < state_recurse_dependency.pipelinefilterattachment->vec_pipelinefilterposition_zombie.size());
+									assert(it_map_pipelinefilterattachment_unchained == this->map_pipelinefilterattachment_unchained.end());
+									this->list_pipelinefilterattachment_invocation.erase(state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation);
+								} else {
+									// The pipeline filter attachment is currently unchained.
+									assert(it_map_pipelinefilterattachment_unchained != this->map_pipelinefilterattachment_unchained.end());
+									this->map_pipelinefilterattachment_unchained.erase(it_map_pipelinefilterattachment_unchained);
+								}
+								this->AdjustPipelineFilterAttachmentDependencyMapsClear(*state_recurse_dependency.pipelinefilterattachment, _already_exclusive_locked_this);
+								state_recurse_dependency.pipelinefilterattachment = nullptr;
+								this->map_pipelinefilterattachment.erase(it_map_pipelinefilterattachment);
+								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+							} else {
+								// The pipeline filter attachment is not a zombie.
+								// Start resolve dependencies of this pipeline filter attachment.
+								state_recurse_dependency.idx_pipelinefilterposition_resolving = 0;
+								state_recurse_dependency.vec_pipelinefilterposition = &state_recurse_dependency.pipelinefilterattachment->pipelinefilter->vec_pipelinefilterposition;
+								state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_Loop;
+								break;
+							}
+							static_cast<void>(this->map_pipelinefilterattachment_floating.erase(state_recurse_dependency.pipelinefilterid));
+							// Remove the pipeline filter attachment from the pending update map.
+							map_pipelinefilterattachment_pending_update.erase(state_recurse_dependency.it_map_pipelinefilterattachment_pending_update);
+						}
+						{
+							bool is_successful_erase = false;
+							is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+							assert(is_successful_erase); static_cast<void>(is_successful_erase);
+						}
+						stack_state_recurse_dependency.pop();
+						assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended);
+						break;
+					}
+					case state_recurse_dependency_t::Checkpoint::Checkpoint_Loop:
+					{
+						assert(state_recurse_dependency.vec_pipelinefilterposition);
+						if (state_recurse_dependency.idx_pipelinefilterposition_resolving == state_recurse_dependency.vec_pipelinefilterposition->size()) {
+							// Nowhere in the invocation list can the pipeline filter attachment be inserted.
+							// The pipeline filter attachment should be made unchained.
+							state_recurse_dependency.idx_pipelinefilterposition_resolving = SIZE_MAX;
+							map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_unchained = this->map_pipelinefilterattachment_unchained.find(state_recurse_dependency.pipelinefilterid);
+							if (state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve != SIZE_MAX) {
+								// The pipeline filter attachment is currently chained.
+								assert(state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve < state_recurse_dependency.vec_pipelinefilterposition->size());
+								assert(it_map_pipelinefilterattachment_unchained == this->map_pipelinefilterattachment_unchained.end());
+								this->list_pipelinefilterattachment_invocation.erase(state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation);
+								it_map_pipelinefilterattachment_unchained = this->map_pipelinefilterattachment_unchained.emplace(state_recurse_dependency.pipelinefilterid, state_recurse_dependency.pipelinefilterattachment).first;
+							} else {
+								// The pipeline filter attachment is currently unchained.
+								assert(it_map_pipelinefilterattachment_unchained != this->map_pipelinefilterattachment_unchained.end());
+							}
+							this->AdjustPipelineFilterAttachmentDependencyMaps(*state_recurse_dependency.pipelinefilterattachment, state_recurse_dependency.idx_pipelinefilterposition_resolving, _already_exclusive_locked_this);
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+							static_cast<void>(this->map_pipelinefilterattachment_floating.erase(state_recurse_dependency.pipelinefilterid));
+							// Remove the pipeline filter attachment from the pending update map.
+							map_pipelinefilterattachment_pending_update.erase(state_recurse_dependency.it_map_pipelinefilterattachment_pending_update);
+							{
+								bool is_successful_erase = false;
+								is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+								assert(is_successful_erase); static_cast<void>(is_successful_erase);
+							}
+							stack_state_recurse_dependency.pop();
+							assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended);
+							break;
+						}
+						assert(state_recurse_dependency.idx_pipelinefilterposition_resolving < state_recurse_dependency.vec_pipelinefilterposition->size());
+						const PipelineFilterPosition& pipelinefilterposition = (*state_recurse_dependency.vec_pipelinefilterposition)[state_recurse_dependency.idx_pipelinefilterposition_resolving];
+						switch (pipelinefilterposition.pipelinefilterpositiontype) {
+						case PipelineFilterPositionType_Front:
+						{
+							// The pipeline filter attachment should be inserted at the front of the invocation list.
+							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
+							it_list_pipelinefilterattachment_invocation_return_temp = this->list_pipelinefilterattachment_invocation.cbegin();
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
+							break;
+						}
+						case PipelineFilterPositionType_Back:
+						{
+							// The pipeline filter attachment should be inserted at the back of the invocation list.
+							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
+							it_list_pipelinefilterattachment_invocation_return_temp = this->list_pipelinefilterattachment_invocation.cend();
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
+							break;
+						}
+						case PipelineFilterPositionType_BeforeRef:
+							[[fallthrough]];
+						case PipelineFilterPositionType_AfterRef:
+						{
+							// Whether or not the pipeline filter attachment can be inserted here can be known only after resolving the depended pipeline filter attachment.
+							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
+							stack_state_recurse_dependency.emplace(pipelinefilterposition.pipelinefilterid_ref);
+							{
+								bool is_successful_emplace = false;
+								::std::tie(::std::ignore, is_successful_emplace) = set_pipelinefilterid_depended.emplace(pipelinefilterposition.pipelinefilterid_ref);
+								if (!is_successful_emplace) {
+									// Failure to emplace into set_pipelinefilterid_depended indicates that a cyclic dependency has been encountered.
+									abort();
+								}
+							}
+							break;
+						}
+						default:
+							assert(false); abort();
+						}
+						break;
+					}
+					case state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended:
+					{
+						assert(state_recurse_dependency.vec_pipelinefilterposition);
+						assert(state_recurse_dependency.idx_pipelinefilterposition_resolving < state_recurse_dependency.vec_pipelinefilterposition->size());
+						if (!it_list_pipelinefilterattachment_invocation_return_recurse_dependency) {
+							// The pipeline filter attachment cannot be inserted here.
+							// Continue to check the next candidate position.
+							++state_recurse_dependency.idx_pipelinefilterposition_resolving;
+							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_Loop;
+							break;
+						}
+						// A place has been found for the pipeline filter attachment to be inserted.
+						// The pipeline filter attachment should be made chained.
+						map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_unchained = this->map_pipelinefilterattachment_unchained.find(state_recurse_dependency.pipelinefilterid);
+						if (state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve != SIZE_MAX) {
+							// The pipeline filter attachment is currently chained.
+							assert(state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve < state_recurse_dependency.vec_pipelinefilterposition->size());
+							assert(it_map_pipelinefilterattachment_unchained == this->map_pipelinefilterattachment_unchained.end());
+							this->list_pipelinefilterattachment_invocation.erase(state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation);
+						} else {
+							// The pipeline filter attachment is currently unchained.
+							assert(it_map_pipelinefilterattachment_unchained != this->map_pipelinefilterattachment_unchained.end());
+							this->map_pipelinefilterattachment_unchained.erase(it_map_pipelinefilterattachment_unchained);
+						}
+						const PipelineFilterPosition& pipelinefilterposition = (*state_recurse_dependency.vec_pipelinefilterposition)[state_recurse_dependency.idx_pipelinefilterposition_resolving];
+						switch (pipelinefilterposition.pipelinefilterpositiontype) {
+						case PipelineFilterPositionType_Front:
+							[[fallthrough]];
+						case PipelineFilterPositionType_Back:
+							[[fallthrough]];
+						case PipelineFilterPositionType_BeforeRef:
+						{
+							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
+								this->list_pipelinefilterattachment_invocation.insert(
+									*it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
+									state_recurse_dependency.pipelinefilterattachment
+								);
+							break;
+						}
+						case PipelineFilterPositionType_AfterRef:
+						{
+							assert(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency != this->list_pipelinefilterattachment_invocation.cend());
+							++(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency);
+							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
+								this->list_pipelinefilterattachment_invocation.insert(
+									*it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
+									state_recurse_dependency.pipelinefilterattachment
+								);
+							break;
+						}
+						default:
+							assert(false); abort();
+						}
+						this->AdjustPipelineFilterAttachmentDependencyMaps(*state_recurse_dependency.pipelinefilterattachment, state_recurse_dependency.idx_pipelinefilterposition_resolving, _already_exclusive_locked_this);
+						it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+						static_cast<void>(this->map_pipelinefilterattachment_floating.erase(state_recurse_dependency.pipelinefilterid));
+						// Remove the pipeline filter attachment from the pending update map.
+						map_pipelinefilterattachment_pending_update.erase(state_recurse_dependency.it_map_pipelinefilterattachment_pending_update);
+						{
+							bool is_successful_erase = false;
+							is_successful_erase = set_pipelinefilterid_depended.erase(state_recurse_dependency.pipelinefilterid);
+							assert(is_successful_erase); static_cast<void>(is_successful_erase);
+						}
+						stack_state_recurse_dependency.pop();
+						assert(stack_state_recurse_dependency.empty() || stack_state_recurse_dependency.top().checkpoint == state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended);
+						break;
+					}
+					default:
+						assert(false); abort();
+					}
+				} else if (!map_pipelinefilterattachment_pending_update.empty()) {
+					// We're not in a recursion.
+					// However, some pipeline filter attachments are still pending update.
+					assert(set_pipelinefilterid_depended.empty());
+					// Start a new recursion.
+					assert(map_pipelinefilterattachment_pending_update.begin()->second);
+					stack_state_recurse_dependency.emplace(map_pipelinefilterattachment_pending_update.begin()->first);
+					{
+						bool is_successful_emplace = false;
+						::std::tie(::std::ignore, is_successful_emplace) = set_pipelinefilterid_depended.emplace(map_pipelinefilterattachment_pending_update.begin()->first);
+						assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+					}
+				} else {
+					assert(set_pipelinefilterid_depended.empty());
+					break;
+				}
+			}
+		}
+		assert(map_pipelinefilterattachment_pending_update.empty());
+		assert(this->IsResolved(_already_exclusive_locked_this));
 	}
 
 	size_t Pipeline::AllocateInvocationPacketData(size_t _count_slot_invocationpacketdata_allocate, already_exclusive_locked_this_t) noexcept {
@@ -590,6 +1149,274 @@ namespace YBWLib2 {
 		}
 	}
 
+	void Pipeline::AdjustPipelineFilterAttachmentDependencyMapsInitialize(PipelineFilterAttachment& _pipelinefilterattachment, already_exclusive_locked_this_t) noexcept {
+		::std::vector<PipelineFilterPosition>* vec_pipelinefilterposition = _pipelinefilterattachment.IsZombie() ? &_pipelinefilterattachment.vec_pipelinefilterposition_zombie : &_pipelinefilterattachment.pipelinefilter->vec_pipelinefilterposition;
+		::std::pair<
+			::std::vector<PipelineFilterPosition>::const_iterator,
+			::std::vector<PipelineFilterPosition>::const_iterator
+		> range_vec_pipelinefilterposition_add_expecting;
+		range_vec_pipelinefilterposition_add_expecting.first = vec_pipelinefilterposition->cbegin();
+		if (_pipelinefilterattachment.idx_pipelinefilterposition_resolve != SIZE_MAX) {
+			assert(_pipelinefilterattachment.idx_pipelinefilterposition_resolve < vec_pipelinefilterposition->size());
+			range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
+			const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
+			switch (pipelinefilterposition.pipelinefilterpositiontype) {
+			case PipelineFilterPositionType_Front:
+				[[fallthrough]];
+			case PipelineFilterPositionType_Back:
+				break;
+			case PipelineFilterPositionType_BeforeRef:
+				[[fallthrough]];
+			case PipelineFilterPositionType_AfterRef:
+			{
+				bool is_successful_emplace = false;
+				::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+				break;
+			}
+			default:
+				assert(false); abort();
+			}
+		} else {
+			range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cend();
+		}
+		for (
+			::std::vector<PipelineFilterPosition>::const_iterator it_vec_pipelinefilterposition = range_vec_pipelinefilterposition_add_expecting.first;
+			it_vec_pipelinefilterposition != range_vec_pipelinefilterposition_add_expecting.second;
+			++it_vec_pipelinefilterposition
+			) {
+			const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
+			switch (pipelinefilterposition.pipelinefilterpositiontype) {
+			case PipelineFilterPositionType_Front:
+				[[fallthrough]];
+			case PipelineFilterPositionType_Back:
+				break;
+			case PipelineFilterPositionType_BeforeRef:
+				[[fallthrough]];
+			case PipelineFilterPositionType_AfterRef:
+			{
+				bool is_successful_emplace = false;
+				::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_expecting.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+				break;
+			}
+			default:
+				assert(false); abort();
+			}
+		}
+		_pipelinefilterattachment.idx_pipelinefilterposition_resolve = SIZE_MAX;
+	}
+
+	void Pipeline::AdjustPipelineFilterAttachmentDependencyMapsClear(PipelineFilterAttachment& _pipelinefilterattachment, already_exclusive_locked_this_t) noexcept {
+		::std::vector<PipelineFilterPosition>* vec_pipelinefilterposition = _pipelinefilterattachment.IsZombie() ? &_pipelinefilterattachment.vec_pipelinefilterposition_zombie : &_pipelinefilterattachment.pipelinefilter->vec_pipelinefilterposition;
+		::std::pair<
+			::std::vector<PipelineFilterPosition>::const_iterator,
+			::std::vector<PipelineFilterPosition>::const_iterator
+		> range_vec_pipelinefilterposition_remove_expecting;
+		range_vec_pipelinefilterposition_remove_expecting.first = vec_pipelinefilterposition->cbegin();
+		if (_pipelinefilterattachment.idx_pipelinefilterposition_resolve != SIZE_MAX) {
+			assert(_pipelinefilterattachment.idx_pipelinefilterposition_resolve < vec_pipelinefilterposition->size());
+			range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
+			const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
+			switch (pipelinefilterposition.pipelinefilterpositiontype) {
+			case PipelineFilterPositionType_Front:
+				[[fallthrough]];
+			case PipelineFilterPositionType_Back:
+				break;
+			case PipelineFilterPositionType_BeforeRef:
+				[[fallthrough]];
+			case PipelineFilterPositionType_AfterRef:
+			{
+				bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
+				assert(is_successful_erase); static_cast<void>(is_successful_erase);
+				break;
+			}
+			default:
+				assert(false); abort();
+			}
+		} else {
+			range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cend();
+		}
+		for (
+			::std::vector<PipelineFilterPosition>::const_iterator it_vec_pipelinefilterposition = range_vec_pipelinefilterposition_remove_expecting.first;
+			it_vec_pipelinefilterposition != range_vec_pipelinefilterposition_remove_expecting.second;
+			++it_vec_pipelinefilterposition
+			) {
+			const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
+			switch (pipelinefilterposition.pipelinefilterpositiontype) {
+			case PipelineFilterPositionType_Front:
+				[[fallthrough]];
+			case PipelineFilterPositionType_Back:
+				break;
+			case PipelineFilterPositionType_BeforeRef:
+				[[fallthrough]];
+			case PipelineFilterPositionType_AfterRef:
+			{
+				bool is_successful_erase = this->map_pipelinefilterattachment_dependency_expecting.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
+				assert(is_successful_erase); static_cast<void>(is_successful_erase);
+				break;
+			}
+			default:
+				assert(false); abort();
+			}
+		}
+		_pipelinefilterattachment.idx_pipelinefilterposition_resolve = SIZE_MAX;
+	}
+
+	void Pipeline::AdjustPipelineFilterAttachmentDependencyMaps(PipelineFilterAttachment& _pipelinefilterattachment, size_t _idx_pipelinefilterposition_resolve_new, already_exclusive_locked_this_t) noexcept {
+		if (_idx_pipelinefilterposition_resolve_new == _pipelinefilterattachment.idx_pipelinefilterposition_resolve) return;
+		::std::vector<PipelineFilterPosition>* vec_pipelinefilterposition = _pipelinefilterattachment.IsZombie() ? &_pipelinefilterattachment.vec_pipelinefilterposition_zombie : &_pipelinefilterattachment.pipelinefilter->vec_pipelinefilterposition;
+		if (_idx_pipelinefilterposition_resolve_new < _pipelinefilterattachment.idx_pipelinefilterposition_resolve) {
+			::std::pair<
+				::std::vector<PipelineFilterPosition>::const_iterator,
+				::std::vector<PipelineFilterPosition>::const_iterator
+			> range_vec_pipelinefilterposition_remove_expecting;
+			assert(_idx_pipelinefilterposition_resolve_new < vec_pipelinefilterposition->size());
+			{
+				range_vec_pipelinefilterposition_remove_expecting.first = vec_pipelinefilterposition->cbegin() + _idx_pipelinefilterposition_resolve_new;
+				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_idx_pipelinefilterposition_resolve_new];
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_emplace = false;
+					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			}
+			if (_pipelinefilterattachment.idx_pipelinefilterposition_resolve != SIZE_MAX) {
+				assert(_pipelinefilterattachment.idx_pipelinefilterposition_resolve < vec_pipelinefilterposition->size());
+				range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
+				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
+					assert(is_successful_erase); static_cast<void>(is_successful_erase);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			} else {
+				range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cend();
+			}
+			for (
+				::std::vector<PipelineFilterPosition>::const_iterator it_vec_pipelinefilterposition = range_vec_pipelinefilterposition_remove_expecting.first;
+				it_vec_pipelinefilterposition != range_vec_pipelinefilterposition_remove_expecting.second;
+				++it_vec_pipelinefilterposition
+				) {
+				const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_expecting.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
+					assert(is_successful_erase); static_cast<void>(is_successful_erase);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			}
+		} else {
+			::std::pair<
+				::std::vector<PipelineFilterPosition>::const_iterator,
+				::std::vector<PipelineFilterPosition>::const_iterator
+			> range_vec_pipelinefilterposition_add_expecting;
+			assert(_pipelinefilterattachment.idx_pipelinefilterposition_resolve < vec_pipelinefilterposition->size());
+			{
+				range_vec_pipelinefilterposition_add_expecting.first = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
+				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
+					assert(is_successful_erase); static_cast<void>(is_successful_erase);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			}
+			if (_idx_pipelinefilterposition_resolve_new != SIZE_MAX) {
+				assert(_idx_pipelinefilterposition_resolve_new < vec_pipelinefilterposition->size());
+				range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cbegin() + _idx_pipelinefilterposition_resolve_new;
+				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_idx_pipelinefilterposition_resolve_new];
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_emplace = false;
+					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			} else {
+				range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cend();
+			}
+			for (
+				::std::vector<PipelineFilterPosition>::const_iterator it_vec_pipelinefilterposition = range_vec_pipelinefilterposition_add_expecting.first;
+				it_vec_pipelinefilterposition != range_vec_pipelinefilterposition_add_expecting.second;
+				++it_vec_pipelinefilterposition
+				) {
+				const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
+				switch (pipelinefilterposition.pipelinefilterpositiontype) {
+				case PipelineFilterPositionType_Front:
+					[[fallthrough]];
+				case PipelineFilterPositionType_Back:
+					break;
+				case PipelineFilterPositionType_BeforeRef:
+					[[fallthrough]];
+				case PipelineFilterPositionType_AfterRef:
+				{
+					bool is_successful_emplace = false;
+					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_expecting.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+					break;
+				}
+				default:
+					assert(false); abort();
+				}
+			}
+		}
+		_pipelinefilterattachment.idx_pipelinefilterposition_resolve = _idx_pipelinefilterposition_resolve_new;
+	}
+
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept {
 			assert(_persistentid_pipelineid);
@@ -741,6 +1568,11 @@ namespace YBWLib2 {
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_SetRawInvokeDelegate(PipelineFilter* _pipelinefilter, PipelineFilterRawInvokeDelegate* _delegate_rawinvoke) noexcept {
 			assert(_pipelinefilter);
 			_pipelinefilter->SetRawInvokeDelegate(_delegate_rawinvoke);
+		}
+
+		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_SetPipelineFilterPositionArray(PipelineFilter* _pipelinefilter, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
+			assert(_pipelinefilter);
+			_pipelinefilter->SetPipelineFilterPositionArray(_arr_pipelinefilterposition, _size_pipelinefilterposition);
 		}
 
 		YBWLIB2_API const Pipeline* YBWLIB2_CALLTYPE PipelineInvocationPacket_GetPipeline(const PipelineInvocationPacket* _pipelineinvocationpacket) noexcept {
