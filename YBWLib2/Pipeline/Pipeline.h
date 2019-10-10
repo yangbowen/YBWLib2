@@ -130,7 +130,7 @@ namespace YBWLib2 {
 	constexpr size_t PipelineInvocationPacketDataSlotSize = alignof(::std::max_align_t);
 	constexpr size_t PipelineInvocationPacketDataSlotAlign = alignof(::std::max_align_t);
 
-	enum PipelineFilterPositionType : unsigned int {
+	enum class PipelineFilterPositionType : unsigned int {
 		PipelineFilterPositionType_Invalid = 0x0,
 		PipelineFilterPositionType_Front = 0x1,
 		PipelineFilterPositionType_Back = 0x2,
@@ -141,7 +141,7 @@ namespace YBWLib2 {
 	struct PipelineFilterPosition final {
 		PipelineFilterPositionType pipelinefilterpositiontype;
 		PipelineFilterID pipelinefilterid_ref;
-		constexpr PipelineFilterPosition() : pipelinefilterpositiontype(PipelineFilterPositionType_Invalid) {}
+		constexpr PipelineFilterPosition() : pipelinefilterpositiontype(PipelineFilterPositionType::PipelineFilterPositionType_Invalid) {}
 		PipelineFilterPosition(PipelineFilterPositionType _pipelinefilterpositiontype, PipelineFilterID&& _pipelinefilterid_ref = PipelineFilterID())
 			: pipelinefilterpositiontype(_pipelinefilterpositiontype),
 			pipelinefilterid_ref(::std::move(_pipelinefilterid_ref)) {}

@@ -151,6 +151,8 @@ namespace YBWLib2 {
 			bool IsZombie() const noexcept { return !this->pipelinefilter; }
 		};
 		using map_invocationpacketdataentry_t = ::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>;
+		using map_slot_invocationpacketdata_rangeboundary_t = ::std::map<size_t, bool>;
+		using map_slot_invocationpacketdata_size_t = ::std::map<::std::tuple<size_t, size_t>, map_slot_invocationpacketdata_rangeboundary_t::iterator, ::std::less<>>;
 		using map_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment, hash<PipelineFilterID>>;
 		using map_ptr_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment*, hash<PipelineFilterID>>;
 		using map_ptr_pipelinefilterattachment_dependency_t = ::std::map<::std::tuple<PipelineFilterID, PipelineFilterID>, PipelineFilterAttachment*, ::std::less<>>;
@@ -164,8 +166,8 @@ namespace YBWLib2 {
 		mutable ::std::shared_mutex mtx_this_prelock;
 		size_t count_slot_invocationpacketdata = 0;
 		map_invocationpacketdataentry_t map_invocationpacketdataentry;
-		::std::map<size_t, bool> map_slot_invocationpacketdata_rangeboundary_free;
-		::std::multimap<size_t, ::std::map<size_t, bool>::iterator> map_slot_invocationpacketdata_size_free;// TODO: Eliminate use of multimap.
+		map_slot_invocationpacketdata_rangeboundary_t map_slot_invocationpacketdata_rangeboundary_free;
+		map_slot_invocationpacketdata_size_t map_slot_invocationpacketdata_size_free;
 		/// <summary>An unordered map from pipeline filter IDs to <c>PipelineFilterAttachment</c> objects.</summary>
 		map_pipelinefilterattachment_t map_pipelinefilterattachment;
 		/// <summary>
@@ -184,9 +186,20 @@ namespace YBWLib2 {
 		/// Unchained pipeline filter attachments correspond to pipeline filters that have been attached and are not floating, but would not be invoked because of unsatisfied dependencies.
 		/// </summary>
 		map_ptr_pipelinefilterattachment_t map_pipelinefilterattachment_unchained;
-		// TODO
+		/// <summary>
+		/// An unordered map that represents currently active dependencies between pipeline filter attachments.
+		/// The first <c>PipelineFilterID</c> in the key represents the depended pipeline filter attachment.
+		/// The second <c>PipelineFilterID</c> in the key represents the dependent pipeline filter attachment.
+		/// The mapped value is a pointer to the dependent pipeline filter attachment.
+		/// </summary>
 		map_ptr_pipelinefilterattachment_dependency_t map_pipelinefilterattachment_dependency_current;
-		// TODO
+		/// <summary>
+		/// An unordered map that represents dependencies between pipeline filter attachments that are being expected.
+		/// When an expected depended pipeline filter attachment becomes chained, the dependent pipeline filter attachment re-chains to the depended one.
+		/// The first <c>PipelineFilterID</c> in the key represents the depended pipeline filter attachment.
+		/// The second <c>PipelineFilterID</c> in the key represents the dependent pipeline filter attachment.
+		/// The mapped value is a pointer to the dependent pipeline filter attachment.
+		/// </summary>
 		map_ptr_pipelinefilterattachment_dependency_t map_pipelinefilterattachment_dependency_expecting;
 		size_t AllocateInvocationPacketData(size_t _count_slot_invocationpacketdata_allocate, already_exclusive_locked_this_t) noexcept;
 		void DeallocateInvocationPacketData(size_t _idx_slot_invocationpacketdata_deallocate, size_t _count_slot_invocationpacketdata_deallocate, already_exclusive_locked_this_t) noexcept;
@@ -377,7 +390,7 @@ namespace YBWLib2 {
 			{
 				bool is_successful_emplace = false;
 				::std::tie(it_map_invocationpacketdataentry, is_successful_emplace) = this->map_invocationpacketdataentry.emplace(_pipelineinvocationpacketdataentryid, ::std::move(pipelineinvocationpacketdataentry));
-				assert(is_successful_emplace);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 			}
 		} else {
 			PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
@@ -425,7 +438,7 @@ namespace YBWLib2 {
 			{
 				bool is_successful_emplace = false;
 				::std::tie(it_map_invocationpacketdataentry, is_successful_emplace) = this->map_invocationpacketdataentry.emplace(_pipelineinvocationpacketdataentryid, ::std::move(pipelineinvocationpacketdataentry));
-				assert(is_successful_emplace);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 			}
 		} else {
 			PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
@@ -474,9 +487,11 @@ namespace YBWLib2 {
 					abort();
 				}
 			}
-			bool is_successful_emplace = false;
-			::std::tie(it_map_pipelinefilterattachment, is_successful_emplace) = this->map_pipelinefilterattachment.emplace(::std::piecewise_construct, ::std::tuple(_pipelinefilter->GetPipelineFilterID()), ::std::tuple());
-			assert(is_successful_emplace);
+			{
+				bool is_successful_emplace = false;
+				::std::tie(it_map_pipelinefilterattachment, is_successful_emplace) = this->map_pipelinefilterattachment.emplace(::std::piecewise_construct, ::std::tuple(_pipelinefilter->GetPipelineFilterID()), ::std::tuple());
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+			}
 			it_map_pipelinefilterattachment->second.pipelinefilterid = _pipelinefilter->pipelinefilterid;
 			it_map_pipelinefilterattachment->second.pipelinefilter.reset(_pipelinefilter, ReferenceCountedObjectHolder<PipelineFilter>::inc_ref_count);
 			pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
@@ -485,13 +500,13 @@ namespace YBWLib2 {
 		{
 			bool is_successful_emplace = false;
 			::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_floating.emplace(_pipelinefilter->GetPipelineFilterID(), pipelinefilterattachment);
-			assert(is_successful_emplace);
+			assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 		}
 		this->AdjustPipelineFilterAttachmentDependencyMapsInitialize(*pipelinefilterattachment, _already_exclusive_locked_this);
 		{
 			bool is_successful_emplace = false;
 			::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_unchained.emplace(_pipelinefilter->GetPipelineFilterID(), pipelinefilterattachment);
-			assert(is_successful_emplace);
+			assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 		}
 		if (_should_resolve_immediately) this->Resolve(_already_exclusive_locked_this);
 		if (_idx_pipelinefilterposition_resolve_ret)
@@ -804,7 +819,7 @@ namespace YBWLib2 {
 						assert(state_recurse_dependency.idx_pipelinefilterposition_resolving < state_recurse_dependency.vec_pipelinefilterposition->size());
 						const PipelineFilterPosition& pipelinefilterposition = (*state_recurse_dependency.vec_pipelinefilterposition)[state_recurse_dependency.idx_pipelinefilterposition_resolving];
 						switch (pipelinefilterposition.pipelinefilterpositiontype) {
-						case PipelineFilterPositionType_Front:
+						case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 						{
 							// The pipeline filter attachment should be inserted at the front of the invocation list.
 							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
@@ -812,7 +827,7 @@ namespace YBWLib2 {
 							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
 							break;
 						}
-						case PipelineFilterPositionType_Back:
+						case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 						{
 							// The pipeline filter attachment should be inserted at the back of the invocation list.
 							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
@@ -820,9 +835,9 @@ namespace YBWLib2 {
 							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
 							break;
 						}
-						case PipelineFilterPositionType_BeforeRef:
+						case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 							[[fallthrough]];
-						case PipelineFilterPositionType_AfterRef:
+						case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 						{
 							// Whether or not the pipeline filter attachment can be inserted here can be known only after resolving the depended pipeline filter attachment.
 							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
@@ -868,11 +883,11 @@ namespace YBWLib2 {
 						}
 						const PipelineFilterPosition& pipelinefilterposition = (*state_recurse_dependency.vec_pipelinefilterposition)[state_recurse_dependency.idx_pipelinefilterposition_resolving];
 						switch (pipelinefilterposition.pipelinefilterpositiontype) {
-						case PipelineFilterPositionType_Front:
+						case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 							[[fallthrough]];
-						case PipelineFilterPositionType_Back:
+						case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 							[[fallthrough]];
-						case PipelineFilterPositionType_BeforeRef:
+						case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 						{
 							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
 								this->list_pipelinefilterattachment_invocation.insert(
@@ -881,7 +896,7 @@ namespace YBWLib2 {
 								);
 							break;
 						}
-						case PipelineFilterPositionType_AfterRef:
+						case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 						{
 							assert(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency != this->list_pipelinefilterattachment_invocation.cend());
 							++(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency);
@@ -936,21 +951,7 @@ namespace YBWLib2 {
 
 	size_t Pipeline::AllocateInvocationPacketData(size_t _count_slot_invocationpacketdata_allocate, already_exclusive_locked_this_t) noexcept {
 		assert(_count_slot_invocationpacketdata_allocate);
-		::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free;
-		{
-			::std::pair<
-				::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator,
-				::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator
-			> range_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.equal_range(_count_slot_invocationpacketdata_allocate);
-			if (range_map_slot_invocationpacketdata_size_free.first == range_map_slot_invocationpacketdata_size_free.second) {
-				it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.lower_bound(_count_slot_invocationpacketdata_allocate);
-			} else {
-				it_map_slot_invocationpacketdata_size_free = range_map_slot_invocationpacketdata_size_free.first;
-				for (::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free_equal = range_map_slot_invocationpacketdata_size_free.first; it_map_slot_invocationpacketdata_size_free_equal != range_map_slot_invocationpacketdata_size_free.second; ++it_map_slot_invocationpacketdata_size_free_equal) {
-					if (it_map_slot_invocationpacketdata_size_free_equal->second->first < it_map_slot_invocationpacketdata_size_free->second->first) it_map_slot_invocationpacketdata_size_free = it_map_slot_invocationpacketdata_size_free_equal;
-				}
-			}
-		}
+		map_slot_invocationpacketdata_size_t::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.upper_bound(::std::tuple(_count_slot_invocationpacketdata_allocate, below_min_t<size_t>()));
 		size_t idx_slot_invocationpacketdata_allocate = SIZE_MAX;
 		if (it_map_slot_invocationpacketdata_size_free == this->map_slot_invocationpacketdata_size_free.end()) {
 			// No sufficiently large contiguous block of free slots is found.
@@ -960,20 +961,20 @@ namespace YBWLib2 {
 		} else {
 			// A sufficiently large contiguous block of free slots is found.
 			// Use the contiguous block found.
-			::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block = it_map_slot_invocationpacketdata_size_free->second;
+			map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block = it_map_slot_invocationpacketdata_size_free->second;
 			assert(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block != this->map_slot_invocationpacketdata_rangeboundary_free.end());
-			::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block = it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
+			map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block = it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
 			++it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
 			assert(it_map_slot_invocationpacketdata_rangeboundary_free_end_block != this->map_slot_invocationpacketdata_rangeboundary_free.end());
 			assert(
 				it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first < it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first
-				&& it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first + it_map_slot_invocationpacketdata_size_free->first == it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first
+				&& it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first + ::std::get<0>(it_map_slot_invocationpacketdata_size_free->first) == it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first
 				&& it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first <= this->count_slot_invocationpacketdata
 				&& (!it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->second && it_map_slot_invocationpacketdata_rangeboundary_free_end_block->second)
 			);
 			idx_slot_invocationpacketdata_allocate = it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first;
 			this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
-			if (it_map_slot_invocationpacketdata_size_free->first == _count_slot_invocationpacketdata_allocate) {
+			if (::std::get<0>(it_map_slot_invocationpacketdata_size_free->first) == _count_slot_invocationpacketdata_allocate) {
 				// The size of the contiguous block matches the size needed exactly.
 				// Remove the contiguous block from the maps keeping track of free slots.
 				this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_end_block);
@@ -984,9 +985,9 @@ namespace YBWLib2 {
 				{
 					bool is_successful_emplace_map_slot_invocationpacketdata_rangeboundary_free = false;
 					::std::tie(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block, is_successful_emplace_map_slot_invocationpacketdata_rangeboundary_free) = this->map_slot_invocationpacketdata_rangeboundary_free.emplace(idx_slot_invocationpacketdata_allocate + _count_slot_invocationpacketdata_allocate, false);
-					assert(is_successful_emplace_map_slot_invocationpacketdata_rangeboundary_free);
+					assert(is_successful_emplace_map_slot_invocationpacketdata_rangeboundary_free); static_cast<void>(is_successful_emplace_map_slot_invocationpacketdata_rangeboundary_free);
 				}
-				this->map_slot_invocationpacketdata_size_free.emplace(it_map_slot_invocationpacketdata_size_free->first - _count_slot_invocationpacketdata_allocate, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
+				this->map_slot_invocationpacketdata_size_free.emplace(::std::tuple(::std::get<0>(it_map_slot_invocationpacketdata_size_free->first) - _count_slot_invocationpacketdata_allocate, idx_slot_invocationpacketdata_allocate + _count_slot_invocationpacketdata_allocate), it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 				this->map_slot_invocationpacketdata_size_free.erase(it_map_slot_invocationpacketdata_size_free);
 			}
 		}
@@ -1001,14 +1002,14 @@ namespace YBWLib2 {
 			// Shrink the invocation packet data size.
 			this->count_slot_invocationpacketdata -= _count_slot_invocationpacketdata_deallocate;
 			if (!this->map_slot_invocationpacketdata_rangeboundary_free.empty()) {
-				::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block = this->map_slot_invocationpacketdata_rangeboundary_free.end();
+				map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block = this->map_slot_invocationpacketdata_rangeboundary_free.end();
 				--it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
 				assert(
 					it_map_slot_invocationpacketdata_rangeboundary_free_end_block != this->map_slot_invocationpacketdata_rangeboundary_free.begin()
 					&& it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first <= this->count_slot_invocationpacketdata
 					&& it_map_slot_invocationpacketdata_rangeboundary_free_end_block->second
 				);
-				::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block = it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
+				map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block = it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
 				--it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
 				assert(
 					it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first < it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first
@@ -1017,22 +1018,9 @@ namespace YBWLib2 {
 				if (it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first == this->count_slot_invocationpacketdata) {
 					// The last free contiguous block is now at the end.
 					// Remove the contiguous block and shrink the invocation packet data size even more.
-					::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.end();
-					{
-						::std::pair<
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator,
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator
-						> range_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.equal_range(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first);
-						assert(range_map_slot_invocationpacketdata_size_free.first != range_map_slot_invocationpacketdata_size_free.second);
-						for (::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free_equal = range_map_slot_invocationpacketdata_size_free.first; it_map_slot_invocationpacketdata_size_free_equal != range_map_slot_invocationpacketdata_size_free.second; ++it_map_slot_invocationpacketdata_size_free_equal) {
-							if (it_map_slot_invocationpacketdata_size_free_equal->second == it_map_slot_invocationpacketdata_rangeboundary_free_begin_block) {
-								it_map_slot_invocationpacketdata_size_free = it_map_slot_invocationpacketdata_size_free_equal;
-								break;
-							}
-						}
-						assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
-					}
-					assert(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first + it_map_slot_invocationpacketdata_size_free->first == it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first);
+					map_slot_invocationpacketdata_size_t::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.find(::std::tuple(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first));
+					assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
+					assert(it_map_slot_invocationpacketdata_size_free->second == it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 					this->count_slot_invocationpacketdata = it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first;
 					this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 					this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_end_block);
@@ -1042,7 +1030,7 @@ namespace YBWLib2 {
 		} else {
 			// The deallocation doesn't happen at the end.
 			// Mark the deallocated slots as free slots.
-			::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_next = this->map_slot_invocationpacketdata_rangeboundary_free.lower_bound(_idx_slot_invocationpacketdata_deallocate);
+			map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_next = this->map_slot_invocationpacketdata_rangeboundary_free.lower_bound(_idx_slot_invocationpacketdata_deallocate);
 			if (
 				it_map_slot_invocationpacketdata_rangeboundary_free_next == this->map_slot_invocationpacketdata_rangeboundary_free.end()
 				|| it_map_slot_invocationpacketdata_rangeboundary_free_next->first > _idx_slot_invocationpacketdata_deallocate + _count_slot_invocationpacketdata_deallocate
@@ -1053,16 +1041,16 @@ namespace YBWLib2 {
 					it_map_slot_invocationpacketdata_rangeboundary_free_next == this->map_slot_invocationpacketdata_rangeboundary_free.end()
 					|| !it_map_slot_invocationpacketdata_rangeboundary_free_next->second
 				);// Deallocating slots that are already free is not allowed.
-				::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
+				map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
 				bool is_successful_emplace = false;
 				::std::tie(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block, is_successful_emplace) = this->map_slot_invocationpacketdata_rangeboundary_free.emplace(_idx_slot_invocationpacketdata_deallocate, false);
-				assert(is_successful_emplace);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 				::std::tie(::std::ignore, is_successful_emplace) = this->map_slot_invocationpacketdata_rangeboundary_free.emplace(_idx_slot_invocationpacketdata_deallocate + _count_slot_invocationpacketdata_deallocate, true);
-				assert(is_successful_emplace);
-				this->map_slot_invocationpacketdata_size_free.emplace(_count_slot_invocationpacketdata_deallocate, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+				this->map_slot_invocationpacketdata_size_free.emplace(::std::tuple(_count_slot_invocationpacketdata_deallocate, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first), it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 			} else {
-				::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
-				::std::map<size_t, bool>::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
+				map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
+				map_slot_invocationpacketdata_rangeboundary_t::iterator it_map_slot_invocationpacketdata_rangeboundary_free_end_block;
 				assert(
 					it_map_slot_invocationpacketdata_rangeboundary_free_next->first == _idx_slot_invocationpacketdata_deallocate
 					|| it_map_slot_invocationpacketdata_rangeboundary_free_next->first == _idx_slot_invocationpacketdata_deallocate + _count_slot_invocationpacketdata_deallocate
@@ -1077,28 +1065,16 @@ namespace YBWLib2 {
 					it_map_slot_invocationpacketdata_rangeboundary_free_begin_block = it_map_slot_invocationpacketdata_rangeboundary_free_next;
 					--it_map_slot_invocationpacketdata_rangeboundary_free_begin_block;
 					assert(!it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->second);
-					::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.end();
-					{
-						::std::pair<
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator,
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator
-						> range_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.equal_range(it_map_slot_invocationpacketdata_rangeboundary_free_next->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first);
-						assert(range_map_slot_invocationpacketdata_size_free.first != range_map_slot_invocationpacketdata_size_free.second);
-						for (::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free_equal = range_map_slot_invocationpacketdata_size_free.first; it_map_slot_invocationpacketdata_size_free_equal != range_map_slot_invocationpacketdata_size_free.second; ++it_map_slot_invocationpacketdata_size_free_equal) {
-							if (it_map_slot_invocationpacketdata_size_free_equal->second == it_map_slot_invocationpacketdata_rangeboundary_free_begin_block) {
-								it_map_slot_invocationpacketdata_size_free = it_map_slot_invocationpacketdata_size_free_equal;
-								break;
-							}
-						}
-						assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
-					}
+					map_slot_invocationpacketdata_size_t::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.find(::std::tuple(it_map_slot_invocationpacketdata_rangeboundary_free_next->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first));
+					assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
+					assert(it_map_slot_invocationpacketdata_size_free->second == it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 					this->map_slot_invocationpacketdata_size_free.erase(it_map_slot_invocationpacketdata_size_free);
 					it_map_slot_invocationpacketdata_rangeboundary_free_next = this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_next);
 				} else {
 					// Create the left(lower) boundary.
 					bool is_successful_emplace = false;
 					::std::tie(it_map_slot_invocationpacketdata_rangeboundary_free_begin_block, is_successful_emplace) = this->map_slot_invocationpacketdata_rangeboundary_free.emplace(_idx_slot_invocationpacketdata_deallocate, false);
-					assert(is_successful_emplace);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 				}
 				if (
 					it_map_slot_invocationpacketdata_rangeboundary_free_next == this->map_slot_invocationpacketdata_rangeboundary_free.end()
@@ -1111,7 +1087,7 @@ namespace YBWLib2 {
 					);
 					bool is_successful_emplace = false;
 					::std::tie(it_map_slot_invocationpacketdata_rangeboundary_free_end_block, is_successful_emplace) = this->map_slot_invocationpacketdata_rangeboundary_free.emplace(_idx_slot_invocationpacketdata_deallocate + _count_slot_invocationpacketdata_deallocate, true);
-					assert(is_successful_emplace);
+					assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 				} else {
 					// An existing free contiguous block adjacent to the right(upper) boundary is found.
 					// Merge with the free contiguous block found.
@@ -1125,26 +1101,14 @@ namespace YBWLib2 {
 						it_map_slot_invocationpacketdata_rangeboundary_free_end_block != this->map_slot_invocationpacketdata_rangeboundary_free.end()
 						&& it_map_slot_invocationpacketdata_rangeboundary_free_end_block->second
 					);
-					::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.end();
-					{
-						::std::pair<
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator,
-							::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator
-						> range_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.equal_range(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_next->first);
-						assert(range_map_slot_invocationpacketdata_size_free.first != range_map_slot_invocationpacketdata_size_free.second);
-						for (::std::multimap<size_t, ::std::map<size_t, bool>::iterator>::iterator it_map_slot_invocationpacketdata_size_free_equal = range_map_slot_invocationpacketdata_size_free.first; it_map_slot_invocationpacketdata_size_free_equal != range_map_slot_invocationpacketdata_size_free.second; ++it_map_slot_invocationpacketdata_size_free_equal) {
-							if (it_map_slot_invocationpacketdata_size_free_equal->second == it_map_slot_invocationpacketdata_rangeboundary_free_next) {
-								it_map_slot_invocationpacketdata_size_free = it_map_slot_invocationpacketdata_size_free_equal;
-								break;
-							}
-						}
-						assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
-					}
+					map_slot_invocationpacketdata_size_t::iterator it_map_slot_invocationpacketdata_size_free = this->map_slot_invocationpacketdata_size_free.find(::std::tuple(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_next->first, it_map_slot_invocationpacketdata_rangeboundary_free_next->first));
+					assert(it_map_slot_invocationpacketdata_size_free != this->map_slot_invocationpacketdata_size_free.end());
+					assert(it_map_slot_invocationpacketdata_size_free->second == it_map_slot_invocationpacketdata_rangeboundary_free_next);
 					this->map_slot_invocationpacketdata_size_free.erase(it_map_slot_invocationpacketdata_size_free);
 					it_map_slot_invocationpacketdata_rangeboundary_free_next = this->map_slot_invocationpacketdata_rangeboundary_free.erase(it_map_slot_invocationpacketdata_rangeboundary_free_next);
 					assert(it_map_slot_invocationpacketdata_rangeboundary_free_next == it_map_slot_invocationpacketdata_rangeboundary_free_end_block);
 				}
-				this->map_slot_invocationpacketdata_size_free.emplace(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
+				this->map_slot_invocationpacketdata_size_free.emplace(::std::tuple(it_map_slot_invocationpacketdata_rangeboundary_free_end_block->first - it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first, it_map_slot_invocationpacketdata_rangeboundary_free_begin_block->first), it_map_slot_invocationpacketdata_rangeboundary_free_begin_block);
 			}
 		}
 	}
@@ -1161,13 +1125,13 @@ namespace YBWLib2 {
 			range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
 			const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
 			switch (pipelinefilterposition.pipelinefilterpositiontype) {
-			case PipelineFilterPositionType_Front:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 				[[fallthrough]];
-			case PipelineFilterPositionType_Back:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 				break;
-			case PipelineFilterPositionType_BeforeRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 				[[fallthrough]];
-			case PipelineFilterPositionType_AfterRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 			{
 				bool is_successful_emplace = false;
 				::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
@@ -1187,13 +1151,13 @@ namespace YBWLib2 {
 			) {
 			const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
 			switch (pipelinefilterposition.pipelinefilterpositiontype) {
-			case PipelineFilterPositionType_Front:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 				[[fallthrough]];
-			case PipelineFilterPositionType_Back:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 				break;
-			case PipelineFilterPositionType_BeforeRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 				[[fallthrough]];
-			case PipelineFilterPositionType_AfterRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 			{
 				bool is_successful_emplace = false;
 				::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_expecting.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
@@ -1219,13 +1183,13 @@ namespace YBWLib2 {
 			range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
 			const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
 			switch (pipelinefilterposition.pipelinefilterpositiontype) {
-			case PipelineFilterPositionType_Front:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 				[[fallthrough]];
-			case PipelineFilterPositionType_Back:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 				break;
-			case PipelineFilterPositionType_BeforeRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 				[[fallthrough]];
-			case PipelineFilterPositionType_AfterRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 			{
 				bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
 				assert(is_successful_erase); static_cast<void>(is_successful_erase);
@@ -1244,13 +1208,13 @@ namespace YBWLib2 {
 			) {
 			const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
 			switch (pipelinefilterposition.pipelinefilterpositiontype) {
-			case PipelineFilterPositionType_Front:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 				[[fallthrough]];
-			case PipelineFilterPositionType_Back:
+			case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 				break;
-			case PipelineFilterPositionType_BeforeRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 				[[fallthrough]];
-			case PipelineFilterPositionType_AfterRef:
+			case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 			{
 				bool is_successful_erase = this->map_pipelinefilterattachment_dependency_expecting.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
 				assert(is_successful_erase); static_cast<void>(is_successful_erase);
@@ -1276,13 +1240,13 @@ namespace YBWLib2 {
 				range_vec_pipelinefilterposition_remove_expecting.first = vec_pipelinefilterposition->cbegin() + _idx_pipelinefilterposition_resolve_new;
 				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_idx_pipelinefilterposition_resolve_new];
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_emplace = false;
 					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
@@ -1298,13 +1262,13 @@ namespace YBWLib2 {
 				range_vec_pipelinefilterposition_remove_expecting.second = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
 				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
 					assert(is_successful_erase); static_cast<void>(is_successful_erase);
@@ -1323,13 +1287,13 @@ namespace YBWLib2 {
 				) {
 				const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_expecting.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
 					assert(is_successful_erase); static_cast<void>(is_successful_erase);
@@ -1349,13 +1313,13 @@ namespace YBWLib2 {
 				range_vec_pipelinefilterposition_add_expecting.first = vec_pipelinefilterposition->cbegin() + _pipelinefilterattachment.idx_pipelinefilterposition_resolve;
 				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_pipelinefilterattachment.idx_pipelinefilterposition_resolve];
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_erase = this->map_pipelinefilterattachment_dependency_current.erase(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid));
 					assert(is_successful_erase); static_cast<void>(is_successful_erase);
@@ -1370,13 +1334,13 @@ namespace YBWLib2 {
 				range_vec_pipelinefilterposition_add_expecting.second = vec_pipelinefilterposition->cbegin() + _idx_pipelinefilterposition_resolve_new;
 				const PipelineFilterPosition& pipelinefilterposition = (*vec_pipelinefilterposition)[_idx_pipelinefilterposition_resolve_new];
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_emplace = false;
 					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_current.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
@@ -1396,13 +1360,13 @@ namespace YBWLib2 {
 				) {
 				const PipelineFilterPosition& pipelinefilterposition = *it_vec_pipelinefilterposition;
 				switch (pipelinefilterposition.pipelinefilterpositiontype) {
-				case PipelineFilterPositionType_Front:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Front:
 					[[fallthrough]];
-				case PipelineFilterPositionType_Back:
+				case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 					break;
-				case PipelineFilterPositionType_BeforeRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
 					[[fallthrough]];
-				case PipelineFilterPositionType_AfterRef:
+				case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 				{
 					bool is_successful_emplace = false;
 					::std::tie(::std::ignore, is_successful_emplace) = this->map_pipelinefilterattachment_dependency_expecting.emplace(::std::tuple(pipelinefilterposition.pipelinefilterid_ref, _pipelinefilterattachment.pipelinefilterid), &_pipelinefilterattachment);
