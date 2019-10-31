@@ -17,7 +17,10 @@ namespace YBWLib2 {
 		static constexpr size_t size_slot_invocationpacketdata = PipelineInvocationPacketDataSlotSize;
 		static constexpr size_t align_slot_invocationpacketdata = PipelineInvocationPacketDataSlotAlign;
 		const PipelineID pipelineid;
-		Pipeline(
+		explicit Pipeline(
+			const PipelineID& _pipelineid
+		) noexcept : pipelineid(_pipelineid) {}
+		explicit Pipeline(
 			const PersistentID& _persistentid_pipelineid
 		) noexcept : pipelineid(_persistentid_pipelineid) {}
 		Pipeline(const Pipeline&) = delete;
@@ -34,66 +37,82 @@ namespace YBWLib2 {
 		Pipeline& operator=(Pipeline&&) = delete;
 		PipelineID GetPipelineID() const noexcept { return this->pipelineid; }
 		void LockExclusive() const noexcept {
-			if (!map_lockcount_recursive) map_lockcount_recursive = new ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>();
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>>::construct_obj);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
 			assert(!it_map_lockcount_recursive->second.second);
+			if (!it_map_lockcount_recursive->second.first) {
+				this->mtx_this_prelock.lock();
+				this->mtx_this.lock();
+				this->mtx_this_prelock.unlock();
+			}
 			++it_map_lockcount_recursive->second.first;
-			this->mtx_this_prelock.lock();
-			this->mtx_this.lock();
-			this->mtx_this_prelock.unlock();
 		}
 		bool TryLockExclusive() const noexcept {
-			if (!map_lockcount_recursive) map_lockcount_recursive = new ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>();
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>>::construct_obj);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
 			assert(!it_map_lockcount_recursive->second.second);
-			if (this->mtx_this.try_lock()) {
-				++it_map_lockcount_recursive->second.first;
-				return true;
-			} else {
-				return false;
-			}
-		}
-		void UnlockExclusive() const noexcept {
-			this->mtx_this.unlock();
-			assert(map_lockcount_recursive);
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->find(this);
-			assert(it_map_lockcount_recursive != map_lockcount_recursive->end());
-			assert(it_map_lockcount_recursive->second.first && !it_map_lockcount_recursive->second.second);
-			--it_map_lockcount_recursive->second.first;
-		}
-		void LockShared() const noexcept {
-			if (!map_lockcount_recursive) map_lockcount_recursive = new ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>();
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
-			assert(!it_map_lockcount_recursive->second.first);
-			++it_map_lockcount_recursive->second.second;
-			this->mtx_this_prelock.lock_shared();
-			this->mtx_this.lock_shared();
-			this->mtx_this_prelock.unlock_shared();
-		}
-		bool TryLockShared() const noexcept {
-			if (!map_lockcount_recursive) map_lockcount_recursive = new ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>();
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
-			assert(!it_map_lockcount_recursive->second.first);
-			if (this->mtx_this_prelock.try_lock_shared()) {
-				bool is_successful = this->mtx_this.try_lock_shared();
-				this->mtx_this_prelock.unlock_shared();
-				if (is_successful) {
-					++it_map_lockcount_recursive->second.second;
+			if (!it_map_lockcount_recursive->second.first) {
+				if (this->mtx_this.try_lock()) {
+					++it_map_lockcount_recursive->second.first;
 					return true;
 				} else {
 					return false;
 				}
 			} else {
-				return false;
+				++it_map_lockcount_recursive->second.first;
+				return true;
+			}
+		}
+		void UnlockExclusive() const noexcept {
+			assert(objholder_map_lockcount_recursive);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->find(this);
+			assert(it_map_lockcount_recursive != objholder_map_lockcount_recursive->end());
+			assert(it_map_lockcount_recursive->second.first && !it_map_lockcount_recursive->second.second);
+			if (!--it_map_lockcount_recursive->second.first) {
+				this->mtx_this.unlock();
+			}
+		}
+		void LockShared() const noexcept {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>>::construct_obj);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.first);
+			if (!it_map_lockcount_recursive->second.second) {
+				this->mtx_this_prelock.lock_shared();
+				this->mtx_this.lock_shared();
+				this->mtx_this_prelock.unlock_shared();
+			}
+			++it_map_lockcount_recursive->second.second;
+		}
+		bool TryLockShared() const noexcept {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>>::construct_obj);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.first);
+			if (!it_map_lockcount_recursive->second.second) {
+				if (this->mtx_this_prelock.try_lock_shared()) {
+					bool is_successful = this->mtx_this.try_lock_shared();
+					this->mtx_this_prelock.unlock_shared();
+					if (is_successful) {
+						++it_map_lockcount_recursive->second.second;
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			} else {
+				++it_map_lockcount_recursive->second.second;
+				return true;
 			}
 		}
 		void UnlockShared() const noexcept {
-			this->mtx_this.unlock_shared();
-			assert(map_lockcount_recursive);
-			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = map_lockcount_recursive->find(this);
-			assert(it_map_lockcount_recursive != map_lockcount_recursive->end());
+			assert(objholder_map_lockcount_recursive);
+			::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->find(this);
+			assert(it_map_lockcount_recursive != objholder_map_lockcount_recursive->end());
 			assert(!it_map_lockcount_recursive->second.first && it_map_lockcount_recursive->second.second);
-			--it_map_lockcount_recursive->second.second;
+			if (!--it_map_lockcount_recursive->second.second) {
+				this->mtx_this.unlock_shared();
+			}
 		}
 		size_t GetInvocationDataSize(already_shared_locked_this_t) const noexcept;
 		void InitializeInvocationPacket(PipelineInvocationPacket*& _pipelineinvocationpacket_ret, void* _buf_invocationdata, size_t _size_buf_invocationdata, already_shared_locked_this_t) const noexcept;
@@ -156,7 +175,7 @@ namespace YBWLib2 {
 		using map_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment, hash<PipelineFilterID>>;
 		using map_ptr_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment*, hash<PipelineFilterID>>;
 		using map_ptr_pipelinefilterattachment_dependency_t = ::std::map<::std::tuple<PipelineFilterID, PipelineFilterID>, PipelineFilterAttachment*, ::std::less<>>;
-		thread_local static ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>* map_lockcount_recursive;
+		thread_local static objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>> objholder_map_lockcount_recursive;
 		/// <summary>A <c>::std::shared_mutex</c> object used to control concurrent accesses to this object.</summary>
 		mutable ::std::shared_mutex mtx_this;
 		/// <summary>
@@ -215,7 +234,10 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(PipelineFilter);
 		using delegate_rawinvoke_type = PipelineFilterRawInvokeDelegate;
 		const PipelineFilterID pipelinefilterid;
-		PipelineFilter(
+		explicit PipelineFilter(
+			const PipelineFilterID& _pipelinefilterid
+		) noexcept : pipelinefilterid(_pipelinefilterid) {}
+		explicit PipelineFilter(
 			const PersistentID& _persistentid_pipelinefilterid
 		) noexcept : pipelinefilterid(_persistentid_pipelinefilterid) {}
 		PipelineFilter(const PipelineFilter&) = delete;
@@ -280,9 +302,30 @@ namespace YBWLib2 {
 		const Pipeline* pipeline = nullptr;
 	};
 
+	class PipelineStore final : public SharedPtrReferenceCountedObject<PipelineStore> {
+	public:
+		PipelineStore() noexcept(false) {}
+		PipelineStore(const PipelineStore&) = delete;
+		PipelineStore(PipelineStore&&) = delete;
+		virtual ~PipelineStore() = default;
+		PipelineStore& operator=(const PipelineStore&) = delete;
+		PipelineStore& operator=(PipelineStore&&) = delete;
+		ReferenceCountedObjectHolder<Pipeline> ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept;
+	protected:
+		using map_pipeline_t = ::std::unordered_map<PipelineID, ReferenceCountedObjectHolder<Pipeline>, hash<PipelineID>>;
+		::std::shared_mutex mtx_this;
+		map_pipeline_t map_pipeline;
+	};
+
 	static constexpr size_t size_PipelineInvocationPacket_padded = ((sizeof(PipelineInvocationPacket) - 1) / Pipeline::align_slot_invocationpacketdata + 1) * Pipeline::align_slot_invocationpacketdata;
 
-	thread_local ::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>* Pipeline::map_lockcount_recursive = nullptr;
+	YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore> pipelinestore_global;
+
+	namespace Internal {
+		YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
+	}
+
+	thread_local objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>> Pipeline::objholder_map_lockcount_recursive;
 
 	size_t Pipeline::GetInvocationDataSize(already_shared_locked_this_t) const noexcept {
 		return size_PipelineInvocationPacket_padded + this->count_slot_invocationpacketdata * Pipeline::size_slot_invocationpacketdata;
@@ -1381,7 +1424,40 @@ namespace YBWLib2 {
 		_pipelinefilterattachment.idx_pipelinefilterposition_resolve = _idx_pipelinefilterposition_resolve_new;
 	}
 
+	ReferenceCountedObjectHolder<Pipeline> PipelineStore::ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept {
+		{
+			::std::shared_lock<::std::shared_mutex> shared_lock_this(this->mtx_this);
+			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
+			if (it_map_pipeline != this->map_pipeline.cend()) {
+				assert(it_map_pipeline->second);
+				return it_map_pipeline->second;
+			}
+		}
+		{
+			::std::unique_lock<::std::shared_mutex> unique_lock_this(this->mtx_this);
+			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
+			if (it_map_pipeline != this->map_pipeline.cend()) {
+				assert(it_map_pipeline->second);
+				return it_map_pipeline->second;
+			} else {
+				bool is_successful_emplace = false;
+				::std::tie(it_map_pipeline, is_successful_emplace) = this->map_pipeline.emplace(_pipelineid, CreatePipeline(_pipelineid));
+				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
+				assert(it_map_pipeline != this->map_pipeline.cend());
+				assert(it_map_pipeline->second);
+				return it_map_pipeline->second;
+			}
+		}
+	}
+
 	namespace Internal {
+		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PipelineID* _pipelineid) noexcept {
+			assert(_pipelineid);
+			::std::shared_ptr<Pipeline> pipeline(new Pipeline(*_pipelineid));
+			pipeline->IncReferenceCount();
+			return pipeline.get();
+		}
+
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept {
 			assert(_persistentid_pipelineid);
 			::std::shared_ptr<Pipeline> pipeline(new Pipeline(*_persistentid_pipelineid));
@@ -1447,6 +1523,16 @@ namespace YBWLib2 {
 			_pipeline->CleanupInvocationPacket(*_pipelineinvocationpacket, _already_shared_locked_this);
 		}
 
+		YBWLIB2_API bool YBWLIB2_CALLTYPE Pipeline_IsResolved(const Pipeline* _pipeline, already_shared_locked_this_t _already_shared_locked_this) noexcept {
+			assert(_pipeline);
+			return _pipeline->IsResolved(_already_shared_locked_this);
+		}
+
+		YBWLIB2_API bool YBWLIB2_CALLTYPE Pipeline_IsResolved(const Pipeline* _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			assert(_pipeline);
+			return _pipeline->IsResolved(_already_exclusive_locked_this);
+		}
+
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_RawInvoke(const Pipeline* _pipeline, PipelineInvocationPacket* _pipelineinvocationpacket, already_shared_locked_this_t _already_shared_locked_this) noexcept {
 			assert(_pipeline);
 			_pipeline->RawInvoke(*_pipelineinvocationpacket, _already_shared_locked_this);
@@ -1499,9 +1585,41 @@ namespace YBWLib2 {
 			_pipeline->UnregisterInvocationPacketDataEntry(*_pipelineinvocationpacketdataentryid, _already_exclusive_locked_this);
 		}
 
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_AttachPipelineFilter(Pipeline* _pipeline, PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			assert(_pipeline);
+			_pipeline->AttachPipelineFilter(_pipelinefilter, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_this);
+		}
+
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_DetachPipelineFilter(Pipeline* _pipeline, PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			assert(_pipeline);
+			_pipeline->DetachPipelineFilter(_pipelinefilter, _should_resolve_immediately, _already_exclusive_locked_this);
+		}
+
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_Resolve(Pipeline* _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			assert(_pipeline);
+			_pipeline->Resolve(_already_exclusive_locked_this);
+		}
+
+		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PipelineFilterID* _pipelinefilterid) noexcept {
+			assert(_pipelinefilterid);
+			::std::shared_ptr<PipelineFilter> pipelinefilter;
+			try {
+				pipelinefilter.reset(new PipelineFilter(*_pipelinefilterid));
+			} catch (...) {
+				abort();
+			}
+			pipelinefilter->IncReferenceCount();
+			return pipelinefilter.get();
+		}
+
 		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PersistentID* _persistentid_pipelinefilterid) noexcept {
 			assert(_persistentid_pipelinefilterid);
-			::std::shared_ptr<PipelineFilter> pipelinefilter(new PipelineFilter(*_persistentid_pipelinefilterid));
+			::std::shared_ptr<PipelineFilter> pipelinefilter;
+			try {
+				pipelinefilter.reset(new PipelineFilter(*_persistentid_pipelinefilterid));
+			} catch (...) {
+				abort();
+			}
 			pipelinefilter->IncReferenceCount();
 			return pipelinefilter.get();
 		}
@@ -1558,11 +1676,37 @@ namespace YBWLib2 {
 			assert(_pipelineinvocationpacket);
 			return _pipelineinvocationpacket->GetInvocationPacketDataSize();
 		}
+
+		YBWLIB2_API PipelineStore* YBWLIB2_CALLTYPE CreatePipelineStore() noexcept {
+			::std::shared_ptr<PipelineStore> pipelinestore(new PipelineStore());
+			pipelinestore->IncReferenceCount();
+			return pipelinestore.get();
+		}
+
+		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(const PipelineStore* _pipelinestore) noexcept {
+			return _pipelinestore ? static_cast<const IReferenceCountedObject*>(_pipelinestore) : nullptr;
+		}
+
+		YBWLIB2_API IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(PipelineStore* _pipelinestore) noexcept {
+			return _pipelinestore ? static_cast<IReferenceCountedObject*>(_pipelinestore) : nullptr;
+		}
+
+		YBWLIB2_API ReferenceCountedObjectHolder<Pipeline> YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept {
+			static_assert(::std::is_standard_layout_v<ReferenceCountedObjectHolder<Pipeline>>, "ReferenceCountedObjectHolder<Pipeline> is not standard layout.");
+			assert(_pipelinestore);
+			return _pipelinestore->ReferencePipelineFromPipelineID(*_pipelineid);
+		}
 	}
 
-	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept {
+		pipelinestore_global = CreatePipelineStore();
+		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID(Internal::persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg);
+	}
 
-	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {
+		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
+		pipelinestore_global.reset();
+	}
 
 	void YBWLIB2_CALLTYPE PipelineUserInterface_RealInitGlobal() noexcept {}
 

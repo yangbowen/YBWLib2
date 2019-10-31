@@ -16,6 +16,10 @@ namespace YBWLib2 {
 	YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2 = nullptr;
 	YBWLIB2_API IndexedDataEntryID RawAllocatorParameterIndexedDataEntry::entryid;
 
+	YBWLIB2_API const PersistentID& VolatileIDAnchor::GetPersistentID() const noexcept {
+		return this->persistentid;
+	}
+
 	YBWLIB2_API VolatileIDAnchor* VolatileIDAnchor::ReferenceVolatileIDAnchorFromPersistentID(const PersistentID* _persistentid) noexcept {
 		assert(_persistentid);
 		VolatileIDAnchor* volatileidanchor_ret = nullptr;
@@ -193,11 +197,11 @@ namespace YBWLib2 {
 			nullptr, nullptr, nullptr,
 			[](size_t size, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
-				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+				align = least_common_multiple_optimized1<size_t, alignof(::std::max_align_t) * 0x4, alignof(::std::max_align_t)>(align);
 				if (!size) size = align;
-				void* ptr_allocated = malloc(size + sizeof(void**) + align - 1);
+				void* ptr_allocated = malloc(size + align);
 				if (!ptr_allocated) abort();
-				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+				void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) - mod_alignment(reinterpret_cast<uintptr_t>(ptr_allocated), align) + align - sizeof(void**));
 				if (!ptr_allocdata) abort();
 				*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
 				return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);
@@ -214,7 +218,7 @@ namespace YBWLib2 {
 			},
 			[](void* ptr_old, size_t size_old, size_t size_new, size_t align, uintptr_t context) noexcept->void* {
 				static_cast<void>(context);
-				align = least_common_multiple_optimized1<size_t, 0x10, alignof(void*)>(align);
+				align = least_common_multiple_optimized1<size_t, alignof(::std::max_align_t) * 0x4, alignof(::std::max_align_t)>(align);
 				if (!size_new) size_new = align;
 				if (ptr_old) {
 					void* ptr_allocdata_old = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_old) - 1);
@@ -222,9 +226,9 @@ namespace YBWLib2 {
 					if (!ptr_allocated_old || ptr_allocated_old > ptr_allocdata_old) abort();
 					size_t offset_allocdata_old = reinterpret_cast<uintptr_t>(ptr_allocdata_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
 					size_t offset_old = reinterpret_cast<uintptr_t>(ptr_old) - reinterpret_cast<uintptr_t>(ptr_allocated_old);
-					void* ptr_allocated_new = realloc(ptr_allocated_old, size_new + sizeof(void**) + align - 1);
+					void* ptr_allocated_new = realloc(ptr_allocated_old, size_new + align > offset_old + size_old ? size_new + align : offset_old + size_old);
 					if (!ptr_allocated_new) abort();
-					void* ptr_allocdata_new = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated_new) + (sizeof(void*) - 1)), align) - 1);
+					void* ptr_allocdata_new = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) - mod_alignment(reinterpret_cast<uintptr_t>(ptr_allocated_new), align) + align - sizeof(void**));
 					void* ptr_new = reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata_new) + 1);
 					if (ptr_allocdata_new != reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_allocdata_old)) {
 						memmove(ptr_new, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated_new) + offset_old), size_new < size_old ? size_new : size_old);
@@ -235,9 +239,9 @@ namespace YBWLib2 {
 						return ptr_new;
 					}
 				} else {
-					void* ptr_allocated = malloc(size_new + sizeof(void**) + align - 1);
+					void* ptr_allocated = malloc(size_new + align);
 					if (!ptr_allocated) abort();
-					void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) + align - mod_alignment((reinterpret_cast<uintptr_t>(ptr_allocated) + (sizeof(void*) - 1)), align) - 1);
+					void* ptr_allocdata = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr_allocated) - mod_alignment(reinterpret_cast<uintptr_t>(ptr_allocated), align) + align - sizeof(void**));
 					if (!ptr_allocdata) abort();
 					*reinterpret_cast<void**>(ptr_allocdata) = ptr_allocated;
 					return reinterpret_cast<void*>(reinterpret_cast<void**>(ptr_allocdata) + 1);

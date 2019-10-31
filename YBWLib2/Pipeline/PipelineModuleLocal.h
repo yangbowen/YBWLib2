@@ -5,9 +5,15 @@
 #include "Pipeline.h"
 
 namespace YBWLib2 {
-	void YBWLIB2_CALLTYPE Pipeline_RealInitModuleLocal() noexcept {}
+	ReferenceCountedObjectHolder<PipelineStore> pipelinestore_modulelocal;
 
-	void YBWLIB2_CALLTYPE Pipeline_RealUnInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE Pipeline_RealInitModuleLocal() noexcept {
+		pipelinestore_modulelocal = CreatePipelineStore();
+	}
+
+	void YBWLIB2_CALLTYPE Pipeline_RealUnInitModuleLocal() noexcept {
+		pipelinestore_modulelocal.reset();
+	}
 }
 
 #endif

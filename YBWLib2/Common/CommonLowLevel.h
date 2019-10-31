@@ -57,6 +57,61 @@ namespace YBWLib2 {
 		static constexpr value_type value = _value;
 	};
 
+	namespace Internal {
+		template<typename _Default_Ty, typename _AlwaysVoid_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+		struct detected_helper_t {
+			using value_t = ::std::false_type;
+			using type = _Default_Ty;
+			static constexpr typename value_t::value_type value = value_t::value;
+		};
+
+		template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+		struct detected_helper_t<_Default_Ty, ::std::void_t<_Template_Ty<_Args_Ty...>>, _Template_Ty, _Args_Ty...> {
+			using value_t = ::std::true_type;
+			using type = _Template_Ty<_Args_Ty...>;
+			static constexpr typename value_t::value_type value = value_t::value;
+		};
+	}
+
+	struct nonesuch final {
+		nonesuch() = delete;
+		nonesuch(const nonesuch&) = delete;
+		nonesuch(nonesuch&&) = delete;
+		~nonesuch() = delete;
+		nonesuch& operator=(const nonesuch&) = delete;
+		nonesuch& operator=(nonesuch&&) = delete;
+	};
+
+	/// <summary>Detects template specialization.</summary>
+	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using is_detected = typename Internal::detected_helper_t<nonesuch, void, _Template_Ty, _Args_Ty...>::value_t;
+	/// <summary>Detects template specialization.</summary>
+	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	constexpr bool is_detected_v = is_detected<_Template_Ty, _Args_Ty...>::value;
+
+	/// <summary>Detects template specialization.</summary>
+	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using detected_t = typename Internal::detected_helper_t<nonesuch, void, _Template_Ty, _Args_Ty...>::type;
+	/// <summary>Detects template specialization.</summary>
+	template<typename _Expected_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using is_detected_exact = ::std::is_same<detected_t<_Template_Ty, _Args_Ty...>, _Expected_Ty>;
+	/// <summary>Detects template specialization.</summary>
+	template<typename _Expected_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	constexpr bool is_detected_exact_v = is_detected_exact<_Expected_Ty, _Template_Ty, _Args_Ty...>::value;
+	/// <summary>Detects template specialization.</summary>
+	template<typename _To_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using is_detected_convertible = ::std::is_convertible<detected_t<_Template_Ty, _Args_Ty...>, _To_Ty>;
+	/// <summary>Detects template specialization.</summary>
+	template<typename _To_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	constexpr bool is_detected_convertible_v = is_detected_convertible<_To_Ty, _Template_Ty, _Args_Ty...>::value;
+
+	/// <summary>Detects template specialization.</summary>
+	template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using detected_or = Internal::detected_helper_t<_Default_Ty, void, _Template_Ty, _Args_Ty...>;
+	/// <summary>Detects template specialization.</summary>
+	template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	using detected_or_t = typename detected_or<_Default_Ty, _Template_Ty, _Args_Ty...>::type;
+
 	/// <summary>A helper type whose instances always compares less than the specified original type.</summary>
 	template<typename _Ty>
 	struct below_min_t {
@@ -159,38 +214,40 @@ namespace YBWLib2 {
 	template<typename _Ty>
 	struct hash;
 
-	// Helpers for byte_order_t.
-	template<unsigned char i>
-	struct byte_order_bytearray_test_helper_t {
-		const byte_order_bytearray_test_helper_t<i - 1> prev;
-		const unsigned char current = i;
-	};
-	template<>
-	struct byte_order_bytearray_test_helper_t<0> {
-		const unsigned char current = 0;
-	};
-	template<unsigned char i>
-	constexpr byte_order_bytearray_test_helper_t<i> byte_order_bytearray_test_helper {};
-	template<typename _Ty, unsigned char i>
-	constexpr _Ty byte_order_number_test_le_helper = byte_order_number_test_le_helper<_Ty, i - 1> | (((_Ty)i) << (i * CHAR_BIT));
-	template<typename _Ty>
-	constexpr _Ty byte_order_number_test_le_helper<_Ty, 0> = 0;
-	template<typename _Ty, unsigned char i>
-	constexpr _Ty byte_order_number_test_be_helper = byte_order_number_test_be_helper<_Ty, i - 1> | (((_Ty)(sizeof(_Ty) - i - 1)) << (i * CHAR_BIT));
-	template<typename _Ty>
-	constexpr _Ty byte_order_number_test_be_helper<_Ty, 0> = sizeof(_Ty) - 1;
+	namespace Internal {
+		// Helpers for byte_order_t.
+		template<unsigned char i>
+		struct byte_order_bytearray_test_helper_t {
+			const byte_order_bytearray_test_helper_t<i - 1> prev;
+			const unsigned char current = i;
+		};
+		template<>
+		struct byte_order_bytearray_test_helper_t<0> {
+			const unsigned char current = 0;
+		};
+		template<unsigned char i>
+		constexpr byte_order_bytearray_test_helper_t<i> byte_order_bytearray_test_helper{};
+		template<typename _Ty, unsigned char i>
+		constexpr _Ty byte_order_number_test_le_helper = byte_order_number_test_le_helper<_Ty, i - 1> | (((_Ty)i) << (i * CHAR_BIT));
+		template<typename _Ty>
+		constexpr _Ty byte_order_number_test_le_helper<_Ty, 0> = 0;
+		template<typename _Ty, unsigned char i>
+		constexpr _Ty byte_order_number_test_be_helper = byte_order_number_test_be_helper<_Ty, i - 1> | (((_Ty)(sizeof(_Ty) - i - 1)) << (i * CHAR_BIT));
+		template<typename _Ty>
+		constexpr _Ty byte_order_number_test_be_helper<_Ty, 0> = sizeof(_Ty) - 1;
+	}
 
 	/// <summary>Obtains byte order information about a given unsigned intergral type.</summary>
 	template<typename _Ty>
 	struct byte_order_t final {
 		static_assert(::std::is_integral_v<_Ty> && ::std::is_unsigned_v<_Ty>, "The specified type is not an unsigned integral type.");
-		static constexpr _Ty number_test_le = byte_order_number_test_le_helper<_Ty, sizeof(_Ty) - 1>;
-		static constexpr _Ty number_test_be = byte_order_number_test_be_helper<_Ty, sizeof(_Ty) - 1>;
+		static constexpr _Ty number_test_le = Internal::byte_order_number_test_le_helper<_Ty, sizeof(_Ty) - 1>;
+		static constexpr _Ty number_test_be = Internal::byte_order_number_test_be_helper<_Ty, sizeof(_Ty) - 1>;
 		const _Ty number_test;
 		const bool is_le;
 		const bool is_be;
 		byte_order_t()
-			: number_test(*reinterpret_cast<const _Ty*>(&byte_order_bytearray_test_helper<sizeof(_Ty) - 1>)),
+			: number_test(*reinterpret_cast<const _Ty*>(&Internal::byte_order_bytearray_test_helper<sizeof(_Ty) - 1>)),
 			is_le(number_test == number_test_le),
 			is_be(number_test == number_test_be) {}
 	};
@@ -222,42 +279,44 @@ namespace YBWLib2 {
 		return should_increment_exponent ? x << 1 : x;
 	}
 
-	// Helpers for count_leading_zero.
-	template<typename _Uint_Ty, size_t bitsize>
-	inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-		static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
-		if constexpr ((bitsize & (bitsize - 1)) != 0) {
-			static_assert(
-				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
-				&& ceil_to_power_of_two(bitsize) > bitsize
-				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
-				, "Unexpected error."
-				);
-			// Shifts the bits to the left.
-			x <<= ceil_to_power_of_two(bitsize) - bitsize;
-			// Sets the trailing bits.
-			x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1);
-			count_leading_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
-		} else if constexpr (!bitsize) {
-			return;
-		} else if constexpr (bitsize == 0x1) {
-			static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
-			n += table_1[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x1)) & (((size_t)1 << 0x1) - 1)];
-		} else if constexpr (bitsize == 0x2) {
-			static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x1, 0x0, 0x0 };
-			n += table_2[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x2)) & (((size_t)1 << 0x2) - 1)];
-		} else if constexpr (bitsize == 0x4) {
-			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
-			n += table_4[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x4)) & (((size_t)1 << 0x4) - 1)];
-		} else {
-			static_assert(!(bitsize & 1), "Unexpected error.");
-			if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * CHAR_BIT - (bitsize >> 1))))) {
-				n += (bitsize >> 1);
-				x <<= (bitsize >> 1);
+	namespace Internal {
+		// Helpers for count_leading_zero.
+		template<typename _Uint_Ty, size_t bitsize>
+		inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
+			static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+			static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
+			static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+			if constexpr ((bitsize & (bitsize - 1)) != 0) {
+				static_assert(
+					!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
+					&& ceil_to_power_of_two(bitsize) > bitsize
+					&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
+					, "Unexpected error."
+					);
+				// Shifts the bits to the left.
+				x <<= ceil_to_power_of_two(bitsize) - bitsize;
+				// Sets the trailing bits.
+				x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1);
+				count_leading_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
+			} else if constexpr (!bitsize) {
+				return;
+			} else if constexpr (bitsize == 0x1) {
+				static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
+				n += table_1[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x1))& (((size_t)1 << 0x1) - 1)];
+			} else if constexpr (bitsize == 0x2) {
+				static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x1, 0x0, 0x0 };
+				n += table_2[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x2))& (((size_t)1 << 0x2) - 1)];
+			} else if constexpr (bitsize == 0x4) {
+				static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+				n += table_4[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x4))& (((size_t)1 << 0x4) - 1)];
+			} else {
+				static_assert(!(bitsize & 1), "Unexpected error.");
+				if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * CHAR_BIT - (bitsize >> 1))))) {
+					n += (bitsize >> 1);
+					x <<= (bitsize >> 1);
+				}
+				count_leading_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
 			}
-			count_leading_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
 		}
 	}
 
@@ -266,44 +325,46 @@ namespace YBWLib2 {
 	inline constexpr size_t count_leading_zero(_Uint_Ty x) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
+		Internal::count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
 		return n;
 	}
 
-	// Helpers for count_trailing_zero.
-	template<typename _Uint_Ty, size_t bitsize>
-	inline constexpr void count_trailing_zero_helper(_Uint_Ty& x, size_t& n) {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-		static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-		static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
-		if constexpr ((bitsize & (bitsize - 1)) != 0) {
-			static_assert(
-				!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
-				&& ceil_to_power_of_two(bitsize) > bitsize
-				&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
-				, "Unexpected error."
-				);
-			// Sets the leading bits.
-			x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1) << bitsize;
-			count_trailing_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
-		} else if constexpr (!bitsize) {
-			return;
-		} else if constexpr (bitsize == 0x1) {
-			static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
-			n += table_1[x & (((size_t)1 << 0x1) - 1)];
-		} else if constexpr (bitsize == 0x2) {
-			static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x0, 0x1, 0x0 };
-			n += table_2[x & (((size_t)1 << 0x2) - 1)];
-		} else if constexpr (bitsize == 0x4) {
-			static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0, 0x3, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0 };
-			n += table_4[x & (((size_t)1 << 0x4) - 1)];
-		} else {
-			static_assert(!(bitsize & 1), "Unexpected error.");
-			if (!(x & (((_Uint_Ty)1 << (bitsize >> 1)) - 1))) {
-				n += (bitsize >> 1);
-				x >>= (bitsize >> 1);
+	namespace Internal {
+		// Helpers for count_trailing_zero.
+		template<typename _Uint_Ty, size_t bitsize>
+		inline constexpr void count_trailing_zero_helper(_Uint_Ty& x, size_t& n) {
+			static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+			static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
+			static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+			if constexpr ((bitsize & (bitsize - 1)) != 0) {
+				static_assert(
+					!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
+					&& ceil_to_power_of_two(bitsize) > bitsize
+					&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
+					, "Unexpected error."
+					);
+				// Sets the leading bits.
+				x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1) << bitsize;
+				count_trailing_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
+			} else if constexpr (!bitsize) {
+				return;
+			} else if constexpr (bitsize == 0x1) {
+				static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
+				n += table_1[x & (((size_t)1 << 0x1) - 1)];
+			} else if constexpr (bitsize == 0x2) {
+				static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x0, 0x1, 0x0 };
+				n += table_2[x & (((size_t)1 << 0x2) - 1)];
+			} else if constexpr (bitsize == 0x4) {
+				static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0, 0x3, 0x0, 0x1, 0x0, 0x2, 0x0, 0x1, 0x0 };
+				n += table_4[x & (((size_t)1 << 0x4) - 1)];
+			} else {
+				static_assert(!(bitsize & 1), "Unexpected error.");
+				if (!(x & (((_Uint_Ty)1 << (bitsize >> 1)) - 1))) {
+					n += (bitsize >> 1);
+					x >>= (bitsize >> 1);
+				}
+				count_trailing_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
 			}
-			count_trailing_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
 		}
 	}
 
@@ -312,7 +373,7 @@ namespace YBWLib2 {
 	inline constexpr size_t count_trailing_zero(_Uint_Ty x) {
 		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
+		Internal::count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
 		return n;
 	}
 
@@ -348,61 +409,63 @@ namespace YBWLib2 {
 		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
 	}
 
-	// Helpers for get_lookup_table_least_common_multiple.
-	template<typename _Ty>
-	using get_lookup_table_least_common_multiple_helper_value_index_t = ::std::conditional_t < sizeof(size_t) < sizeof(_Ty), size_t, _Ty > ;
+	namespace Internal {
+		// Helpers for get_lookup_table_least_common_multiple.
+		template<typename _Ty>
+		using get_lookup_table_least_common_multiple_helper_value_index_t = ::std::conditional_t < sizeof(size_t) < sizeof(_Ty), size_t, _Ty > ;
 
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base, bool is_odd_count_element>
-	struct get_lookup_table_least_common_multiple_helper1_t;
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base, bool is_odd_count_element>
+		struct get_lookup_table_least_common_multiple_helper1_t;
 
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, false> {
-		static_assert(!(count_element % 2));
-		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base, (count_element / 2) % 2> branch_0;
-		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base + count_element / 2, (count_element / 2) % 2> branch_1;
-	};
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, false> {
+			static_assert(!(count_element % 2));
+			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base, (count_element / 2) % 2> branch_0;
+			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base + count_element / 2, (count_element / 2) % 2> branch_1;
+		};
 
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, true> {
-		static_assert(count_element % 2);
-		get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element - 1, value_fixed, value_index_base, false> truncated;
-		const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + count_element);
-	};
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, true> {
+			static_assert(count_element % 2);
+			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element - 1, value_fixed, value_index_base, false> truncated;
+			const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + count_element);
+		};
 
-	template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(0), value_fixed, value_index_base, false>;
+		template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(0), value_fixed, value_index_base, false>;
 
-	template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-	struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(1), value_fixed, value_index_base, true> {
-		const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + 1);
-	};
+		template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(1), value_fixed, value_index_base, true> {
+			const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + 1);
+		};
 
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-	using get_lookup_table_least_common_multiple_helper2_t = get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t>(0), count_element % 2>;
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+		using get_lookup_table_least_common_multiple_helper2_t = get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t>(0), count_element % 2>;
 
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-	constexpr get_lookup_table_least_common_multiple_helper2_t<_Ty, count_element, value_fixed> get_lookup_table_least_common_multiple_helper2 {};
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+		constexpr get_lookup_table_least_common_multiple_helper2_t<_Ty, count_element, value_fixed> get_lookup_table_least_common_multiple_helper2{};
 
-	/// <summary>
-	/// Gets a reference to a lookup table of least common multiples with one fixed value.
-	/// The index in the lookup table is the non-fixed value MINUS ONE.
-	/// Used in alignment calculations.
-	/// </summary>
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-	inline const _Ty* get_lookup_table_least_common_multiple() noexcept {
-		return reinterpret_cast<const _Ty*>(&get_lookup_table_least_common_multiple_helper2<_Ty, count_element, value_fixed>);
+		/// <summary>
+		/// Gets a reference to a lookup table of least common multiples with one fixed value.
+		/// The index in the lookup table is the non-fixed value MINUS ONE.
+		/// Used in alignment calculations.
+		/// </summary>
+		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
+		inline const _Ty* get_lookup_table_least_common_multiple() noexcept {
+			return reinterpret_cast<const _Ty*>(&get_lookup_table_least_common_multiple_helper2<_Ty, count_element, value_fixed>);
+		}
 	}
 
 	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
+	template<typename _Ty, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
 	inline _Ty least_common_multiple_optimized1(_Ty value_runtime) {
-		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
 	}
 
 	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
-	template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
+	template<typename _Ty, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
 	inline _Ty least_common_multiple_optimized1(const _Ty& value_runtime) {
-		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
 	}
 
 	/// <summary>Integer modulus operation optimized for alignment calculations.</summary>
@@ -416,42 +479,44 @@ namespace YBWLib2 {
 			return dividend & (divisor - 1);
 	}
 
-	// Helpers for hash_trivially_copyable_t.
-	template<typename _Ty, typename _Hash_Ty, size_t size_hash>
-	struct hash_trivially_copyable_helper_t {};
-	template<typename _Ty, typename _Hash_Ty>
-	struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint32_t)> {
-		static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
-		static_assert(::std::is_integral_v<_Hash_Ty> && ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
-		static_assert(sizeof(_Hash_Ty) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
-		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
-			_Hash_Ty _hash = fnv1a_offset_basis;
-			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i]) * fnv1a_prime;
-			return _hash;
-		}
-	private:
-		static constexpr size_t fnv1a_offset_basis = 0x811C9DC5;
-		static constexpr size_t fnv1a_prime = 0x1000193;
-	};
-	template<typename _Ty, typename _Hash_Ty>
-	struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint64_t)> {
-		static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
-		static_assert(::std::is_integral_v<_Hash_Ty> && ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
-		static_assert(sizeof(_Hash_Ty) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
-		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
-			_Hash_Ty _hash = fnv1a_offset_basis;
-			for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i]) * fnv1a_prime;
-			return _hash;
-		}
-	private:
-		static constexpr size_t fnv1a_offset_basis = 0xCBF29CE484222325;
-		static constexpr size_t fnv1a_prime = 0x100000001B3;
-	};
+	namespace Internal {
+		// Helpers for hash_trivially_copyable_t.
+		template<typename _Ty, typename _Hash_Ty, size_t size_hash>
+		struct hash_trivially_copyable_helper_t {};
+		template<typename _Ty, typename _Hash_Ty>
+		struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint32_t)> {
+			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
+			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
+			static_assert(sizeof(_Hash_Ty) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
+			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
+				_Hash_Ty _hash = fnv1a_offset_basis;
+				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
+				return _hash;
+			}
+		private:
+			static constexpr size_t fnv1a_offset_basis = 0x811C9DC5;
+			static constexpr size_t fnv1a_prime = 0x1000193;
+		};
+		template<typename _Ty, typename _Hash_Ty>
+		struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint64_t)> {
+			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
+			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
+			static_assert(sizeof(_Hash_Ty) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
+			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
+				_Hash_Ty _hash = fnv1a_offset_basis;
+				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
+				return _hash;
+			}
+		private:
+			static constexpr size_t fnv1a_offset_basis = 0xCBF29CE484222325;
+			static constexpr size_t fnv1a_prime = 0x100000001B3;
+		};
+	}
 
 	/// <summary>Hashes a trivially copyable object.</summary>
 	template<typename _Ty, typename _Hash_Ty>
 	struct hash_trivially_copyable_t {
-		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) { return hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
+		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) { return Internal::hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
 	};
 
 	struct dummy_t {};
@@ -517,7 +582,7 @@ namespace YBWLib2 {
 	};\
 \
 	template<>\
-	struct inttype_traits_t<type> {\
+	struct inttype_traits_t<signed type> {\
 		static constexpr char fmtspec_printf_d[] = prefix_fmtspec "d";\
 		static constexpr char fmtspec_printf_d_utf8[] = YBWLIB2_TO_UTF8(prefix_fmtspec "d");\
 		static constexpr char fmtspec_printf_i[] = prefix_fmtspec "i";\
@@ -679,7 +744,7 @@ namespace YBWLib2 {
 		}
 		VolatileIDAnchor& operator=(const VolatileIDAnchor&) = delete;
 		VolatileIDAnchor& operator=(VolatileIDAnchor&&) = delete;
-		const PersistentID& GetPersistentID() const noexcept { return this->persistentid; }
+		YBWLIB2_API const PersistentID& GetPersistentID() const noexcept;
 	protected:
 		static YBWLIB2_API ::std::mutex* mtx_map_volatileidanchor;
 		static YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>* map_volatileidanchor;
@@ -1158,6 +1223,42 @@ namespace YBWLib2 {
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of YBWLib2.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2;
 
+	template<const rawallocator_t* const * _Ptr_Ptr_RawAllocator>
+	class RawAllocatorAllocatedClass {
+	public:
+		static_assert(_Ptr_Ptr_RawAllocator);
+		[[nodiscard]] static inline void* operator new(size_t _size) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			return rawallocator->Allocate(_size, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+		}
+		[[nodiscard]] static inline void* operator new[](size_t _size) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			return rawallocator->Allocate(_size, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
+		}
+		[[nodiscard]] static inline void* operator new(size_t _size, ::std::align_val_t _align_val) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			return rawallocator->Allocate(_size, _align_val);
+		}
+		[[nodiscard]] static inline void* operator new[](size_t _size, ::std::align_val_t _align_val) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			return rawallocator->Allocate(_size, _align_val);
+		}
+		static inline void operator delete(void* _ptr, size_t _size) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			rawallocator->Deallocate(_ptr, _size);
+		}
+		static inline void operator delete[](void* _ptr, size_t _size) noexcept {
+			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			assert(rawallocator);
+			rawallocator->Deallocate(_ptr, _size);
+		}
+	};
+
 #pragma region Delegate
 	//{ Delegate
 
@@ -1165,6 +1266,8 @@ namespace YBWLib2 {
 		DelegateFlags_None = 0x0,
 		DelegateFlag_Noexcept = 0x1
 	};
+
+	using DelegateCleanupFnptr = void (YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
 
 	template<unsigned int _delegateflags, typename _Return_Ty, typename... _Args_Ty>
 	struct Delegate final {
@@ -1193,7 +1296,7 @@ namespace YBWLib2 {
 			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept,
 			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args)
 			>;
-		using fnptr_cleanup_t = void (YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
+		using fnptr_cleanup_t = DelegateCleanupFnptr;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
 		uintptr_t contextvalue2 = 0;

@@ -202,7 +202,7 @@ namespace YBWLib2 {
 	//{ Exception interface classes
 
 	/// <summary>Exception.</summary>
-	class IException abstract : public virtual IDynamicTypeObject {
+	class IException abstract : public RawAllocatorAllocatedClass<&rawallocator_exception>, public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IException, YBWLIB2_API, "50bca171-aceb-4298-ad6f-a17baace7594");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IException);
@@ -212,18 +212,6 @@ namespace YBWLib2 {
 		inline virtual ~IException() = default;
 		IException& operator=(const IException&) = delete;
 		IException& operator=(IException&&) = delete;
-		static inline void* operator new(size_t size) noexcept {
-			return ExceptionAllocateMemory(size, alignof(IException));
-		}
-		static inline void* operator new[](size_t size) noexcept {
-			return ExceptionAllocateMemory(size, alignof(IException));
-		}
-		static inline void operator delete(void* ptr) noexcept {
-			return ExceptionFreeMemory(ptr);
-		}
-		static inline void operator delete[](void* ptr) noexcept {
-			return ExceptionFreeMemory(ptr);
-		}
 		/// <summary>
 		/// Gets the exception flags.
 		/// The underlying cause is not included.
