@@ -30,9 +30,10 @@
 #endif
 
 namespace YBWLib2 {
-	static ::std::atomic<uintptr_t> usecount_YBWLib2_ModuleLocal(0);
-	static ::std::once_flag onceflag_YBWLib2_RealInitModuleLocal;
-	static ::std::once_flag onceflag_YBWLib2_RealUnInitModuleLocal;
+	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept;
+	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept;
+
+	static SharedResourceInitializer sharedresourceinitializer_YBWLib2_ModuleLocal(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept {
 		try {
@@ -99,20 +100,11 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE YBWLib2_InitModuleLocal() noexcept {
-		try {
-			::std::call_once(onceflag_YBWLib2_RealInitModuleLocal, YBWLib2_RealInitModuleLocal);
-			++usecount_YBWLib2_ModuleLocal;
-		} catch (...) {
-			abort();
-		}
+		sharedresourceinitializer_YBWLib2_ModuleLocal.Initialize();
 	}
 
 	void YBWLIB2_CALLTYPE YBWLib2_UnInitModuleLocal() noexcept {
-		try {
-			if (!--usecount_YBWLib2_ModuleLocal) ::std::call_once(onceflag_YBWLib2_RealUnInitModuleLocal, YBWLib2_RealUnInitModuleLocal);
-		} catch (...) {
-			abort();
-		}
+		sharedresourceinitializer_YBWLib2_ModuleLocal.UnInitialize();
 	}
 }
 

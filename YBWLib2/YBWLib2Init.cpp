@@ -28,9 +28,10 @@
 #endif
 
 namespace YBWLib2 {
-	static ::std::atomic<uintptr_t> usecount_YBWLib2_DLL(0);
-	static ::std::once_flag onceflag_YBWLib2_RealInitDLL;
-	static ::std::once_flag onceflag_YBWLib2_RealUnInitDLL;
+	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept;
+	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitDLL() noexcept;
+
+	static SharedResourceInitializer sharedresourceinitializer_YBWLib2_DLL(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept {
 		try {
@@ -143,19 +144,10 @@ namespace YBWLib2 {
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE YBWLib2_InitDLL() noexcept {
-		try {
-			::std::call_once(onceflag_YBWLib2_RealInitDLL, YBWLib2_RealInitDLL);
-			++usecount_YBWLib2_DLL;
-		} catch (...) {
-			abort();
-		}
+		sharedresourceinitializer_YBWLib2_DLL.Initialize();
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE YBWLib2_UnInitDLL() noexcept {
-		try {
-			if (!--usecount_YBWLib2_DLL) ::std::call_once(onceflag_YBWLib2_RealUnInitDLL, YBWLib2_RealUnInitDLL);
-		} catch (...) {
-			abort();
-		}
+		sharedresourceinitializer_YBWLib2_DLL.UnInitialize();
 	}
 }

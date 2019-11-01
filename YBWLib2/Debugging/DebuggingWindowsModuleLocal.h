@@ -2685,18 +2685,6 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Win32DebuggingReadTargetMemory(Win32Architecture architecture, const Win32HandleHolder* win32handleholder_process, void* buf, size_t size, const Win32DebuggingTargetAddress* targetaddress) noexcept {
-		if (!win32handleholder_process || !buf && size || !targetaddress || targetaddress->GetWin32Architecture() != architecture) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(Win32DebuggingReadTargetMemory);
-		if (!ReadProcessMemory(win32handleholder_process->get(), targetaddress->GetRawCurrentProcessAddress(), buf, size, nullptr)) return YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(ReadProcessMemory);
-		return nullptr;
-	}
-
-	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Win32DebuggingWriteTargetMemory(Win32Architecture architecture, const Win32HandleHolder* win32handleholder_process, const void* buf, size_t size, const Win32DebuggingTargetAddress* targetaddress) noexcept {
-		if (!win32handleholder_process || !buf && size || !targetaddress || targetaddress->GetWin32Architecture() != architecture) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(Win32DebuggingWriteTargetMemory);
-		if (!WriteProcessMemory(win32handleholder_process->get(), targetaddress->GetRawCurrentProcessAddress(), buf, size, nullptr)) return YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(WriteProcessMemory);
-		return nullptr;
-	}
-
 	Win32DebuggingTargetMemoryRegionInfo Win32DebuggingQueryTargetMemoryRegion(Win32Architecture architecture, const Win32HandleHolder& win32handleholder_process, const Win32DebuggingTargetAddress& targetaddress) noexcept(false) {
 		if (targetaddress.GetWin32Architecture() != architecture) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(QueryWin32DebuggingTargetMemoryRegion));
 		MEMORY_BASIC_INFORMATION memorybasicinformation;

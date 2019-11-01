@@ -397,7 +397,7 @@ namespace YBWLib2 {
 	}
 
 	void Pipeline::RawInvoke(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t _already_shared_locked_this) const noexcept {
-		assert(this->IsResolved(_already_shared_locked_this));
+		assert(this->IsResolved(_already_shared_locked_this)); static_cast<void>(_already_shared_locked_this);
 		for (const PipelineFilterAttachment* pipelinefilterattachment : this->list_pipelinefilterattachment_invocation) {
 			assert(pipelinefilterattachment && pipelinefilterattachment->pipelinefilter);
 			pipelinefilterattachment->pipelinefilter->RawInvoke(_pipelineinvocationpacket);
