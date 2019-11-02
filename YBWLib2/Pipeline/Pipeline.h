@@ -474,6 +474,11 @@ namespace YBWLib2 {
 		return Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &_pipelineid);
 	}
 
+	inline ReferenceCountedObjectHolder<Pipeline> PipelineStore_ReferencePipelineFromPersistentID(PipelineStore& _pipelinestore, const PersistentID& _persistentid_pipelineid) noexcept {
+		PipelineID pipelineid(_persistentid_pipelineid);
+		return Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &pipelineid);
+	}
+
 	class PipelineInvocationPacketDataEntryHolder final {
 	public:
 		constexpr PipelineInvocationPacketDataEntryHolder() noexcept = default;
@@ -1633,6 +1638,7 @@ namespace YBWLib2 {
 		PipelineWrapper(const ReferenceCountedObjectHolder<Pipeline>& _pipeline) noexcept : pipelinecontext(ReferenceCountedObjectHolder<Pipeline>(_pipeline)) {}
 		PipelineWrapper(ReferenceCountedObjectHolder<Pipeline>&& _pipeline) noexcept : pipelinecontext(::std::move(_pipeline)) {}
 		PipelineWrapper(PipelineStore& _pipelinestore, const PipelineID& _pipelineid) noexcept : pipelinecontext(PipelineStore_ReferencePipelineFromPipelineID(_pipelinestore, _pipelineid)) {}
+		PipelineWrapper(PipelineStore& _pipelinestore, const PersistentID& _persistentid_pipelineid) noexcept : pipelinecontext(PipelineStore_ReferencePipelineFromPersistentID(_pipelinestore, _persistentid_pipelineid)) {}
 		PipelineWrapper(const PipelineWrapper& x) noexcept = default;
 		PipelineWrapper(PipelineWrapper&& x) noexcept = default;
 		~PipelineWrapper() = default;
