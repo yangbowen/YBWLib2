@@ -1436,6 +1436,16 @@ namespace YBWLib2 {
 	public:
 		using pipelinecontext_type = pipelinecontext_t;
 		using pipelinefiltercontext_type = pipelinefiltercontext_t;
+		static bool IsPipelineResolved(const pipelinecontext_type& _pipelinecontext, already_shared_locked_this_t _already_shared_locked_pipeline) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			return Pipeline_IsResolved(pipeline, _already_shared_locked_pipeline);
+		}
+		static bool IsPipelineResolved(const pipelinecontext_type& _pipelinecontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			return Pipeline_IsResolved(pipeline, _already_exclusive_locked_pipeline);
+		}
 		template<
 			typename _Callable_PreInvoke_Ty,
 			typename _Callable_PostInvoke_Ty,
@@ -1452,6 +1462,14 @@ namespace YBWLib2 {
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+			while (!Pipeline_IsResolved(pipeline, already_shared_locked_pipeline)) {
+				shared_lock_pipeline = ::std::shared_lock<PipelineSharedMutexWrapper>();
+				{
+					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+					Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
+				}
+				shared_lock_pipeline = ::std::shared_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
+			}
 			size_t size_invocationdata = Pipeline_GetInvocationDataSize(pipeline, already_shared_locked_pipeline);
 #if defined(YBWLIB2_NO_ALLOCA)
 			::std::unique_ptr<::std::max_align_t[]> uniqueptr_buf_invocationdata(new ::std::max_align_t[(size_invocationdata - 1) / sizeof(::std::max_align_t) + 1]);
@@ -1478,6 +1496,20 @@ namespace YBWLib2 {
 #else
 			buf_invocationdata = nullptr;
 #endif
+		}
+		static void ResolvePipeline(pipelinecontext_type& _pipelinecontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			Pipeline_Resolve(pipeline, _already_exclusive_locked_pipeline);
+			return *this;
+		}
+		static void ResolvePipeline(pipelinecontext_type& _pipelinecontext) & noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
+			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
+			return *this;
 		}
 		static void ClearPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
@@ -1552,20 +1584,20 @@ namespace YBWLib2 {
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			AttachPipelineFilter(_pipelinefiltercontext, _pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_pipeline);
 		}
-		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 			assert(_pipelinefiltercontext.pipelinefilter);
 			PipelineFilter& pipelinefilter = *_pipelinefiltercontext.pipelinefilter;
-			assert(_pipelinefiltercontext.pipeline);
-			Pipeline& pipeline = *_pipelinefiltercontext.pipeline;
+			assert(_pipelinefiltercontext.pipeline && _pipelinefiltercontext.pipeline == _pipelinecontext.pipeline);
+			Pipeline& pipeline = *_pipelinecontext.pipeline;
 			Pipeline_DetachPipelineFilter(pipeline, pipelinefilter, _should_resolve_immediately, _already_exclusive_locked_pipeline);
 			_pipelinefiltercontext.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear(_already_exclusive_locked_pipeline);
 			_pipelinefiltercontext.pipeline.reset();
 		}
-		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, bool _should_resolve_immediately) noexcept {
-			assert(_pipelinefiltercontext.pipeline);
+		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately) noexcept {
+			assert(_pipelinecontext.pipeline);
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*_pipelinefiltercontext.pipeline);
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-			DetachPipelineFilter(_pipelinefiltercontext, _should_resolve_immediately, already_exclusive_locked_pipeline);
+			DetachPipelineFilter(_pipelinefiltercontext, _pipelinecontext, _should_resolve_immediately, already_exclusive_locked_pipeline);
 		}
 	};
 
@@ -1607,23 +1639,63 @@ namespace YBWLib2 {
 		PipelineFilter& operator*() noexcept { return this->GetPipelineFilter(); }
 		const PipelineFilter* operator->() const noexcept { return &this->GetPipelineFilter(); }
 		PipelineFilter* operator->() noexcept { return &this->GetPipelineFilter(); }
-		void ClearInvokeDelegate() noexcept {
+		PipelineFilterWrapper& ClearInvokeDelegate() & noexcept {
 			pipelinetraits_type::ClearPipelineFilterInvokeDelegate(this->pipelinefiltercontext);
+			return *this;
+		}
+		PipelineFilterWrapper&& ClearInvokeDelegate() && noexcept {
+			pipelinetraits_type::ClearPipelineFilterInvokeDelegate(this->pipelinefiltercontext);
+			return ::std::move(*this);
 		}
 		template<typename _Delegate_Invoke_Ty>
-		void SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke) noexcept {
-			pipelinetraits_type::SetPipelineFilterInvokeDelegate(this->pipelinefiltercontext);
+		PipelineFilterWrapper& SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke) & noexcept {
+			pipelinetraits_type::SetPipelineFilterInvokeDelegate(this->pipelinefiltercontext, ::std::move(_delegate_invoke));
+			return *this;
 		}
-		void SetPipelineFilterPositionArray(const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
-			pipelinetraits_type::SetPipelineFilterPositionArray(this->pipelinefiltercontext);
+		template<typename _Delegate_Invoke_Ty>
+		PipelineFilterWrapper&& SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke) && noexcept {
+			pipelinetraits_type::SetPipelineFilterInvokeDelegate(this->pipelinefiltercontext, ::std::move(_delegate_invoke));
+			return ::std::move(*this);
 		}
-		void AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept;
-		void AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) noexcept;
-		void DetachFromPipeline(bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-			pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		PipelineFilterWrapper& SetPipelineFilterPositionArray(const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) & noexcept {
+			pipelinetraits_type::SetPipelineFilterPositionArray(this->pipelinefiltercontext, _arr_pipelinefilterposition, _size_pipelinefilterposition);
+			return *this;
 		}
-		void DetachFromPipeline(bool _should_resolve_immediately) noexcept {
-			pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _should_resolve_immediately);
+		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) && noexcept {
+			pipelinetraits_type::SetPipelineFilterPositionArray(this->pipelinefiltercontext, _arr_pipelinefilterposition, _size_pipelinefilterposition);
+			return ::std::move(*this);
+		}
+		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept;
+		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			return this->AttachToPipeline(_pipelinewrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		}
+		PipelineFilterWrapper&& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept;
+		PipelineFilterWrapper&& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			return ::std::move(*this).AttachToPipeline(_pipelinewrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		}
+		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept;
+		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
+			return this->AttachToPipeline(_pipelinewrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		}
+		PipelineFilterWrapper&& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept;
+		PipelineFilterWrapper&& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
+			return ::std::move(*this).AttachToPipeline(_pipelinewrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		}
+		PipelineFilterWrapper& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept;
+		PipelineFilterWrapper& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			return this->DetachFromPipeline(_pipelinewrapper, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		}
+		PipelineFilterWrapper&& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept;
+		PipelineFilterWrapper&& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			return ::std::move(*this).DetachFromPipeline(_pipelinewrapper, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		}
+		PipelineFilterWrapper& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) & noexcept;
+		PipelineFilterWrapper& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately) & noexcept {
+			return this->DetachFromPipeline(_pipelinewrapper, _should_resolve_immediately);
+		}
+		PipelineFilterWrapper&& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) && noexcept;
+		PipelineFilterWrapper&& DetachFromPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately) && noexcept {
+			return ::std::move(*this).DetachFromPipeline(_pipelinewrapper, _should_resolve_immediately);
 		}
 	protected:
 		typename pipelinetraits_type::pipelinefiltercontext_type pipelinefiltercontext;
@@ -1708,24 +1780,134 @@ namespace YBWLib2 {
 				::std::forward<_Args_Ty>(_args)...
 			);
 		}
-		void AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-			pipelinetraits_type::AttachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		bool IsResolved(already_shared_locked_this_t _already_shared_locked_pipeline) const noexcept {
+			return pipelinetraits_type::IsPipelineResolved(this->pipelinecontext, _already_shared_locked_pipeline);
 		}
-		void AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) noexcept {
+		bool IsResolved(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) const noexcept {
+			return pipelinetraits_type::IsPipelineResolved(this->pipelinecontext, _already_exclusive_locked_pipeline);
+		}
+		PipelineWrapper& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			pipelinetraits_type::AttachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+			return *this;
+		}
+		PipelineWrapper& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			return this->AttachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		}
+		PipelineWrapper&& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			pipelinetraits_type::AttachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+			return ::std::move(*this);
+		}
+		PipelineWrapper&& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			return ::std::move(*this).AttachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		}
+		PipelineWrapper& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
 			pipelinetraits_type::AttachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+			return *this;
+		}
+		PipelineWrapper& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
+			return this->AttachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		}
+		PipelineWrapper&& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
+			pipelinetraits_type::AttachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+			return ::std::move(*this);
+		}
+		PipelineWrapper&& AttachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
+			return ::std::move(*this).AttachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		}
+		PipelineWrapper& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			pipelinetraits_type::DetachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+			return *this;
+		}
+		PipelineWrapper& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			return this->DetachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		}
+		PipelineWrapper&& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			pipelinetraits_type::DetachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+			return ::std::move(*this);
+		}
+		PipelineWrapper&& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			return ::std::move(*this).DetachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		}
+		PipelineWrapper& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately) & noexcept {
+			pipelinetraits_type::DetachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately);
+			return *this;
+		}
+		PipelineWrapper& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately) & noexcept {
+			return this->DetachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately);
+		}
+		PipelineWrapper&& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>& _pipelinefilterwrapper, bool _should_resolve_immediately) && noexcept {
+			pipelinetraits_type::DetachPipelineFilter(_pipelinefilterwrapper.pipelinefiltercontext, this->pipelinecontext, _should_resolve_immediately);
+			return ::std::move(*this);
+		}
+		PipelineWrapper&& DetachPipelineFilter(PipelineFilterWrapper<pipelinetraits_type>&& _pipelinefilterwrapper, bool _should_resolve_immediately) && noexcept {
+			return ::std::move(*this).DetachPipelineFilter(_pipelinefilterwrapper, _should_resolve_immediately);
+		}
+		PipelineWrapper& Resolve(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+			pipelinetraits_type::ResolvePipeline(this->pipelinecontext, _already_exclusive_locked_pipeline);
+			return *this;
+		}
+		PipelineWrapper&& Resolve(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+			pipelinetraits_type::ResolvePipeline(this->pipelinecontext, _already_exclusive_locked_pipeline);
+			return ::std::move(*this);
+		}
+		PipelineWrapper& Resolve() & noexcept {
+			pipelinetraits_type::ResolvePipeline(this->pipelinecontext);
+			return *this;
+		}
+		PipelineWrapper&& Resolve() && noexcept {
+			pipelinetraits_type::ResolvePipeline(this->pipelinecontext);
+			return ::std::move(*this);
 		}
 	protected:
 		typename pipelinetraits_type::pipelinecontext_type pipelinecontext;
 	};
 
 	template<typename _PipelineTraits_Ty>
-	inline void PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+	inline PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
 		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		return *this;
 	}
 
 	template<typename _PipelineTraits_Ty>
-	inline void PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) noexcept {
+	inline PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+		return ::std::move(*this);
+	}
+
+	template<typename _PipelineTraits_Ty>
+	inline PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
 		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		return *this;
+	}
+
+	template<typename _PipelineTraits_Ty>
+	inline PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
+		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+		return ::std::move(*this);
+	}
+
+	template<typename _PipelineTraits_Ty>
+	PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		return *this;
+	}
+
+	template<typename _PipelineTraits_Ty>
+	PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
+		return ::std::move(*this);
+	}
+
+	template<typename _PipelineTraits_Ty>
+	PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) & noexcept {
+		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately);
+		return *this;
+	}
+
+	template<typename _PipelineTraits_Ty>
+	PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) && noexcept {
+		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately);
+		return ::std::move(*this);
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept;
