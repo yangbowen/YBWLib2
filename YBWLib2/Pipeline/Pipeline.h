@@ -1484,7 +1484,7 @@ namespace YBWLib2 {
 			assert(pipelineinvocationpacket);
 			{
 				void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
-				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<move_cv_t<void, _Args_Ty>*>(::std::addressof(_args))), ...);
+				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<move_cv_t<void, ::std::remove_reference_t<_Args_Ty>>*>(::std::addressof(_args))), ...);
 			}
 			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
