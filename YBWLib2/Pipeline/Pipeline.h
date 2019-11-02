@@ -918,7 +918,7 @@ namespace YBWLib2 {
 		protected:
 			ReferenceCountedObjectHolder<Pipeline> pipeline;
 			PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg;
-			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) noexcept {
+			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
@@ -932,7 +932,7 @@ namespace YBWLib2 {
 				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
-			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) noexcept {
+			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
@@ -961,6 +961,7 @@ namespace YBWLib2 {
 					pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*x.pipeline);
 					unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 				}
+				static_cast<void>(already_exclusive_locked_pipeline);
 				this->pipelinefilter = x.pipelinefilter;
 				this->pipeline = x.pipeline;
 				this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = x.pipelineinvocationpacketdataentryholder_arr_ptr_arg;
@@ -979,6 +980,7 @@ namespace YBWLib2 {
 					pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*x.pipeline);
 					unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 				}
+				static_cast<void>(already_exclusive_locked_pipeline);
 				this->pipelinefilter = ::std::move(x.pipelinefilter);
 				this->pipeline = ::std::move(x.pipeline);
 				this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
@@ -1025,6 +1027,7 @@ namespace YBWLib2 {
 					pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*this->pipeline);
 					unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 				}
+				static_cast<void>(already_exclusive_locked_pipeline);
 				if (this->pipelinefiltercontext_next && this->pipelinefiltercontext_next != this) {
 					pipelinefiltercontext_t* pipelinefiltercontext_current = nullptr;
 					for (
@@ -1064,6 +1067,7 @@ namespace YBWLib2 {
 						pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*this->pipeline);
 						unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 					}
+					static_cast<void>(already_exclusive_locked_pipeline);
 					if (this->pipelinefiltercontext_next && this->pipelinefiltercontext_next != this) {
 						pipelinefiltercontext_t* pipelinefiltercontext_current = nullptr;
 						for (
@@ -1105,6 +1109,7 @@ namespace YBWLib2 {
 						pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*x.pipeline);
 						unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 					}
+					static_cast<void>(already_exclusive_locked_pipeline);
 					this->pipelinefilter = x.pipelinefilter;
 					this->pipeline = x.pipeline;
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = x.pipelineinvocationpacketdataentryholder_arr_ptr_arg;
@@ -1125,6 +1130,7 @@ namespace YBWLib2 {
 						pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*this->pipeline);
 						unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 					}
+					static_cast<void>(already_exclusive_locked_pipeline);
 					if (this->pipelinefiltercontext_next && this->pipelinefiltercontext_next != this) {
 						pipelinefiltercontext_t* pipelinefiltercontext_current = nullptr;
 						for (
@@ -1166,6 +1172,7 @@ namespace YBWLib2 {
 						pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*x.pipeline);
 						unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 					}
+					static_cast<void>(already_exclusive_locked_pipeline);
 					this->pipelinefilter = ::std::move(x.pipelinefilter);
 					this->pipeline = ::std::move(x.pipeline);
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
@@ -1217,7 +1224,7 @@ namespace YBWLib2 {
 			uintptr_t contextvalue2_delegate_invoke = 0;
 			DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
 			pipelinefiltercontext_t* pipelinefiltercontext_next = nullptr;
-			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) noexcept {
+			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
@@ -1231,7 +1238,7 @@ namespace YBWLib2 {
 				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
-			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) noexcept {
+			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
@@ -1477,7 +1484,7 @@ namespace YBWLib2 {
 			assert(pipelineinvocationpacket);
 			{
 				void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
-				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<void*>(::std::addressof(_args))), ...);
+				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<move_cv_t<void, _Args_Ty>*>(::std::addressof(_args))), ...);
 			}
 			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
@@ -1510,6 +1517,7 @@ namespace YBWLib2 {
 				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
 				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 			}
+			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
 			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
 			_pipelinefiltercontext.UpdateInvokeDelegate();
@@ -1535,6 +1543,7 @@ namespace YBWLib2 {
 				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
 				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 			}
+			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
 			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
 			PipelineFilter_SetRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter, ::std::move(_pipelinefiltercontext.PreparePipelineFilterRawInvokeDelegate(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>())));
@@ -1546,6 +1555,7 @@ namespace YBWLib2 {
 				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
 				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 			}
+			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
 			PipelineFilter_SetPipelineFilterPositionArray(*_pipelinefiltercontext.pipelinefilter, _arr_pipelinefilterposition, _size_pipelinefilterposition);
 		}
