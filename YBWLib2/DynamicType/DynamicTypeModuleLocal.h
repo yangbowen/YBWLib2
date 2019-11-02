@@ -38,7 +38,7 @@ namespace YBWLib2 {
 	}
 
 	uintptr_t DynamicTypeClassObj::CreateObject(const DynamicTypeClassObj* _dtclassobj_base, IndexedDataStore& _indexeddatastore_parameters) const noexcept {
-		if (!_dtclassobj_base || !this->fnptr_create_object) abort();
+		if (!_dtclassobj_base || !this->delegate_create_object) abort();
 		bool has_parameter_ptr_obj_from = false;
 		uintptr_t ptr_obj_from_base = 0;
 		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
@@ -58,7 +58,7 @@ namespace YBWLib2 {
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
 		}
-		uintptr_t ptr_obj_derived = (*this->fnptr_create_object)(this, &_indexeddatastore_parameters);
+		uintptr_t ptr_obj_derived = this->delegate_create_object(this, &_indexeddatastore_parameters);
 		uintptr_t ret = 0;
 		if (ptr_obj_derived) {
 			uintptr_t ptr_obj_base = this->DynamicUpcastTo(ptr_obj_derived, _dtclassobj_base);
@@ -75,7 +75,7 @@ namespace YBWLib2 {
 	}
 
 	uintptr_t DynamicTypeClassObj::PlacementCreateObject(const DynamicTypeClassObj* _dtclassobj_base, void* _ptr_placement, IndexedDataStore& _indexeddatastore_parameters) const noexcept {
-		if (!_dtclassobj_base || !this->fnptr_placement_create_object) abort();
+		if (!_dtclassobj_base || !this->delegate_placement_create_object) abort();
 		bool has_parameter_ptr_obj_from = false;
 		uintptr_t ptr_obj_from_base = 0;
 		if (_indexeddatastore_parameters.GetRawValueByEntryID(ObjectPointerFromParameterIndexedDataEntry::entryid)) {
@@ -95,7 +95,7 @@ namespace YBWLib2 {
 			if (!ptr_obj_from_derived) abort();
 			ObjectPointerFromParameterIndexedDataEntry::AddToStore(_indexeddatastore_parameters, ObjectPointerFromParameterIndexedDataEntry(ptr_obj_from_derived));
 		}
-		uintptr_t ptr_obj_derived = (*this->fnptr_placement_create_object)(this, _ptr_placement, &_indexeddatastore_parameters);
+		uintptr_t ptr_obj_derived = this->delegate_placement_create_object(this, _ptr_placement, &_indexeddatastore_parameters);
 		uintptr_t ret = 0;
 		if (ptr_obj_derived) {
 			uintptr_t ptr_obj_base = this->DynamicUpcastTo(ptr_obj_derived, _dtclassobj_base);
@@ -112,12 +112,12 @@ namespace YBWLib2 {
 	}
 
 	void DynamicTypeClassObj::DeleteObject(const DynamicTypeClassObj* _dtclassobj_base, uintptr_t _ptr_obj) const noexcept {
-		if (!_dtclassobj_base || !this->fnptr_delete_object) abort();
+		if (!_dtclassobj_base || !this->delegate_delete_object) abort();
 		IDynamicTypeObject* ptr_obj_iobject = reinterpret_cast<IDynamicTypeObject*>(_dtclassobj_base->DynamicUpcastTo(_ptr_obj, GetDynamicTypeClassObject<IDynamicTypeObject>()));
 		if (!ptr_obj_iobject) abort();
 		uintptr_t ptr_obj_derived = ptr_obj_iobject->DynamicTypeRawCastTo(this);
 		if (!ptr_obj_derived) abort();
-		(*this->fnptr_delete_object)(this, ptr_obj_derived);
+		this->delegate_delete_object(this, ptr_obj_derived);
 	}
 
 	void DynamicTypeClassObj::RegisterModuleLocal() {

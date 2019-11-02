@@ -19,6 +19,7 @@
 #include <memory>
 #include <initializer_list>
 #include <exception>
+#include <array>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -1133,50 +1134,94 @@ namespace YBWLib2 {
 	extern YBWLIB2_API ConstructorID ConstructorID_StringTemplateFromJSONSAXGenerator;
 
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create_Default_StringTemplate = {
-		{ PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			return new _Class_Ty(
-				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
-				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
-			);
-		} },
-		{ PersistentID_ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
-			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
-			return new _Class_Ty(*ptr_obj_from);
-		} },
-		{ PersistentID_ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
-			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
-			return new _Class_Ty(::std::move(*ptr_obj_from));
-		} }
-	};
+	::std::array<::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>, 0x3> GetStringTemplateDefaultClassSpecificCreateDelegateArray() {
+		::std::array<::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>, 0x3> arr_delegate_create;
+		size_t idx_delegate_create = 0;
+		arr_delegate_create[idx_delegate_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator,
+				DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						return new _Class_Ty(
+							RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
+							JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
+						);
+					}
+					)
+				);
+		arr_delegate_create[idx_delegate_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_Copy,
+				DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
+						if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
+						return new _Class_Ty(*ptr_obj_from);
+					}
+					)
+				);
+		arr_delegate_create[idx_delegate_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_Move,
+				DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
+						if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
+						return new _Class_Ty(::std::move(*ptr_obj_from));
+					}
+					)
+				);
+		assert(idx_delegate_create == arr_delegate_create.size());
+		return arr_delegate_create;
+	}
 
 	template<typename _Class_Ty>
-	const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create_Default_StringTemplate = {
-		{ PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			return new(_ptr_placement) _Class_Ty(
-				RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
-				JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
-			);
-		} },
-		{ PersistentID_ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
-			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
-			return new(_ptr_placement) _Class_Ty(*ptr_obj_from);
-		} },
-		{ PersistentID_ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
-			if (!_indexeddatastore_parameters) abort();
-			_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
-			if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
-			return new(_ptr_placement) _Class_Ty(::std::move(*ptr_obj_from));
-		} }
-	};
+	::std::array<::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>, 0x3> GetStringTemplateDefaultClassSpecificPlacementCreateDelegateArray() {
+		::std::array<::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>, 0x3> arr_delegate_placement_create;
+		size_t idx_delegate_placement_create = 0;
+		arr_delegate_placement_create[idx_delegate_placement_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_StringTemplateFromJSONSAXGenerator,
+				DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						return new(_ptr_placement) _Class_Ty(
+							RawAllocatorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).rawalloctor,
+							JSONSAXGeneratorParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).jsonsaxgenerator
+						);
+					}
+					)
+				);
+		arr_delegate_placement_create[idx_delegate_placement_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_Copy,
+				DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
+						if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
+						return new(_ptr_placement) _Class_Ty(*ptr_obj_from);
+					}
+					)
+				);
+		arr_delegate_placement_create[idx_delegate_placement_create++] =
+			::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>(
+				PersistentID_ConstructorID_Move,
+				DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>(
+					[](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+						if (!_indexeddatastore_parameters) abort();
+						_Class_Ty* ptr_obj_from = reinterpret_cast<_Class_Ty*>(ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).uintptr_ptr_obj);
+						if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
+						return new(_ptr_placement) _Class_Ty(::std::move(*ptr_obj_from));
+					}
+					)
+				);
+		assert(idx_delegate_placement_create == arr_delegate_placement_create.size());
+		return arr_delegate_placement_create;
+	}
 
 	/// <summary>A default implementation of a string template that generates a fixed string independent of the string template parameter(s).</summary>
 	class FixedStringTemplate : public virtual StringTemplate {

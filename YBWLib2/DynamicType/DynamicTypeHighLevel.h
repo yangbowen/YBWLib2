@@ -18,122 +18,170 @@
 #include <initializer_list>
 #include <unordered_map>
 #include "../YBWLib2Api.h"
+#include "../Common/CommonLowLevel.h"
 #include "DynamicType.h"
 #include "../Exception/Exception.h"
 
 namespace YBWLib2 {
-	/// <summary>Gets the dynamic object creation function pointer.</summary>
-	template<typename _Class_Ty, typename _Iterator_Fnptr_Create_Ty>
-	inline DynamicTypeClassObj::fnptr_create_object_t DynamicTypeGetCreateObjectFnptr(
-		_Iterator_Fnptr_Create_Ty _it_begin_fnptr_create,
-		_Iterator_Fnptr_Create_Ty _it_end_fnptr_create
+	template<typename _Class_Ty>
+	using DynamicTypeClassSpecificCreateObjectDelegate = Delegate<DelegateFlags_None, _Class_Ty*, IndexedDataStore*>;
+	template<typename _Class_Ty>
+	using DynamicTypeClassSpecificPlacementCreateObjectDelegate = Delegate<DelegateFlags_None, _Class_Ty*, void*, IndexedDataStore*>;
+
+	/// <summary>Gets the dynamic object creation delegate.</summary>
+	template<typename _Class_Ty, typename _Iterator_Delegate_Create_Ty>
+	inline DynamicTypeClassObj::delegate_create_object_t DynamicTypeGetCreateObjectDelegate(
+		_Iterator_Delegate_Create_Ty _it_begin_delegate_create,
+		_Iterator_Delegate_Create_Ty _it_end_delegate_create
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_fnptr_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash<ConstructorID>>;
-		static const map_fnptr_create_t map_fnptr_create(_it_begin_fnptr_create, _it_end_fnptr_create);
-		return [](const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
+		using map_delegate_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>, hash<ConstructorID>>;
+		DynamicTypeClassObj::delegate_create_object_t delegate_create_object;
+		delegate_create_object.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
+			map_delegate_create_t* map_delegate_create = reinterpret_cast<map_delegate_create_t*>(_contextvalue1);
+			static_cast<void>(_contextvalue2);
+			assert(map_delegate_create);
 			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
-			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_indexeddatastore_parameters, &ret]() noexcept(false)->void {
-				typename map_fnptr_create_t::const_iterator it_map_fnptr_create = map_fnptr_create.find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
-				if (it_map_fnptr_create == map_fnptr_create.cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
-				if (!it_map_fnptr_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-				ret = reinterpret_cast<uintptr_t>((*it_map_fnptr_create->second)(_indexeddatastore_parameters));
+			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_indexeddatastore_parameters, &map_delegate_create, &ret]() noexcept(false)->void {
+				typename map_delegate_create_t::const_iterator it_map_delegate_create = map_delegate_create->find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
+				if (it_map_delegate_create == map_delegate_create->cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+				if (!it_map_delegate_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				ret = reinterpret_cast<uintptr_t>(it_map_delegate_create->second(_indexeddatastore_parameters));
 				});
 			ExceptionReturnParameterIndexedDataEntry::AddToStore(*_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(::std::move(err)));
 			err = nullptr;
 			return ret;
 		};
+		{
+			void* buf_map_delegate_create = rawallocator_crt_YBWLib2->Allocate(sizeof(map_delegate_create_t), alignof(map_delegate_create_t));
+			assert(buf_map_delegate_create);
+			map_delegate_create_t* map_delegate_create = new(buf_map_delegate_create) map_delegate_create_t();
+			assert(map_delegate_create);
+			for (_Iterator_Delegate_Create_Ty it_delegate_create = _it_begin_delegate_create; it_delegate_create != _it_end_delegate_create; ++it_delegate_create) {
+				map_delegate_create->emplace(::std::move(*it_delegate_create));
+			}
+			delegate_create_object.contextvalue1 = reinterpret_cast<uintptr_t>(map_delegate_create);
+		}
+		delegate_create_object.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+			map_delegate_create_t* map_delegate_create = reinterpret_cast<map_delegate_create_t*>(_contextvalue1);
+			static_cast<void>(_contextvalue2);
+			assert(map_delegate_create);
+			map_delegate_create->~map_delegate_create_t();
+			rawallocator_crt_YBWLib2->Deallocate(map_delegate_create, sizeof(map_delegate_create_t));
+		};
+		return delegate_create_object;
 	}
 
-	/// <summary>Gets the default dynamic object creation function pointer.</summary>
+	/// <summary>Gets the default dynamic object creation delegate.</summary>
 	template<typename _Class_Ty>
-	inline DynamicTypeClassObj::fnptr_create_object_t DynamicTypeGetDefaultCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_create(
+	inline DynamicTypeClassObj::delegate_create_object_t DynamicTypeGetDefaultCreateObjectDelegate() noexcept {
+		static const ::std::initializer_list<::std::pair<PersistentID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>> il_delegate_create(
 			{
-				{ PersistentID_ConstructorID_Default, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Default, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);
 					return new _Class_Ty();
-				} },
-				{ PersistentID_ConstructorID_Copy, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				}) },
+				{ PersistentID_ConstructorID_Copy, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new _Class_Ty(*ptr_obj_from);
-				} },
-				{ PersistentID_ConstructorID_Move, [](IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				}) },
+				{ PersistentID_ConstructorID_Move, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new _Class_Ty(::std::move(*ptr_obj_from));
-				} }
+				}) }
 			}
 		);
-		return DynamicTypeGetCreateObjectFnptr<_Class_Ty>(il_fnptr_create.begin(), il_fnptr_create.end());
+		return DynamicTypeGetCreateObjectDelegate<_Class_Ty>(il_delegate_create.begin(), il_delegate_create.end());
 	}
 
-	/// <summary>Gets the dynamic object placement-creation function pointer.</summary>
-	template<typename _Class_Ty, typename _Iterator_Fnptr_Placement_Create_Ty>
-	inline DynamicTypeClassObj::fnptr_placement_create_object_t DynamicTypeGetPlacementCreateObjectFnptr(
-		_Iterator_Fnptr_Placement_Create_Ty _it_begin_fnptr_placement_create,
-		_Iterator_Fnptr_Placement_Create_Ty _it_end_fnptr_placement_create
+	/// <summary>Gets the dynamic object placement-creation delegate.</summary>
+	template<typename _Class_Ty, typename _Iterator_Delegate_Placement_Create_Ty>
+	inline DynamicTypeClassObj::delegate_placement_create_object_t DynamicTypeGetPlacementCreateObjectDelegate(
+		_Iterator_Delegate_Placement_Create_Ty _it_begin_delegate_placement_create,
+		_Iterator_Delegate_Placement_Create_Ty _it_end_delegate_placement_create
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_fnptr_placement_create_t = ::std::unordered_map<ConstructorID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false), hash<ConstructorID>>;
-		static const map_fnptr_placement_create_t map_fnptr_placement_create(_it_begin_fnptr_placement_create, _it_end_fnptr_placement_create);
-		return [](const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
+		using map_delegate_placement_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>, hash<ConstructorID>>;
+		DynamicTypeClassObj::delegate_placement_create_object_t delegate_placement_create_object;
+		delegate_placement_create_object.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
+			map_delegate_placement_create_t* map_delegate_placement_create = reinterpret_cast<map_delegate_placement_create_t*>(_contextvalue1);
+			static_cast<void>(_contextvalue2);
+			assert(map_delegate_placement_create);
 			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_ptr_placement || !_indexeddatastore_parameters) abort();
 			if (_indexeddatastore_parameters->GetRawValueByEntryID(ExceptionReturnParameterIndexedDataEntry::entryid)) abort();
 			uintptr_t ret = 0;
-			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_ptr_placement, &_indexeddatastore_parameters, &ret]() noexcept(false)->void {
-				typename map_fnptr_placement_create_t::const_iterator it_map_fnptr_placement_create = map_fnptr_placement_create.find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
-				if (it_map_fnptr_placement_create == map_fnptr_placement_create.cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
-				if (!it_map_fnptr_placement_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-				ret = reinterpret_cast<uintptr_t>((*it_map_fnptr_placement_create->second)(_ptr_placement, _indexeddatastore_parameters));
+			IException* err = WrapFunctionCatchExceptions([&_dtclassobj, &_ptr_placement, &_indexeddatastore_parameters, &map_delegate_placement_create, &ret]() noexcept(false)->void {
+				typename map_delegate_placement_create_t::const_iterator it_map_delegate_placement_create = map_delegate_placement_create->find(ConstructorIDParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters).ctorid);
+				if (it_map_delegate_placement_create == map_delegate_placement_create->cend()) throw(YBWLIB2_EXCEPTION_CREATE_KEY_NOT_EXIST_EXCEPTION());
+				if (!it_map_delegate_placement_create->second) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				ret = reinterpret_cast<uintptr_t>(it_map_delegate_placement_create->second(_ptr_placement, _indexeddatastore_parameters));
 				});
 			ExceptionReturnParameterIndexedDataEntry::AddToStore(*_indexeddatastore_parameters, ExceptionReturnParameterIndexedDataEntry(::std::move(err)));
 			err = nullptr;
 			return ret;
 		};
+		{
+			void* buf_map_delegate_placement_create = rawallocator_crt_YBWLib2->Allocate(sizeof(map_delegate_placement_create_t), alignof(map_delegate_placement_create_t));
+			assert(buf_map_delegate_placement_create);
+			map_delegate_placement_create_t* map_delegate_placement_create = new(buf_map_delegate_placement_create) map_delegate_placement_create_t();
+			assert(map_delegate_placement_create);
+			for (_Iterator_Delegate_Placement_Create_Ty it_delegate_placement_create = _it_begin_delegate_placement_create; it_delegate_placement_create != _it_end_delegate_placement_create; ++it_delegate_placement_create) {
+				map_delegate_placement_create->emplace(::std::move(*it_delegate_placement_create));
+			}
+			delegate_placement_create_object.contextvalue1 = reinterpret_cast<uintptr_t>(map_delegate_placement_create);
+		}
+		delegate_placement_create_object.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
+			map_delegate_placement_create_t* map_delegate_placement_create = reinterpret_cast<map_delegate_placement_create_t*>(_contextvalue1);
+			static_cast<void>(_contextvalue2);
+			assert(map_delegate_placement_create);
+			map_delegate_placement_create->~map_delegate_placement_create_t();
+			rawallocator_crt_YBWLib2->Deallocate(map_delegate_placement_create, sizeof(map_delegate_placement_create_t));
+		};
+		return delegate_placement_create_object;
 	}
 
-	/// <summary>Gets the default dynamic object placement-creation function pointer.</summary>
+	/// <summary>Gets the default dynamic object placement-creation delegate.</summary>
 	template<typename _Class_Ty>
-	inline DynamicTypeClassObj::fnptr_placement_create_object_t DynamicTypeGetDefaultPlacementCreateObjectFnptr() noexcept {
-		static const ::std::initializer_list<::std::pair<PersistentID, _Class_Ty*(YBWLIB2_CALLTYPE*)(void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)>> il_fnptr_placement_create(
+	inline DynamicTypeClassObj::delegate_placement_create_object_t DynamicTypeGetDefaultPlacementCreateObjectDelegate() noexcept {
+		static const ::std::initializer_list<::std::pair<PersistentID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>> il_delegate_placement_create(
 			{
-				{ PersistentID_ConstructorID_Default, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				{ PersistentID_ConstructorID_Default, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					static_cast<void>(_indexeddatastore_parameters);
 					return new(_ptr_placement) _Class_Ty();
-				} },
-				{ PersistentID_ConstructorID_Copy, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				}) },
+				{ PersistentID_ConstructorID_Copy, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new(_ptr_placement) _Class_Ty(*ptr_obj_from);
-				} },
-				{ PersistentID_ConstructorID_Move, [](void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
+				}) },
+				{ PersistentID_ConstructorID_Move, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>([](uintptr_t, uintptr_t, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept(false)->_Class_Ty* {
 					if (!_indexeddatastore_parameters) abort();
 					_Class_Ty* ptr_obj_from = ObjectPointerFromParameterIndexedDataEntry::CopyFromStore(*_indexeddatastore_parameters);
 					if (!ptr_obj_from) throw(new InvalidParameterException(nullptr, 0));
 					return new(_ptr_placement) _Class_Ty(::std::move(*ptr_obj_from));
-				} }
+				}) }
 			}
 		);
-		return DynamicTypeGetPlacementCreateObjectFnptr<_Class_Ty>(il_fnptr_placement_create.begin(), il_fnptr_placement_create.end());
+		return DynamicTypeGetPlacementCreateObjectDelegate<_Class_Ty>(il_delegate_placement_create.begin(), il_delegate_placement_create.end());
 	}
 
-	/// <summary>Gets the default dynamic object deletion function pointer.</summary>
+	/// <summary>Gets the default dynamic object deletion delegate.</summary>
 	template<typename _Class_Ty>
-	inline constexpr DynamicTypeClassObj::fnptr_delete_object_t DynamicTypeGetDefaultDeleteObjectFnptr() noexcept {
+	inline constexpr DynamicTypeClassObj::delegate_delete_object_t DynamicTypeGetDefaultDeleteObjectDelegate() noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		return [](const DynamicTypeClassObj* _dtclassobj, uintptr_t _ptr_obj) noexcept->void {
+		return DynamicTypeClassObj::delegate_delete_object_t([](uintptr_t, uintptr_t, const DynamicTypeClassObj* _dtclassobj, uintptr_t _ptr_obj) noexcept->void {
 			if (_dtclassobj != GetDynamicTypeClassObject<_Class_Ty>()) abort();
 			if (!_ptr_obj) abort();
 			try {
@@ -141,7 +189,7 @@ namespace YBWLib2 {
 			} catch (...) {
 				abort();
 			}
-		};
+		});
 	}
 }
 

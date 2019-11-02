@@ -232,11 +232,13 @@ namespace YBWLib2 {
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &value, &size_value, &err_inner]() noexcept(false)->void {
 					switch (this->state) {
-					case State_InElementArray: {
+					case State_InElementArray:
+					{
 						this->vec_element->emplace_back(this->rawallocator, value, size_value);
 						return;
 					}
-					case State_AwaitingParameterNameValueInSubstituteElementObject: {
+					case State_AwaitingParameterNameValueInSubstituteElementObject:
+					{
 						if (size_value && !value) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, String); return; }
 						this->size_name_parameter_value_temp_element_substitute = size_value;
 						this->name_parameter_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_name_parameter_value_temp_element_substitute * sizeof(char), alignof(char[])));
@@ -245,7 +247,8 @@ namespace YBWLib2 {
 						this->state = State_InSubstituteElementObject;
 						return;
 					}
-					case State_AwaitingOptionsValueInSubstituteElementObject: {
+					case State_AwaitingOptionsValueInSubstituteElementObject:
+					{
 						if (size_value && !value) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::SubstitutionStringTemplateConstructorJSONSAXHandler, String); return; }
 						this->size_str_options_value_temp_element_substitute = size_value;
 						this->str_options_value_temp_element_substitute = reinterpret_cast<char*>(this->rawallocator->Allocate(this->size_str_options_value_temp_element_substitute * sizeof(char), alignof(char[])));
@@ -564,22 +567,26 @@ namespace YBWLib2 {
 			IsDynamicTypeModuleLocalClass<StringTemplate>(),
 			{ DynamicTypeBaseClassDef<StringTemplate, IStringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(StringTemplate), alignof(StringTemplate));
+		auto arr_delegate_create_default_FixedStringTemplate = GetStringTemplateDefaultClassSpecificCreateDelegateArray<FixedStringTemplate>();
+		auto arr_delegate_placement_create_default_FixedStringTemplate = GetStringTemplateDefaultClassSpecificPlacementCreateDelegateArray<FixedStringTemplate>();
 		FixedStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeClassPersistentID<FixedStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<FixedStringTemplate>(),
 			{ DynamicTypeBaseClassDef<FixedStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(FixedStringTemplate), alignof(FixedStringTemplate),
-			DynamicTypeGetCreateObjectFnptr<FixedStringTemplate>(il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<FixedStringTemplate>.end()),
-			DynamicTypeGetPlacementCreateObjectFnptr<FixedStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<FixedStringTemplate>.end()),
-			DynamicTypeGetDefaultDeleteObjectFnptr<FixedStringTemplate>());
+			DynamicTypeGetCreateObjectDelegate<FixedStringTemplate>(arr_delegate_create_default_FixedStringTemplate.begin(), arr_delegate_create_default_FixedStringTemplate.end()),
+			DynamicTypeGetPlacementCreateObjectDelegate<FixedStringTemplate>(arr_delegate_placement_create_default_FixedStringTemplate.begin(), arr_delegate_placement_create_default_FixedStringTemplate.end()),
+			DynamicTypeGetDefaultDeleteObjectDelegate<FixedStringTemplate>());
+		auto arr_delegate_create_default_SubstitutionStringTemplate = GetStringTemplateDefaultClassSpecificCreateDelegateArray<SubstitutionStringTemplate>();
+		auto arr_delegate_placement_create_default_SubstitutionStringTemplate = GetStringTemplateDefaultClassSpecificPlacementCreateDelegateArray<SubstitutionStringTemplate>();
 		SubstitutionStringTemplate::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeClassPersistentID<SubstitutionStringTemplate>(),
 			IsDynamicTypeModuleLocalClass<SubstitutionStringTemplate>(),
 			{ DynamicTypeBaseClassDef<SubstitutionStringTemplate, StringTemplate, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(SubstitutionStringTemplate), alignof(SubstitutionStringTemplate),
-			DynamicTypeGetCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
-			DynamicTypeGetPlacementCreateObjectFnptr<SubstitutionStringTemplate>(il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.begin(), il_fnptr_placement_create_Default_StringTemplate<SubstitutionStringTemplate>.end()),
-			DynamicTypeGetDefaultDeleteObjectFnptr<SubstitutionStringTemplate>());
+			DynamicTypeGetCreateObjectDelegate<SubstitutionStringTemplate>(arr_delegate_create_default_SubstitutionStringTemplate.begin(), arr_delegate_create_default_SubstitutionStringTemplate.end()),
+			DynamicTypeGetPlacementCreateObjectDelegate<SubstitutionStringTemplate>(arr_delegate_placement_create_default_SubstitutionStringTemplate.begin(), arr_delegate_placement_create_default_SubstitutionStringTemplate.end()),
+			DynamicTypeGetDefaultDeleteObjectDelegate<SubstitutionStringTemplate>());
 		GetDynamicTypeClassObject<StringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringTemplateParameter)), module_info_current);
 		GetDynamicTypeClassObject<StringStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(StringStringTemplateParameter)), module_info_current);
 		GetDynamicTypeClassObject<AddressStringTemplateParameter>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(AddressStringTemplateParameter)), module_info_current);

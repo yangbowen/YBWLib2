@@ -148,38 +148,25 @@ namespace YBWLib2 {
 	class DynamicTypeClassObj final {
 		friend _impl_DynamicTypeClassObj;
 	public:
-		/// <summary>Function pointer type for dynamically creating object.</summary>
-		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
-		/// <param name="_indexeddatastore_parameters">
-		/// A pointer to an indexed data store that contains creation parameters.
-		/// Dynamic type classes may define parameters to be used.
-		/// </param>
-		/// <returns>
-		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
-		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
-		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
-		/// </returns>
-		typedef uintptr_t(YBWLIB2_CALLTYPE* fnptr_create_object_t)(const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept;
-		/// <summary>Function pointer type for dynamically placement-creating object.</summary>
-		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
-		/// <param name="_ptr_placement">A pointer to the memory position at which the object is requested to be placement-created.</param>
-		/// <param name="_indexeddatastore_parameters">
-		/// A pointer to an indexed data store that contains creation parameters.
-		/// Dynamic type classes may define parameters to be used.
-		/// </param>
-		/// <returns>
-		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
-		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
-		/// If the object creation has failed, <c>0</c> is returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
-		/// </returns>
-		typedef uintptr_t(YBWLIB2_CALLTYPE* fnptr_placement_create_object_t)(const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept;
-		/// <summary>Function pointer type for dynamically deleting object.</summary>
-		/// <param name="_dtclassobj">A pointer to the <c>DynamicTypeClassObj</c> object that represents the class of the object to be created.</param>
-		/// <param name="_ptr_obj">
-		/// A pointer to the object that is requested to be deleted, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>.
-		/// The type of the pointer is a pointer to the class represented by <paramref name="_dtclassobj" />.
-		/// </param>
-		typedef void(YBWLIB2_CALLTYPE* fnptr_delete_object_t)(const DynamicTypeClassObj* _dtclassobj, uintptr_t _ptr_obj) noexcept;
+		/// <summary>
+		/// Delegate type for dynamically creating object.
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>, should be returned.
+		/// The type of the pointer is a pointer to the class represented by the dynamic type class object pointed to by the <c>const DynamicTypeClassObj*</c> parameter.
+		/// If the object creation has failed, <c>0</c> should be returned, and the delegate may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </summary>
+		using delegate_create_object_t = Delegate<DelegateFlag_Noexcept, uintptr_t, const DynamicTypeClassObj*, IndexedDataStore*>;
+		/// <summary>Delegate type for dynamically placement-creating object.
+		/// A pointer to the created object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>, should be returned.
+		/// The type of the pointer is a pointer to the class represented by the dynamic type class object pointed to by the <c>const DynamicTypeClassObj*</c> parameter.
+		/// If the object creation has failed, <c>0</c> should be returned, and the function may pass additional error information in <c>_indexeddatastore_parameters</c>.
+		/// </summary>
+		using delegate_placement_create_object_t = Delegate<DelegateFlag_Noexcept, uintptr_t, const DynamicTypeClassObj*, void*, IndexedDataStore*>;
+		/// <summary>
+		/// Delegate type for dynamically deleting object.
+		/// A pointer to object, <c>reinterpret_cast</c>ed to <c>uintptr_t</c>, is passed.
+		/// The type of the pointer is a pointer to the class represented by the dynamic type class object pointed to by the <c>const DynamicTypeClassObj*</c> parameter.
+		/// </summary>
+		using delegate_delete_object_t = Delegate<DelegateFlag_Noexcept, void, const DynamicTypeClassObj*, uintptr_t>;
 		/// <summary>Finds a registered non-module-local dynamic type class object with the specified <c>DynamicTypeClassID</c> identifier.</summary>
 		/// <returns>
 		/// This function returns a pointer to the found dynamic type class object if successful.
@@ -205,18 +192,18 @@ namespace YBWLib2 {
 			size_t _extent_before,
 			size_t _extent_after,
 			size_t _alignment,
-			fnptr_create_object_t _fnptr_create_object = nullptr,
-			fnptr_placement_create_object_t _fnptr_placement_create_object = nullptr,
-			fnptr_delete_object_t _fnptr_delete_object = nullptr
+			delegate_create_object_t&& _delegate_create_object = delegate_create_object_t(),
+			delegate_placement_create_object_t&& _delegate_placement_create_object = delegate_placement_create_object_t(),
+			delegate_delete_object_t&& _delegate_delete_object = delegate_delete_object_t()
 		)
 			: dtclassid(_persistentid_dtclassid),
 			is_module_local(_is_module_local),
 			extent_before(_extent_before),
 			extent_after(_extent_after),
 			alignment(_alignment),
-			fnptr_create_object(_fnptr_create_object),
-			fnptr_placement_create_object(_fnptr_placement_create_object),
-			fnptr_delete_object(_fnptr_delete_object) {
+			delegate_create_object(::std::move(_delegate_create_object)),
+			delegate_placement_create_object(::std::move(_delegate_placement_create_object)),
+			delegate_delete_object(::std::move(_delegate_delete_object)) {
 			this->CreateImplObject(_dtbaseclassdef.begin(), _dtbaseclassdef.end());
 			if (this->dtclassid) this->Register();
 		}
@@ -335,9 +322,9 @@ namespace YBWLib2 {
 		/// If <c>ptr</c> points to the object, the object occupies [ <c>ptr - this->extent_before</c>, <c>ptr + this->extent_after</c> ).
 		/// </summary>
 		size_t extent_after;
-		fnptr_create_object_t fnptr_create_object = nullptr;
-		fnptr_placement_create_object_t fnptr_placement_create_object = nullptr;
-		fnptr_delete_object_t fnptr_delete_object = nullptr;
+		delegate_create_object_t delegate_create_object;
+		delegate_placement_create_object_t delegate_placement_create_object;
+		delegate_delete_object_t delegate_delete_object;
 	private:
 		YBWLIB2_API void YBWLIB2_CALLTYPE CreateImplObject(const DynamicTypeBaseClassDefObj* _begin_dtbaseclassdef, const DynamicTypeBaseClassDefObj* _end_dtbaseclassdef);
 		YBWLIB2_API void YBWLIB2_CALLTYPE DestroyImplObject();
