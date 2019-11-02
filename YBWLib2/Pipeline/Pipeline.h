@@ -1675,8 +1675,8 @@ namespace YBWLib2 {
 			typename _Callable_PreInvoke_Ty,
 			typename _Callable_PostInvoke_Ty,
 			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
-			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline_t<_Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, const pipelinecontext_t&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline_t<const pipelinecontext_t&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
 		>
 			void operator()(
 				_Callable_PreInvoke_Ty&& _callable_preinvoke,
