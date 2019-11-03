@@ -898,12 +898,12 @@ namespace YBWLib2 {
 			constexpr pipelinecontext_t() noexcept = default;
 			explicit pipelinecontext_t(ReferenceCountedObjectHolder<Pipeline>&& _pipeline) noexcept
 				: pipeline(::std::move(_pipeline)) {
-				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
+				uintptr_t data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
 				this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = PipelineInvocationPacketDataEntryHolder(
 					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 					this->pipeline,
-					count_arg * sizeof(void*),
-					reinterpret_cast<const void*>(data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
+					count_arg * sizeof(uintptr_t),
+					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
 					PipelineInvocationPacketDataEntryInitializeDelegate(),
 					PipelineInvocationPacketDataEntryCleanupDelegate()
 				);
@@ -918,32 +918,32 @@ namespace YBWLib2 {
 		protected:
 			ReferenceCountedObjectHolder<Pipeline> pipeline;
 			PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg;
-			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+			const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
 				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
 				assert(
 					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(void*)
+					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
 					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
 				);
-				void* const* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<void* const*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
+				const uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<const uintptr_t*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
+				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
-			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+			uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
 				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
 				assert(
 					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(void*)
+					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
 					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
 				);
-				void** ptr_pipelineinvocationpacketdataentry = reinterpret_cast<void**>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
+				uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
+				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
 		};
@@ -1224,32 +1224,32 @@ namespace YBWLib2 {
 			uintptr_t contextvalue2_delegate_invoke = 0;
 			DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
 			pipelinefiltercontext_t* pipelinefiltercontext_next = nullptr;
-			void* const* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+			const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
 				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
 				assert(
 					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(void*)
+					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
 					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
 				);
-				void* const* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<void* const*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
+				const uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<const uintptr_t*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
+				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
-			void** GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+			uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 				void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 				assert(ptr_invocationpacketdata);
 				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
 				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
 				assert(
 					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(void*)
+					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
 					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
 				);
-				void** ptr_pipelineinvocationpacketdataentry = reinterpret_cast<void**>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(void*)));
+				uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
+				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
 				return ptr_pipelineinvocationpacketdataentry;
 			}
 			void UpdateInvokeDelegate() noexcept {
@@ -1327,7 +1327,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					assert(pipelinefiltercontext->pipeline);
-					void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
+					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
 						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
@@ -1359,7 +1359,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					assert(pipelinefiltercontext->pipeline);
-					void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
+					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
 						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
@@ -1391,7 +1391,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					assert(pipelinefiltercontext->pipeline);
-					void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
+					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
 						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
@@ -1423,7 +1423,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					assert(pipelinefiltercontext->pipeline);
-					void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
+					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
 						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
@@ -1483,8 +1483,8 @@ namespace YBWLib2 {
 			Pipeline_InitializeInvocationPacket(pipeline, pipelineinvocationpacket, buf_invocationdata, size_invocationdata, already_shared_locked_pipeline);
 			assert(pipelineinvocationpacket);
 			{
-				void** ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
-				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<move_cv_t<void, ::std::remove_reference_t<_Args_Ty>>*>(::std::addressof(_args))), ...);
+				uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
+				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<uintptr_t>(::std::addressof(_args))), ...);
 			}
 			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
@@ -1571,8 +1571,8 @@ namespace YBWLib2 {
 				_pipelinefiltercontext.pipelineinvocationpacketdataentryholder_arr_ptr_arg = PipelineInvocationPacketDataEntryHolder(
 					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 					_pipelinefiltercontext.pipeline,
-					count_arg * sizeof(void*),
-					reinterpret_cast<const void*>(data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
+					count_arg * sizeof(uintptr_t),
+					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
 					PipelineInvocationPacketDataEntryInitializeDelegate(),
 					PipelineInvocationPacketDataEntryCleanupDelegate(),
 					_already_exclusive_locked_pipeline
