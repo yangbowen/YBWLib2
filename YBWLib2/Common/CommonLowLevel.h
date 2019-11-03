@@ -1283,6 +1283,7 @@ namespace YBWLib2 {
 		struct invoke_construct_callable_t {};
 		struct address_insensitive_callable_t {};
 		struct invoke_member_function_t {};
+		struct use_argument_tuple_t {};
 		static constexpr invoke_constexpr_callable_t invoke_constexpr_callable {};
 		static constexpr invoke_function_t invoke_function {};
 		static constexpr invoke_observe_callable_t invoke_observe_callable {};
@@ -1290,6 +1291,7 @@ namespace YBWLib2 {
 		static constexpr invoke_construct_callable_t invoke_construct_callable {};
 		static constexpr address_insensitive_callable_t address_insensitive_callable {};
 		static constexpr invoke_member_function_t invoke_member_function {};
+		static constexpr use_argument_tuple_t use_argument_tuple {};
 		using fnptr_invoke_t =
 			::std::conditional_t<
 			is_noexcept,
@@ -1491,8 +1493,8 @@ namespace YBWLib2 {
 			assert(this && this->fnptr_invoke);
 			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<_Args_Ty>(args)...);
 		}
-		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args) noexcept(is_noexcept) {
-			return (*this)(::std::move(_tuple_args), ::std::make_index_sequence<::std::tuple_size_v<argument_tuple_type>>());
+		return_type YBWLIB2_CALLTYPE operator()(use_argument_tuple_t, argument_tuple_type&& _tuple_args) noexcept(is_noexcept) {
+			return (*this)(use_argument_tuple, ::std::move(_tuple_args), ::std::make_index_sequence<::std::tuple_size_v<argument_tuple_type>>());
 		}
 	private:
 		template<
@@ -1505,7 +1507,7 @@ namespace YBWLib2 {
 			return new (_ptr) _Ty(::std::get<_index_tuple_args_ctor>(::std::forward<_Tuple_Args_Ctor_Ty>(_tuple_args_ctor))...);
 		};
 		template<size_t... _index_tuple_args>
-		return_type YBWLIB2_CALLTYPE operator()(argument_tuple_type&& _tuple_args, ::std::index_sequence<_index_tuple_args...>)
+		return_type YBWLIB2_CALLTYPE operator()(use_argument_tuple_t, argument_tuple_type&& _tuple_args, ::std::index_sequence<_index_tuple_args...>)
 			noexcept(noexcept((*this)(::std::get<_index_tuple_args>(::std::move(_tuple_args))...))) {
 			return (*this)(::std::get<_index_tuple_args>(::std::move(_tuple_args))...);
 		}
