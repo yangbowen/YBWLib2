@@ -1018,7 +1018,7 @@ namespace YBWLib2 {
 				x.fnptr_cleanup_delegate_invoke = nullptr;
 				x.contextvalue2_delegate_invoke = 0;
 				x.contextvalue1_delegate_invoke = 0;
-				x.fnptr_invoke_delegate_invoke = nullptr;
+				x.fnptr_invoke_delegate_invoke = 0;
 			}
 			~pipelinefiltercontext_t() {
 				PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
@@ -1057,7 +1057,7 @@ namespace YBWLib2 {
 				this->fnptr_cleanup_delegate_invoke = nullptr;
 				this->contextvalue2_delegate_invoke = 0;
 				this->contextvalue1_delegate_invoke = 0;
-				this->fnptr_invoke_delegate_invoke = nullptr;
+				this->fnptr_invoke_delegate_invoke = 0;
 			}
 			pipelinefiltercontext_t& operator=(pipelinefiltercontext_t& x) noexcept {
 				{
@@ -1097,7 +1097,7 @@ namespace YBWLib2 {
 					this->fnptr_cleanup_delegate_invoke = nullptr;
 					this->contextvalue2_delegate_invoke = 0;
 					this->contextvalue1_delegate_invoke = 0;
-					this->fnptr_invoke_delegate_invoke = nullptr;
+					this->fnptr_invoke_delegate_invoke = 0;
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
 					this->pipeline.reset();
 					this->pipelinefilter.reset();
@@ -1160,7 +1160,7 @@ namespace YBWLib2 {
 					this->fnptr_cleanup_delegate_invoke = nullptr;
 					this->contextvalue2_delegate_invoke = 0;
 					this->contextvalue1_delegate_invoke = 0;
-					this->fnptr_invoke_delegate_invoke = nullptr;
+					this->fnptr_invoke_delegate_invoke = 0;
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
 					this->pipeline.reset();
 					this->pipelinefilter.reset();
@@ -1210,7 +1210,7 @@ namespace YBWLib2 {
 					x.fnptr_cleanup_delegate_invoke = nullptr;
 					x.contextvalue2_delegate_invoke = 0;
 					x.contextvalue1_delegate_invoke = 0;
-					x.fnptr_invoke_delegate_invoke = nullptr;
+					x.fnptr_invoke_delegate_invoke = 0;
 				}
 			}
 			const ReferenceCountedObjectHolder<PipelineFilter>& GetPipelineFilterReferenceCountedObjectHolder() const noexcept { return this->pipelinefilter; }
@@ -1219,7 +1219,7 @@ namespace YBWLib2 {
 			ReferenceCountedObjectHolder<PipelineFilter> pipelinefilter;
 			ReferenceCountedObjectHolder<Pipeline> pipeline;
 			PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg;
-			const void* fnptr_invoke_delegate_invoke = nullptr;
+			uintptr_t fnptr_invoke_delegate_invoke = 0;
 			uintptr_t contextvalue1_delegate_invoke = 0;
 			uintptr_t contextvalue2_delegate_invoke = 0;
 			DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
@@ -1259,7 +1259,7 @@ namespace YBWLib2 {
 				this->fnptr_cleanup_delegate_invoke = nullptr;
 				this->contextvalue2_delegate_invoke = 0;
 				this->contextvalue1_delegate_invoke = 0;
-				this->fnptr_invoke_delegate_invoke = nullptr;
+				this->fnptr_invoke_delegate_invoke = 0;
 				if (this->pipelinefiltercontext_next && this->pipelinefiltercontext_next != this) {
 					pipelinefiltercontext_t* pipelinefiltercontext_current = nullptr;
 					for (
@@ -1284,7 +1284,7 @@ namespace YBWLib2 {
 				if (this->fnptr_cleanup_delegate_invoke) {
 					(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
 				}
-				this->fnptr_invoke_delegate_invoke = _delegate_invoke.fnptr_invoke;
+				this->fnptr_invoke_delegate_invoke = reinterpret_cast<uintptr_t>(_delegate_invoke.fnptr_invoke);
 				this->contextvalue1_delegate_invoke = _delegate_invoke.contextvalue1;
 				this->contextvalue2_delegate_invoke = _delegate_invoke.contextvalue2;
 				this->fnptr_cleanup_delegate_invoke = _delegate_invoke.fnptr_cleanup;
@@ -1329,7 +1329,7 @@ namespace YBWLib2 {
 					assert(pipelinefiltercontext->pipeline);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(pipelinefiltercontext->fnptr_invoke_delegate_invoke),
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
 						pipelinefiltercontext->contextvalue2_delegate_invoke,
 						nullptr
@@ -1361,7 +1361,7 @@ namespace YBWLib2 {
 					assert(pipelinefiltercontext->pipeline);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(pipelinefiltercontext->fnptr_invoke_delegate_invoke),
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
 						pipelinefiltercontext->contextvalue2_delegate_invoke,
 						nullptr
@@ -1393,7 +1393,7 @@ namespace YBWLib2 {
 					assert(pipelinefiltercontext->pipeline);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(pipelinefiltercontext->fnptr_invoke_delegate_invoke),
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
 						pipelinefiltercontext->contextvalue2_delegate_invoke,
 						nullptr
@@ -1425,7 +1425,7 @@ namespace YBWLib2 {
 					assert(pipelinefiltercontext->pipeline);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = pipelinefiltercontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
 					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						pipelinefiltercontext->fnptr_invoke_delegate_invoke,
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(pipelinefiltercontext->fnptr_invoke_delegate_invoke),
 						pipelinefiltercontext->contextvalue1_delegate_invoke,
 						pipelinefiltercontext->contextvalue2_delegate_invoke,
 						nullptr
