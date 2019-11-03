@@ -31,7 +31,7 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept;
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitDLL() noexcept;
 
-	static SharedResourceInitializer sharedresourceinitializer_YBWLib2_DLL(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
+	static SharedResourceInitializer_StaticInit sharedresourceinitializer_YBWLib2_DLL(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept {
 		try {

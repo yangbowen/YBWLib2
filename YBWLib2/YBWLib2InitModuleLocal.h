@@ -33,7 +33,7 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept;
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept;
 
-	static SharedResourceInitializer sharedresourceinitializer_YBWLib2_ModuleLocal(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
+	static SharedResourceInitializer_StaticInit sharedresourceinitializer_YBWLib2_ModuleLocal(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept {
 		try {

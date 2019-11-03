@@ -2,6 +2,7 @@
 #define _INCLUDE_GUARD_0B4C1AD9_92C9_43D0_9FFA_2A865B921EC6
 
 #include "YBWLib2Api.h"
+#include <new>
 #include <atomic>
 #include <mutex>
 
@@ -56,6 +57,44 @@ namespace YBWLib2 {
 	private:
 		::std::atomic<uintptr_t> usecount;
 		::std::mutex mtx;
+		fnptr_RealInitialize_t fnptr_RealInitialize = nullptr;
+		fnptr_RealUnInitialize_t fnptr_RealUnInitialize = nullptr;
+	};
+
+	class SharedResourceInitializer_StaticInit final {
+	public:
+		using fnptr_RealInitialize_t = void (YBWLIB2_CALLTYPE*)() noexcept;
+		using fnptr_RealUnInitialize_t = void (YBWLIB2_CALLTYPE*)() noexcept;
+		constexpr SharedResourceInitializer_StaticInit(fnptr_RealInitialize_t _fnptr_RealInitialize, fnptr_RealUnInitialize_t _fnptr_RealUnInitialize) noexcept
+			: fnptr_RealInitialize(_fnptr_RealInitialize), fnptr_RealUnInitialize(_fnptr_RealUnInitialize) {}
+		SharedResourceInitializer_StaticInit(const SharedResourceInitializer_StaticInit&) = delete;
+		SharedResourceInitializer_StaticInit(SharedResourceInitializer_StaticInit&&) = delete;
+		~SharedResourceInitializer_StaticInit() = default;
+		SharedResourceInitializer_StaticInit& operator=(const SharedResourceInitializer_StaticInit&) = delete;
+		SharedResourceInitializer_StaticInit& operator=(SharedResourceInitializer_StaticInit&&) = delete;
+		void YBWLIB2_CALLTYPE Initialize() noexcept {
+			::std::call_once(
+				this->onceflag_sharedresourceinitializer,
+				[this]() noexcept->void {
+					new(&this->buf_sharedresourceinitializer) SharedResourceInitializer(this->fnptr_RealInitialize, this->fnptr_RealUnInitialize);
+				}
+			);
+			SharedResourceInitializer* sharedresourceinitializer = ::std::launder(reinterpret_cast<SharedResourceInitializer*>(&this->buf_sharedresourceinitializer));
+			sharedresourceinitializer->Initialize();
+		}
+		void YBWLIB2_CALLTYPE UnInitialize() noexcept {
+			::std::call_once(
+				this->onceflag_sharedresourceinitializer,
+				[this]() noexcept->void {
+					new(&this->buf_sharedresourceinitializer) SharedResourceInitializer(this->fnptr_RealInitialize, this->fnptr_RealUnInitialize);
+				}
+			);
+			SharedResourceInitializer* sharedresourceinitializer = ::std::launder(reinterpret_cast<SharedResourceInitializer*>(&this->buf_sharedresourceinitializer));
+			sharedresourceinitializer->UnInitialize();
+		}
+	private:
+		::std::once_flag onceflag_sharedresourceinitializer;
+		alignas(alignof(SharedResourceInitializer)) unsigned char buf_sharedresourceinitializer[sizeof(SharedResourceInitializer)] = {};
 		fnptr_RealInitialize_t fnptr_RealInitialize = nullptr;
 		fnptr_RealUnInitialize_t fnptr_RealUnInitialize = nullptr;
 	};
