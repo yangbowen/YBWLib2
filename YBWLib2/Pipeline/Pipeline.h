@@ -683,6 +683,7 @@ namespace YBWLib2 {
 					assert(_offset_pipelineinvocationpacketdataentry == this->offset_pipelineinvocationpacketdataentry);
 				}
 			}
+			return *this;
 		}
 		PipelineInvocationPacketDataEntryHolder& operator=(PipelineInvocationPacketDataEntryHolder&& x) noexcept {
 			if (this->objholder_pipeline) {
@@ -706,6 +707,7 @@ namespace YBWLib2 {
 			x.size_pipelineinvocationpacketdataentry = 0;
 			this->offset_pipelineinvocationpacketdataentry = ::std::move(x.offset_pipelineinvocationpacketdataentry);
 			x.offset_pipelineinvocationpacketdataentry = SIZE_MAX;
+			return *this;
 		}
 		const PipelineInvocationPacketDataEntryID& GetPipelineInvocationPacketDataEntryID() const noexcept { return this->pipelineinvocationpacketdataentryid; }
 		const ReferenceCountedObjectHolder<Pipeline>& GetPipeline() const noexcept { return this->objholder_pipeline; }
@@ -1121,6 +1123,7 @@ namespace YBWLib2 {
 					this->pipelinefiltercontext_next = x.pipelinefiltercontext_next;
 					x.pipelinefiltercontext_next = this;
 				}
+				return *this;
 			}
 			pipelinefiltercontext_t& operator=(pipelinefiltercontext_t&& x) noexcept {
 				{
@@ -1212,6 +1215,7 @@ namespace YBWLib2 {
 					x.contextvalue1_delegate_invoke = 0;
 					x.fnptr_invoke_delegate_invoke = 0;
 				}
+				return *this;
 			}
 			const ReferenceCountedObjectHolder<PipelineFilter>& GetPipelineFilterReferenceCountedObjectHolder() const noexcept { return this->pipelinefilter; }
 			ReferenceCountedObjectHolder<PipelineFilter>& GetPipelineFilterReferenceCountedObjectHolder() noexcept { return this->pipelinefilter; }
@@ -1342,6 +1346,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					delete pipelinefiltercontext; pipelinefiltercontext = nullptr;
 				};
+				return delegate_rawinvoke;
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1374,6 +1379,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					delete pipelinefiltercontext; pipelinefiltercontext = nullptr;
 				};
+				return delegate_rawinvoke;
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1406,6 +1412,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					delete pipelinefiltercontext; pipelinefiltercontext = nullptr;
 				};
+				return delegate_rawinvoke;
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1438,6 +1445,7 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					delete pipelinefiltercontext; pipelinefiltercontext = nullptr;
 				};
+				return delegate_rawinvoke;
 			}
 		};
 	public:
