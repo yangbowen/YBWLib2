@@ -429,10 +429,10 @@ namespace YBWLib2 {
 		return *delegate_rawinvoke;
 	}
 
-	inline PipelineFilterRawInvokeDelegate&& PipelineFilter_ReleaseRawInvokeDelegate(PipelineFilter& _pipelinefilter) noexcept {
+	inline PipelineFilterRawInvokeDelegate PipelineFilter_ReleaseRawInvokeDelegate(PipelineFilter& _pipelinefilter) noexcept {
 		PipelineFilterRawInvokeDelegate delegate_rawinvoke;
 		Internal::PipelineFilter_ReleaseRawInvokeDelegate(&_pipelinefilter, &delegate_rawinvoke);
-		return PipelineFilterRawInvokeDelegate(::std::move(delegate_rawinvoke));
+		return delegate_rawinvoke;
 	}
 
 	inline void PipelineFilter_SetRawInvokeDelegate(PipelineFilter& _pipelinefilter, PipelineFilterRawInvokeDelegate&& _delegate_rawinvoke) noexcept {
