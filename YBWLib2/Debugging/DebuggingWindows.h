@@ -1541,7 +1541,7 @@ namespace YBWLib2 {
 		/// <summary>Gets a pointer to an <c>Win32HandleHolder</c> object that holds the Win32 handle to the process.</summary>
 		/// <returns>Pointer to the <c>Win32HandleHolder</c> object.</returns>
 		[[nodiscard]] inline const Win32HandleHolder* GetProcessWin32HandleHolder() const noexcept(false) {
-			const Win32HandleHolder* win32handleholder = false;
+			const Win32HandleHolder* win32handleholder = nullptr;
 			IException* err = this->GetProcessWin32HandleHolder(&win32handleholder);
 			if (err) throw(err);
 			return win32handleholder;
