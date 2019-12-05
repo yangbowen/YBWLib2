@@ -5,14 +5,17 @@
 #include "Pipeline.h"
 
 namespace YBWLib2 {
-	ReferenceCountedObjectHolder<PipelineStore> pipelinestore_modulelocal;
+	namespace Internal {
+		ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_modulelocal = nullptr;
+	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealInitModuleLocal() noexcept {
-		pipelinestore_modulelocal = CreatePipelineStore();
+		Internal::pipelinestore_modulelocal = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealUnInitModuleLocal() noexcept {
-		pipelinestore_modulelocal.reset();
+		delete Internal::pipelinestore_modulelocal;
+		Internal::pipelinestore_modulelocal = nullptr;
 	}
 }
 

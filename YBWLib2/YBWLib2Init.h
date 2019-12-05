@@ -61,41 +61,6 @@ namespace YBWLib2 {
 		fnptr_RealUnInitialize_t fnptr_RealUnInitialize = nullptr;
 	};
 
-	class SharedResourceInitializer_StaticInit final {
-	public:
-		using fnptr_RealInitialize_t = void (YBWLIB2_CALLTYPE*)() noexcept;
-		using fnptr_RealUnInitialize_t = void (YBWLIB2_CALLTYPE*)() noexcept;
-		constexpr SharedResourceInitializer_StaticInit() noexcept = default;
-		SharedResourceInitializer_StaticInit(const SharedResourceInitializer_StaticInit&) = delete;
-		SharedResourceInitializer_StaticInit(SharedResourceInitializer_StaticInit&&) = delete;
-		~SharedResourceInitializer_StaticInit() = default;
-		SharedResourceInitializer_StaticInit& operator=(const SharedResourceInitializer_StaticInit&) = delete;
-		SharedResourceInitializer_StaticInit& operator=(SharedResourceInitializer_StaticInit&&) = delete;
-		void YBWLIB2_CALLTYPE Initialize(fnptr_RealInitialize_t _fnptr_RealInitialize, fnptr_RealUnInitialize_t _fnptr_RealUnInitialize) noexcept {
-			::std::call_once(
-				this->onceflag_sharedresourceinitializer,
-				[this, _fnptr_RealInitialize, _fnptr_RealUnInitialize]() noexcept->void {
-					new(&this->buf_sharedresourceinitializer) SharedResourceInitializer(_fnptr_RealInitialize, _fnptr_RealUnInitialize);
-				}
-			);
-			SharedResourceInitializer* sharedresourceinitializer = ::std::launder(reinterpret_cast<SharedResourceInitializer*>(&this->buf_sharedresourceinitializer));
-			sharedresourceinitializer->Initialize();
-		}
-		void YBWLIB2_CALLTYPE UnInitialize(fnptr_RealInitialize_t _fnptr_RealInitialize, fnptr_RealUnInitialize_t _fnptr_RealUnInitialize) noexcept {
-			::std::call_once(
-				this->onceflag_sharedresourceinitializer,
-				[this, _fnptr_RealInitialize, _fnptr_RealUnInitialize]() noexcept->void {
-					new(&this->buf_sharedresourceinitializer) SharedResourceInitializer(_fnptr_RealInitialize, _fnptr_RealUnInitialize);
-				}
-			);
-			SharedResourceInitializer* sharedresourceinitializer = ::std::launder(reinterpret_cast<SharedResourceInitializer*>(&this->buf_sharedresourceinitializer));
-			sharedresourceinitializer->UnInitialize();
-		}
-	private:
-		::std::once_flag onceflag_sharedresourceinitializer;
-		alignas(alignof(SharedResourceInitializer)) unsigned char buf_sharedresourceinitializer[sizeof(SharedResourceInitializer)] = {};
-	};
-
 	/// <summary>
 	/// The base address of the memory that contains the executable module that contains this reference to this variable.
 	/// Although declared here, YBWLib2 doesn't contain a definition for this variable for executable modules other than YBWLib2 itself.

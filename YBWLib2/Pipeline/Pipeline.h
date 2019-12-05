@@ -872,22 +872,21 @@ namespace YBWLib2 {
 		PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder;
 	};
 
-	extern YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore> pipelinestore_global;
-	extern ReferenceCountedObjectHolder<PipelineStore> pipelinestore_modulelocal;
-
-	inline PipelineStore& GetGlobalPipelineStore() noexcept {
-		assert(pipelinestore_global);
-		return *pipelinestore_global;
-	}
-
-	inline PipelineStore& GetModuleLocalPipelineStore() noexcept {
-		assert(pipelinestore_modulelocal);
-		return *pipelinestore_modulelocal;
-	}
-
 	namespace Internal {
 		static constexpr PersistentID persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg(UUIDFromUUIDString_CompileTime("1163516a-3daa-4f60-a2de-2024054eae72"));
 		extern YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
+		extern YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global;
+		extern ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_modulelocal;
+	}
+
+	inline PipelineStore& GetGlobalPipelineStore() noexcept {
+		assert(Internal::pipelinestore_global && *Internal::pipelinestore_global);
+		return **Internal::pipelinestore_global;
+	}
+
+	inline PipelineStore& GetModuleLocalPipelineStore() noexcept {
+		assert(Internal::pipelinestore_modulelocal && *Internal::pipelinestore_modulelocal);
+		return **Internal::pipelinestore_modulelocal;
 	}
 
 	template<typename... _Args_Ty>

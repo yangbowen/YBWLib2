@@ -31,7 +31,10 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept;
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitDLL() noexcept;
 
-	static SharedResourceInitializer_StaticInit sharedresourceinitializer_YBWLib2_DLL;
+	static SharedResourceInitializer& GetSharedResourceInitializer_YBWLib2_DLL() noexcept {
+		static SharedResourceInitializer sharedresourceinitializer(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
+		return sharedresourceinitializer;
+	}
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitDLL() noexcept {
 		try {
@@ -144,10 +147,10 @@ namespace YBWLib2 {
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE YBWLib2_InitDLL() noexcept {
-		sharedresourceinitializer_YBWLib2_DLL.Initialize(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
+		GetSharedResourceInitializer_YBWLib2_DLL().Initialize();
 	}
 
 	YBWLIB2_API void YBWLIB2_CALLTYPE YBWLib2_UnInitDLL() noexcept {
-		sharedresourceinitializer_YBWLib2_DLL.UnInitialize(&YBWLib2_RealInitDLL, &YBWLib2_RealUnInitDLL);
+		GetSharedResourceInitializer_YBWLib2_DLL().UnInitialize();
 	}
 }

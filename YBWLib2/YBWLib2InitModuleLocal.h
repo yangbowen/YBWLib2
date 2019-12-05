@@ -33,7 +33,10 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept;
 	static void YBWLIB2_CALLTYPE YBWLib2_RealUnInitModuleLocal() noexcept;
 
-	static SharedResourceInitializer_StaticInit sharedresourceinitializer_YBWLib2_ModuleLocal;
+	static SharedResourceInitializer& GetSharedResourceInitializer_YBWLib2_ModuleLocal() noexcept {
+		static SharedResourceInitializer sharedresourceinitializer(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
+		return sharedresourceinitializer;
+	}
 
 	static void YBWLIB2_CALLTYPE YBWLib2_RealInitModuleLocal() noexcept {
 		try {
@@ -100,11 +103,11 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE YBWLib2_InitModuleLocal() noexcept {
-		sharedresourceinitializer_YBWLib2_ModuleLocal.Initialize(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
+		GetSharedResourceInitializer_YBWLib2_ModuleLocal().Initialize();
 	}
 
 	void YBWLIB2_CALLTYPE YBWLib2_UnInitModuleLocal() noexcept {
-		sharedresourceinitializer_YBWLib2_ModuleLocal.UnInitialize(&YBWLib2_RealInitModuleLocal, &YBWLib2_RealUnInitModuleLocal);
+		GetSharedResourceInitializer_YBWLib2_ModuleLocal().UnInitialize();
 	}
 }
 

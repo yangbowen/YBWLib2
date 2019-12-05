@@ -319,10 +319,9 @@ namespace YBWLib2 {
 
 	static constexpr size_t size_PipelineInvocationPacket_padded = ((sizeof(PipelineInvocationPacket) - 1) / Pipeline::align_slot_invocationpacketdata + 1) * Pipeline::align_slot_invocationpacketdata;
 
-	YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore> pipelinestore_global;
-
 	namespace Internal {
 		YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
+		YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global = nullptr;
 	}
 
 	thread_local objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>> Pipeline::objholder_map_lockcount_recursive;
@@ -1699,13 +1698,14 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept {
-		pipelinestore_global = CreatePipelineStore();
+		Internal::pipelinestore_global = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID(Internal::persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg);
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
-		pipelinestore_global.reset();
+		delete Internal::pipelinestore_global;
+		Internal::pipelinestore_global = nullptr;
 	}
 
 	void YBWLIB2_CALLTYPE PipelineUserInterface_RealInitGlobal() noexcept {}
