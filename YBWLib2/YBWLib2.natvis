@@ -2,13 +2,22 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Intrinsic
     Name="UUIDToString"
+    ReturnType="const char[]"
+    Category="Data"
     ModuleName="YBWLib2.VisualStudioDebuggingVisualizer"
     SourceId="6c68a5db-930f-4863-bb05-cc73583209a7"
-    Category="Data"
+    LanguageId="00000000-0000-0000-0000-000000000000"
+    Id="0"
     >
-    <!--<Parameter Name="uuid" Type="UUID"/>-->
+    <Parameter Type="YBWLib2::UUID"/>
   </Intrinsic>
+  <Type Name="YBWLib2::UUID">
+    <DisplayString>{UUIDToString(*this)}</DisplayString>
+  </Type>
   <Type Name="YBWLib2::PersistentID">
-    <DisplayString>{{}}</DisplayString>
+    <DisplayString>{{uuid={uuid}}}</DisplayString>
+  </Type>
+  <Type Name="YBWLib2::VolatileID">
+    <DisplayString Condition="ptr_volatileidanchor" Optional="true">{{uuid={ptr_volatileidanchor->persistentid.uuid}}}</DisplayString>
   </Type>
 </AutoVisualizer>
