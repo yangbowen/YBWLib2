@@ -20,40 +20,40 @@
     <DisplayString Condition="data == 0xF">F</DisplayString>
   </Type>
   <Type Name="YBWLib2::NatvisInternal::hex_uint8">
-    <DisplayString>{*reinterpret_cast&lt;::YBWLib2::NatvisInternal::hexdigit_high*&gt;(this)}{*reinterpret_cast&lt;::YBWLib2::NatvisInternal::hexdigit_low*&gt;(this)}</DisplayString>
+    <DisplayString>{*reinterpret_cast&lt;::YBWLib2_NatvisInternal::hexdigit_high*&gt;(this)}{*reinterpret_cast&lt;::YBWLib2_NatvisInternal::hexdigit_low*&gt;(this)}</DisplayString>
   </Type>
   <Type Name="YBWLib2::NatvisInternal::hex_uint16">
-    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0]}</DisplayString>
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0]}</DisplayString>
   </Type>
   <Type Name="YBWLib2::NatvisInternal::hex_uint32">
-    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint16*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint16*&gt;(this)[0]}</DisplayString>
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint16*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint16*&gt;(this)[0]}</DisplayString>
   </Type>
   <Type Name="YBWLib2::NatvisInternal::hex_uint64">
-    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint32*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint32*&gt;(this)[0]}</DisplayString>
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint32*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint32*&gt;(this)[0]}</DisplayString>
   </Type>
   <Type Name="YBWLib2::UUID">
     <DisplayString>
       {{
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x0]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x1]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x2]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x3]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x0]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x1]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x2]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x3]}
       -
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x4]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x5]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x4]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x5]}
       -
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x6]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x7]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x6]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x7]}
       -
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x8]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x9]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x8]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0x9]}
       -
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xA]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xB]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xC]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xD]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xE]}
-      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xF]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xA]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xB]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xC]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xD]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xE]}
+      {reinterpret_cast&lt;::YBWLib2_NatvisInternal::hex_uint8*&gt;(this)[0xF]}
       }}
     </DisplayString>
   </Type>
