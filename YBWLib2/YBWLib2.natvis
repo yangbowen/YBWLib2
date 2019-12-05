@@ -1,3 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Intrinsic
+    Name="UUIDToString"
+    ModuleName="YBWLib2.VisualStudioDebuggingVisualizer"
+    SourceId="6c68a5db-930f-4863-bb05-cc73583209a7"
+    Category="Data"
+    >
+    <!--<Parameter Name="uuid" Type="UUID"/>-->
+  </Intrinsic>
+  <Type Name="YBWLib2::PersistentID">
+    <DisplayString>{{}}</DisplayString>
+  </Type>
 </AutoVisualizer>
