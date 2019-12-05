@@ -26,12 +26,16 @@ namespace YBWLib2 {
 		Pipeline(const Pipeline&) = delete;
 		Pipeline(Pipeline&&) = delete;
 		virtual ~Pipeline() {
+			already_exclusive_locked_this_t already_exclusive_locked_this;
+			::std::vector<ReferenceCountedObjectHolder<PipelineFilter>> vec_pipelinefilter_pending_detach;
 			for (const ::std::pair<const PipelineFilterID, PipelineFilterAttachment>& val_map_pipelinefilterattachment : this->map_pipelinefilterattachment) {
 				if (!val_map_pipelinefilterattachment.second.IsZombie()) {
 					assert(val_map_pipelinefilterattachment.second.pipelinefilter);
-					this->DetachPipelineFilter(val_map_pipelinefilterattachment.second.pipelinefilter.get(), false, already_exclusive_locked_this_t());
+					vec_pipelinefilter_pending_detach.push_back(val_map_pipelinefilterattachment.second.pipelinefilter);
 				}
 			}
+			for (const ReferenceCountedObjectHolder<PipelineFilter>& pipelinefilter_pending_detach : vec_pipelinefilter_pending_detach)
+				this->DetachPipelineFilter(pipelinefilter_pending_detach.get(), false, already_exclusive_locked_this);
 		}
 		Pipeline& operator=(const Pipeline&) = delete;
 		Pipeline& operator=(Pipeline&&) = delete;
@@ -612,7 +616,7 @@ namespace YBWLib2 {
 						Checkpoint_Initial = 0,
 						Checkpoint_AfterRecurse
 					} checkpoint = Checkpoint::Checkpoint_Initial;
-					const PipelineFilterID& pipelinefilterid;
+					const PipelineFilterID pipelinefilterid;
 					PipelineFilterAttachment& pipelinefilterattachment;
 					::std::pair<
 						map_ptr_pipelinefilterattachment_dependency_t::iterator,
@@ -740,7 +744,7 @@ namespace YBWLib2 {
 					Checkpoint_Loop,
 					Checkpoint_AfterResolveDepended
 				} checkpoint = Checkpoint::Checkpoint_Initial;
-				const PipelineFilterID& pipelinefilterid;
+				const PipelineFilterID pipelinefilterid;
 				PipelineFilterAttachment* pipelinefilterattachment = nullptr;
 				map_ptr_pipelinefilterattachment_t::iterator it_map_pipelinefilterattachment_pending_update;
 				size_t idx_pipelinefilterposition_resolving = SIZE_MAX;
