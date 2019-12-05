@@ -1,14 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-  <Intrinsic
-    Name="UUIDToString"
-    Category="Data"
-    Expression="{'0' + uuid->data[0], '0' + uuid->data[1], 0}"
-    >
-    <Parameter Type="const volatile YBWLib2::UUID*" Name="uuid"/>
-  </Intrinsic>
+  <Type Name="YBWLib2::NatvisInternal::hexdigit_low">
+    <AlternativeType Name="YBWLib2::NatvisInternal::hexdigit_high"/>
+    <DisplayString Condition="data == 0x0">0</DisplayString>
+    <DisplayString Condition="data == 0x1">1</DisplayString>
+    <DisplayString Condition="data == 0x2">2</DisplayString>
+    <DisplayString Condition="data == 0x3">3</DisplayString>
+    <DisplayString Condition="data == 0x4">4</DisplayString>
+    <DisplayString Condition="data == 0x5">5</DisplayString>
+    <DisplayString Condition="data == 0x6">6</DisplayString>
+    <DisplayString Condition="data == 0x7">7</DisplayString>
+    <DisplayString Condition="data == 0x8">8</DisplayString>
+    <DisplayString Condition="data == 0x9">9</DisplayString>
+    <DisplayString Condition="data == 0xA">A</DisplayString>
+    <DisplayString Condition="data == 0xB">B</DisplayString>
+    <DisplayString Condition="data == 0xC">C</DisplayString>
+    <DisplayString Condition="data == 0xD">D</DisplayString>
+    <DisplayString Condition="data == 0xE">E</DisplayString>
+    <DisplayString Condition="data == 0xF">F</DisplayString>
+  </Type>
+  <Type Name="YBWLib2::NatvisInternal::hex_uint8">
+    <DisplayString>{*reinterpret_cast&lt;::YBWLib2::NatvisInternal::hexdigit_high*&gt;(this)}{*reinterpret_cast&lt;::YBWLib2::NatvisInternal::hexdigit_low*&gt;(this)}</DisplayString>
+  </Type>
+  <Type Name="YBWLib2::NatvisInternal::hex_uint16">
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0]}</DisplayString>
+  </Type>
+  <Type Name="YBWLib2::NatvisInternal::hex_uint32">
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint16*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint16*&gt;(this)[0]}</DisplayString>
+  </Type>
+  <Type Name="YBWLib2::NatvisInternal::hex_uint64">
+    <DisplayString>{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint32*&gt;(this)[1]}{reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint32*&gt;(this)[0]}</DisplayString>
+  </Type>
   <Type Name="YBWLib2::UUID">
-    <DisplayString>{UUIDToString(*this),s8b}</DisplayString>
+    <DisplayString>
+      {{
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x0]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x1]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x2]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x3]}
+      -
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x4]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x5]}
+      -
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x6]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x7]}
+      -
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x8]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0x9]}
+      -
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xA]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xB]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xC]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xD]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xE]}
+      {reinterpret_cast&lt;::YBWLib2::NatvisInternal::hex_uint8*&gt;(this)[0xF]}
+      }}
+    </DisplayString>
   </Type>
   <Type Name="YBWLib2::PersistentID">
     <DisplayString>{{uuid={uuid}}}</DisplayString>

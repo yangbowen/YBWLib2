@@ -558,6 +558,31 @@ namespace YBWLib2 {
 	template<typename _Ty>
 	struct inttype_traits_t {};
 
+	namespace NatvisInternal {
+#pragma pack(push, 1)
+		struct hexdigit_low final {
+			uint8_t data : 0x4;
+			uint8_t padding : 0x4;
+		};
+		struct hexdigit_high final {
+			uint8_t padding : 0x4;
+			uint8_t data : 0x4;
+		};
+		struct hex_uint8 final {
+			uint8_t data;
+		};
+		struct hex_uint16 final {
+			uint16_t data;
+		};
+		struct hex_uint32 final {
+			uint32_t data;
+		};
+		struct hex_uint64 final {
+			uint64_t data;
+		};
+#pragma pack(pop)
+	}
+
 #define _DECLARE_8F6D94DA_B6C1_4743_9EB6_134A3348BDC9(type, prefix_fmtspec)\
 	template<>\
 	struct inttype_traits_t<unsigned type> {\
