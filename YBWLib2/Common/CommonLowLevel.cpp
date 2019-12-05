@@ -3,6 +3,15 @@
 #include "CommonLowLevel.h"
 
 namespace YBWLib2 {
+	namespace NatvisInternal {
+		YBWLIB2_API hexdigit_low _dummy_hexdigit_low;
+		YBWLIB2_API hexdigit_high _dummy_hexdigit_high;
+		YBWLIB2_API hex_uint8 _dummy_hex_uint8;
+		YBWLIB2_API hex_uint16 _dummy_hex_uint16;
+		YBWLIB2_API hex_uint32 _dummy_hex_uint32;
+		YBWLIB2_API hex_uint64 _dummy_hex_uint64;
+	}
+
 	YBWLIB2_API byte_order_t<unsigned char>* byte_order_unsigned_char = nullptr;
 	YBWLIB2_API byte_order_t<unsigned short>* byte_order_unsigned_short = nullptr;
 	YBWLIB2_API byte_order_t<unsigned int>* byte_order_unsigned_int = nullptr;
