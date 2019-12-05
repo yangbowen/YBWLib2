@@ -1507,7 +1507,6 @@ namespace YBWLib2 {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			Pipeline_Resolve(pipeline, _already_exclusive_locked_pipeline);
-			return *this;
 		}
 		static void ResolvePipeline(pipelinecontext_type& _pipelinecontext) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
@@ -1515,7 +1514,6 @@ namespace YBWLib2 {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
-			return *this;
 		}
 		static void ClearPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
