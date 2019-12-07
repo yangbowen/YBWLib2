@@ -19,10 +19,10 @@ namespace YBWLib2 {
 		const PipelineID pipelineid;
 		explicit Pipeline(
 			const PipelineID& _pipelineid
-		) noexcept : pipelineid(_pipelineid) {}
+		) noexcept : pipelineid(_pipelineid), indexeddatastore_userdata(rawallocator_crt_YBWLib2) {}
 		explicit Pipeline(
 			const PersistentID& _persistentid_pipelineid
-		) noexcept : pipelineid(_persistentid_pipelineid) {}
+		) noexcept : pipelineid(_persistentid_pipelineid), indexeddatastore_userdata(rawallocator_crt_YBWLib2) {}
 		Pipeline(const Pipeline&) = delete;
 		Pipeline(Pipeline&&) = delete;
 		virtual ~Pipeline() {
@@ -118,6 +118,12 @@ namespace YBWLib2 {
 				this->mtx_this.unlock_shared();
 			}
 		}
+		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+			return this->indexeddatastore_userdata;
+		}
+		const IndexedDataStore& GetUserDataIndexedDataStore() const noexcept {
+			return this->indexeddatastore_userdata;
+		}
 		size_t GetInvocationDataSize(already_shared_locked_this_t) const noexcept;
 		void InitializeInvocationPacket(PipelineInvocationPacket*& _pipelineinvocationpacket_ret, void* _buf_invocationdata, size_t _size_buf_invocationdata, already_shared_locked_this_t) const noexcept;
 		void CleanupInvocationPacket(PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t) const noexcept;
@@ -142,6 +148,18 @@ namespace YBWLib2 {
 			already_exclusive_locked_this_t
 		) noexcept;
 		void UnregisterInvocationPacketDataEntry(const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid, already_exclusive_locked_this_t) noexcept;
+		void AddRefInvocationPacketDataEntry(
+			const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t
+		) const noexcept;
+		void DecRefInvocationPacketDataEntry(
+			const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t
+		) const noexcept;
 		void AttachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t) noexcept;
 		void DetachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, already_exclusive_locked_this_t) noexcept;
 		void Resolve(already_exclusive_locked_this_t) noexcept;
@@ -149,10 +167,44 @@ namespace YBWLib2 {
 		struct PipelineInvocationPacketDataEntry final {
 			size_t idx_slot = SIZE_MAX;
 			size_t count_slot = 0;
-			uintptr_t refcount = 0;
+			mutable ::std::atomic<uintptr_t> refcount = 0;
 			::std::unique_ptr<unsigned char[]> data_initial_invocationpacketdataentry;
 			PipelineInvocationPacketDataEntryInitializeDelegate delegate_initialize;
 			PipelineInvocationPacketDataEntryCleanupDelegate delegate_cleanup;
+			PipelineInvocationPacketDataEntry() noexcept = default;
+			PipelineInvocationPacketDataEntry(const PipelineInvocationPacketDataEntry&) = delete;
+			PipelineInvocationPacketDataEntry(PipelineInvocationPacketDataEntry&& x) noexcept {
+				this->idx_slot = ::std::move(x.idx_slot);
+				x.idx_slot = SIZE_MAX;
+				this->count_slot = ::std::move(x.count_slot);
+				x.count_slot = 0;
+				this->refcount.store(x.refcount.load(::std::memory_order_relaxed), ::std::memory_order_relaxed);
+				x.refcount.store(0, ::std::memory_order_relaxed);
+				this->data_initial_invocationpacketdataentry = ::std::move(x.data_initial_invocationpacketdataentry);
+				x.data_initial_invocationpacketdataentry.reset();
+				this->delegate_initialize = ::std::move(x.delegate_initialize);
+				this->delegate_cleanup = ::std::move(x.delegate_cleanup);
+			}
+			~PipelineInvocationPacketDataEntry() = default;
+			PipelineInvocationPacketDataEntry& operator=(const PipelineInvocationPacketDataEntry&) = delete;
+			PipelineInvocationPacketDataEntry& operator=(PipelineInvocationPacketDataEntry&& x) noexcept {
+				this->delegate_cleanup = PipelineInvocationPacketDataEntryCleanupDelegate();
+				this->delegate_initialize = PipelineInvocationPacketDataEntryInitializeDelegate();
+				this->data_initial_invocationpacketdataentry.reset();
+				this->refcount.store(0, ::std::memory_order_relaxed);
+				this->count_slot = 0;
+				this->idx_slot = SIZE_MAX;
+				this->idx_slot = ::std::move(x.idx_slot);
+				x.idx_slot = SIZE_MAX;
+				this->count_slot = ::std::move(x.count_slot);
+				x.count_slot = 0;
+				this->refcount.store(x.refcount.load(::std::memory_order_relaxed), ::std::memory_order_relaxed);
+				x.refcount.store(0, ::std::memory_order_relaxed);
+				this->data_initial_invocationpacketdataentry = ::std::move(x.data_initial_invocationpacketdataentry);
+				x.data_initial_invocationpacketdataentry.reset();
+				this->delegate_initialize = ::std::move(x.delegate_initialize);
+				this->delegate_cleanup = ::std::move(x.delegate_cleanup);
+			}
 		};
 		struct PipelineFilterAttachment final {
 			PipelineFilterID pipelinefilterid;
@@ -187,6 +239,8 @@ namespace YBWLib2 {
 		/// <c>LockShared</c> and <c>TryLockShared</c> acquires shared ownership of this mutex before locking <c>mtx_this</c> and releases this mutex after locking (NOT unlocking) <c>mtx_this</c>.
 		/// </summary>
 		mutable ::std::shared_mutex mtx_this_prelock;
+		IndexedDataStore indexeddatastore_userdata;
+		mutable ::std::atomic<bool> should_scan_map_invocationpacketdataentry = false;
 		size_t count_slot_invocationpacketdata = 0;
 		map_invocationpacketdataentry_t map_invocationpacketdataentry;
 		map_slot_invocationpacketdata_rangeboundary_t map_slot_invocationpacketdata_rangeboundary_free;
@@ -240,16 +294,22 @@ namespace YBWLib2 {
 		const PipelineFilterID pipelinefilterid;
 		explicit PipelineFilter(
 			const PipelineFilterID& _pipelinefilterid
-		) noexcept : pipelinefilterid(_pipelinefilterid) {}
+		) noexcept : pipelinefilterid(_pipelinefilterid), indexeddatastore_userdata(rawallocator_crt_YBWLib2) {}
 		explicit PipelineFilter(
 			const PersistentID& _persistentid_pipelinefilterid
-		) noexcept : pipelinefilterid(_persistentid_pipelinefilterid) {}
+		) noexcept : pipelinefilterid(_persistentid_pipelinefilterid), indexeddatastore_userdata(rawallocator_crt_YBWLib2) {}
 		PipelineFilter(const PipelineFilter&) = delete;
 		PipelineFilter(PipelineFilter&&) = delete;
 		virtual ~PipelineFilter() {}
 		PipelineFilter& operator=(const PipelineFilter&) = delete;
 		PipelineFilter& operator=(PipelineFilter&&) = delete;
 		PipelineFilterID GetPipelineFilterID() const noexcept { return this->pipelinefilterid; }
+		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+			return this->indexeddatastore_userdata;
+		}
+		const IndexedDataStore& GetUserDataIndexedDataStore() const noexcept {
+			return this->indexeddatastore_userdata;
+		}
 		void GetRawInvokeDelegate(const delegate_rawinvoke_type** _delegate_rawinvoke_ret) const noexcept {
 			assert(_delegate_rawinvoke_ret);
 			*_delegate_rawinvoke_ret = &this->delegate_rawinvoke;
@@ -275,6 +335,7 @@ namespace YBWLib2 {
 			this->vec_pipelinefilterposition.assign(_arr_pipelinefilterposition, _arr_pipelinefilterposition + _size_pipelinefilterposition);
 		}
 	protected:
+		IndexedDataStore indexeddatastore_userdata;
 		delegate_rawinvoke_type delegate_rawinvoke;
 		::std::vector<PipelineFilterPosition> vec_pipelinefilterposition;
 		Pipeline* pipeline = nullptr;
@@ -325,6 +386,7 @@ namespace YBWLib2 {
 
 	namespace Internal {
 		YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
+		YBWLIB2_API IndexedDataEntryID indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg;
 		YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global = nullptr;
 	}
 
@@ -425,7 +487,7 @@ namespace YBWLib2 {
 			PipelineInvocationPacketDataEntry pipelineinvocationpacketdataentry;
 			pipelineinvocationpacketdataentry.idx_slot = idx_slot_invocationpacketdataentry;
 			pipelineinvocationpacketdataentry.count_slot = count_slot_invocationpacketdataentry;
-			pipelineinvocationpacketdataentry.refcount = 1;
+			pipelineinvocationpacketdataentry.refcount.fetch_add(1, ::std::memory_order_relaxed);
 			if (_data_initial_invocationpacketdataentry) {
 				pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.reset(new unsigned char[count_slot_invocationpacketdataentry * size_slot_invocationpacketdata]());
 				memcpy(pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.get(), _data_initial_invocationpacketdataentry, _size_invocationpacketdataentry);
@@ -435,14 +497,14 @@ namespace YBWLib2 {
 			pipelineinvocationpacketdataentry.delegate_cleanup = ::std::move(_delegate_cleanup_invocationpacketdataentry);
 			{
 				bool is_successful_emplace = false;
-				::std::tie(it_map_invocationpacketdataentry, is_successful_emplace) = this->map_invocationpacketdataentry.emplace(_pipelineinvocationpacketdataentryid, ::std::move(pipelineinvocationpacketdataentry));
+				::std::tie(it_map_invocationpacketdataentry, is_successful_emplace) = this->map_invocationpacketdataentry.emplace(PipelineInvocationPacketDataEntryID(_pipelineinvocationpacketdataentryid), ::std::move(pipelineinvocationpacketdataentry));
 				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 			}
 		} else {
 			PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
 			idx_slot_invocationpacketdataentry = pipelineinvocationpacketdataentry.idx_slot;
 			assert(pipelineinvocationpacketdataentry.count_slot == count_slot_invocationpacketdataentry);
-			++pipelineinvocationpacketdataentry.refcount;
+			pipelineinvocationpacketdataentry.refcount.fetch_add(1, ::std::memory_order_relaxed);
 			if (!pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry && _data_initial_invocationpacketdataentry) {
 				pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.reset(new unsigned char[count_slot_invocationpacketdataentry * size_slot_invocationpacketdata]());
 				memcpy(pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.get(), _data_initial_invocationpacketdataentry, _size_invocationpacketdataentry);
@@ -465,6 +527,24 @@ namespace YBWLib2 {
 	) noexcept {
 		assert(_pipelineinvocationpacketdataentryid);
 		assert(_size_invocationpacketdataentry);
+		if (this->should_scan_map_invocationpacketdataentry.load(::std::memory_order_relaxed)) {
+			::std::vector<map_invocationpacketdataentry_t::iterator> vec_it_map_invocationpacketdataentry_should_erase;
+			for (
+				map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.begin(), it_map_invocationpacketdataentry_end = this->map_invocationpacketdataentry.end();
+				it_map_invocationpacketdataentry != it_map_invocationpacketdataentry_end;
+				++it_map_invocationpacketdataentry
+				) {
+				if (!it_map_invocationpacketdataentry->second.refcount.load(::std::memory_order_relaxed)) {
+					this->DeallocateInvocationPacketData(it_map_invocationpacketdataentry->second.idx_slot, it_map_invocationpacketdataentry->second.count_slot, _already_exclusive_locked_this);
+					vec_it_map_invocationpacketdataentry_should_erase.push_back(it_map_invocationpacketdataentry);
+				}
+			}
+			while (!vec_it_map_invocationpacketdataentry_should_erase.empty()) {
+				this->map_invocationpacketdataentry.erase(vec_it_map_invocationpacketdataentry_should_erase.back());
+				vec_it_map_invocationpacketdataentry_should_erase.pop_back();
+			}
+			this->should_scan_map_invocationpacketdataentry.store(false, ::std::memory_order_relaxed);
+		}
 		size_t count_slot_invocationpacketdataentry = ((_size_invocationpacketdataentry - 1) / size_slot_invocationpacketdata + 1);
 		size_t idx_slot_invocationpacketdataentry = SIZE_MAX;
 		map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
@@ -473,7 +553,7 @@ namespace YBWLib2 {
 			PipelineInvocationPacketDataEntry pipelineinvocationpacketdataentry;
 			pipelineinvocationpacketdataentry.idx_slot = idx_slot_invocationpacketdataentry;
 			pipelineinvocationpacketdataentry.count_slot = count_slot_invocationpacketdataentry;
-			pipelineinvocationpacketdataentry.refcount = 1;
+			pipelineinvocationpacketdataentry.refcount.fetch_add(1, ::std::memory_order_relaxed);
 			if (_data_initial_invocationpacketdataentry) {
 				pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.reset(new unsigned char[count_slot_invocationpacketdataentry * size_slot_invocationpacketdata]());
 				memcpy(pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.get(), _data_initial_invocationpacketdataentry, _size_invocationpacketdataentry);
@@ -490,7 +570,7 @@ namespace YBWLib2 {
 			PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
 			idx_slot_invocationpacketdataentry = pipelineinvocationpacketdataentry.idx_slot;
 			assert(pipelineinvocationpacketdataentry.count_slot == count_slot_invocationpacketdataentry);
-			++pipelineinvocationpacketdataentry.refcount;
+			pipelineinvocationpacketdataentry.refcount.fetch_add(1, ::std::memory_order_relaxed);
 			if (_data_initial_invocationpacketdataentry) {
 				pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.reset(new unsigned char[count_slot_invocationpacketdataentry * size_slot_invocationpacketdata]());
 				memcpy(pipelineinvocationpacketdataentry.data_initial_invocationpacketdataentry.get(), _data_initial_invocationpacketdataentry, _size_invocationpacketdataentry);
@@ -506,18 +586,73 @@ namespace YBWLib2 {
 
 	void Pipeline::UnregisterInvocationPacketDataEntry(const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 		assert(_pipelineinvocationpacketdataentryid);
+		if (this->should_scan_map_invocationpacketdataentry.load(::std::memory_order_relaxed)) {
+			::std::vector<map_invocationpacketdataentry_t::iterator> vec_it_map_invocationpacketdataentry_should_erase;
+			for (
+				map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.begin(), it_map_invocationpacketdataentry_end = this->map_invocationpacketdataentry.end();
+				it_map_invocationpacketdataentry != it_map_invocationpacketdataentry_end;
+				++it_map_invocationpacketdataentry
+				) {
+				if (!it_map_invocationpacketdataentry->second.refcount.load(::std::memory_order_relaxed)) {
+					this->DeallocateInvocationPacketData(it_map_invocationpacketdataentry->second.idx_slot, it_map_invocationpacketdataentry->second.count_slot, _already_exclusive_locked_this);
+					vec_it_map_invocationpacketdataentry_should_erase.push_back(it_map_invocationpacketdataentry);
+				}
+			}
+			while (!vec_it_map_invocationpacketdataentry_should_erase.empty()) {
+				this->map_invocationpacketdataentry.erase(vec_it_map_invocationpacketdataentry_should_erase.back());
+				vec_it_map_invocationpacketdataentry_should_erase.pop_back();
+			}
+			this->should_scan_map_invocationpacketdataentry.store(false, ::std::memory_order_relaxed);
+		}
 		map_invocationpacketdataentry_t::iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
 		assert(it_map_invocationpacketdataentry != this->map_invocationpacketdataentry.end());
 		bool should_erase = false;
 		{
 			PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
-			assert(pipelineinvocationpacketdataentry.refcount);
-			if (!--pipelineinvocationpacketdataentry.refcount) {
+			uintptr_t refcount_before = pipelineinvocationpacketdataentry.refcount.fetch_sub(1, ::std::memory_order_relaxed);
+			assert(refcount_before);
+			if (refcount_before == 1) {
 				this->DeallocateInvocationPacketData(pipelineinvocationpacketdataentry.idx_slot, pipelineinvocationpacketdataentry.count_slot, _already_exclusive_locked_this);
 				should_erase = true;
 			}
 		}
 		if (should_erase) this->map_invocationpacketdataentry.erase(it_map_invocationpacketdataentry);
+	}
+
+	void Pipeline::AddRefInvocationPacketDataEntry(
+		const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+		size_t _size_invocationpacketdataentry,
+		size_t _offset_invocationpacketdataentry,
+		already_shared_locked_this_t
+	) const noexcept {
+		assert(_pipelineinvocationpacketdataentryid);
+		map_invocationpacketdataentry_t::const_iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
+		assert(it_map_invocationpacketdataentry != this->map_invocationpacketdataentry.end());
+		{
+			const PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
+			assert(_size_invocationpacketdataentry <= pipelineinvocationpacketdataentry.count_slot * size_slot_invocationpacketdata); static_cast<void>(_size_invocationpacketdataentry);
+			assert(_offset_invocationpacketdataentry == pipelineinvocationpacketdataentry.idx_slot * size_slot_invocationpacketdata); static_cast<void>(_offset_invocationpacketdataentry);
+			pipelineinvocationpacketdataentry.refcount.fetch_add(1, ::std::memory_order_acq_rel);
+		}
+	}
+
+	void Pipeline::DecRefInvocationPacketDataEntry(
+		const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+		size_t _size_invocationpacketdataentry,
+		size_t _offset_invocationpacketdataentry,
+		already_shared_locked_this_t
+	) const noexcept {
+		assert(_pipelineinvocationpacketdataentryid);
+		map_invocationpacketdataentry_t::const_iterator it_map_invocationpacketdataentry = this->map_invocationpacketdataentry.find(_pipelineinvocationpacketdataentryid);
+		assert(it_map_invocationpacketdataentry != this->map_invocationpacketdataentry.end());
+		{
+			const PipelineInvocationPacketDataEntry& pipelineinvocationpacketdataentry = it_map_invocationpacketdataentry->second;
+			assert(_size_invocationpacketdataentry <= pipelineinvocationpacketdataentry.count_slot * size_slot_invocationpacketdata); static_cast<void>(_size_invocationpacketdataentry);
+			assert(_offset_invocationpacketdataentry == pipelineinvocationpacketdataentry.idx_slot * size_slot_invocationpacketdata); static_cast<void>(_offset_invocationpacketdataentry);
+			uintptr_t refcount_before = pipelineinvocationpacketdataentry.refcount.fetch_sub(1, ::std::memory_order_acq_rel);
+			assert(refcount_before);
+			if (refcount_before == 1) this->should_scan_map_invocationpacketdataentry.store(true, ::std::memory_order_relaxed);
+		}
 	}
 
 	void Pipeline::AttachPipelineFilter(PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
@@ -1511,6 +1646,16 @@ namespace YBWLib2 {
 			_pipeline->UnlockShared();
 		}
 
+		YBWLIB2_API IndexedDataStore* YBWLIB2_CALLTYPE Pipeline_GetUserDataIndexedDataStore(Pipeline* _pipeline) noexcept {
+			assert(_pipeline);
+			return &_pipeline->GetUserDataIndexedDataStore();
+		}
+
+		YBWLIB2_API const IndexedDataStore* YBWLIB2_CALLTYPE Pipeline_GetUserDataIndexedDataStore(const Pipeline* _pipeline) noexcept {
+			assert(_pipeline);
+			return &_pipeline->GetUserDataIndexedDataStore();
+		}
+
 		YBWLIB2_API size_t YBWLIB2_CALLTYPE Pipeline_GetInvocationDataSize(const Pipeline* _pipeline, already_shared_locked_this_t _already_shared_locked_this) noexcept {
 			assert(_pipeline);
 			return _pipeline->GetInvocationDataSize(_already_shared_locked_this);
@@ -1588,6 +1733,28 @@ namespace YBWLib2 {
 			_pipeline->UnregisterInvocationPacketDataEntry(*_pipelineinvocationpacketdataentryid, _already_exclusive_locked_this);
 		}
 
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_AddRefInvocationPacketDataEntry(
+			const Pipeline* _pipeline,
+			const PipelineInvocationPacketDataEntryID* _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t _already_shared_locked_this
+		) noexcept {
+			assert(_pipeline);
+			_pipeline->AddRefInvocationPacketDataEntry(*_pipelineinvocationpacketdataentryid, _size_invocationpacketdataentry, _offset_invocationpacketdataentry, _already_shared_locked_this);
+		}
+
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_DecRefInvocationPacketDataEntry(
+			const Pipeline* _pipeline,
+			const PipelineInvocationPacketDataEntryID* _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t _already_shared_locked_this
+		) noexcept {
+			assert(_pipeline);
+			_pipeline->DecRefInvocationPacketDataEntry(*_pipelineinvocationpacketdataentryid, _size_invocationpacketdataentry, _offset_invocationpacketdataentry, _already_shared_locked_this);
+		}
+
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_AttachPipelineFilter(Pipeline* _pipeline, PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			assert(_pipeline);
 			_pipeline->AttachPipelineFilter(_pipelinefilter, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_this);
@@ -1638,6 +1805,16 @@ namespace YBWLib2 {
 		YBWLIB2_API PipelineFilterID YBWLIB2_CALLTYPE PipelineFilter_GetPipelineFilterID(const PipelineFilter* _pipelinefilter) noexcept {
 			assert(_pipelinefilter);
 			return _pipelinefilter->GetPipelineFilterID();
+		}
+
+		YBWLIB2_API IndexedDataStore* YBWLIB2_CALLTYPE PipelineFilter_GetUserDataIndexedDataStore(PipelineFilter* _pipelinefilter) noexcept {
+			assert(_pipelinefilter);
+			return &_pipelinefilter->GetUserDataIndexedDataStore();
+		}
+
+		YBWLIB2_API const IndexedDataStore* YBWLIB2_CALLTYPE PipelineFilter_GetUserDataIndexedDataStore(const PipelineFilter* _pipelinefilter) noexcept {
+			assert(_pipelinefilter);
+			return &_pipelinefilter->GetUserDataIndexedDataStore();
 		}
 
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_GetRawInvokeDelegate(const PipelineFilter* _pipelinefilter, const PipelineFilterRawInvokeDelegate** _delegate_rawinvoke_ret) noexcept {
@@ -1704,9 +1881,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept {
 		Internal::pipelinestore_global = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID(Internal::persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg);
+		Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = IndexedDataEntryID(Internal::persistentid_indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {
+		Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = IndexedDataEntryID();
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
 		delete Internal::pipelinestore_global;
 		Internal::pipelinestore_global = nullptr;

@@ -166,6 +166,8 @@ namespace YBWLib2 {
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_LockShared(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API bool YBWLIB2_CALLTYPE Pipeline_TryLockShared(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_UnlockShared(const Pipeline* _pipeline) noexcept;
+		YBWLIB2_API IndexedDataStore* YBWLIB2_CALLTYPE Pipeline_GetUserDataIndexedDataStore(Pipeline* _pipeline) noexcept;
+		YBWLIB2_API const IndexedDataStore* YBWLIB2_CALLTYPE Pipeline_GetUserDataIndexedDataStore(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API size_t YBWLIB2_CALLTYPE Pipeline_GetInvocationDataSize(const Pipeline* _pipeline, already_shared_locked_this_t) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_InitializeInvocationPacket(const Pipeline* _pipeline, PipelineInvocationPacket** _pipelineinvocationpacket_ret, void* _buf_invocationdata, size_t _size_buf_invocationdata, already_shared_locked_this_t) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_CleanupInvocationPacket(const Pipeline* _pipeline, PipelineInvocationPacket* _pipelineinvocationpacket, already_shared_locked_this_t) noexcept;
@@ -192,6 +194,20 @@ namespace YBWLib2 {
 			already_exclusive_locked_this_t
 		) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_UnregisterInvocationPacketDataEntry(Pipeline* _pipeline, const PipelineInvocationPacketDataEntryID* _pipelineinvocationpacketdataentryid, already_exclusive_locked_this_t) noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_AddRefInvocationPacketDataEntry(
+			const Pipeline* _pipeline,
+			const PipelineInvocationPacketDataEntryID* _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t _already_shared_locked_this
+		) noexcept;
+		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_DecRefInvocationPacketDataEntry(
+			const Pipeline* _pipeline,
+			const PipelineInvocationPacketDataEntryID* _pipelineinvocationpacketdataentryid,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t _already_shared_locked_this
+		) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_AttachPipelineFilter(Pipeline* _pipeline, PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_DetachPipelineFilter(Pipeline* _pipeline, PipelineFilter* _pipelinefilter, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_Resolve(Pipeline* _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept;
@@ -202,6 +218,8 @@ namespace YBWLib2 {
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineFilter_CastToIReferenceCountedObject(const PipelineFilter* _pipelinefilter) noexcept;
 		YBWLIB2_API IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineFilter_CastToIReferenceCountedObject(PipelineFilter* _pipelinefilter) noexcept;
 		YBWLIB2_API PipelineFilterID YBWLIB2_CALLTYPE PipelineFilter_GetPipelineFilterID(const PipelineFilter* _pipelinefilter) noexcept;
+		YBWLIB2_API IndexedDataStore* YBWLIB2_CALLTYPE PipelineFilter_GetUserDataIndexedDataStore(PipelineFilter* _pipelinefilter) noexcept;
+		YBWLIB2_API const IndexedDataStore* YBWLIB2_CALLTYPE PipelineFilter_GetUserDataIndexedDataStore(const PipelineFilter* _pipelinefilter) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_GetRawInvokeDelegate(const PipelineFilter* _pipelinefilter, const PipelineFilterRawInvokeDelegate** _delegate_rawinvoke_ret) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_ReleaseRawInvokeDelegate(PipelineFilter* _pipelinefilter, PipelineFilterRawInvokeDelegate* _delegate_rawinvoke_ret) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE PipelineFilter_SetRawInvokeDelegate(PipelineFilter* _pipelinefilter, PipelineFilterRawInvokeDelegate* _delegate_rawinvoke) noexcept;
@@ -267,6 +285,14 @@ namespace YBWLib2 {
 
 	inline void Pipeline_UnlockShared(const Pipeline& _pipeline) noexcept {
 		Internal::Pipeline_UnlockShared(&_pipeline);
+	}
+
+	inline IndexedDataStore& Pipeline_GetUserDataIndexedDataStore(Pipeline& _pipeline) noexcept {
+		return *Internal::Pipeline_GetUserDataIndexedDataStore(&_pipeline);
+	}
+
+	inline const IndexedDataStore& Pipeline_GetUserDataIndexedDataStore(const Pipeline& _pipeline) noexcept {
+		return *Internal::Pipeline_GetUserDataIndexedDataStore(&_pipeline);
 	}
 
 	struct PipelineSharedMutexWrapper final {
@@ -386,6 +412,26 @@ namespace YBWLib2 {
 		Internal::Pipeline_UnregisterInvocationPacketDataEntry(&_pipeline, &_pipelineinvocationpacketdataentryid, _already_exclusive_locked_this);
 	}
 
+	inline void Pipeline_AddRefInvocationPacketDataEntry(
+		const Pipeline& _pipeline,
+		const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+		size_t _size_invocationpacketdataentry,
+		size_t _offset_invocationpacketdataentry,
+		already_shared_locked_this_t _already_shared_locked_this
+	) noexcept {
+		Internal::Pipeline_AddRefInvocationPacketDataEntry(&_pipeline, &_pipelineinvocationpacketdataentryid, _size_invocationpacketdataentry, _offset_invocationpacketdataentry, _already_shared_locked_this);
+	}
+
+	inline void Pipeline_DecRefInvocationPacketDataEntry(
+		const Pipeline& _pipeline,
+		const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+		size_t _size_invocationpacketdataentry,
+		size_t _offset_invocationpacketdataentry,
+		already_shared_locked_this_t _already_shared_locked_this
+	) noexcept {
+		Internal::Pipeline_DecRefInvocationPacketDataEntry(&_pipeline, &_pipelineinvocationpacketdataentryid, _size_invocationpacketdataentry, _offset_invocationpacketdataentry, _already_shared_locked_this);
+	}
+
 	inline void Pipeline_AttachPipelineFilter(Pipeline& _pipeline, PipelineFilter& _pipelinefilter, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 		Internal::Pipeline_AttachPipelineFilter(&_pipeline, &_pipelinefilter, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_this);
 	}
@@ -422,6 +468,14 @@ namespace YBWLib2 {
 
 	inline PipelineFilterID PipelineFilter_GetPipelineFilterID(const PipelineFilter& _pipelinefilter) noexcept {
 		return Internal::PipelineFilter_GetPipelineFilterID(&_pipelinefilter);
+	}
+
+	inline IndexedDataStore& PipelineFilter_GetUserDataIndexedDataStore(PipelineFilter& _pipelinefilter) noexcept {
+		return *Internal::PipelineFilter_GetUserDataIndexedDataStore(&_pipelinefilter);
+	}
+
+	inline const IndexedDataStore& PipelineFilter_GetUserDataIndexedDataStore(const PipelineFilter& _pipelinefilter) noexcept {
+		return *Internal::PipelineFilter_GetUserDataIndexedDataStore(&_pipelinefilter);
 	}
 
 	inline const PipelineFilterRawInvokeDelegate& PipelineFilter_GetRawInvokeDelegate(const PipelineFilter& _pipelinefilter) noexcept {
@@ -493,7 +547,8 @@ namespace YBWLib2 {
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
 			objholder_pipeline(_objholder_pipeline),
-			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry) {
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			is_addref_only(false) {
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -523,7 +578,8 @@ namespace YBWLib2 {
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
 			objholder_pipeline(_objholder_pipeline),
-			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry) {
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			is_addref_only(false) {
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -549,7 +605,8 @@ namespace YBWLib2 {
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
 			objholder_pipeline(_objholder_pipeline),
-			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry) {
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			is_addref_only(false) {
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -581,7 +638,8 @@ namespace YBWLib2 {
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
 			objholder_pipeline(_objholder_pipeline),
-			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry) {
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			is_addref_only(false) {
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -597,28 +655,97 @@ namespace YBWLib2 {
 				);
 			}
 		}
+		PipelineInvocationPacketDataEntryHolder(
+			const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+			const ReferenceCountedObjectHolder<Pipeline>& _objholder_pipeline,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry,
+			already_shared_locked_this_t _already_shared_locked_pipeline
+		) noexcept
+			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
+			objholder_pipeline(_objholder_pipeline),
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			offset_pipelineinvocationpacketdataentry(_offset_invocationpacketdataentry),
+			is_addref_only(true) {
+			assert(this->pipelineinvocationpacketdataentryid);
+			assert(this->objholder_pipeline);
+			assert(this->size_pipelineinvocationpacketdataentry);
+			assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+			Pipeline_AddRefInvocationPacketDataEntry(
+				*this->objholder_pipeline,
+				this->pipelineinvocationpacketdataentryid,
+				this->size_pipelineinvocationpacketdataentry,
+				this->offset_pipelineinvocationpacketdataentry,
+				_already_shared_locked_pipeline
+			);
+		}
+		PipelineInvocationPacketDataEntryHolder(
+			const PipelineInvocationPacketDataEntryID& _pipelineinvocationpacketdataentryid,
+			const ReferenceCountedObjectHolder<Pipeline>& _objholder_pipeline,
+			size_t _size_invocationpacketdataentry,
+			size_t _offset_invocationpacketdataentry
+		) noexcept
+			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
+			objholder_pipeline(_objholder_pipeline),
+			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
+			offset_pipelineinvocationpacketdataentry(_offset_invocationpacketdataentry),
+			is_addref_only(true) {
+			assert(this->pipelineinvocationpacketdataentryid);
+			assert(this->objholder_pipeline);
+			assert(this->size_pipelineinvocationpacketdataentry);
+			assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+			{
+				PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+				::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+				Pipeline_AddRefInvocationPacketDataEntry(
+					*this->objholder_pipeline,
+					this->pipelineinvocationpacketdataentryid,
+					this->size_pipelineinvocationpacketdataentry,
+					this->offset_pipelineinvocationpacketdataentry,
+					already_shared_locked_pipeline
+				);
+			}
+		}
 		PipelineInvocationPacketDataEntryHolder(const PipelineInvocationPacketDataEntryHolder& x) noexcept
 			: pipelineinvocationpacketdataentryid(x.pipelineinvocationpacketdataentryid),
 			objholder_pipeline(x.objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(x.size_pipelineinvocationpacketdataentry),
-			offset_pipelineinvocationpacketdataentry(x.offset_pipelineinvocationpacketdataentry) {
+			offset_pipelineinvocationpacketdataentry(x.offset_pipelineinvocationpacketdataentry),
+			is_addref_only(x.is_addref_only) {
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
-						*this->objholder_pipeline,
-						this->pipelineinvocationpacketdataentryid,
-						this->size_pipelineinvocationpacketdataentry,
-						nullptr,
-						PipelineInvocationPacketDataEntryInitializeDelegate(),
-						PipelineInvocationPacketDataEntryCleanupDelegate(),
-						already_exclusive_locked_pipeline
-					);
-					static_cast<void>(_offset_pipelineinvocationpacketdataentry);
-					assert(_offset_pipelineinvocationpacketdataentry == this->offset_pipelineinvocationpacketdataentry);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_AddRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							nullptr,
+							PipelineInvocationPacketDataEntryInitializeDelegate(),
+							PipelineInvocationPacketDataEntryCleanupDelegate(),
+							already_exclusive_locked_pipeline
+						);
+						static_cast<void>(_offset_pipelineinvocationpacketdataentry);
+						assert(_offset_pipelineinvocationpacketdataentry == this->offset_pipelineinvocationpacketdataentry);
+					}
 				}
 			}
 		}
@@ -626,22 +753,42 @@ namespace YBWLib2 {
 			: pipelineinvocationpacketdataentryid(::std::move(x.pipelineinvocationpacketdataentryid)),
 			objholder_pipeline(::std::move(x.objholder_pipeline)),
 			size_pipelineinvocationpacketdataentry(::std::move(x.size_pipelineinvocationpacketdataentry)),
-			offset_pipelineinvocationpacketdataentry(::std::move(x.offset_pipelineinvocationpacketdataentry)) {
+			offset_pipelineinvocationpacketdataentry(::std::move(x.offset_pipelineinvocationpacketdataentry)),
+			is_addref_only(::std::move(x.is_addref_only)) {
 			x.pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
 			x.objholder_pipeline.reset();
 			x.size_pipelineinvocationpacketdataentry = 0;
 			x.offset_pipelineinvocationpacketdataentry = SIZE_MAX;
+			x.is_addref_only = false;
 		}
 		~PipelineInvocationPacketDataEntryHolder() {
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_DecRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+					}
 				}
 			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
@@ -649,14 +796,32 @@ namespace YBWLib2 {
 		}
 		PipelineInvocationPacketDataEntryHolder& operator=(const PipelineInvocationPacketDataEntryHolder& x) noexcept {
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_DecRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+					}
 				}
 			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
@@ -666,36 +831,71 @@ namespace YBWLib2 {
 			this->size_pipelineinvocationpacketdataentry = x.size_pipelineinvocationpacketdataentry;
 			this->offset_pipelineinvocationpacketdataentry = x.offset_pipelineinvocationpacketdataentry;
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
-						*this->objholder_pipeline,
-						this->pipelineinvocationpacketdataentryid,
-						this->size_pipelineinvocationpacketdataentry,
-						nullptr,
-						PipelineInvocationPacketDataEntryInitializeDelegate(),
-						PipelineInvocationPacketDataEntryCleanupDelegate(),
-						already_exclusive_locked_pipeline
-					);
-					static_cast<void>(_offset_pipelineinvocationpacketdataentry);
-					assert(_offset_pipelineinvocationpacketdataentry == this->offset_pipelineinvocationpacketdataentry);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_AddRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							nullptr,
+							PipelineInvocationPacketDataEntryInitializeDelegate(),
+							PipelineInvocationPacketDataEntryCleanupDelegate(),
+							already_exclusive_locked_pipeline
+						);
+						static_cast<void>(_offset_pipelineinvocationpacketdataentry);
+						assert(_offset_pipelineinvocationpacketdataentry == this->offset_pipelineinvocationpacketdataentry);
+					}
 				}
 			}
 			return *this;
 		}
 		PipelineInvocationPacketDataEntryHolder& operator=(PipelineInvocationPacketDataEntryHolder&& x) noexcept {
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_DecRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+					}
 				}
 			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
@@ -708,6 +908,8 @@ namespace YBWLib2 {
 			x.size_pipelineinvocationpacketdataentry = 0;
 			this->offset_pipelineinvocationpacketdataentry = ::std::move(x.offset_pipelineinvocationpacketdataentry);
 			x.offset_pipelineinvocationpacketdataentry = SIZE_MAX;
+			this->is_addref_only = ::std::move(x.is_addref_only);
+			x.is_addref_only = false;
 			return *this;
 		}
 		const PipelineInvocationPacketDataEntryID& GetPipelineInvocationPacketDataEntryID() const noexcept { return this->pipelineinvocationpacketdataentryid; }
@@ -728,41 +930,81 @@ namespace YBWLib2 {
 		}
 		void Clear() noexcept {
 			if (this->objholder_pipeline) {
-				assert(this->pipelineinvocationpacketdataentryid);
-				assert(this->size_pipelineinvocationpacketdataentry);
-				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-					Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+				if (this->is_addref_only) {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_DecRefInvocationPacketDataEntry(
+							*this->objholder_pipeline,
+							this->pipelineinvocationpacketdataentryid,
+							this->size_pipelineinvocationpacketdataentry,
+							this->offset_pipelineinvocationpacketdataentry,
+							already_shared_locked_pipeline
+						);
+					}
+				} else {
+					assert(this->pipelineinvocationpacketdataentryid);
+					assert(this->size_pipelineinvocationpacketdataentry);
+					{
+						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
+					}
 				}
 			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
 			this->pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
 		}
 		void Clear(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+			this->ClearAddRefOnly();
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
 				Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, _already_exclusive_locked_pipeline);
 			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
 			this->pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
 		}
-		void Release() noexcept {
+		void Clear(already_shared_locked_this_t _already_shared_locked_pipeline) noexcept {
+			this->SetAddRefOnly();
+			if (this->objholder_pipeline) {
+				assert(this->pipelineinvocationpacketdataentryid);
+				assert(this->size_pipelineinvocationpacketdataentry);
+				assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
+				Pipeline_DecRefInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, this->size_pipelineinvocationpacketdataentry, this->offset_pipelineinvocationpacketdataentry, _already_shared_locked_pipeline);
+			}
+			this->is_addref_only = false;
 			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
 			this->size_pipelineinvocationpacketdataentry = 0;
 			this->objholder_pipeline.reset();
 			this->pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
 		}
+		size_t Release() noexcept {
+			size_t _offset_pipelineinvocationpacketdataentry = this->offset_pipelineinvocationpacketdataentry;
+			this->is_addref_only = false;
+			this->offset_pipelineinvocationpacketdataentry = SIZE_MAX;
+			this->size_pipelineinvocationpacketdataentry = 0;
+			this->objholder_pipeline.reset();
+			this->pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
+			return _offset_pipelineinvocationpacketdataentry;
+		}
+		void ClearAddRefOnly() noexcept { this->is_addref_only = false; }
+		void SetAddRefOnly() noexcept { this->is_addref_only = true; }
 	protected:
 		PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid;
 		ReferenceCountedObjectHolder<Pipeline> objholder_pipeline;
 		size_t size_pipelineinvocationpacketdataentry = 0;
 		size_t offset_pipelineinvocationpacketdataentry = SIZE_MAX;
+		bool is_addref_only = false;
 	};
 	static_assert(::std::is_standard_layout_v<PipelineInvocationPacketDataEntryHolder>, "PipelineInvocationPacketDataEntryHolder is not standard-layout.");
 
@@ -876,6 +1118,8 @@ namespace YBWLib2 {
 	namespace Internal {
 		static constexpr PersistentID persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg(UUIDFromUUIDString_CompileTime("1163516a-3daa-4f60-a2de-2024054eae72"));
 		extern YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
+		static constexpr PersistentID persistentid_indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg(UUIDFromUUIDString_CompileTime("1aeb0175-26e7-4361-96c3-789a9f9d5775"));
+		extern YBWLIB2_API IndexedDataEntryID indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg;
 		extern YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global;
 		extern ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_modulelocal;
 	}
@@ -966,17 +1210,17 @@ namespace YBWLib2 {
 		protected:
 			ReferenceCountedObjectHolder<PipelineFilter> pipelinefilter;
 			ReferenceCountedObjectHolder<Pipeline> pipeline;
-			PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg;
 			struct invokedelegatecontext_t final {
 				uintptr_t fnptr_invoke_delegate_invoke = 0;
 				uintptr_t contextvalue1_delegate_invoke = 0;
 				uintptr_t contextvalue2_delegate_invoke = 0;
 				DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
-				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg;
+				size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+				const Pipeline* pipeline = nullptr;
+				const PipelineFilter* pipelinefilter = nullptr;
 				invokedelegatecontext_t() noexcept = default;
 				template<typename _Delegate_Invoke_Ty>
-				explicit invokedelegatecontext_t(_Delegate_Invoke_Ty&& _delegate_invoke, const pipelinefiltercontext_t& _pipelinefiltercontext) noexcept
-					: pipelineinvocationpacketdataentryholder_arr_ptr_arg(_pipelinefiltercontext.pipelineinvocationpacketdataentryholder_arr_ptr_arg) {
+				explicit invokedelegatecontext_t(_Delegate_Invoke_Ty&& _delegate_invoke, const pipelinefiltercontext_t& _pipelinefiltercontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 					this->fnptr_invoke_delegate_invoke = reinterpret_cast<uintptr_t>(_delegate_invoke.fnptr_invoke);
 					this->contextvalue1_delegate_invoke = _delegate_invoke.contextvalue1;
 					this->contextvalue2_delegate_invoke = _delegate_invoke.contextvalue2;
@@ -985,6 +1229,21 @@ namespace YBWLib2 {
 					_delegate_invoke.contextvalue2 = 0;
 					_delegate_invoke.contextvalue1 = 0;
 					_delegate_invoke.fnptr_invoke = nullptr;
+					assert(_pipelinefiltercontext.pipelinefilter);
+					this->pipelinefilter = _pipelinefiltercontext.pipelinefilter.get();
+					if (_pipelinefiltercontext.pipeline) {
+						this->pipeline = _pipelinefiltercontext.pipeline.get();
+						void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = Pipeline_RegisterInvocationPacketDataEntry(
+							*this->pipeline,
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							count_arg * sizeof(uintptr_t),
+							reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
+							PipelineInvocationPacketDataEntryInitializeDelegate(),
+							PipelineInvocationPacketDataEntryCleanupDelegate(),
+							_already_exclusive_locked_pipeline
+						);
+					}
 				}
 				invokedelegatecontext_t(const invokedelegatecontext_t&) = delete;
 				invokedelegatecontext_t(invokedelegatecontext_t&& x) noexcept {
@@ -998,8 +1257,60 @@ namespace YBWLib2 {
 					x.fnptr_cleanup_delegate_invoke = nullptr;
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
 					x.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
+					this->pipelinefilter = ::std::move(x.pipelinefilter);
+					x.pipelinefilter = nullptr;
 				}
 				~invokedelegatecontext_t() {
+					if (this->pipeline) {
+						PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*this->pipeline);
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper, ::std::try_to_lock);
+						if (unique_lock_pipeline.owns_lock()) {
+							already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+							Pipeline_UnregisterInvocationPacketDataEntry(
+								*this->pipeline,
+								Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+								already_exclusive_locked_pipeline
+							);
+							IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
+							IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+							if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
+								Pipeline_UnregisterInvocationPacketDataEntry(
+									*this->pipeline,
+									Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+									already_exclusive_locked_pipeline
+								);
+								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
+								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
+								indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+							}
+						} else {
+							::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+							Pipeline_DecRefInvocationPacketDataEntry(
+								*this->pipeline,
+								Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+								count_arg * sizeof(uintptr_t),
+								this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+								already_shared_locked_pipeline
+							);
+							IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
+							IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+							if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
+								Pipeline_DecRefInvocationPacketDataEntry(
+									*this->pipeline,
+									Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+									count_arg * sizeof(uintptr_t),
+									*reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue),
+									already_shared_locked_pipeline
+								);
+								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
+								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
+								indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+							}
+						}
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+						this->pipeline = nullptr;
+					}
+					this->pipelinefilter = nullptr;
 					if (this->fnptr_cleanup_delegate_invoke) {
 						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
 					}
@@ -1010,6 +1321,7 @@ namespace YBWLib2 {
 				}
 				invokedelegatecontext_t& operator=(const invokedelegatecontext_t&) = delete;
 				invokedelegatecontext_t& operator=(invokedelegatecontext_t&& x) noexcept {
+					this->pipelinefilter = nullptr;
 					if (this->fnptr_cleanup_delegate_invoke) {
 						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
 					}
@@ -1027,65 +1339,71 @@ namespace YBWLib2 {
 					x.fnptr_cleanup_delegate_invoke = nullptr;
 					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
 					x.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
+					this->pipelinefilter = ::std::move(x.pipelinefilter);
+					x.pipelinefilter = nullptr;
 					return *this;
 				}
 				const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+					assert(this->pipelinefilter);
+					already_shared_locked_this_t already_shared_locked_pipeline();// The pipeline is shared-locked during invocation.
+					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
+						if (this->pipeline) {
+							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
+							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+							this->pipeline = nullptr;
+						}
+						const IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter).GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+						assert(indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+						this->pipeline = PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket);
+						assert(this->pipeline);
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
+						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+						Pipeline_AddRefInvocationPacketDataEntry(
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							count_arg * sizeof(uintptr_t),
+							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+							already_shared_locked_pipeline
+						);
+					}
 					const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);
-					size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
-					size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
-					assert(
-						offset_pipelineinvocationpacketdataentry != SIZE_MAX
-						&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
-						&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
-					);
-					const uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<const uintptr_t*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
-					return ptr_pipelineinvocationpacketdataentry;
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg + count_arg * sizeof(uintptr_t) <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket));
+					const uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = reinterpret_cast<const uintptr_t*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg), (uintptr_t)alignof(uintptr_t)));
+					return ptr_pipelineinvocationpacketdataentry_arr_ptr_arg;
 				}
 				uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
+					assert(this->pipelinefilter);
+					already_shared_locked_this_t already_shared_locked_pipeline();// The pipeline is shared-locked during invocation.
+					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
+						if (this->pipeline) {
+							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
+							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+							this->pipeline = nullptr;
+						}
+						const IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter).GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+						assert(indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+						this->pipeline = PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket);
+						assert(this->pipeline);
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
+						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+						Pipeline_AddRefInvocationPacketDataEntry(
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							count_arg * sizeof(uintptr_t),
+							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+							already_shared_locked_pipeline
+						);
+					}
 					void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);
-					size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
-					size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
-					assert(
-						offset_pipelineinvocationpacketdataentry != SIZE_MAX
-						&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
-						&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
-					);
-					uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
-					return ptr_pipelineinvocationpacketdataentry;
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg + count_arg * sizeof(uintptr_t) <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket));
+					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg), (uintptr_t)alignof(uintptr_t)));
+					return ptr_pipelineinvocationpacketdataentry_arr_ptr_arg;
 				}
 			};
-			const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
-				const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
-				assert(ptr_invocationpacketdata);
-				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
-				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
-				assert(
-					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
-					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
-				);
-				const uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<const uintptr_t*>(reinterpret_cast<const unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
-				return ptr_pipelineinvocationpacketdataentry;
-			}
-			uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
-				void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
-				assert(ptr_invocationpacketdata);
-				size_t offset_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntryOffset();
-				size_t size_pipelineinvocationpacketdataentry = this->pipelineinvocationpacketdataentryholder_arr_ptr_arg.GetDataEntrySize();
-				assert(
-					offset_pipelineinvocationpacketdataentry != SIZE_MAX
-					&& size_pipelineinvocationpacketdataentry == count_arg * sizeof(uintptr_t)
-					&& offset_pipelineinvocationpacketdataentry + size_pipelineinvocationpacketdataentry <= PipelineInvocationPacket_GetInvocationPacketDataSize(_pipelineinvocationpacket)
-				);
-				uintptr_t* ptr_pipelineinvocationpacketdataentry = reinterpret_cast<uintptr_t*>(reinterpret_cast<unsigned char*>(ptr_invocationpacketdata) + offset_pipelineinvocationpacketdataentry);
-				assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry), (uintptr_t)alignof(uintptr_t)));
-				return ptr_pipelineinvocationpacketdataentry;
-			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
 				size_t... _Index_Arg_Ty,
@@ -1214,6 +1532,16 @@ namespace YBWLib2 {
 	public:
 		using pipelinecontext_type = pipelinecontext_t;
 		using pipelinefiltercontext_type = pipelinefiltercontext_t;
+		static IndexedDataStore& GetPipelineUserDataIndexedDataStore(pipelinecontext_type& _pipelinecontext) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			return Pipeline_GetUserDataIndexedDataStore(pipeline);
+		}
+		static const IndexedDataStore& GetPipelineUserDataIndexedDataStore(const pipelinecontext_type& _pipelinecontext) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			return Pipeline_GetUserDataIndexedDataStore(pipeline);
+		}
 		static bool IsPipelineResolved(const pipelinecontext_type& _pipelinecontext, already_shared_locked_this_t _already_shared_locked_pipeline) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1279,6 +1607,16 @@ namespace YBWLib2 {
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
 		}
+		static IndexedDataStore& GetPipelineFilterUserDataIndexedDataStore(pipelinefiltercontext_type& _pipelinefiltercontext) noexcept {
+			assert(_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder());
+			PipelineFilter& pipelinefilter = *_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder();
+			return PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
+		}
+		static const IndexedDataStore& GetPipelineFilterUserDataIndexedDataStore(const pipelinefiltercontext_type& _pipelinefiltercontext) noexcept {
+			assert(_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder());
+			const PipelineFilter& pipelinefilter = *_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder();
+			return PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
+		}
 		static void ClearPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
@@ -1289,6 +1627,7 @@ namespace YBWLib2 {
 			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
 			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
+			// The destructor of invokedelegatecontext_t will unregister the pipeline filter invocation packet data entry.
 		}
 	private:
 		template<typename... _Args_Ty>
@@ -1314,6 +1653,29 @@ namespace YBWLib2 {
 			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
 			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
+			if (_pipelinefiltercontext.pipeline) {
+				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
+				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
+					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+					*_pipelinefiltercontext.pipeline,
+					count_arg * sizeof(uintptr_t),
+					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
+					PipelineInvocationPacketDataEntryInitializeDelegate(),
+					PipelineInvocationPacketDataEntryCleanupDelegate(),
+					already_exclusive_locked_pipeline
+				);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*_pipelinefiltercontext.pipelinefilter);
+				assert(!indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg));
+				indexeddatastore_userdata_pipelinefilter.AddEntry(
+					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+					IndexedDataRawValue(
+						[](IndexedDataRawValue* _indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) noexcept->void {
+							abort();
+						},
+						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
+					)
+				);
+			}
 			PipelineFilter_SetRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter, ::std::move(_pipelinefiltercontext.PreparePipelineFilterRawInvokeDelegate(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>())));
 		}
 		static void SetPipelineFilterPositionArray(pipelinefiltercontext_t& _pipelinefiltercontext, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
@@ -1334,16 +1696,27 @@ namespace YBWLib2 {
 			Pipeline& pipeline = *_pipelinecontext.pipeline;
 			assert(!_pipelinefiltercontext.pipeline);
 			_pipelinefiltercontext.pipeline = _pipelinecontext.pipeline;
-			{
+			if (PipelineFilter_GetRawInvokeDelegate(pipelinefilter).fnptr_invoke) {
 				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
-				_pipelinefiltercontext.pipelineinvocationpacketdataentryholder_arr_ptr_arg = PipelineInvocationPacketDataEntryHolder(
+				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
 					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-					_pipelinefiltercontext.pipeline,
+					pipeline,
 					count_arg * sizeof(uintptr_t),
 					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
 					PipelineInvocationPacketDataEntryInitializeDelegate(),
 					PipelineInvocationPacketDataEntryCleanupDelegate(),
 					_already_exclusive_locked_pipeline
+				);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
+				assert(!indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg));
+				indexeddatastore_userdata_pipelinefilter.AddEntry(
+					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+					IndexedDataRawValue(
+						[](IndexedDataRawValue* _indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) noexcept->void {
+							abort();
+						},
+						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
+					)
 				);
 			}
 			Pipeline_AttachPipelineFilter(pipeline, pipelinefilter, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
@@ -1360,7 +1733,20 @@ namespace YBWLib2 {
 			assert(_pipelinefiltercontext.pipeline && _pipelinefiltercontext.pipeline == _pipelinecontext.pipeline);
 			Pipeline& pipeline = *_pipelinecontext.pipeline;
 			Pipeline_DetachPipelineFilter(pipeline, pipelinefilter, _should_resolve_immediately, _already_exclusive_locked_pipeline);
-			_pipelinefiltercontext.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear(_already_exclusive_locked_pipeline);
+			{
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
+				IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+				if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
+					Pipeline_UnregisterInvocationPacketDataEntry(
+						pipeline,
+						Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+						_already_exclusive_locked_pipeline
+					);
+					indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
+					indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
+					indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+				}
+			}
 			_pipelinefiltercontext.pipeline.reset();
 		}
 		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately) noexcept {
@@ -1409,6 +1795,12 @@ namespace YBWLib2 {
 		PipelineFilter& operator*() noexcept { return this->GetPipelineFilter(); }
 		const PipelineFilter* operator->() const noexcept { return &this->GetPipelineFilter(); }
 		PipelineFilter* operator->() noexcept { return &this->GetPipelineFilter(); }
+		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+			return pipelinetraits_type::GetPipelineFilterUserDataIndexedDataStore(this->pipelinefiltercontext);
+		}
+		const IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+			return pipelinetraits_type::GetPipelineFilterUserDataIndexedDataStore(this->pipelinefiltercontext);
+		}
 		PipelineFilterWrapper& ClearInvokeDelegate() & noexcept {
 			pipelinetraits_type::ClearPipelineFilterInvokeDelegate(this->pipelinefiltercontext);
 			return *this;
@@ -1571,6 +1963,12 @@ namespace YBWLib2 {
 				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
 				::std::forward<_Args_Ty>(_args)...
 			);
+		}
+		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+			return pipelinetraits_type::GetPipelineUserDataIndexedDataStore(this->pipelinecontext);
+		}
+		const IndexedDataStore& GetPipelineUserDataIndexedDataStore() noexcept {
+			return pipelinetraits_type::GetUserDataIndexedDataStore(this->pipelinecontext);
 		}
 		bool IsResolved(already_shared_locked_this_t _already_shared_locked_pipeline) const noexcept {
 			return pipelinetraits_type::IsPipelineResolved(this->pipelinecontext, _already_shared_locked_pipeline);
