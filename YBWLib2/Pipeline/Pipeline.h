@@ -1657,7 +1657,7 @@ namespace YBWLib2 {
 				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
 				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
 					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-					*_pipelinefiltercontext.pipeline,
+					_pipelinefiltercontext.pipeline,
 					count_arg * sizeof(uintptr_t),
 					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
 					PipelineInvocationPacketDataEntryInitializeDelegate(),
@@ -1669,7 +1669,7 @@ namespace YBWLib2 {
 				indexeddatastore_userdata_pipelinefilter.AddEntry(
 					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
 					IndexedDataRawValue(
-						[](IndexedDataRawValue* _indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) noexcept->void {
+						[](IndexedDataRawValue*) noexcept->void {
 							abort();
 						},
 						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
@@ -1712,7 +1712,7 @@ namespace YBWLib2 {
 				indexeddatastore_userdata_pipelinefilter.AddEntry(
 					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
 					IndexedDataRawValue(
-						[](IndexedDataRawValue* _indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) noexcept->void {
+						[](IndexedDataRawValue*) noexcept->void {
 							abort();
 						},
 						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
