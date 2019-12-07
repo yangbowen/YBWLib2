@@ -1700,7 +1700,7 @@ namespace YBWLib2 {
 				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
 				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
 					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-					pipeline,
+					_pipelinecontext.pipeline,
 					count_arg * sizeof(uintptr_t),
 					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
 					PipelineInvocationPacketDataEntryInitializeDelegate(),
