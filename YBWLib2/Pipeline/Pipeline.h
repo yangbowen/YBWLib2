@@ -1217,10 +1217,10 @@ namespace YBWLib2 {
 				DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
 				mutable size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
 				mutable const Pipeline* pipeline = nullptr;
-				const PipelineFilter* pipelinefilter = nullptr;
+				PipelineFilter* pipelinefilter = nullptr;
 				invokedelegatecontext_t() noexcept = default;
 				template<typename _Delegate_Invoke_Ty>
-				explicit invokedelegatecontext_t(_Delegate_Invoke_Ty&& _delegate_invoke, const pipelinefiltercontext_t& _pipelinefiltercontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				explicit invokedelegatecontext_t(_Delegate_Invoke_Ty&& _delegate_invoke, pipelinefiltercontext_t& _pipelinefiltercontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 					this->fnptr_invoke_delegate_invoke = reinterpret_cast<uintptr_t>(_delegate_invoke.fnptr_invoke);
 					this->contextvalue1_delegate_invoke = _delegate_invoke.contextvalue1;
 					this->contextvalue2_delegate_invoke = _delegate_invoke.contextvalue2;
@@ -1263,53 +1263,31 @@ namespace YBWLib2 {
 				~invokedelegatecontext_t() {
 					if (this->pipeline) {
 						PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*this->pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper, ::std::try_to_lock);
-						if (unique_lock_pipeline.owns_lock()) {
-							already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-							Pipeline_UnregisterInvocationPacketDataEntry(
-								*this->pipeline,
-								Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-								already_exclusive_locked_pipeline
-							);
-							IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
-							IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-							if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
-								Pipeline_UnregisterInvocationPacketDataEntry(
-									*this->pipeline,
-									Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-									already_exclusive_locked_pipeline
-								);
-								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
-								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
-								indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-							}
-						} else {
-							::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+						Pipeline_DecRefInvocationPacketDataEntry(
+							*this->pipeline,
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							count_arg * sizeof(uintptr_t),
+							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+							already_shared_locked_pipeline
+						);
+						IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
+						IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+						if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
 							Pipeline_DecRefInvocationPacketDataEntry(
 								*this->pipeline,
 								Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 								count_arg * sizeof(uintptr_t),
-								this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
+								*reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue),
 								already_shared_locked_pipeline
 							);
-							IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
-							IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-							if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
-								Pipeline_DecRefInvocationPacketDataEntry(
-									*this->pipeline,
-									Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-									count_arg * sizeof(uintptr_t),
-									*reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue),
-									already_shared_locked_pipeline
-								);
-								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
-								indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
-								indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-							}
+							indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
+							indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
+							indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
 						}
-						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
-						this->pipeline = nullptr;
 					}
+					this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+					this->pipeline = nullptr;
 					this->pipelinefilter = nullptr;
 					if (this->fnptr_cleanup_delegate_invoke) {
 						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
