@@ -1215,8 +1215,8 @@ namespace YBWLib2 {
 				uintptr_t contextvalue1_delegate_invoke = 0;
 				uintptr_t contextvalue2_delegate_invoke = 0;
 				DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
-				size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
-				const Pipeline* pipeline = nullptr;
+				mutable size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+				mutable const Pipeline* pipeline = nullptr;
 				const PipelineFilter* pipelinefilter = nullptr;
 				invokedelegatecontext_t() noexcept = default;
 				template<typename _Delegate_Invoke_Ty>
@@ -1345,7 +1345,7 @@ namespace YBWLib2 {
 				}
 				const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 					assert(this->pipelinefilter);
-					already_shared_locked_this_t already_shared_locked_pipeline();// The pipeline is shared-locked during invocation.
+					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
 					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
 						if (this->pipeline) {
 							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
@@ -1359,6 +1359,7 @@ namespace YBWLib2 {
 						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
 						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
 						Pipeline_AddRefInvocationPacketDataEntry(
+							*this->pipeline,
 							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 							count_arg * sizeof(uintptr_t),
 							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
@@ -1375,7 +1376,7 @@ namespace YBWLib2 {
 				}
 				uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 					assert(this->pipelinefilter);
-					already_shared_locked_this_t already_shared_locked_pipeline();// The pipeline is shared-locked during invocation.
+					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
 					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
 						if (this->pipeline) {
 							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
@@ -1389,6 +1390,7 @@ namespace YBWLib2 {
 						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
 						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
 						Pipeline_AddRefInvocationPacketDataEntry(
+							*this->pipeline,
 							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 							count_arg * sizeof(uintptr_t),
 							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
