@@ -1235,7 +1235,7 @@ namespace YBWLib2 {
 						this->pipeline = _pipelinefiltercontext.pipeline.get();
 						void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
 						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = Pipeline_RegisterInvocationPacketDataEntry(
-							*this->pipeline,
+							*_pipelinefiltercontext.pipeline,
 							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 							count_arg * sizeof(uintptr_t),
 							reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
