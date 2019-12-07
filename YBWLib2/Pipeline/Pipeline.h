@@ -147,11 +147,16 @@ namespace YBWLib2 {
 	struct PipelineFilterPosition final {
 		PipelineFilterPositionType pipelinefilterpositiontype;
 		PipelineFilterID pipelinefilterid_ref;
-		constexpr PipelineFilterPosition() : pipelinefilterpositiontype(PipelineFilterPositionType::PipelineFilterPositionType_Invalid) {}
-		PipelineFilterPosition(PipelineFilterPositionType _pipelinefilterpositiontype, PipelineFilterID&& _pipelinefilterid_ref = PipelineFilterID())
+		constexpr PipelineFilterPosition() noexcept : pipelinefilterpositiontype(PipelineFilterPositionType::PipelineFilterPositionType_Invalid) {}
+		explicit constexpr PipelineFilterPosition(PipelineFilterPositionType _pipelinefilterpositiontype) noexcept
+			: pipelinefilterpositiontype(_pipelinefilterpositiontype) {}
+		PipelineFilterPosition(PipelineFilterPositionType _pipelinefilterpositiontype, PipelineFilterID&& _pipelinefilterid_ref) noexcept
 			: pipelinefilterpositiontype(_pipelinefilterpositiontype),
 			pipelinefilterid_ref(::std::move(_pipelinefilterid_ref)) {}
 	};
+
+	inline PipelineFilterPosition PipelineFilterPosition_Front(PipelineFilterPositionType::PipelineFilterPositionType_Front);
+	inline PipelineFilterPosition PipelineFilterPosition_Back(PipelineFilterPositionType::PipelineFilterPositionType_Back);
 
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PipelineID* _pipelineid) noexcept;
@@ -1828,6 +1833,12 @@ namespace YBWLib2 {
 		}
 		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const ::std::vector<PipelineFilterPosition>& _vec_pipelinefilterposition) && noexcept {
 			return this->SetPipelineFilterPositionArray(_vec_pipelinefilterposition.data(), _vec_pipelinefilterposition.size());
+		}
+		PipelineFilterWrapper& SetPipelineFilterPositionArray(const PipelineFilterPosition& _pipelinefilterposition) & noexcept {
+			return this->SetPipelineFilterPositionArray(&_pipelinefilterposition, 1);
+		}
+		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const PipelineFilterPosition& _pipelinefilterposition) && noexcept {
+			return this->SetPipelineFilterPositionArray(&_pipelinefilterposition, 1);
 		}
 		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept;
 		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
