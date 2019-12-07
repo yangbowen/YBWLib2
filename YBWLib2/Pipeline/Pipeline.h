@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <type_traits>
+#include <array>
 #include <vector>
 #include <list>
 #include <unordered_set>
@@ -1433,6 +1434,28 @@ namespace YBWLib2 {
 		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) && noexcept {
 			pipelinetraits_type::SetPipelineFilterPositionArray(this->pipelinefiltercontext, _arr_pipelinefilterposition, _size_pipelinefilterposition);
 			return ::std::move(*this);
+		}
+		template<size_t _size_pipelinefilterposition>
+		PipelineFilterWrapper& SetPipelineFilterPositionArray(const PipelineFilterPosition(&_arr_pipelinefilterposition)[_size_pipelinefilterposition]) & noexcept {
+			return this->SetPipelineFilterPositionArray(_arr_pipelinefilterposition, _size_pipelinefilterposition);
+		}
+		template<size_t _size_pipelinefilterposition>
+		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const PipelineFilterPosition(&_arr_pipelinefilterposition)[_size_pipelinefilterposition]) && noexcept {
+			return this->SetPipelineFilterPositionArray(_arr_pipelinefilterposition, _size_pipelinefilterposition);
+		}
+		template<size_t _size_pipelinefilterposition>
+		PipelineFilterWrapper& SetPipelineFilterPositionArray(const ::std::array<PipelineFilterPosition, _size_pipelinefilterposition>& _arr_pipelinefilterposition) & noexcept {
+			return this->SetPipelineFilterPositionArray(_arr_pipelinefilterposition.data(), _arr_pipelinefilterposition.size());
+		}
+		template<size_t _size_pipelinefilterposition>
+		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const ::std::array<PipelineFilterPosition, _size_pipelinefilterposition>& _arr_pipelinefilterposition) && noexcept {
+			return this->SetPipelineFilterPositionArray(_arr_pipelinefilterposition.data(), _arr_pipelinefilterposition.size());
+		}
+		PipelineFilterWrapper& SetPipelineFilterPositionArray(const ::std::vector<PipelineFilterPosition>& _vec_pipelinefilterposition) & noexcept {
+			return this->SetPipelineFilterPositionArray(_vec_pipelinefilterposition.data(), _vec_pipelinefilterposition.size());
+		}
+		PipelineFilterWrapper&& SetPipelineFilterPositionArray(const ::std::vector<PipelineFilterPosition>& _vec_pipelinefilterposition) && noexcept {
+			return this->SetPipelineFilterPositionArray(_vec_pipelinefilterposition.data(), _vec_pipelinefilterposition.size());
 		}
 		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept;
 		PipelineFilterWrapper& AttachToPipeline(PipelineWrapper<pipelinetraits_type>&& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
