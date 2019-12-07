@@ -1798,7 +1798,7 @@ namespace YBWLib2 {
 		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
 			return pipelinetraits_type::GetPipelineFilterUserDataIndexedDataStore(this->pipelinefiltercontext);
 		}
-		const IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
+		const IndexedDataStore& GetUserDataIndexedDataStore() const noexcept {
 			return pipelinetraits_type::GetPipelineFilterUserDataIndexedDataStore(this->pipelinefiltercontext);
 		}
 		PipelineFilterWrapper& ClearInvokeDelegate() & noexcept {
@@ -1967,7 +1967,7 @@ namespace YBWLib2 {
 		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
 			return pipelinetraits_type::GetPipelineUserDataIndexedDataStore(this->pipelinecontext);
 		}
-		const IndexedDataStore& GetPipelineUserDataIndexedDataStore() noexcept {
+		const IndexedDataStore& GetPipelineUserDataIndexedDataStore() const noexcept {
 			return pipelinetraits_type::GetUserDataIndexedDataStore(this->pipelinecontext);
 		}
 		bool IsResolved(already_shared_locked_this_t _already_shared_locked_pipeline) const noexcept {
