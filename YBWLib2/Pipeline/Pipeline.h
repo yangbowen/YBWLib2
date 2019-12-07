@@ -1632,7 +1632,7 @@ namespace YBWLib2 {
 	private:
 		template<typename... _Args_Ty>
 		struct sfinae_PreparePipelineFilterRawInvokeDelegate final {
-			using type = decltype(::std::declval<pipelinefiltercontext_t>().PreparePipelineFilterRawInvokeDelegate(::std::declval<_Args_Ty>()..., already_exclusive_locked_this_t));
+			using type = decltype(::std::declval<pipelinefiltercontext_t>().PreparePipelineFilterRawInvokeDelegate(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()));
 			using is_nothrow = ::std::bool_constant<noexcept(::std::declval<pipelinefiltercontext_t>().PreparePipelineFilterRawInvokeDelegate(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()))>;
 			static constexpr bool is_nothrow_v = is_nothrow::value;
 		};
