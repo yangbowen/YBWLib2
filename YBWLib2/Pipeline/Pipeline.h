@@ -1411,7 +1411,7 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>) noexcept {
+				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
 				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1426,7 +1426,7 @@ namespace YBWLib2 {
 						nullptr
 						)(static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this));
+				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
 				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
@@ -1442,7 +1442,7 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>) noexcept {
+				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
 				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1457,7 +1457,7 @@ namespace YBWLib2 {
 						nullptr
 						)(*_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this));
+				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
 				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
@@ -1473,7 +1473,7 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>) noexcept {
+				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
 				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1488,7 +1488,7 @@ namespace YBWLib2 {
 						nullptr
 						)(static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this));
+				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
 				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
@@ -1504,7 +1504,7 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>) noexcept {
+				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
 				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1519,7 +1519,7 @@ namespace YBWLib2 {
 						nullptr
 						)(_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this));
+				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
 				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
@@ -1676,7 +1676,7 @@ namespace YBWLib2 {
 					)
 				);
 			}
-			PipelineFilter_SetRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter, ::std::move(_pipelinefiltercontext.PreparePipelineFilterRawInvokeDelegate(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>())));
+			PipelineFilter_SetRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter, ::std::move(_pipelinefiltercontext.PreparePipelineFilterRawInvokeDelegate(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline)));
 		}
 		static void SetPipelineFilterPositionArray(pipelinefiltercontext_t& _pipelinefiltercontext, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
