@@ -247,9 +247,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="YBWLib2_internal_config.json" />
+    <Natvis Include="YBWLib2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="YBWLib2.natvis" />
+    <CustomBuild Include="YBWLib2_internal_config.json" />
   </ItemGroup>
 </Project>
