@@ -1328,13 +1328,13 @@ namespace YBWLib2 {
 			};
 			void AssociateWithPipeline(const ReferenceCountedObjectHolder<Pipeline>& _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*this->pipelinefilter));
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				invokedelegatecontext_t* invokedelegatecontext = indexeddatarawvalue_invokedelegatecontext ? reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue) : nullptr;
 				if (invokedelegatecontext) invokedelegatecontext->UnassociateWithPipeline(_already_exclusive_locked_pipeline);
 				this->pipeline = _pipeline;
 				if (invokedelegatecontext) {
-					invokedelegatecontext->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
+					invokedelegatecontext->AssociateWithPipeline(this->pipeline.get(), _already_exclusive_locked_pipeline);
 					PipelineFilter_SetRawInvokeDelegate(*this->pipelinefilter, PipelineFilterRawInvokeDelegate(invokedelegatecontext->fnptr_rawinvoke, reinterpret_cast<uintptr_t>(invokedelegatecontext)));
 				}
 			}
