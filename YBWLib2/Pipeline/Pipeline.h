@@ -2011,6 +2011,40 @@ namespace YBWLib2 {
 				::std::forward<_Args_Ty>(_args)...
 			);
 		}
+		template<
+			typename... _Args_Ty,
+			typename _Callable_PreInvoke_Ty,
+			typename _Callable_PostInvoke_Ty,
+			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+		>
+			void operator()(
+				_Callable_PreInvoke_Ty&& _callable_preinvoke,
+				_Callable_PostInvoke_Ty&& _callable_postinvoke,
+				_Args_Ty&&... _args
+				) noexcept {
+			pipelinetraits_type::InvokePipeline(
+				this->pipelinecontext,
+				::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke),
+				::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke),
+				::std::forward<_Args_Ty>(_args)...
+			);
+		}
+		template<
+			typename... _Args_Ty,
+			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+		>
+			void operator()(_Args_Ty&&... _args) noexcept {
+			pipelinetraits_type::InvokePipeline(
+				this->pipelinecontext,
+				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
+				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
+				::std::forward<_Args_Ty>(_args)...
+			);
+		}
 		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
 			return pipelinetraits_type::GetPipelineUserDataIndexedDataStore(this->pipelinecontext);
 		}
