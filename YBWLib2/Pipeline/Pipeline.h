@@ -360,11 +360,11 @@ namespace YBWLib2 {
 	}
 
 	inline bool Pipeline_IsResolved(const Pipeline& _pipeline, already_shared_locked_this_t _already_shared_locked_this) noexcept {
-		Internal::Pipeline_IsResolved(&_pipeline, _already_shared_locked_this);
+		return Internal::Pipeline_IsResolved(&_pipeline, _already_shared_locked_this);
 	}
 
 	inline bool Pipeline_IsResolved(const Pipeline& _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
-		Internal::Pipeline_IsResolved(&_pipeline, _already_exclusive_locked_this);
+		return Internal::Pipeline_IsResolved(&_pipeline, _already_exclusive_locked_this);
 	}
 
 	inline void Pipeline_RawInvoke(const Pipeline& _pipeline, PipelineInvocationPacket& _pipelineinvocationpacket, already_shared_locked_this_t _already_shared_locked_this) noexcept {
