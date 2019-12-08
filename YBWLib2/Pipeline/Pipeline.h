@@ -1351,10 +1351,10 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
-					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, reinterpret_cast<uintptr_t>(new invokedelegatecontext_t())));
 				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
 				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1380,10 +1380,10 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
-					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, reinterpret_cast<uintptr_t>(new invokedelegatecontext_t())));
 				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
 				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1409,10 +1409,10 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
-					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, reinterpret_cast<uintptr_t>(new invokedelegatecontext_t())));
 				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
 				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
@@ -1438,10 +1438,10 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
-					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, reinterpret_cast<uintptr_t>(new invokedelegatecontext_t())));
 				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
 				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
