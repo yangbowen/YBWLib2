@@ -386,7 +386,7 @@ namespace YBWLib2 {
 
 	namespace Internal {
 		YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
-		YBWLIB2_API IndexedDataEntryID indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg;
+		YBWLIB2_API IndexedDataEntryID indexeddataentryid_invokedelegatecontext;
 		YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global = nullptr;
 	}
 
@@ -1881,11 +1881,11 @@ namespace YBWLib2 {
 	void YBWLIB2_CALLTYPE Pipeline_RealInitGlobal() noexcept {
 		Internal::pipelinestore_global = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID(Internal::persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg);
-		Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = IndexedDataEntryID(Internal::persistentid_indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
+		Internal::indexeddataentryid_invokedelegatecontext = IndexedDataEntryID(Internal::persistentid_indexeddataentryid_invokedelegatecontext);
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {
-		Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = IndexedDataEntryID();
+		Internal::indexeddataentryid_invokedelegatecontext = IndexedDataEntryID();
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
 		delete Internal::pipelinestore_global;
 		Internal::pipelinestore_global = nullptr;
