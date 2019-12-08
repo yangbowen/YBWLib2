@@ -1593,7 +1593,7 @@ namespace YBWLib2 {
 				_Args_Ty&&... _args
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
-			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
 			while (!Pipeline_IsResolved(pipeline, already_shared_locked_pipeline)) {
