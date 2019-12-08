@@ -1231,13 +1231,7 @@ namespace YBWLib2 {
 					if (this->pipeline) {
 						PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*this->pipeline);
 						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-						Pipeline_DecRefInvocationPacketDataEntry(
-							*this->pipeline,
-							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-							count_arg * sizeof(uintptr_t),
-							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-							already_exclusive_locked_pipeline
-						);
+						this->UnassociateWithPipeline(already_exclusive_locked_pipeline);
 					}
 					this->pipeline = nullptr;
 					this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
