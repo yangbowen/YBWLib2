@@ -36,6 +36,7 @@
     <ClInclude Include="Exception\Exception.h" />
     <ClInclude Include="Exception\ExceptionLowLevel.h" />
     <ClInclude Include="Exception\ExceptionLowLevelModuleLocal.h" />
+    <ClInclude Include="Exception\ExceptionMacroUndef.h" />
     <ClInclude Include="Exception\ExceptionModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionWindowsModuleLocal.h" />
     <ClInclude Include="Exception\ExceptionWindows.h" />
@@ -92,8 +93,45 @@
     <ClCompile Include="YBWLib2RawData.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Exception\ExceptionMacroUndef.h" />
-    <None Include="YBWLib2_internal_config.json" />
+    <CustomBuild Include="YBWLib2_internal_config.json">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)YBWLib2RawData_Generated.h;%(Outputs)</Outputs>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ClInclude</OutputItemType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)YBWLib2RawData_Generated.h;%(Outputs)</Outputs>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ClInclude</OutputItemType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)YBWLib2RawData_Generated.h;%(Outputs)</Outputs>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClInclude</OutputItemType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pushd "$(ProjectDir)"
+if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
+echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
+xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
+popd
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)YBWLib2RawData_Generated.h;%(Outputs)</Outputs>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClInclude</OutputItemType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating Raw Data...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating Raw Data...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating Raw Data...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating Raw Data...</Message>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="YBWLib2.natvis" />
@@ -159,24 +197,20 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)../rapidjson/include;$(IncludePath)</IncludePath>
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -199,16 +233,7 @@
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>pushd "$(ProjectDir)"
-if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
-echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
-xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
-popd
-</Command>
-      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
-      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -231,16 +256,7 @@ popd
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>pushd "$(ProjectDir)"
-if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
-echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
-xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
-popd
-</Command>
-      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
-      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -268,16 +284,7 @@ popd
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>pushd "$(ProjectDir)"
-if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
-echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
-xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
-popd
-</Command>
-      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
-      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -305,16 +312,7 @@ popd
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>pushd "$(ProjectDir)"
-if exist "YBWLib2RawData_Generated.h" del "YBWLib2RawData_Generated.h"
-echo /* AUTOMATICALLY GENERATED FILE */&gt;&gt;"YBWLib2RawData_Generated.h"
-xxd -i "YBWLib2_internal_config.json"&gt;&gt;"YBWLib2RawData_Generated.h"
-popd
-</Command>
-      <Outputs>$(ProjectDir)YBWLib2RawData_Generated.h</Outputs>
-      <Inputs>$(ProjectDir)YBWLib2_internal_config.json;%(Inputs)</Inputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

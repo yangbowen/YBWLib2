@@ -183,6 +183,9 @@
     <ClInclude Include="Pipeline\PipelineModuleLocal.h">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Exception\ExceptionMacroUndef.h">
+      <Filter>Header Files\Exception</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -244,9 +247,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Exception\ExceptionMacroUndef.h">
-      <Filter>Header Files\Exception</Filter>
-    </None>
     <None Include="YBWLib2_internal_config.json" />
   </ItemGroup>
   <ItemGroup>
