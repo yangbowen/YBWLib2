@@ -100,11 +100,16 @@ namespace YBWLib2 {
 		return rawval;
 	}
 
-	YBWLIB2_API void YBWLIB2_CALLTYPE IndexedDataStore::AddEntry(const IndexedDataEntryID* _entryid, IndexedDataRawValue* _rawval) noexcept {
+	YBWLIB2_API IndexedDataRawValue* YBWLIB2_CALLTYPE IndexedDataStore::AddEntry(const IndexedDataEntryID* _entryid, IndexedDataRawValue* _rawval) noexcept {
 		try {
 			if (!_entryid || !_rawval) abort();
-			if (!this->map_entry->emplace(*_entryid, ::std::move(*_rawval)).second)
-				abort();
+			map_entry_t::iterator it_map_entry;
+			{
+				bool is_successful_emplace = false;
+				::std::tie(it_map_entry, is_successful_emplace) = this->map_entry->emplace(*_entryid, ::std::move(*_rawval));
+				if (!is_successful_emplace || it_map_entry == this->map_entry->end()) abort();
+			}
+			return &it_map_entry->second;
 		} catch (...) {
 			abort();
 		}

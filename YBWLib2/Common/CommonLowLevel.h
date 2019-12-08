@@ -2038,7 +2038,11 @@ namespace YBWLib2 {
 		/// <summary>Adds an entry into this store.</summary>
 		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
 		/// <param name="_rawval">Reference to the raw value of the entry to be added.</param>
-		inline void AddEntry(const IndexedDataEntryID& _entryid, IndexedDataRawValue&& _rawval) noexcept { this->AddEntry(&_entryid, &_rawval); }
+		/// <returns>
+		/// Returns a reference to the raw value of the entry in the store with the specified identifier.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		inline IndexedDataRawValue& AddEntry(const IndexedDataEntryID& _entryid, IndexedDataRawValue&& _rawval) noexcept { return *this->AddEntry(&_entryid, &_rawval); }
 		/// <summary>Adds an entry into this store.</summary>
 		/// <param name="_entryid">Pointer to the indexed data entry ID.</param>
 		/// <param name="_rawval">
@@ -2046,7 +2050,11 @@ namespace YBWLib2 {
 		/// This function does NOT own the object pointed to by this pointer.
 		/// However, this function move-constructs an object from the object pointed to by this pointer.
 		/// </param>
-		YBWLIB2_API void YBWLIB2_CALLTYPE AddEntry(const IndexedDataEntryID* _entryid, IndexedDataRawValue* _rawval) noexcept;
+		/// <returns>
+		/// Returns a pointer to the raw value of the entry in the store with the specified identifier.
+		/// The caller should NOT destruct or free the object pointed to by the returned pointer.
+		/// </returns>
+		YBWLIB2_API IndexedDataRawValue* YBWLIB2_CALLTYPE AddEntry(const IndexedDataEntryID* _entryid, IndexedDataRawValue* _rawval) noexcept;
 		/// <summary>Destructs and removes the entry with the specified identifier from this store.</summary>
 		/// <param name="_entryid">Reference to the indexed data entry ID.</param>
 		inline void RemoveEntryByEntryID(const IndexedDataEntryID& _entryid) noexcept { this->RemoveEntryByEntryID(&_entryid); }

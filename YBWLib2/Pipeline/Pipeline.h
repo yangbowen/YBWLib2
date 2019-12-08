@@ -1123,8 +1123,8 @@ namespace YBWLib2 {
 	namespace Internal {
 		static constexpr PersistentID persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg(UUIDFromUUIDString_CompileTime("1163516a-3daa-4f60-a2de-2024054eae72"));
 		extern YBWLIB2_API PipelineInvocationPacketDataEntryID pipelineinvocationpacketdataentryid_arr_ptr_arg;
-		static constexpr PersistentID persistentid_indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg(UUIDFromUUIDString_CompileTime("1aeb0175-26e7-4361-96c3-789a9f9d5775"));
-		extern YBWLIB2_API IndexedDataEntryID indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg;
+		static constexpr PersistentID persistentid_indexeddataentryid_invokedelegatecontext(UUIDFromUUIDString_CompileTime("7085986b-924d-4ae9-b219-dfa035eafdf1"));
+		extern YBWLIB2_API IndexedDataEntryID indexeddataentryid_invokedelegatecontext;
 		extern YBWLIB2_API ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_global;
 		extern ReferenceCountedObjectHolder<PipelineStore>* pipelinestore_modulelocal;
 	}
@@ -1215,85 +1215,32 @@ namespace YBWLib2 {
 		protected:
 			ReferenceCountedObjectHolder<PipelineFilter> pipelinefilter;
 			ReferenceCountedObjectHolder<Pipeline> pipeline;
-			struct invokedelegatecontext_t final {
+			struct invokedelegatecontext_t final : public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
 				uintptr_t fnptr_invoke_delegate_invoke = 0;
 				uintptr_t contextvalue1_delegate_invoke = 0;
 				uintptr_t contextvalue2_delegate_invoke = 0;
 				DelegateCleanupFnptr fnptr_cleanup_delegate_invoke = nullptr;
-				mutable size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
-				mutable const Pipeline* pipeline = nullptr;
-				PipelineFilter* pipelinefilter = nullptr;
+				size_t offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+				Pipeline* pipeline = nullptr;
+				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = nullptr;
 				invokedelegatecontext_t() noexcept = default;
-				template<typename _Delegate_Invoke_Ty>
-				explicit invokedelegatecontext_t(_Delegate_Invoke_Ty&& _delegate_invoke, pipelinefiltercontext_t& _pipelinefiltercontext, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-					this->fnptr_invoke_delegate_invoke = reinterpret_cast<uintptr_t>(_delegate_invoke.fnptr_invoke);
-					this->contextvalue1_delegate_invoke = _delegate_invoke.contextvalue1;
-					this->contextvalue2_delegate_invoke = _delegate_invoke.contextvalue2;
-					this->fnptr_cleanup_delegate_invoke = _delegate_invoke.fnptr_cleanup;
-					_delegate_invoke.fnptr_cleanup = nullptr;
-					_delegate_invoke.contextvalue2 = 0;
-					_delegate_invoke.contextvalue1 = 0;
-					_delegate_invoke.fnptr_invoke = nullptr;
-					assert(_pipelinefiltercontext.pipelinefilter);
-					this->pipelinefilter = _pipelinefiltercontext.pipelinefilter.get();
-					if (_pipelinefiltercontext.pipeline) {
-						this->pipeline = _pipelinefiltercontext.pipeline.get();
-						void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
-						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = Pipeline_RegisterInvocationPacketDataEntry(
-							*_pipelinefiltercontext.pipeline,
-							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-							count_arg * sizeof(uintptr_t),
-							reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
-							PipelineInvocationPacketDataEntryInitializeDelegate(),
-							PipelineInvocationPacketDataEntryCleanupDelegate(),
-							_already_exclusive_locked_pipeline
-						);
-					}
-				}
 				invokedelegatecontext_t(const invokedelegatecontext_t&) = delete;
-				invokedelegatecontext_t(invokedelegatecontext_t&& x) noexcept {
-					this->fnptr_invoke_delegate_invoke = ::std::move(x.fnptr_invoke_delegate_invoke);
-					x.fnptr_invoke_delegate_invoke = 0;
-					this->contextvalue1_delegate_invoke = ::std::move(x.contextvalue1_delegate_invoke);
-					x.contextvalue1_delegate_invoke = 0;
-					this->contextvalue2_delegate_invoke = ::std::move(x.contextvalue2_delegate_invoke);
-					x.contextvalue2_delegate_invoke = 0;
-					this->fnptr_cleanup_delegate_invoke = ::std::move(x.fnptr_cleanup_delegate_invoke);
-					x.fnptr_cleanup_delegate_invoke = nullptr;
-					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
-					x.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
-					this->pipelinefilter = ::std::move(x.pipelinefilter);
-					x.pipelinefilter = nullptr;
-				}
+				invokedelegatecontext_t(invokedelegatecontext_t&& x) = delete;
 				~invokedelegatecontext_t() {
+					this->fnptr_rawinvoke = nullptr;
 					if (this->pipeline) {
 						PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*this->pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						Pipeline_DecRefInvocationPacketDataEntry(
 							*this->pipeline,
 							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
 							count_arg * sizeof(uintptr_t),
 							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-							already_shared_locked_pipeline
+							already_exclusive_locked_pipeline
 						);
-						IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
-						IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
-							Pipeline_DecRefInvocationPacketDataEntry(
-								*this->pipeline,
-								Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-								count_arg * sizeof(uintptr_t),
-								*reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue),
-								already_shared_locked_pipeline
-							);
-							indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
-							indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
-							indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						}
 					}
-					this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
 					this->pipeline = nullptr;
-					this->pipelinefilter = nullptr;
+					this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
 					if (this->fnptr_cleanup_delegate_invoke) {
 						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
 					}
@@ -1303,52 +1250,10 @@ namespace YBWLib2 {
 					this->fnptr_invoke_delegate_invoke = 0;
 				}
 				invokedelegatecontext_t& operator=(const invokedelegatecontext_t&) = delete;
-				invokedelegatecontext_t& operator=(invokedelegatecontext_t&& x) noexcept {
-					this->pipelinefilter = nullptr;
-					if (this->fnptr_cleanup_delegate_invoke) {
-						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
-					}
-					this->fnptr_cleanup_delegate_invoke = nullptr;
-					this->contextvalue2_delegate_invoke = 0;
-					this->contextvalue1_delegate_invoke = 0;
-					this->fnptr_invoke_delegate_invoke = 0;
-					this->fnptr_invoke_delegate_invoke = ::std::move(x.fnptr_invoke_delegate_invoke);
-					x.fnptr_invoke_delegate_invoke = 0;
-					this->contextvalue1_delegate_invoke = ::std::move(x.contextvalue1_delegate_invoke);
-					x.contextvalue1_delegate_invoke = 0;
-					this->contextvalue2_delegate_invoke = ::std::move(x.contextvalue2_delegate_invoke);
-					x.contextvalue2_delegate_invoke = 0;
-					this->fnptr_cleanup_delegate_invoke = ::std::move(x.fnptr_cleanup_delegate_invoke);
-					x.fnptr_cleanup_delegate_invoke = nullptr;
-					this->pipelineinvocationpacketdataentryholder_arr_ptr_arg = ::std::move(x.pipelineinvocationpacketdataentryholder_arr_ptr_arg);
-					x.pipelineinvocationpacketdataentryholder_arr_ptr_arg.Clear();
-					this->pipelinefilter = ::std::move(x.pipelinefilter);
-					x.pipelinefilter = nullptr;
-					return *this;
-				}
+				invokedelegatecontext_t& operator=(invokedelegatecontext_t&& x) noexcept = delete;
 				const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
-					assert(this->pipelinefilter);
 					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
-					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
-						if (this->pipeline) {
-							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
-							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
-							this->pipeline = nullptr;
-						}
-						const IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter).GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						assert(indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						this->pipeline = PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket);
-						assert(this->pipeline);
-						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
-						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
-						Pipeline_AddRefInvocationPacketDataEntry(
-							*this->pipeline,
-							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-							count_arg * sizeof(uintptr_t),
-							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-							already_shared_locked_pipeline
-						);
-					}
+					assert(this->pipeline == PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket));
 					const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);
 					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
@@ -1358,28 +1263,8 @@ namespace YBWLib2 {
 					return ptr_pipelineinvocationpacketdataentry_arr_ptr_arg;
 				}
 				uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
-					assert(this->pipelinefilter);
 					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
-					if (this->pipeline != PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket)) {
-						if (this->pipeline) {
-							Pipeline_DecRefInvocationPacketDataEntry(*this->pipeline, Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg, count_arg * sizeof(uintptr_t), this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg, already_shared_locked_pipeline);
-							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
-							this->pipeline = nullptr;
-						}
-						const IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter).GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						assert(indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-						this->pipeline = PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket);
-						assert(this->pipeline);
-						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = *reinterpret_cast<const size_t*>(&indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue);
-						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
-						Pipeline_AddRefInvocationPacketDataEntry(
-							*this->pipeline,
-							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-							count_arg * sizeof(uintptr_t),
-							this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-							already_shared_locked_pipeline
-						);
-					}
+					assert(this->pipeline == PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket));
 					void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);
 					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
@@ -1388,7 +1273,76 @@ namespace YBWLib2 {
 					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg), (uintptr_t)alignof(uintptr_t)));
 					return ptr_pipelineinvocationpacketdataentry_arr_ptr_arg;
 				}
+				template<typename _Delegate_Invoke_Ty>
+				void SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke, PipelineFilterRawInvokeDelegate::fnptr_invoke_t _fnptr_rawinvoke, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+					static_cast<void>(_already_exclusive_locked_pipeline);
+					this->fnptr_rawinvoke = nullptr;
+					if (this->fnptr_cleanup_delegate_invoke) {
+						(*this->fnptr_cleanup_delegate_invoke)(this->contextvalue1_delegate_invoke, this->contextvalue2_delegate_invoke);
+					}
+					this->fnptr_cleanup_delegate_invoke = nullptr;
+					this->contextvalue2_delegate_invoke = 0;
+					this->contextvalue1_delegate_invoke = 0;
+					this->fnptr_invoke_delegate_invoke = 0;
+					this->fnptr_invoke_delegate_invoke = reinterpret_cast<uintptr_t>(_delegate_invoke.fnptr_invoke);
+					this->contextvalue1_delegate_invoke = _delegate_invoke.contextvalue1;
+					this->contextvalue2_delegate_invoke = _delegate_invoke.contextvalue2;
+					this->fnptr_cleanup_delegate_invoke = _delegate_invoke.fnptr_cleanup;
+					this->fnptr_rawinvoke = _fnptr_rawinvoke;
+					_delegate_invoke.fnptr_cleanup = nullptr;
+					_delegate_invoke.contextvalue2 = 0;
+					_delegate_invoke.contextvalue1 = 0;
+					_delegate_invoke.fnptr_invoke = nullptr;
+				}
+				void UnassociateWithPipeline(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+					if (this->pipeline) {
+						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+						Pipeline_UnregisterInvocationPacketDataEntry(
+							*this->pipeline,
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							_already_exclusive_locked_pipeline
+						);
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = SIZE_MAX;
+					}
+					this->pipeline = nullptr;
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg == SIZE_MAX);
+				}
+				void AssociateWithPipeline(Pipeline* _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+					if (this->pipeline) this->UnassociateWithPipeline(_already_exclusive_locked_pipeline);
+					assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg == SIZE_MAX);
+					if (_pipeline) {
+						this->pipeline = _pipeline;
+						void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
+						this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg = Pipeline_RegisterInvocationPacketDataEntry(
+							*this->pipeline,
+							Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
+							count_arg * sizeof(uintptr_t),
+							&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg,
+							PipelineInvocationPacketDataEntryInitializeDelegate(),
+							PipelineInvocationPacketDataEntryCleanupDelegate(),
+							_already_exclusive_locked_pipeline
+						);
+						assert(this->offset_pipelineinvocationpacketdataentry_arr_ptr_arg != SIZE_MAX);
+					}
+				}
 			};
+			void AssociateWithPipeline(const ReferenceCountedObjectHolder<Pipeline>& _pipeline, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*this->pipelinefilter));
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+				invokedelegatecontext_t* invokedelegatecontext = indexeddatarawvalue_invokedelegatecontext ? reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue) : nullptr;
+				if (invokedelegatecontext) invokedelegatecontext->UnassociateWithPipeline(_already_exclusive_locked_pipeline);
+				this->pipeline = _pipeline;
+				if (invokedelegatecontext) {
+					invokedelegatecontext->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
+					PipelineFilter_SetRawInvokeDelegate(*this->pipelinefilter, PipelineFilterRawInvokeDelegate(invokedelegatecontext->fnptr_rawinvoke, reinterpret_cast<uintptr_t>(invokedelegatecontext)));
+				}
+			}
+			void ClearInvokeDelegateContext(already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
+				if (indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext))
+					indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
 				size_t... _Index_Arg_Ty,
@@ -1396,9 +1350,13 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
-				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+				if (!indexeddatarawvalue_invokedelegatecontext)
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
+				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
 					static_cast<void>(_contextvalue2);
@@ -1411,14 +1369,8 @@ namespace YBWLib2 {
 						nullptr
 						)(static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
-				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
-					assert(invokedelegatecontext);
-					static_cast<void>(_contextvalue2);
-					delete invokedelegatecontext; invokedelegatecontext = nullptr;
-				};
-				return delegate_rawinvoke;
+				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
+				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1427,9 +1379,13 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
-				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+				if (!indexeddatarawvalue_invokedelegatecontext)
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
+				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
 					static_cast<void>(_contextvalue2);
@@ -1442,14 +1398,8 @@ namespace YBWLib2 {
 						nullptr
 						)(*_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
-				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
-					assert(invokedelegatecontext);
-					static_cast<void>(_contextvalue2);
-					delete invokedelegatecontext; invokedelegatecontext = nullptr;
-				};
-				return delegate_rawinvoke;
+				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
+				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1458,9 +1408,13 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
-				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+				if (!indexeddatarawvalue_invokedelegatecontext)
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
+				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
 					static_cast<void>(_contextvalue2);
@@ -1473,14 +1427,8 @@ namespace YBWLib2 {
 						nullptr
 						)(static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
-				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
-					assert(invokedelegatecontext);
-					static_cast<void>(_contextvalue2);
-					delete invokedelegatecontext; invokedelegatecontext = nullptr;
-				};
-				return delegate_rawinvoke;
+				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
+				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
 				typename... _Args_Delegate_Invoke_Ty,
@@ -1489,9 +1437,13 @@ namespace YBWLib2 {
 				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
 			>
-				PipelineFilterRawInvokeDelegate PreparePipelineFilterRawInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
-				PipelineFilterRawInvokeDelegate delegate_rawinvoke;
-				delegate_rawinvoke.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipeline);
+				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
+				if (!indexeddatarawvalue_invokedelegatecontext)
+					indexeddatarawvalue_invokedelegatecontext = &indexeddatastore_userdata_pipelinefilter.AddEntry(Internal::indexeddataentryid_invokedelegatecontext, IndexedDataRawValue(&CleanupIndexedDataRawValue_InvokeDelegateContext, static_cast<uintptr_t>(new invokedelegatecontext_t())));
+				invokedelegatecontext_t& invokedelegatecontext = *reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue);
+				PipelineFilterRawInvokeDelegate::fnptr_invoke_t fnptr_rawinvoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, PipelineInvocationPacket* _pipelineinvocationpacket) noexcept->void {
 					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
 					assert(invokedelegatecontext);
 					static_cast<void>(_contextvalue2);
@@ -1504,14 +1456,18 @@ namespace YBWLib2 {
 						nullptr
 						)(_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
-				delegate_rawinvoke.contextvalue1 = reinterpret_cast<uintptr_t>(new invokedelegatecontext_t(_delegate_invoke, *this, _already_exclusive_locked_pipeline));
-				delegate_rawinvoke.fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_contextvalue1);
-					assert(invokedelegatecontext);
-					static_cast<void>(_contextvalue2);
-					delete invokedelegatecontext; invokedelegatecontext = nullptr;
-				};
-				return delegate_rawinvoke;
+				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
+				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
+			}
+		private:
+			static void CleanupIndexedDataRawValue_InvokeDelegateContext(IndexedDataRawValue* _indexeddatarawvalue) noexcept {
+				if (_indexeddatarawvalue) {
+					invokedelegatecontext_t* invokedelegatecontext = reinterpret_cast<invokedelegatecontext_t*>(_indexeddatarawvalue->contextvalue);
+					if (invokedelegatecontext) {
+						delete invokedelegatecontext;
+						invokedelegatecontext = nullptr;
+					}
+				}
 			}
 		};
 	public:
@@ -1660,24 +1616,22 @@ namespace YBWLib2 {
 				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
 				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 			}
-			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
-			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
-			// The destructor of invokedelegatecontext_t will unregister the pipeline filter invocation packet data entry.
+			_pipelinefiltercontext.ClearInvokeDelegateContext(already_exclusive_locked_pipeline);
 		}
 	private:
 		template<typename... _Args_Ty>
-		struct sfinae_PreparePipelineFilterRawInvokeDelegate final {
-			using type = decltype(::std::declval<pipelinefiltercontext_t>().PreparePipelineFilterRawInvokeDelegate(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()));
-			using is_nothrow = ::std::bool_constant<noexcept(::std::declval<pipelinefiltercontext_t>().PreparePipelineFilterRawInvokeDelegate(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()))>;
+		struct sfinae_SetInvokeDelegateContext final {
+			using type = decltype(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()));
+			using is_nothrow = ::std::bool_constant<noexcept(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()))>;
 			static constexpr bool is_nothrow_v = is_nothrow::value;
 		};
 		template<typename... _Args_Ty>
-		using sfinae_PreparePipelineFilterRawInvokeDelegate_t = typename sfinae_PreparePipelineFilterRawInvokeDelegate<_Args_Ty...>::type;
+		using sfinae_SetInvokeDelegateContext_t = typename sfinae_SetInvokeDelegateContext<_Args_Ty...>::type;
 	public:
 		template<
 			typename _Delegate_Invoke_Ty,
-			typename ::std::enable_if<is_detected_v<sfinae_PreparePipelineFilterRawInvokeDelegate_t, _Delegate_Invoke_Ty&&, ::std::make_index_sequence<count_arg>>, int>::type = 0
+			typename ::std::enable_if<is_detected_v<sfinae_SetInvokeDelegateContext_t, _Delegate_Invoke_Ty&&, ::std::make_index_sequence<count_arg>>, int>::type = 0
 		>
 			static void SetPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext, _Delegate_Invoke_Ty&& _delegate_invoke) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
@@ -1686,33 +1640,8 @@ namespace YBWLib2 {
 				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
 				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
 			}
-			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
-			static_cast<void>(PipelineFilter_ReleaseRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter));
-			if (_pipelinefiltercontext.pipeline) {
-				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
-				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
-					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-					_pipelinefiltercontext.pipeline,
-					count_arg * sizeof(uintptr_t),
-					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
-					PipelineInvocationPacketDataEntryInitializeDelegate(),
-					PipelineInvocationPacketDataEntryCleanupDelegate(),
-					already_exclusive_locked_pipeline
-				);
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*_pipelinefiltercontext.pipelinefilter);
-				assert(!indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg));
-				indexeddatastore_userdata_pipelinefilter.AddEntry(
-					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-					IndexedDataRawValue(
-						[](IndexedDataRawValue*) noexcept->void {
-							abort();
-						},
-						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
-					)
-				);
-			}
-			PipelineFilter_SetRawInvokeDelegate(*_pipelinefiltercontext.pipelinefilter, ::std::move(_pipelinefiltercontext.PreparePipelineFilterRawInvokeDelegate(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline)));
+			_pipelinefiltercontext.SetInvokeDelegateContext(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline);
 		}
 		static void SetPipelineFilterPositionArray(pipelinefiltercontext_t& _pipelinefiltercontext, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
@@ -1731,30 +1660,7 @@ namespace YBWLib2 {
 			assert(_pipelinecontext.pipeline);
 			Pipeline& pipeline = *_pipelinecontext.pipeline;
 			assert(!_pipelinefiltercontext.pipeline);
-			_pipelinefiltercontext.pipeline = _pipelinecontext.pipeline;
-			if (PipelineFilter_GetRawInvokeDelegate(pipelinefilter).fnptr_invoke) {
-				void* data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg[count_arg] = {};
-				PipelineInvocationPacketDataEntryHolder pipelineinvocationpacketdataentryholder_arr_ptr_arg(
-					Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-					_pipelinecontext.pipeline,
-					count_arg * sizeof(uintptr_t),
-					reinterpret_cast<const void*>(&data_initial_pipelineinvocationpacketdataentry_arr_ptr_arg),
-					PipelineInvocationPacketDataEntryInitializeDelegate(),
-					PipelineInvocationPacketDataEntryCleanupDelegate(),
-					_already_exclusive_locked_pipeline
-				);
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
-				assert(!indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg));
-				indexeddatastore_userdata_pipelinefilter.AddEntry(
-					Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg,
-					IndexedDataRawValue(
-						[](IndexedDataRawValue*) noexcept->void {
-							abort();
-						},
-						pipelineinvocationpacketdataentryholder_arr_ptr_arg.Release()
-					)
-				);
-			}
+			_pipelinefiltercontext.AssociateWithPipeline(_pipelinecontext.pipeline, _already_exclusive_locked_pipeline);
 			Pipeline_AttachPipelineFilter(pipeline, pipelinefilter, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
 		}
 		static void AttachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) noexcept {
@@ -1766,24 +1672,11 @@ namespace YBWLib2 {
 		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 			assert(_pipelinefiltercontext.pipelinefilter);
 			PipelineFilter& pipelinefilter = *_pipelinefiltercontext.pipelinefilter;
-			assert(_pipelinefiltercontext.pipeline && _pipelinefiltercontext.pipeline == _pipelinecontext.pipeline);
+			assert(_pipelinecontext.pipeline);
 			Pipeline& pipeline = *_pipelinecontext.pipeline;
+			assert(_pipelinefiltercontext.pipeline == _pipelinecontext.pipeline);
 			Pipeline_DetachPipelineFilter(pipeline, pipelinefilter, _should_resolve_immediately, _already_exclusive_locked_pipeline);
-			{
-				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
-				IndexedDataRawValue* indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-				if (indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg) {
-					Pipeline_UnregisterInvocationPacketDataEntry(
-						pipeline,
-						Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg,
-						_already_exclusive_locked_pipeline
-					);
-					indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->contextvalue = SIZE_MAX;
-					indexeddatarawvalue_offset_pipelineinvocationpacketdataentry_arr_ptr_arg->fnptr_cleanup = nullptr;
-					indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_offset_pipelineinvocationpacketdataentry_arr_ptr_arg);
-				}
-			}
-			_pipelinefiltercontext.pipeline.reset();
+			_pipelinefiltercontext.AssociateWithPipeline(ReferenceCountedObjectHolder<Pipeline>(), _already_exclusive_locked_pipeline);
 		}
 		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately) noexcept {
 			assert(_pipelinecontext.pipeline);
