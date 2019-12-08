@@ -1553,6 +1553,49 @@ namespace YBWLib2 {
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+			size_t size_invocationdata = Pipeline_GetInvocationDataSize(pipeline, already_shared_locked_pipeline);
+#if defined(YBWLIB2_NO_ALLOCA)
+			::std::unique_ptr<::std::max_align_t[]> uniqueptr_buf_invocationdata(new ::std::max_align_t[(size_invocationdata - 1) / sizeof(::std::max_align_t) + 1]);
+			void* buf_invocationdata = static_cast<void*>(uniqueptr_buf_invocationdata.get());
+#elif defined(_MSC_VER)
+			void* buf_invocationdata = _malloca(size_invocationdata);
+#else
+			void* buf_invocationdata = alloca(size_invocationdata);
+#endif
+			assert(buf_invocationdata);
+			PipelineInvocationPacket* pipelineinvocationpacket = nullptr;
+			Pipeline_InitializeInvocationPacket(pipeline, pipelineinvocationpacket, buf_invocationdata, size_invocationdata, already_shared_locked_pipeline);
+			assert(pipelineinvocationpacket);
+			{
+				uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
+				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<uintptr_t>(::std::addressof(_args))), ...);
+			}
+			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			::std::invoke(::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			Pipeline_CleanupInvocationPacket(pipeline, pipelineinvocationpacket, already_shared_locked_pipeline);
+#if !defined(YBWLIB2_NO_ALLOCA) && defined(_MSC_VER)
+			_freea(buf_invocationdata); buf_invocationdata = nullptr;
+#else
+			buf_invocationdata = nullptr;
+#endif
+		}
+		template<
+			typename _Callable_PreInvoke_Ty,
+			typename _Callable_PostInvoke_Ty,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PreInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PostInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0
+		>
+			static void InvokePipeline(
+				pipelinecontext_type& _pipelinecontext,
+				_Callable_PreInvoke_Ty&& _callable_preinvoke,
+				_Callable_PostInvoke_Ty&& _callable_postinvoke,
+				_Args_Ty&&... _args
+			) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
+			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
 			while (!Pipeline_IsResolved(pipeline, already_shared_locked_pipeline)) {
 				shared_lock_pipeline.unlock();
 				{
