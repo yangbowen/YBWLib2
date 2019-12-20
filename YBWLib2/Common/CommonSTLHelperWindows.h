@@ -113,7 +113,7 @@ namespace YBWLib2 {
 			*ppvObject = nullptr;
 			return E_NOINTERFACE;
 		} else {
-			*ppvObject = (*it_map_cast->second)(this);
+			*ppvObject = (*it_map_cast->second)(_obj);
 			return S_OK;
 		}
 	}
