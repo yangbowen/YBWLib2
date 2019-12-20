@@ -1247,6 +1247,7 @@ namespace YBWLib2 {
 				invokedelegatecontext_t& operator=(invokedelegatecontext_t&& x) noexcept = delete;
 				const uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(const PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
+					static_cast<void>(already_shared_locked_pipeline);
 					assert(this->pipeline == PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket));
 					const void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);
@@ -1258,6 +1259,7 @@ namespace YBWLib2 {
 				}
 				uintptr_t* GetPipelineInvocationDataEntry_ArgPtrArr(PipelineInvocationPacket& _pipelineinvocationpacket) const noexcept {
 					already_shared_locked_this_t already_shared_locked_pipeline;// The pipeline is shared-locked during invocation.
+					static_cast<void>(already_shared_locked_pipeline);
 					assert(this->pipeline == PipelineInvocationPacket_GetPipeline(_pipelineinvocationpacket));
 					void* ptr_invocationpacketdata = PipelineInvocationPacket_GetInvocationPacketDataPtr(_pipelineinvocationpacket);
 					assert(ptr_invocationpacketdata);

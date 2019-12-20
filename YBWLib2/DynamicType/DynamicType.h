@@ -205,12 +205,12 @@ namespace YBWLib2 {
 			delegate_placement_create_object(::std::move(_delegate_placement_create_object)),
 			delegate_delete_object(::std::move(_delegate_delete_object)) {
 			this->CreateImplObject(_dtbaseclassdef.begin(), _dtbaseclassdef.end());
-			if (this->dtclassid) this->Register();
+			if (_persistentid_dtclassid != PersistentID()) this->Register();
 		}
 		DynamicTypeClassObj(const DynamicTypeClassObj&) = delete;
 		DynamicTypeClassObj(DynamicTypeClassObj&&) = delete;
 		inline ~DynamicTypeClassObj() {
-			if (this->dtclassid) this->UnRegister();
+			if (this->dtclassid != PersistentID()) this->UnRegister();
 			this->DestroyImplObject();
 		}
 		DynamicTypeClassObj& operator=(const DynamicTypeClassObj&) = delete;
@@ -375,7 +375,7 @@ namespace YBWLib2 {
 			module_info(_is_module_local ? module_info_current : nullptr),
 			dtbaseclassflags(_dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(_fnptr_dynamic_type_static_upcast) {
-			if (!this->dtclassid) abort();
+			if (this->dtclassid == PersistentID()) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
@@ -394,7 +394,7 @@ namespace YBWLib2 {
 			module_info(x.module_info),
 			dtbaseclassflags(x.dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
-			if (!this->dtclassid) abort();
+			if (this->dtclassid == PersistentID()) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
@@ -413,7 +413,7 @@ namespace YBWLib2 {
 			module_info(x.module_info),
 			dtbaseclassflags(x.dtbaseclassflags),
 			fnptr_dynamic_type_static_upcast(x.fnptr_dynamic_type_static_upcast) {
-			if (!this->dtclassid) abort();
+			if (this->dtclassid == PersistentID()) abort();
 			try {
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
 				this->dtclassobj =
