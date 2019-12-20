@@ -83,6 +83,8 @@ namespace YBWLib2 {
 
 	class ReferenceCountedCOMObject abstract : public IReferenceCountedObject, public IUnknown {
 	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ReferenceCountedCOMObject, YBWLIB2_API, "00fb7e5b-21a9-4c1e-ae14-4f836112903b");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedCOMObject);
 		inline virtual ULONG STDMETHODCALLTYPE AddRef() override {
 			return this->IReferenceCountedObject::IncReferenceCount() & ~(ULONG)0;
 		}
@@ -94,7 +96,7 @@ namespace YBWLib2 {
 	template<typename... _Interface_Ty>
 	class COMObjectWithQueryInterface abstract : public _Interface_Ty... {
 	public:
-		virtual HRESULT STDMETHODCALLTYPE QueryInterface(
+		inline virtual HRESULT STDMETHODCALLTYPE QueryInterface(
 			/* [in] */ REFIID riid,
 			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
 		) override {

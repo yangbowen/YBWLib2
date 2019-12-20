@@ -11,9 +11,13 @@
 #include "CommonWindows.h"
 
 namespace YBWLib2 {
-	void YBWLIB2_CALLTYPE CommonWindows_RealInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE CommonWindows_RealInitModuleLocal() noexcept {
+		GetDynamicTypeClassObject<ReferenceCountedCOMObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ReferenceCountedCOMObject)), module_info_current);
+	}
 
-	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitModuleLocal() noexcept {}
+	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitModuleLocal() noexcept {
+		GetDynamicTypeClassObject<ReferenceCountedCOMObject>()->UnRegisterTypeInfoWrapper(module_info_current);
+	}
 }
 
 #endif

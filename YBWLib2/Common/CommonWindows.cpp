@@ -9,6 +9,8 @@
 #include "CommonSTLHelperWindows.h"
 
 namespace YBWLib2 {
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ReferenceCountedCOMObject, YBWLIB2_API);
+
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE AnsiStringToUtf16String(
 		const rawallocator_t* rawallocator,
 		char16_t** str_out_ret,
@@ -152,7 +154,17 @@ namespace YBWLib2 {
 		return nullptr;
 	}
 
-	void YBWLIB2_CALLTYPE CommonWindows_RealInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE CommonWindows_RealInitGlobal() noexcept {
+		ReferenceCountedCOMObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			ReferenceCountedCOMObject::DynamicTypeThisClassPersistentID,
+			IsDynamicTypeModuleLocalClass<ReferenceCountedCOMObject>(),
+			{ DynamicTypeBaseClassDef<ReferenceCountedCOMObject, IReferenceCountedObject, 0> },
+			0, sizeof(ReferenceCountedCOMObject), alignof(ReferenceCountedCOMObject)
+		);
+	}
 
-	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitGlobal() noexcept {}
+	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitGlobal() noexcept {
+		delete ReferenceCountedCOMObject::DynamicTypeThisClassObject;
+		ReferenceCountedCOMObject::DynamicTypeThisClassObject = nullptr;
+	}
 }
