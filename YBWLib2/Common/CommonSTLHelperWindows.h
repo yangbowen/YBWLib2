@@ -1,4 +1,8 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+﻿#ifndef _WIN32_WINNT
+#error This header file is only to be used when you're targeting Microsoft Windows. If you are, set the targetted windows version before including this header file.
+#endif
+
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_8452DD82_9EB3_4C99_8F90_884D03CAF60A
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -10,8 +14,11 @@
 #include <utility>
 #include <atomic>
 #include <memory>
+#include <unordered_map>
 #include <mutex>
 #include <ostream>
+#include <minwindef.h>
+#include <objbase.h>
 #include "../DynamicType/DynamicType.h"
 #include "Common.h"
 
@@ -73,6 +80,43 @@ namespace YBWLib2 {
 	inline ::std::string Utf16StringToAnsiString(const ::std::u16string& u16str) noexcept(false) {
 		return Utf16StringToAnsiString<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
 	}
+
+	class ReferenceCountedCOMObject abstract : public IReferenceCountedObject, public IUnknown {
+	public:
+		inline virtual ULONG STDMETHODCALLTYPE AddRef() override {
+			return this->IReferenceCountedObject::IncReferenceCount() & ~(ULONG)0;
+		}
+		inline virtual ULONG STDMETHODCALLTYPE Release() override {
+			return this->IReferenceCountedObject::DecReferenceCount() & ~(ULONG)0;
+		}
+	};
+
+	template<typename... _Interface_Ty>
+	class COMObjectWithQueryInterface abstract : public _Interface_Ty... {
+	public:
+		virtual HRESULT STDMETHODCALLTYPE QueryInterface(
+			/* [in] */ REFIID riid,
+			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
+		) override {
+			using map_cast_t = ::std::unordered_map<IID, void* (__stdcall*)(COMObjectWithQueryInterface<_Interface_Ty...> * _ptr) noexcept>;
+			static const map_cast_t map_cast(
+				{
+					{
+						__uuidof(_Interface_Ty),
+						[](COMObjectWithQueryInterface<_Interface_Ty...>* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
+					}...
+				}
+			);
+			typename map_cast_t::const_iterator it_map_cast = map_cast.find(riid);
+			if (it_map_cast == map_cast.cend()) {
+				*ppvObject = nullptr;
+				return E_NOINTERFACE;
+			} else {
+				*ppvObject = (*it_map_cast->second)(this);
+				return S_OK;
+			}
+		}
+	};
 }
 
 #endif

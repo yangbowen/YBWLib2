@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <minwindef.h>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
