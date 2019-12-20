@@ -10,6 +10,7 @@
 #ifndef _INCLUDE_GUARD_0939BABA_5E02_4A75_B81A_A1E3E566F25C
 #define _INCLUDE_GUARD_0939BABA_5E02_4A75_B81A_A1E3E566F25C
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 #include <atomic>
@@ -81,44 +82,41 @@ namespace YBWLib2 {
 		return Utf16StringToAnsiString<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
 	}
 
-	class ReferenceCountedCOMObject abstract : public virtual IReferenceCountedObject, public IUnknown {
-	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ReferenceCountedCOMObject, YBWLIB2_API, "00fb7e5b-21a9-4c1e-ae14-4f836112903b");
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedCOMObject);
-		inline virtual ULONG STDMETHODCALLTYPE AddRef() override {
-			return this->IReferenceCountedObject::IncReferenceCount() & ~(ULONG)0;
-		}
-		inline virtual ULONG STDMETHODCALLTYPE Release() override {
-			return this->IReferenceCountedObject::DecReferenceCount() & ~(ULONG)0;
-		}
-	};
+	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_AddRef(const IReferenceCountedObject* _obj) noexcept {
+		assert(_obj);
+		return _obj->IncReferenceCount() & ~(ULONG)0;
+	}
 
-	template<typename... _Interface_Ty>
-	class COMObjectWithQueryInterface abstract : public _Interface_Ty... {
-	public:
-		inline virtual HRESULT STDMETHODCALLTYPE QueryInterface(
-			/* [in] */ REFIID riid,
-			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
-		) override {
-			using map_cast_t = ::std::unordered_map<IID, void* (__stdcall*)(COMObjectWithQueryInterface<_Interface_Ty...> * _ptr) noexcept>;
-			static const map_cast_t map_cast(
+	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_Release(const IReferenceCountedObject* _obj) noexcept {
+		assert(_obj);
+		return _obj->DecReferenceCount() & ~(ULONG)0;
+	}
+
+	template<typename _Class_Ty, typename... _Interface_Ty>
+	inline HRESULT STDMETHODCALLTYPE COMHelper_QueryInterface(
+		_Class_Ty* _obj,
+		/* [in] */ REFIID riid,
+		/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
+	) {
+		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty* _ptr) noexcept;
+		using map_cast_t = ::std::unordered_map<IID, fnptr_cast_t, hash_trivially_copyable_t<IID, size_t>>;
+		static const map_cast_t map_cast(
+			{
 				{
-					{
-						__uuidof(_Interface_Ty),
-						[](COMObjectWithQueryInterface<_Interface_Ty...>* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
-					}...
-				}
-			);
-			typename map_cast_t::const_iterator it_map_cast = map_cast.find(riid);
-			if (it_map_cast == map_cast.cend()) {
-				*ppvObject = nullptr;
-				return E_NOINTERFACE;
-			} else {
-				*ppvObject = (*it_map_cast->second)(this);
-				return S_OK;
+					__uuidof(_Interface_Ty),
+					[](_Class_Ty* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
+				}...
 			}
+		);
+		typename map_cast_t::const_iterator it_map_cast = map_cast.find(riid);
+		if (it_map_cast == map_cast.cend()) {
+			*ppvObject = nullptr;
+			return E_NOINTERFACE;
+		} else {
+			*ppvObject = (*it_map_cast->second)(this);
+			return S_OK;
 		}
-	};
+	}
 }
 
 #endif
