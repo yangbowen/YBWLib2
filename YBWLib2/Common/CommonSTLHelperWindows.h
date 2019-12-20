@@ -81,7 +81,7 @@ namespace YBWLib2 {
 		return Utf16StringToAnsiString<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
 	}
 
-	class ReferenceCountedCOMObject abstract : public IReferenceCountedObject, public IUnknown {
+	class ReferenceCountedCOMObject abstract : public virtual IReferenceCountedObject, public IUnknown {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ReferenceCountedCOMObject, YBWLIB2_API, "00fb7e5b-21a9-4c1e-ae14-4f836112903b");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedCOMObject);
