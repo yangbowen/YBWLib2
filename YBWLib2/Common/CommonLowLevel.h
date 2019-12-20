@@ -488,7 +488,7 @@ namespace YBWLib2 {
 			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
 			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
 			static_assert(sizeof(_Hash_Ty) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
-			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
+			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept {
 				_Hash_Ty _hash = fnv1a_offset_basis;
 				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
 				return _hash;
@@ -502,7 +502,7 @@ namespace YBWLib2 {
 			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
 			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
 			static_assert(sizeof(_Hash_Ty) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
-			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) {
+			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept {
 				_Hash_Ty _hash = fnv1a_offset_basis;
 				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
 				return _hash;
@@ -516,7 +516,7 @@ namespace YBWLib2 {
 	/// <summary>Hashes a trivially copyable object.</summary>
 	template<typename _Ty, typename _Hash_Ty>
 	struct hash_trivially_copyable_t {
-		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) { return Internal::hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
+		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept { return Internal::hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
 	};
 
 	struct dummy_t {};
