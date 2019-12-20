@@ -322,10 +322,8 @@ namespace YBWLib2 {
 		friend class ReferenceCountedObjectHolder;
 	public:
 		struct inc_ref_count_t {};
-		struct adopt_ref_count_t {};
 
 		static constexpr inc_ref_count_t inc_ref_count {};
-		static constexpr adopt_ref_count_t adopt_ref_count {};
 
 		using element_type = _Element_Ty;
 		constexpr ReferenceCountedObjectHolder() noexcept {}
@@ -348,7 +346,7 @@ namespace YBWLib2 {
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p, adopt_ref_count_t) noexcept {
+		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p) noexcept {
 			if (p) {
 				this->ptr_stored = p;
 				this->ptr_owned = p;
@@ -508,7 +506,7 @@ namespace YBWLib2 {
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline void reset(_Element_From_Ty*&& p, adopt_ref_count_t) noexcept {
+		inline void reset(_Element_From_Ty*&& p) noexcept {
 			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
 			if (_ptr_owned_old) {
 				this->ptr_stored = nullptr;
@@ -522,6 +520,15 @@ namespace YBWLib2 {
 				this->ptr_owned = p;
 				p = nullptr;
 			}
+		}
+		/// <summary>
+		/// Releases the stored pointer without changing the reference count.
+		/// </summary>
+		inline _Element_Ty*&& release() noexcept {
+			_Element_Ty* ptr_stored_old = this->ptr_stored;
+			this->ptr_stored = nullptr;
+			this->ptr_owned = nullptr;
+			return ::std::move(ptr_stored_old);
 		}
 		inline void swap(ReferenceCountedObjectHolder& x) noexcept {
 			_Element_Ty* _ptr_stored = this->ptr_stored;

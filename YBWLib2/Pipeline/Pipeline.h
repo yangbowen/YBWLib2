@@ -248,7 +248,7 @@ namespace YBWLib2 {
 		IReferenceCountedObject* ptr_referencecountedobject = Internal::Pipeline_CastToIReferenceCountedObject(ptr_pipeline);
 		assert(ptr_referencecountedobject);
 		return ReferenceCountedObjectHolder<Pipeline>(
-			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject), ReferenceCountedObjectHolder<IReferenceCountedObject>::adopt_ref_count),
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
 			ptr_pipeline
 			);
 	}
@@ -259,7 +259,7 @@ namespace YBWLib2 {
 		IReferenceCountedObject* ptr_referencecountedobject = Internal::Pipeline_CastToIReferenceCountedObject(ptr_pipeline);
 		assert(ptr_referencecountedobject);
 		return ReferenceCountedObjectHolder<Pipeline>(
-			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject), ReferenceCountedObjectHolder<IReferenceCountedObject>::adopt_ref_count),
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
 			ptr_pipeline
 			);
 	}
@@ -455,7 +455,7 @@ namespace YBWLib2 {
 		IReferenceCountedObject* ptr_referencecountedobject = Internal::PipelineFilter_CastToIReferenceCountedObject(ptr_pipelinefilter);
 		assert(ptr_referencecountedobject);
 		return ReferenceCountedObjectHolder<PipelineFilter>(
-			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject), ReferenceCountedObjectHolder<IReferenceCountedObject>::adopt_ref_count),
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
 			ptr_pipelinefilter
 			);
 	}
@@ -466,7 +466,7 @@ namespace YBWLib2 {
 		IReferenceCountedObject* ptr_referencecountedobject = Internal::PipelineFilter_CastToIReferenceCountedObject(ptr_pipelinefilter);
 		assert(ptr_referencecountedobject);
 		return ReferenceCountedObjectHolder<PipelineFilter>(
-			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject), ReferenceCountedObjectHolder<IReferenceCountedObject>::adopt_ref_count),
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
 			ptr_pipelinefilter
 			);
 	}
@@ -525,7 +525,7 @@ namespace YBWLib2 {
 		IReferenceCountedObject* ptr_referencecountedobject = Internal::PipelineStore_CastToIReferenceCountedObject(ptr_pipelinestore);
 		assert(ptr_referencecountedobject);
 		return ReferenceCountedObjectHolder<PipelineStore>(
-			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject), ReferenceCountedObjectHolder<IReferenceCountedObject>::adopt_ref_count),
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
 			ptr_pipelinestore
 			);
 	}

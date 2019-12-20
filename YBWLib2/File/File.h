@@ -1819,7 +1819,7 @@ namespace YBWLib2 {
 			fnptr_release_view_t _fnptr_release_view = nullptr,
 			uintptr_t _context = 0
 		) noexcept(false)
-			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory, _address_memory_block, _size_memory_block, _fnptr_release_view, _context), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory, _address_memory_block, _size_memory_block, _fnptr_release_view, _context)) {}
 		inline MemoryFile(
 			view_memory_readonly_t,
 			const void* _address_memory_block,
@@ -1827,11 +1827,11 @@ namespace YBWLib2 {
 			fnptr_release_view_readonly_t _fnptr_release_view = nullptr,
 			uintptr_t _context = 0
 		) noexcept(false)
-			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory_readonly, _address_memory_block, _size_memory_block, _fnptr_release_view, _context), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+			: objholder_holder_memory_block(new MemoryBlockHolder(view_memory_readonly, _address_memory_block, _size_memory_block, _fnptr_release_view, _context)) {}
 		inline MemoryFile(allocate_memory_t, const rawallocator_t* _rawallocator, size_t _size_memory_block_initial) noexcept(false)
-			: objholder_holder_memory_block(new MemoryBlockHolder(allocate_memory, _rawallocator, _size_memory_block_initial), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+			: objholder_holder_memory_block(new MemoryBlockHolder(allocate_memory, _rawallocator, _size_memory_block_initial)) {}
 		inline MemoryFile(adopt_allocated_memory_t, const rawallocator_t* _rawallocator, void* _address_memory_block, size_t _size_memory_block_initial) noexcept(false)
-			: objholder_holder_memory_block(new MemoryBlockHolder(adopt_allocated_memory, _rawallocator, _address_memory_block, _size_memory_block_initial), ReferenceCountedObjectHolder<MemoryBlockHolder>::adopt_ref_count) {}
+			: objholder_holder_memory_block(new MemoryBlockHolder(adopt_allocated_memory, _rawallocator, _address_memory_block, _size_memory_block_initial)) {}
 		inline MemoryFile(const MemoryFile& x) noexcept(false)
 			: IReferenceCountedObject(static_cast<const IReferenceCountedObject&>(x)),
 			ReferenceCountedObject(static_cast<const ReferenceCountedObject&>(x)),
