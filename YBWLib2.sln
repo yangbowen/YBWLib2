@@ -8,7 +8,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{82D7B8A6-9040-45E9-B7B9-0DBA6EC65DD3}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		SignatureInfo.t4 = SignatureInfo.t4
+		dotNETStrongName_IdentityKey_KeyPair.snk = dotNETStrongName_IdentityKey_KeyPair.snk
+		dotNETStrongName_IdentityKey_PublicKey.snk = dotNETStrongName_IdentityKey_PublicKey.snk
+		dotNETStrongName_SignatureKey_KeyPair.snk = dotNETStrongName_SignatureKey_KeyPair.snk
+		dotNETStrongName_SignatureKey_PublicKey.snk = dotNETStrongName_SignatureKey_PublicKey.snk
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YBWLib2.dotNETMixed", "YBWLib2.dotNETMixed\YBWLib2.dotNETMixed.vcxproj", "{D4071DEE-DF96-4473-8D33-CC2EBD39717B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +34,14 @@ Global
 		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x64.Build.0 = Release|x64
 		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x86.ActiveCfg = Release|Win32
 		{061E491F-E9BE-4D97-81C4-F05ABCD283E8}.Release|x86.Build.0 = Release|Win32
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Debug|x64.ActiveCfg = Debug|x64
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Debug|x64.Build.0 = Debug|x64
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Debug|x86.ActiveCfg = Debug|Win32
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Debug|x86.Build.0 = Debug|Win32
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x64.ActiveCfg = Release|x64
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x64.Build.0 = Release|x64
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x86.ActiveCfg = Release|Win32
+		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,39 @@
+<#@ template language="C#" #>
+<#@ output extension=".cpp" encoding="utf-8" #>
+<#@ assembly name="System.Core" #>
+<#@ include file="VersionInfo.t4" once="true" #>
+<#@ include file="../SignatureInfo.t4" once="true" #>
+/* AUTOMATICALLY GENERATED FILE */
+
+#include "pch.h"
+
+#pragma managed(push, on)
+
+[assembly:System::Reflection::AssemblyTitle(L"YBWLib2.dotNETMixed")];
+[assembly:System::Reflection::AssemblyDescription(L"")];
+[assembly:System::Reflection::AssemblyConfiguration(L"")];
+[assembly:System::Reflection::AssemblyCompany(L"")];
+[assembly:System::Reflection::AssemblyProduct(L"YBWLib2")];
+[assembly:System::Reflection::AssemblyCopyright(L"Copyright (c) yangbowen 2019")];
+[assembly:System::Reflection::AssemblyTrademark(L"")];
+[assembly:System::Reflection::AssemblyCulture(L"")];
+
+[assembly:System::Runtime::InteropServices::ComVisible(false)];
+[assembly:System::CLSCompliant(true)];
+
+[assembly:System::Reflection::AssemblyVersion("<#= VersionString #>")];
+[assembly:System::Reflection::AssemblyFileVersion("<#= VersionString #>")];
+
+[assembly:System::Reflection::AssemblyAlgorithmId(<#= ((uint)AssemblyHashAlgorithm).ToString("d") #>)];
+[assembly:System::Reflection::AssemblyDelaySign(<#= ((System.Boolean)AssemblyDelaySign).ToString().ToLowerInvariant() #>)];
+<# if (!(AssemblyKeyFile is null)) { #>
+[assembly:System::Reflection::AssemblyKeyFile("<#= AssemblyKeyFile #>")];
+<# } #>
+<# if (!(AssemblyKeyName is null)) { #>
+[assembly:System::Reflection::AssemblyKeyName("<#= AssemblyKeyName #>")];
+<# } #>
+<# if (!(AssemblyIdentityKey is null) && !(AssemblyCounterSignature is null)) { #>
+[assembly:System::Reflection::AssemblySignatureKey("<#= AssemblyIdentityKey #>","<#= AssemblyCounterSignature #>")];
+<# } #>
+
+#pragma managed(pop)

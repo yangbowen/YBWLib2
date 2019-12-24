@@ -1,0 +1,12 @@
+<#@ assembly name="System.Core" #>
+<#
+	System.UInt32 MajorVersion = 1;
+	System.UInt32 MinorVersion = 0;
+	System.UInt32 BuildNumber = 0;
+	System.UInt32 RevisionNumber = System.UInt32.Parse(System.IO.File.ReadAllText("RevisionNumber.txt", System.Text.Encoding.UTF8));
+	System.String MajorVersionString = MajorVersion.ToString();
+	System.String MinorVersionString = MinorVersion.ToString();
+	System.String BuildNumberString = BuildNumber.ToString();
+	System.String RevisionNumberString = RevisionNumber.ToString();
+	System.String VersionString = MajorVersionString + "." + MinorVersionString + "." + BuildNumberString + "." + RevisionNumberString;
+#>
