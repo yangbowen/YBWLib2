@@ -1,0 +1,17 @@
+<#@ template language="C#" #>
+<#@ output extension=".cpp" encoding="utf-8" #>
+<#@ assembly name="System.Core" #>
+<#@ include file="../YBWLib2.dotNETMixed/VersionInfo.t4" once="true" #>
+<#@ include file="../SignatureInfo.t4" once="true" #>
+/* AUTOMATICALLY GENERATED FILE */
+
+#include "pch.h"
+
+namespace YBWLib2 {
+	const char16_t u16str_strongname_dotNETMixed[] = u"\
+YBWLib2.dotNETMixed, \
+Version=<#= VersionInfo_YBWLib2_dotNETMixed.VersionString #>, \
+Culture=neutral, \
+PublicKeyToken=<#= SignatureInfo.AssemblyIdentityKeyToken #>\
+";
+}

@@ -21,19 +21,19 @@
 [assembly:System::Runtime::InteropServices::ComVisible(false)];
 [assembly:System::CLSCompliant(true)];
 
-[assembly:System::Reflection::AssemblyVersion("<#= VersionString #>")];
-[assembly:System::Reflection::AssemblyFileVersion("<#= VersionString #>")];
+[assembly:System::Reflection::AssemblyVersion("<#= VersionInfo_YBWLib2_dotNETMixed.VersionString #>")];
+[assembly:System::Reflection::AssemblyFileVersion("<#= VersionInfo_YBWLib2_dotNETMixed.VersionString #>")];
 
-[assembly:System::Reflection::AssemblyAlgorithmId(<#= ((uint)AssemblyHashAlgorithm).ToString("d") #>)];
-[assembly:System::Reflection::AssemblyDelaySign(<#= ((System.Boolean)AssemblyDelaySign).ToString().ToLowerInvariant() #>)];
-<# if (!(AssemblyKeyFile is null)) { #>
-[assembly:System::Reflection::AssemblyKeyFile("<#= AssemblyKeyFile #>")];
+[assembly:System::Reflection::AssemblyAlgorithmId(<#= ((uint)SignatureInfo.AssemblyHashAlgorithm).ToString("d") #>)];
+[assembly:System::Reflection::AssemblyDelaySign(<#= ((System.Boolean)SignatureInfo.AssemblyDelaySign).ToString().ToLowerInvariant() #>)];
+<# if (SignatureInfo.AssemblyKeyFile != "") { #>
+[assembly:System::Reflection::AssemblyKeyFile("<#= SignatureInfo.AssemblyKeyFile #>")];
 <# } #>
-<# if (!(AssemblyKeyName is null)) { #>
-[assembly:System::Reflection::AssemblyKeyName("<#= AssemblyKeyName #>")];
+<# if (SignatureInfo.AssemblyKeyName != "") { #>
+[assembly:System::Reflection::AssemblyKeyName("<#= SignatureInfo.AssemblyKeyName #>")];
 <# } #>
-<# if (!(AssemblyIdentityKey is null) && !(AssemblyCounterSignature is null)) { #>
-[assembly:System::Reflection::AssemblySignatureKey("<#= AssemblyIdentityKey #>","<#= AssemblyCounterSignature #>")];
+<# if (SignatureInfo.AssemblyIdentityKey != "" && SignatureInfo.AssemblyCounterSignature != "") { #>
+[assembly:System::Reflection::AssemblySignatureKey("<#= SignatureInfo.AssemblyIdentityKey #>","<#= SignatureInfo.AssemblyCounterSignature #>")];
 <# } #>
 
 #pragma managed(pop)

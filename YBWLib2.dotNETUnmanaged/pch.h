@@ -1,9 +1,5 @@
-#ifndef _INCLUDE_GUARD_DFC0003E_9809_426B_A2E1_675E10605157
-#define _INCLUDE_GUARD_DFC0003E_9809_426B_A2E1_675E10605157
-
-#ifdef __CLR_VER
-#pragma managed(push, off)
-#endif
+#ifndef _INCLUDE_GUARD_962D7035_3957_412F_8195_EE1E8A888D69
+#define _INCLUDE_GUARD_962D7035_3957_412F_8195_EE1E8A888D69
 
 #include <cstdint>
 #include <cstdio>
@@ -59,10 +55,6 @@ typedef NTSTATUS* PNTSTATUS;
 
 #ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
 #define YBWLIB2_EXCEPTION_MACROS_ENABLED
-#endif
-
-#ifdef __CLR_VER
-#pragma managed(pop)
 #endif
 
 #endif

@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YBWLib2.dotNETMixed", "YBWLib2.dotNETMixed\YBWLib2.dotNETMixed.vcxproj", "{D4071DEE-DF96-4473-8D33-CC2EBD39717B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YBWLib2.dotNETUnmanaged", "YBWLib2.dotNETUnmanaged\YBWLib2.dotNETUnmanaged.vcxproj", "{1202B0C7-AA2B-40E5-BCD1-A84833549237}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -42,6 +44,14 @@ Global
 		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x64.Build.0 = Release|x64
 		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x86.ActiveCfg = Release|Win32
 		{D4071DEE-DF96-4473-8D33-CC2EBD39717B}.Release|x86.Build.0 = Release|Win32
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Debug|x64.ActiveCfg = Debug|x64
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Debug|x64.Build.0 = Debug|x64
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Debug|x86.ActiveCfg = Debug|Win32
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Debug|x86.Build.0 = Debug|Win32
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Release|x64.ActiveCfg = Release|x64
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Release|x64.Build.0 = Release|x64
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Release|x86.ActiveCfg = Release|Win32
+		{1202B0C7-AA2B-40E5-BCD1-A84833549237}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

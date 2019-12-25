@@ -18,10 +18,13 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="YBWLib2dotNETMixedApi.h">
+    <ClInclude Include="YBWLib2dotNETUnmanagedApi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="YBWLib2dotNETMixedInit.h">
+    <ClInclude Include="YBWLib2dotNETUnmanagedInit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReferenceInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -29,32 +32,20 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pch_Unmanaged.cpp">
+    <ClCompile Include="ModuleLocal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleLocal_Unmanaged.cpp">
+    <ClCompile Include="YBWLib2dotNETUnmanagedInit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="YBWLib2dotNETMixedInit_Managed.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="YBWLib2dotNETMixedInit_Unmanaged.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AssemblyInfo.cpp">
+    <ClCompile Include="ReferenceInfo.dotNETMixed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="RevisionNumber.txt" />
+    <CustomBuild Include="ReferenceInfo.dotNETMixed.tt" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="AssemblyInfo.tt" />
-    <CustomBuild Include="IncrementRevisionNumber.bat" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="VersionInfo.t4" />
     <None Include=".gitignore" />
-    <None Include="RevisionNumber.t4" />
   </ItemGroup>
 </Project>

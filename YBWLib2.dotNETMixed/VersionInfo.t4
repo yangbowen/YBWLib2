@@ -1,12 +1,27 @@
 <#@ assembly name="System.Core" #>
+<#@ include file="RevisionNumber.t4" once="true" #>
 <#
-	System.UInt32 MajorVersion = 1;
-	System.UInt32 MinorVersion = 0;
-	System.UInt32 BuildNumber = 0;
-	System.UInt32 RevisionNumber = System.UInt32.Parse(System.IO.File.ReadAllText("RevisionNumber.txt", System.Text.Encoding.UTF8));
-	System.String MajorVersionString = MajorVersion.ToString();
-	System.String MinorVersionString = MinorVersion.ToString();
-	System.String BuildNumberString = BuildNumber.ToString();
-	System.String RevisionNumberString = RevisionNumber.ToString();
-	System.String VersionString = MajorVersionString + "." + MinorVersionString + "." + BuildNumberString + "." + RevisionNumberString;
+	var BasicVersionInfo_YBWLib2_dotNETMixed = new {
+		MajorVersion = 1,
+		MinorVersion = 0,
+		BuildNumber = 0
+	};
+	var VersionInfo_YBWLib2_dotNETMixed = new {
+		MajorVersion = BasicVersionInfo_YBWLib2_dotNETMixed.MajorVersion,
+		MinorVersion = BasicVersionInfo_YBWLib2_dotNETMixed.MinorVersion,
+		BuildNumber = BasicVersionInfo_YBWLib2_dotNETMixed.BuildNumber,
+		RevisionNumber = RevisionNumber_YBWLib2_dotNETMixed,
+		MajorVersionString = BasicVersionInfo_YBWLib2_dotNETMixed.MajorVersion.ToString(),
+		MinorVersionString = BasicVersionInfo_YBWLib2_dotNETMixed.MinorVersion.ToString(),
+		BuildNumberString = BasicVersionInfo_YBWLib2_dotNETMixed.BuildNumber.ToString(),
+		RevisionNumberString = RevisionNumber_YBWLib2_dotNETMixed.ToString(),
+		VersionString = ""
+			+ BasicVersionInfo_YBWLib2_dotNETMixed.MajorVersion.ToString()
+			+ "."
+			+ BasicVersionInfo_YBWLib2_dotNETMixed.MinorVersion.ToString()
+			+ "."
+			+ BasicVersionInfo_YBWLib2_dotNETMixed.BuildNumber.ToString()
+			+ "."
+			+ RevisionNumber_YBWLib2_dotNETMixed.ToString()
+	};
 #>
