@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_5394D13F_B842_4478_8DF4_88C69F7DBE27
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -61,14 +61,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<PipelineID>, "PipelineID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<PipelineID> {
-		inline size_t operator()(const PipelineID& x) const {
+	struct hash<::YBWLib2::PipelineID> {
+		inline size_t operator()(const ::YBWLib2::PipelineID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	/// <summary>Unique identifier used to identify a pipeline filter.</summary>
 	struct PipelineFilterID : public VolatileID {
 		constexpr PipelineFilterID() noexcept = default;
@@ -91,14 +95,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<PipelineFilterID>, "PipelineFilterID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<PipelineFilterID> {
-		inline size_t operator()(const PipelineFilterID& x) const {
+	struct hash<::YBWLib2::PipelineFilterID> {
+		inline size_t operator()(const ::YBWLib2::PipelineFilterID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	/// <summary>Unique identifier used to identify a pipeline invocation packet data entry.</summary>
 	struct PipelineInvocationPacketDataEntryID : public VolatileID {
 		constexpr PipelineInvocationPacketDataEntryID() noexcept = default;
@@ -121,14 +129,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<PipelineInvocationPacketDataEntryID>, "PipelineInvocationPacketDataEntryID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<PipelineInvocationPacketDataEntryID> {
-		inline size_t operator()(const PipelineInvocationPacketDataEntryID& x) const {
+	struct hash<::YBWLib2::PipelineInvocationPacketDataEntryID> {
+		inline size_t operator()(const ::YBWLib2::PipelineInvocationPacketDataEntryID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	using PipelineInvocationPacketDataEntryInitializeDelegate = Delegate<DelegateFlag_Noexcept, void, void*, PipelineInvocationPacket*>;
 	using PipelineInvocationPacketDataEntryCleanupDelegate = Delegate<DelegateFlag_Noexcept, void, void*, PipelineInvocationPacket*>;
 	using PipelineFilterRawInvokeDelegate = Delegate<DelegateFlags::DelegateFlag_Noexcept, void, PipelineInvocationPacket*>;

@@ -1,4 +1,4 @@
-﻿#ifndef _WIN32_WINNT
+#ifndef _WIN32_WINNT
 #error This header file is only to be used when you're targeting Microsoft Windows. If you are, set the targetted windows version before including this header file.
 #endif
 
@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <minwindef.h>
+#include <objbase.h>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
@@ -205,17 +206,289 @@ namespace YBWLib2 {
 		[[nodiscard]] static YBWLIB2_API IException* YBWLIB2_CALLTYPE CopyWin32HandleChangeDesiredAccess(HANDLE _win32handle_from, HANDLE* _win32handle_to, DWORD _desiredaccess) noexcept;
 	};
 	static_assert(::std::is_standard_layout_v<Win32HandleHolder>, "Win32HandleHolder is not standard-layout.");
-	template<typename _Char_Ty, typename _Traits_Ty>
-	inline ::std::basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(::std::basic_ostream<_Char_Ty, _Traits_Ty>& os, const Win32HandleHolder& x) {
-		return os << x.get();
-	}
 	inline bool operator==(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() == r.get(); }
 	inline bool operator!=(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() != r.get(); }
 	inline bool operator<(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() < r.get(); }
 	inline bool operator<=(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() <= r.get(); }
 	inline bool operator>(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() > r.get(); }
 	inline bool operator>=(const Win32HandleHolder& l, const Win32HandleHolder& r) { return l.get() >= r.get(); }
-	inline void swap(Win32HandleHolder& l, Win32HandleHolder& r) { l.swap(r); }
+
+	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_AddRef(const IReferenceCountedObject* _obj) noexcept {
+		assert(_obj);
+		return _obj->IncReferenceCount() & ~(ULONG)0;
+	}
+
+	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_Release(const IReferenceCountedObject* _obj) noexcept {
+		assert(_obj);
+		return _obj->DecReferenceCount() & ~(ULONG)0;
+	}
+
+	template<typename _Class_Ty, typename... _Interface_Ty>
+	inline HRESULT STDMETHODCALLTYPE COMHelper_QueryInterface(
+		_Class_Ty* _obj,
+		const IID& _iid,
+		_COM_Outptr_ void** _obj_ret
+	) {
+		assert(_obj);
+		if (!_obj_ret) return E_POINTER;
+		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty * _ptr) noexcept;
+		using map_cast_t = ::std::unordered_map<IID, fnptr_cast_t, hash_trivially_copyable_t<IID, size_t>>;
+		static const map_cast_t map_cast(
+			{
+				{
+					__uuidof(_Interface_Ty),
+					[](_Class_Ty* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
+				}...
+			}
+		);
+		typename map_cast_t::const_iterator it_map_cast = map_cast.find(_iid);
+		if (it_map_cast == map_cast.cend()) {
+			*_obj_ret = nullptr;
+			return E_NOINTERFACE;
+		} else {
+			*_obj_ret = (*it_map_cast->second)(_obj);
+			return S_OK;
+		}
+	}
+
+	template<class _Element_Ty>
+	class COMObjectHolder {
+	public:
+		struct inc_ref_count_t {};
+		static constexpr inc_ref_count_t inc_ref_count {};
+		using element_type = _Element_Ty;
+		static_assert(::std::is_base_of_v<IUnknown, element_type>, "The element class is not derived from IUnknown.");
+		inline constexpr COMObjectHolder() noexcept = default;
+		inline constexpr COMObjectHolder(nullptr_t) noexcept : COMObjectHolder() {}
+		/// <summary>
+		/// Constructs a <c>COMObjectHolder</c> that manages the COM object the specified pointer points to, without changing the object's reference count.
+		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline explicit COMObjectHolder(_Element_From_Ty*&& _ptr_element) noexcept : ptr_element(static_cast<element_type*&&>(_ptr_element)) {}
+		/// <summary>
+		/// Constructs a <c>COMObjectHolder</c> that manages the COM object the specified pointer points to, incrementing the object's reference count.
+		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
+			if (_ptr_element) {
+				static_cast<element_type*>(_ptr_element)->IUnknown::AddRef();
+				this->ptr_element = static_cast<element_type*>(_ptr_element);
+			}
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
+			if (x.ptr_element) {
+				x.ptr_element->IUnknown::AddRef();
+				this->ptr_element = static_cast<element_type*>(x.ptr_element);
+			}
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder(COMObjectHolder<_Element_From_Ty>&& x) noexcept {
+			this->ptr_element = static_cast<element_type*&&>(::std::move(x.ptr_element));
+			x.ptr_element = nullptr;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder(const COMObjectHolder<_Element_From_Ty>& x) noexcept(false) {
+			if (x.ptr_element) {
+				HRESULT hr = x->QueryInterface(__uuidof(element_type), &this->get_ref_ptr_element());
+				if (FAILED(hr)) {
+					if (hr != E_NOINTERFACE) {
+						throw(new ExternalAPIFailureWithHRESULTException(u8"IUnknown::QueryInterface", sizeof(u8"IUnknown::QueryInterface") / sizeof(char) - 1, nullptr, hr));
+					} else {
+						this->reset();
+					}
+				}
+			}
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder(COMObjectHolder<_Element_From_Ty>&& x) noexcept(false) {
+			if (x.ptr_element) {
+				HRESULT hr = x->QueryInterface(__uuidof(element_type), &this->get_ref_ptr_element());
+				if (FAILED(hr)) {
+					if (hr != E_NOINTERFACE) {
+						throw(new ExternalAPIFailureWithHRESULTException(u8"IUnknown::QueryInterface", sizeof(u8"IUnknown::QueryInterface") / sizeof(char) - 1, nullptr, hr));
+					} else {
+						this->reset();
+					}
+				}
+			}
+			::std::move(x).reset();
+		}
+		inline ~COMObjectHolder() {
+			this->reset();
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder& operator=(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
+			this->reset();
+			if (x.ptr_element) {
+				x.ptr_element->IUnknown::AddRef();
+				this->ptr_element = static_cast<element_type*>(x.ptr_element);
+			}
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline COMObjectHolder& operator=(COMObjectHolder<_Element_From_Ty>&& x) noexcept {
+			this->reset();
+			this->ptr_element = static_cast<element_type*&&>(::std::move(x.ptr_element));
+			x.ptr_element = nullptr;
+		}
+		inline explicit operator bool() const noexcept { return this->ptr_element; }
+		inline element_type& operator*() const noexcept {
+			assert(this->ptr_element);
+			return *this->ptr_element;
+		}
+		inline element_type* operator->() const noexcept {
+			assert(this->ptr_element);
+			return this->ptr_element;
+		}
+		inline element_type* const& get() const noexcept { return this->ptr_element; }
+		inline void reset() noexcept {
+			if (this->ptr_element) {
+				this->ptr_element->IUnknown::Release();
+				this->ptr_element = nullptr;
+			}
+		}
+		inline void reset(nullptr_t) noexcept {
+			this->reset();
+		}
+		/// <summary>
+		/// Makes this object manage the object the specified pointer points to, without changing the object's reference count.
+		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline void reset(_Element_From_Ty*&& _ptr_element) noexcept {
+			this->reset();
+			this->ptr_element = static_cast<element_type*&&>(_ptr_element);
+		}
+		/// <summary>
+		/// Makes this object manage the object the specified pointer points to, incrementing the object's reference count.
+		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline void reset(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
+			this->reset();
+			if (_ptr_element) {
+				static_cast<element_type*>(_ptr_element)->IUnknown::AddRef();
+				this->ptr_element = static_cast<element_type*>(_ptr_element);
+			}
+		}
+		/// <summary>
+		/// Releases the stored pointer without changing the reference count.
+		/// </summary>
+		[[nodiscard]] inline element_type*&& release() noexcept {
+			element_type* ptr_element_old = this->ptr_element;
+			this->ptr_element = nullptr;
+			return ::std::move(ptr_element_old);
+		}
+		inline element_type*& get_ref_ptr_element() noexcept {
+			this->reset();
+			return this->ptr_element;
+		}
+		inline void swap(COMObjectHolder& x) noexcept {
+			element_type* ptr_element_temp = this->ptr_element;
+			this->ptr_element = x.ptr_element;
+			x.ptr_element = ptr_element_temp;
+		}
+	protected:
+		element_type* ptr_element = nullptr;
+	};
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator==(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() == r.get();
+		} else {
+			try {
+				return l.get() == COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator==(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr == r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator==(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() == nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator!=(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() != r.get();
+		} else {
+			try {
+				return l.get() != COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator!=(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr != r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator!=(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() != nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() < r.get();
+		} else {
+			try {
+				return l.get() < COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator<(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr < r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() < nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<=(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() <= r.get();
+		} else {
+			try {
+				return l.get() <= COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator<=(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr <= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<=(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() <= nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() > r.get();
+		} else {
+			try {
+				return l.get() > COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator>(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr > r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() > nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>=(const COMObjectHolder<_Element_L_Ty>& l, const COMObjectHolder<_Element_R_Ty>& r) noexcept {
+		if constexpr (::std::is_same_v<_Element_L_Ty, _Element_R_Ty>) {
+			return l.get() >= r.get();
+		} else {
+			try {
+				return l.get() >= COMObjectHolder<_Element_L_Ty>(r.get());
+			} catch (...) {
+				abort();
+			}
+		}
+	}
+	template<typename _Element_Ty>
+	inline bool operator>=(nullptr_t, const COMObjectHolder<_Element_Ty>& r) noexcept { return nullptr >= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>=(const COMObjectHolder<_Element_Ty>& l, nullptr_t) noexcept { return l.get() >= nullptr; }
 
 	void YBWLIB2_CALLTYPE CommonWindows_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE CommonWindows_RealUnInitGlobal() noexcept;

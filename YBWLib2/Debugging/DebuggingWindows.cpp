@@ -1,4 +1,4 @@
-﻿#pragma include_alias("pch.h", "../pch.h")
+#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include "../Windows.h"
 #include "../YBWLib2InternalConfig.h"
@@ -133,7 +133,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE DebuggingWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<UnsupportedTargetWin32ArchitectureException>(), &UnsupportedTargetWin32ArchitectureException::strtmpl_description }
 				});

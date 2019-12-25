@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_E66D6F4F_4C99_49DE_8A34_907BDE018263
+#ifndef _INCLUDE_GUARD_E66D6F4F_4C99_49DE_8A34_907BDE018263
 #define _INCLUDE_GUARD_E66D6F4F_4C99_49DE_8A34_907BDE018263
 
 #include <cstdint>
@@ -43,14 +43,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<DynamicTypeClassID>, "DynamicTypeClassID is not standard-layout.");
-	
+}
+
+namespace std {
 	template<>
-	struct hash<DynamicTypeClassID> {
-		inline size_t operator()(const DynamicTypeClassID& x) const {
+	struct hash<::YBWLib2::DynamicTypeClassID> {
+		inline size_t operator()(const ::YBWLib2::DynamicTypeClassID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	//}
 #pragma endregion DynamicTypeClassID is used to uniquely identify a dynamic type class. Keep in mind that module-local dynamic type classes can have the same DynamicTypeClassID in different executable modules.
 
@@ -435,7 +439,7 @@ namespace YBWLib2 {
 		inline bool operator<=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid <= r.dtclassid; }
 		inline bool operator>(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid > r.dtclassid; }
 		inline bool operator>=(const DynamicTypeBaseClassDefObj& r) const { return this->dtclassid >= r.dtclassid; }
-		inline size_t hash() const { return this->dtclassid.hash(); }
+		inline size_t hash() const noexcept { return this->dtclassid.hash(); }
 		inline const DynamicTypeClassID& GetDynamicTypeClassID() const noexcept { return this->dtclassid; }
 		inline bool IsModuleLocal() const noexcept { return this->is_module_local; }
 		inline DynamicTypeBaseClassFlags GetDynamicTypeBaseClassFlags() const noexcept { return this->dtbaseclassflags; }
@@ -450,14 +454,18 @@ namespace YBWLib2 {
 		fnptr_dynamic_type_upcast_t fnptr_dynamic_type_static_upcast = nullptr;
 	};
 	static_assert(::std::is_standard_layout_v<DynamicTypeBaseClassDefObj>, "DynamicTypeBaseClassDefObj is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<DynamicTypeBaseClassDefObj> {
-		inline size_t operator()(const DynamicTypeBaseClassDefObj& x) const {
+	struct hash<::YBWLib2::DynamicTypeBaseClassDefObj> {
+		inline size_t operator()(const ::YBWLib2::DynamicTypeBaseClassDefObj& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	//}
 #pragma endregion DynamicTypeBaseClassDefObj is used to represent a base class definition in a dynamic type class.
 
@@ -489,14 +497,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<ConstructorID>, "ConstructorID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<ConstructorID> {
-		inline size_t operator()(const ConstructorID& x) const {
+	struct hash<::YBWLib2::ConstructorID> {
+		inline size_t operator()(const ::YBWLib2::ConstructorID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	/// <summary>
 	/// Default constructor.
 	/// No additional parameters are defined.

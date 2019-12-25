@@ -1,4 +1,4 @@
-﻿#pragma include_alias("pch.h", "../pch.h")
+#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include "../Windows.h"
 #include "../DynamicType/DynamicType.h"
@@ -80,7 +80,7 @@ namespace YBWLib2 {
 
 	void YBWLIB2_CALLTYPE ExceptionWindowsUserInterface_RealInitGlobal() noexcept {
 		try {
-			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**, hash<DynamicTypeClassID>> map_strtmpl_description_t;
+			typedef ::std::unordered_map<DynamicTypeClassID, IStringTemplate**> map_strtmpl_description_t;
 			map_strtmpl_description_t map_strtmpl_description({
 				{ GetDynamicTypeClassID<ExternalAPIFailureWithLastErrorException>(), &ExternalAPIFailureWithLastErrorException::strtmpl_description }
 #ifndef YBWLIB2_EXCEPTION_WINDOWS_NO_WSA

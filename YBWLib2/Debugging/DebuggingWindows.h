@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_03ABA3CE_3F93_404D_A92B_47E840F4FC4B
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -321,14 +321,18 @@ namespace YBWLib2 {
 		};
 	};
 	static_assert(::std::is_standard_layout_v<Win32DebuggingTargetAddressDiff>, "Win32DebuggingTargetAddressDiff is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<Win32DebuggingTargetAddressDiff> {
-		inline size_t operator()(const Win32DebuggingTargetAddressDiff& x) const {
+	struct hash<::YBWLib2::Win32DebuggingTargetAddressDiff> {
+		inline size_t operator()(const ::YBWLib2::Win32DebuggingTargetAddressDiff& x) const noexcept(false) {
 			return x.Hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	struct Win32DebuggingTargetAddress final {
 		friend struct Win32DebuggingTargetAddressDiff;
 		static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
@@ -337,11 +341,11 @@ namespace YBWLib2 {
 		struct from_unsigned_int_t {};
 		struct from_raw_target_address_t {};
 		struct from_raw_current_process_address_t {};
-		static constexpr from_min_t from_min {};
-		static constexpr from_max_t from_max {};
-		static constexpr from_unsigned_int_t from_unsigned_int {};
-		static constexpr from_raw_target_address_t from_raw_target_address {};
-		static constexpr from_raw_current_process_address_t from_raw_current_process_address {};
+		static constexpr from_min_t from_min{};
+		static constexpr from_max_t from_max{};
+		static constexpr from_unsigned_int_t from_unsigned_int{};
+		static constexpr from_raw_target_address_t from_raw_target_address{};
+		static constexpr from_raw_current_process_address_t from_raw_current_process_address{};
 		/// <summary>Gets the size of raw target addresses in the specified architecture.</summary>
 		static size_t GetRawTargetAddressSize(Win32Architecture architecture) noexcept(false);
 		/// <summary>
@@ -515,14 +519,18 @@ namespace YBWLib2 {
 	static_assert(::std::is_standard_layout_v<Win32DebuggingTargetAddress>, "Win32DebuggingTargetAddress is not standard-layout.");
 
 	inline Win32DebuggingTargetAddress operator+(const Win32DebuggingTargetAddressDiff& l, const Win32DebuggingTargetAddress& r) noexcept(false) { return r + l; }
+}
 
+namespace std {
 	template<>
-	struct hash<Win32DebuggingTargetAddress> {
-		inline size_t operator()(const Win32DebuggingTargetAddress& x) const {
+	struct hash<::YBWLib2::Win32DebuggingTargetAddress> {
+		inline size_t operator()(const ::YBWLib2::Win32DebuggingTargetAddress& x) const noexcept(false) {
 			return x.Hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	/// <summary>
 	/// Suspends all threads in a process except those specified.
 	/// The threads are resumed when the object is destructed.

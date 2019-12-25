@@ -1,4 +1,4 @@
-﻿#pragma include_alias("pch.h", "../pch.h")
+#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include <list>
 #include <unordered_map>
@@ -225,11 +225,11 @@ namespace YBWLib2 {
 			/// </summary>
 			bool IsZombie() const noexcept { return !this->pipelinefilter; }
 		};
-		using map_invocationpacketdataentry_t = ::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry, hash<PipelineInvocationPacketDataEntryID>>;
+		using map_invocationpacketdataentry_t = ::std::unordered_map<PipelineInvocationPacketDataEntryID, PipelineInvocationPacketDataEntry>;
 		using map_slot_invocationpacketdata_rangeboundary_t = ::std::map<size_t, bool>;
 		using map_slot_invocationpacketdata_size_t = ::std::map<::std::tuple<size_t, size_t>, map_slot_invocationpacketdata_rangeboundary_t::iterator, ::std::less<>>;
-		using map_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment, hash<PipelineFilterID>>;
-		using map_ptr_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment*, hash<PipelineFilterID>>;
+		using map_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment>;
+		using map_ptr_pipelinefilterattachment_t = ::std::unordered_map<PipelineFilterID, PipelineFilterAttachment*>;
 		using map_ptr_pipelinefilterattachment_dependency_t = ::std::map<::std::tuple<PipelineFilterID, PipelineFilterID>, PipelineFilterAttachment*, ::std::less<>>;
 		thread_local static objholder_local_t<::std::unordered_map<const volatile Pipeline*, ::std::pair<uintptr_t, uintptr_t>>> objholder_map_lockcount_recursive;
 		/// <summary>A <c>::std::shared_mutex</c> object used to control concurrent accesses to this object.</summary>
@@ -377,7 +377,7 @@ namespace YBWLib2 {
 		PipelineStore& operator=(PipelineStore&&) = delete;
 		ReferenceCountedObjectHolder<Pipeline> ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept;
 	protected:
-		using map_pipeline_t = ::std::unordered_map<PipelineID, ReferenceCountedObjectHolder<Pipeline>, hash<PipelineID>>;
+		using map_pipeline_t = ::std::unordered_map<PipelineID, ReferenceCountedObjectHolder<Pipeline>>;
 		::std::shared_mutex mtx_this;
 		map_pipeline_t map_pipeline;
 	};
@@ -768,7 +768,7 @@ namespace YBWLib2 {
 					state_recurse_dependency_t& operator=(state_recurse_dependency_t&&) = default;
 				};
 				::std::stack<state_recurse_dependency_t> stack_state_recurse_dependency;
-				::std::unordered_set<PipelineFilterID, hash<PipelineFilterID>> set_pipelinefilterid_depended;
+				::std::unordered_set<PipelineFilterID> set_pipelinefilterid_depended;
 				stack_state_recurse_dependency.emplace(*val_map_pipelinefilterattachment_floating.second);
 				{
 					bool is_successful_emplace = false;
@@ -893,7 +893,7 @@ namespace YBWLib2 {
 				state_recurse_dependency_t& operator=(state_recurse_dependency_t&&) = default;
 			};
 			::std::stack<state_recurse_dependency_t> stack_state_recurse_dependency;
-			::std::unordered_set<PipelineFilterID, hash<PipelineFilterID>> set_pipelinefilterid_depended;
+			::std::unordered_set<PipelineFilterID> set_pipelinefilterid_depended;
 			::std::list<PipelineFilterAttachment*>::const_iterator* it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
 			::std::list<PipelineFilterAttachment*>::const_iterator it_list_pipelinefilterattachment_invocation_return_temp;
 			// Recursively resolve dependencies.

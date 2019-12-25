@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
+#ifndef _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
 #define _INCLUDE_GUARD_DF823B1A_4110_4426_9366_DF218B32B766
 
 #include <cstdint>
@@ -210,9 +210,6 @@ namespace YBWLib2 {
 	constexpr bool operator>(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
 	template<typename _Ty>
 	constexpr bool operator>=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
-
-	template<typename _Ty>
-	struct hash;
 
 	namespace Internal {
 		// Helpers for byte_order_t.
@@ -669,22 +666,27 @@ namespace YBWLib2 {
 		~UUID() = default;
 		UUID& operator=(const UUID& x) noexcept = default;
 		UUID& operator=(UUID&& x) noexcept = default;
-		inline bool operator==(const UUID& r) const { return UUID::IsEqualTo(*this, r); }
-		inline bool operator!=(const UUID& r) const { return !UUID::IsEqualTo(*this, r); }
-		inline bool operator<(const UUID& r) const { return UUID::IsLessThan(*this, r); }
-		inline bool operator<=(const UUID& r) const { return !UUID::IsLessThan(r, *this); }
-		inline bool operator>(const UUID& r) const { return UUID::IsLessThan(r, *this); }
-		inline bool operator>=(const UUID& r) const { return !UUID::IsLessThan(*this, r); }
-		inline size_t hash() const { return hash_trivially_copyable_t<UUID, size_t>()(*this); }
+		inline bool operator==(const UUID& r) const noexcept { return UUID::IsEqualTo(*this, r); }
+		inline bool operator!=(const UUID& r) const noexcept { return !UUID::IsEqualTo(*this, r); }
+		inline bool operator<(const UUID& r) const noexcept { return UUID::IsLessThan(*this, r); }
+		inline bool operator<=(const UUID& r) const noexcept { return !UUID::IsLessThan(r, *this); }
+		inline bool operator>(const UUID& r) const noexcept { return UUID::IsLessThan(r, *this); }
+		inline bool operator>=(const UUID& r) const noexcept { return !UUID::IsLessThan(*this, r); }
+		inline size_t hash() const noexcept { return hash_trivially_copyable_t<UUID, size_t>()(*this); }
 	};
 	static_assert(::std::is_standard_layout_v<UUID>, "UUID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<UUID> {
-		inline size_t operator()(const UUID& x) const {
+	struct hash<::YBWLib2::UUID> {
+		inline size_t operator()(const ::YBWLib2::UUID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
+
+namespace YBWLib2 {
 	/// <summary>Converts a UUID string in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX to a <c>UUID</c> identifier at compile time.</summary>
 	inline constexpr UUID UUIDFromUUIDString_CompileTime(const char(&str)[37]) noexcept {
 		if (str[8] != '-'
@@ -740,23 +742,27 @@ namespace YBWLib2 {
 		~PersistentID() = default;
 		PersistentID& operator=(const PersistentID& x) noexcept = default;
 		PersistentID& operator=(PersistentID&& x) noexcept = default;
-		bool operator==(const PersistentID& r) const { return this->uuid == r.uuid; }
-		bool operator!=(const PersistentID& r) const { return this->uuid != r.uuid; }
-		bool operator<(const PersistentID& r) const { return this->uuid < r.uuid; }
-		bool operator<=(const PersistentID& r) const { return this->uuid <= r.uuid; }
-		bool operator>(const PersistentID& r) const { return this->uuid > r.uuid; }
-		bool operator>=(const PersistentID& r) const { return this->uuid >= r.uuid; }
-		size_t hash() const { return this->uuid.hash(); }
+		bool operator==(const PersistentID& r) const noexcept { return this->uuid == r.uuid; }
+		bool operator!=(const PersistentID& r) const noexcept { return this->uuid != r.uuid; }
+		bool operator<(const PersistentID& r) const noexcept { return this->uuid < r.uuid; }
+		bool operator<=(const PersistentID& r) const noexcept { return this->uuid <= r.uuid; }
+		bool operator>(const PersistentID& r) const noexcept { return this->uuid > r.uuid; }
+		bool operator>=(const PersistentID& r) const noexcept { return this->uuid >= r.uuid; }
+		size_t hash() const noexcept { return this->uuid.hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<PersistentID>, "PersistentID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<PersistentID> {
-		inline size_t operator()(const PersistentID& x) const {
+	struct hash<::YBWLib2::PersistentID> {
+		inline size_t operator()(const ::YBWLib2::PersistentID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	class VolatileIDAnchor final {
 		friend struct VolatileID;
 		friend void YBWLIB2_CALLTYPE CommonLowLevel_RealInitGlobal() noexcept;
@@ -771,8 +777,8 @@ namespace YBWLib2 {
 		VolatileIDAnchor& operator=(VolatileIDAnchor&&) = delete;
 		YBWLIB2_API const PersistentID& GetPersistentID() const noexcept;
 	protected:
-		static YBWLIB2_API ::std::mutex* mtx_map_volatileidanchor;
-		static YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>* map_volatileidanchor;
+		static YBWLIB2_API::std::mutex* mtx_map_volatileidanchor;
+		static YBWLIB2_API::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>>* map_volatileidanchor;
 		static YBWLIB2_API VolatileIDAnchor* ReferenceVolatileIDAnchorFromPersistentID(const PersistentID* _persistentid) noexcept;
 		YBWLIB2_API void IncrementReferenceCount() const noexcept;
 		YBWLIB2_API void DecrementReferenceCount() const noexcept;
@@ -844,14 +850,18 @@ namespace YBWLib2 {
 
 	inline bool operator!=(const VolatileID& l, const PersistentID& r) noexcept { return static_cast<PersistentID>(l) != r; }
 	inline bool operator!=(const PersistentID& l, const VolatileID& r) noexcept { return l != static_cast<PersistentID>(r); }
+}
 
+namespace std {
 	template<>
-	struct hash<VolatileID> {
-		inline size_t operator()(const VolatileID& x) const {
+	struct hash<::YBWLib2::VolatileID> {
+		inline size_t operator()(const ::YBWLib2::VolatileID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
 
+namespace YBWLib2 {
 	/// <summary>An allocator for allocating raw memory.</summary>
 	struct rawallocator_t final {
 		/// <summary>Function pointer type for cleaning up the allocator.</summary>
@@ -1603,9 +1613,15 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_element; }
-		inline _Element_Ty& operator*() const noexcept { return *this->ptr_element; }
-		inline _Element_Ty* operator->() const noexcept { return this->ptr_element; }
-		inline _Element_Ty* get() const noexcept { return this->ptr_element; }
+		inline _Element_Ty& operator*() const noexcept {
+			assert(this->ptr_element);
+			return *this->ptr_element;
+		}
+		inline _Element_Ty* operator->() const noexcept {
+			assert(this->ptr_element);
+			return this->ptr_element;
+		}
+		inline _Element_Ty* const& get() const noexcept { return this->ptr_element; }
 		template<typename... _Args_Ty>
 		inline void construct(construct_obj_t, _Args_Ty&&... args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty...>) {
 			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
@@ -1938,13 +1954,18 @@ namespace YBWLib2 {
 		size_t hash() const noexcept { return static_cast<const VolatileID&>(*this).hash(); }
 	};
 	static_assert(::std::is_standard_layout_v<IndexedDataEntryID>, "IndexedDataEntryID is not standard-layout.");
+}
 
+namespace std {
 	template<>
-	struct hash<IndexedDataEntryID> {
-		inline size_t operator()(const IndexedDataEntryID& x) const {
+	struct hash<::YBWLib2::IndexedDataEntryID> {
+		inline size_t operator()(const ::YBWLib2::IndexedDataEntryID& x) const noexcept {
 			return x.hash();
 		}
 	};
+}
+
+namespace YBWLib2 {
 
 	/// <summary>A raw value in an indexed data entry.</summary>
 	struct IndexedDataRawValue final {
@@ -2063,7 +2084,7 @@ namespace YBWLib2 {
 		YBWLIB2_API void YBWLIB2_CALLTYPE RemoveEntryByEntryID(const IndexedDataEntryID* _entryid) noexcept;
 	private:
 		using value_map_entry_t = ::std::pair<const IndexedDataEntryID, IndexedDataRawValue>;
-		using map_entry_t = ::std::unordered_map<IndexedDataEntryID, IndexedDataRawValue, hash<IndexedDataEntryID>, ::std::equal_to<IndexedDataEntryID>, allocator_rawallocator_t<value_map_entry_t>>;
+		using map_entry_t = ::std::unordered_map<IndexedDataEntryID, IndexedDataRawValue, ::std::hash<IndexedDataEntryID>, ::std::equal_to<IndexedDataEntryID>, allocator_rawallocator_t<value_map_entry_t>>;
 		const rawallocator_t* rawallocator = nullptr;
 		map_entry_t* map_entry = nullptr;
 		YBWLIB2_API void YBWLIB2_CALLTYPE ConstructWithRawAllocator(const rawallocator_t* _rawallocator) noexcept;

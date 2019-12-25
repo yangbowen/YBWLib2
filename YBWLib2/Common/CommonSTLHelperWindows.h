@@ -1,4 +1,4 @@
-﻿#ifndef _WIN32_WINNT
+#ifndef _WIN32_WINNT
 #error This header file is only to be used when you're targeting Microsoft Windows. If you are, set the targetted windows version before including this header file.
 #endif
 
@@ -22,6 +22,36 @@
 #include <objbase.h>
 #include "../DynamicType/DynamicType.h"
 #include "Common.h"
+
+namespace std {
+	template<typename _Char_Ty, typename _Traits_Ty>
+	inline basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(basic_ostream<_Char_Ty, _Traits_Ty>& os, const ::YBWLib2::Win32HandleHolder& x) {
+		return os << x.get();
+	}
+	inline void swap(::YBWLib2::Win32HandleHolder& l, ::YBWLib2::Win32HandleHolder& r) noexcept { l.swap(r); }
+
+	template<typename _Char_Ty, typename _Traits_Ty, typename _Element_Ty>
+	inline basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(basic_ostream<_Char_Ty, _Traits_Ty>& os, const ::YBWLib2::COMObjectHolder<_Element_Ty>& x) {
+		return os << x.get();
+	}
+	template<typename _Element_Ty>
+	inline void swap(::YBWLib2::COMObjectHolder<_Element_Ty>& l, ::YBWLib2::COMObjectHolder<_Element_Ty>& r) noexcept { l.swap(r); }
+	template<typename _Element_To_Ty, typename _Element_From_Ty>
+	inline ::YBWLib2::COMObjectHolder<_Element_To_Ty> dynamic_pointer_cast(const ::YBWLib2::COMObjectHolder<_Element_From_Ty>& x) noexcept(false) {
+		::YBWLib2::COMObjectHolder<_Element_To_Ty> comobjholder;
+		if (x) {
+			HRESULT hr = x->QueryInterface(__uuidof(_Element_To_Ty), &comobjholder.get_ref_ptr_element());
+			if (FAILED(hr)) {
+				if (hr != E_NOINTERFACE) {
+					throw(new ::YBWLib2::ExternalAPIFailureWithHRESULTException(u8"IUnknown::QueryInterface", sizeof(u8"IUnknown::QueryInterface") / sizeof(char) - 1, nullptr, hr));
+				} else {
+					comobjholder.reset();
+				}
+			}
+		}
+		return comobjholder;
+	}
+}
 
 namespace YBWLib2 {
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
@@ -80,42 +110,6 @@ namespace YBWLib2 {
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
 	inline ::std::string Utf16StringToAnsiString(const ::std::u16string& u16str) noexcept(false) {
 		return Utf16StringToAnsiString<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
-	}
-
-	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_AddRef(const IReferenceCountedObject* _obj) noexcept {
-		assert(_obj);
-		return _obj->IncReferenceCount() & ~(ULONG)0;
-	}
-
-	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_Release(const IReferenceCountedObject* _obj) noexcept {
-		assert(_obj);
-		return _obj->DecReferenceCount() & ~(ULONG)0;
-	}
-
-	template<typename _Class_Ty, typename... _Interface_Ty>
-	inline HRESULT STDMETHODCALLTYPE COMHelper_QueryInterface(
-		_Class_Ty* _obj,
-		/* [in] */ REFIID riid,
-		/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
-	) {
-		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty* _ptr) noexcept;
-		using map_cast_t = ::std::unordered_map<IID, fnptr_cast_t, hash_trivially_copyable_t<IID, size_t>>;
-		static const map_cast_t map_cast(
-			{
-				{
-					__uuidof(_Interface_Ty),
-					[](_Class_Ty* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
-				}...
-			}
-		);
-		typename map_cast_t::const_iterator it_map_cast = map_cast.find(riid);
-		if (it_map_cast == map_cast.cend()) {
-			*ppvObject = nullptr;
-			return E_NOINTERFACE;
-		} else {
-			*ppvObject = (*it_map_cast->second)(_obj);
-			return S_OK;
-		}
 	}
 }
 

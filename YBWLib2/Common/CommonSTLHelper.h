@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_FBE53E15_FF1A_465B_8B84_419A5A81274B
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -18,6 +18,37 @@
 #include <ostream>
 #include "../DynamicType/DynamicType.h"
 #include "Common.h"
+
+namespace std {
+	template<typename _Char_Ty, typename _Traits_Ty, typename _Element_Ty>
+	inline basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(basic_ostream<_Char_Ty, _Traits_Ty>& os, const ::YBWLib2::ReferenceCountedObjectHolder<_Element_Ty>& x) {
+		return os << x.get();
+	}
+	template<typename _Element_Ty>
+	inline void swap(::YBWLib2::ReferenceCountedObjectHolder<_Element_Ty>& l, ::YBWLib2::ReferenceCountedObjectHolder<_Element_Ty>& r) noexcept { l.swap(r); }
+	template<typename _Element_To_Ty, typename _Element_From_Ty>
+	inline ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty> static_pointer_cast(const ::YBWLib2::ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		return x ? ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>(x, static_cast<_Element_To_Ty*>(x.get())) : ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>();
+	}
+	template<typename _Element_To_Ty, typename _Element_From_Ty>
+	inline ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty> const_pointer_cast(const ::YBWLib2::ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		return x ? ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>(x, const_cast<_Element_To_Ty*>(x.get())) : ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>();
+	}
+	template<typename _Element_To_Ty, typename _Element_From_Ty>
+	inline ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty> reinterpret_pointer_cast(const ::YBWLib2::ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		return x ? ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>(x, reinterpret_cast<_Element_To_Ty*>(x.get())) : ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>();
+	}
+	template<typename _Element_To_Ty, typename _Element_From_Ty>
+	inline ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty> dynamic_pointer_cast(const ::YBWLib2::ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept(false) {
+		if (x) {
+			_Element_To_Ty* p = dynamic_cast<_Element_To_Ty*>(x.get());
+			if (p) {
+				return ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>(x, p);
+			}
+		}
+		return ::YBWLib2::ReferenceCountedObjectHolder<_Element_To_Ty>();
+	}
+}
 
 namespace YBWLib2 {
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
@@ -310,304 +341,6 @@ namespace YBWLib2 {
 		mutable ::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr;
 #endif
 	};
-
-	/// <summary>
-	/// Reference counted object holder.
-	/// Counts as one reference of the owned object until destructed.
-	/// </summary>
-	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
-	template<typename _Element_Ty>
-	class ReferenceCountedObjectHolder final {
-		template<typename _Element_Ty_Other>
-		friend class ReferenceCountedObjectHolder;
-	public:
-		struct inc_ref_count_t {};
-
-		static constexpr inc_ref_count_t inc_ref_count {};
-
-		using element_type = _Element_Ty;
-		constexpr ReferenceCountedObjectHolder() noexcept {}
-		constexpr ReferenceCountedObjectHolder(nullptr_t) noexcept : ReferenceCountedObjectHolder() {}
-		/// <summary>
-		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, incrementing the object's reference count.
-		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
-		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty* p, inc_ref_count_t) noexcept {
-			if (p) {
-				const IReferenceCountedObject* _ptr_owned = p;
-				_ptr_owned->IncReferenceCount();
-				this->ptr_stored = p;
-				this->ptr_owned = _ptr_owned;
-			}
-		}
-		/// <summary>
-		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, without changing the object's reference count.
-		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
-		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p) noexcept {
-			if (p) {
-				this->ptr_stored = p;
-				this->ptr_owned = p;
-				p = nullptr;
-			}
-		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
-		}
-		template<typename _Element_From_Ty>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, _Element_Ty* p) noexcept {
-			const IReferenceCountedObject* _ptr_owned = x.ptr_owned;
-			if (_ptr_owned) {
-				_ptr_owned->IncReferenceCount();
-				this->ptr_owned = _ptr_owned;
-			}
-			if (p) this->ptr_stored = p;
-		}
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder& x) noexcept {
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			this->ptr_stored = x.ptr_stored;
-		}
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder&& x) noexcept {
-			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
-		}
-		inline ~ReferenceCountedObjectHolder() {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-		}
-		inline _Element_Ty* get() const noexcept { return this->ptr_stored; }
-		inline explicit operator bool() const noexcept { return this->ptr_stored; }
-		inline _Element_Ty& operator*() const noexcept { return *this->ptr_stored; }
-		inline _Element_Ty* operator->() const noexcept { return this->ptr_stored; }
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-			return *this;
-		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
-			return *this;
-		}
-		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			this->ptr_stored = x.ptr_stored;
-			return *this;
-		}
-		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder&& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
-			return *this;
-		}
-		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->ptr_owned < x.ptr_owned; }
-		inline void reset() noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-		}
-		/// <summary>
-		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
-		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
-		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline void reset(_Element_From_Ty* p, inc_ref_count_t) noexcept {
-			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
-			if (_ptr_owned_old) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned_old->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (p) {
-				const IReferenceCountedObject* _ptr_owned = p;
-				_ptr_owned->IncReferenceCount();
-				this->ptr_stored = p;
-				this->ptr_owned = _ptr_owned;
-			}
-		}
-		/// <summary>
-		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
-		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
-		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, _Element_Ty*>, int> = 0>
-		inline void reset(_Element_From_Ty*&& p) noexcept {
-			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
-			if (_ptr_owned_old) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned_old->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (p) {
-				this->ptr_stored = p;
-				this->ptr_owned = p;
-				p = nullptr;
-			}
-		}
-		/// <summary>
-		/// Releases the stored pointer without changing the reference count.
-		/// </summary>
-		inline _Element_Ty*&& release() noexcept {
-			_Element_Ty* ptr_stored_old = this->ptr_stored;
-			this->ptr_stored = nullptr;
-			this->ptr_owned = nullptr;
-			return ::std::move(ptr_stored_old);
-		}
-		inline void swap(ReferenceCountedObjectHolder& x) noexcept {
-			_Element_Ty* _ptr_stored = this->ptr_stored;
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = _ptr_stored;
-			x.ptr_owned = _ptr_owned;
-		}
-		inline bool unique() const noexcept { return this && this->ptr_owned && this->ptr_owned->GetReferenceCount() == 1; }
-		inline uintptr_t use_count() const noexcept { return this && this->ptr_owned ? this->ptr_owned->GetReferenceCount() : 0; }
-	private:
-		_Element_Ty* ptr_stored = nullptr;
-		const IReferenceCountedObject* ptr_owned = nullptr;
-	};
-	template<typename _Char_Ty, typename _Traits_Ty, typename _Element_Ty>
-	inline ::std::basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(::std::basic_ostream<_Char_Ty, _Traits_Ty>& os, const ReferenceCountedObjectHolder<_Element_Ty>& x) {
-		return os << x.get();
-	}
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator==(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() == nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() != nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() < nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() <= nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() > nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
-	template<typename _Element_Ty>
-	inline void swap(ReferenceCountedObjectHolder<_Element_Ty>& l, ReferenceCountedObjectHolder<_Element_Ty>& r) { l.swap(r); }
-	template<typename _Element_To_Ty, typename _Element_From_Ty>
-	inline ReferenceCountedObjectHolder<_Element_To_Ty> static_pointer_cast(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) {
-		return x ? ReferenceCountedObjectHolder<_Element_To_Ty>(x, static_cast<_Element_To_Ty*>(x.get())) : ReferenceCountedObjectHolder<_Element_To_Ty>();
-	}
-	template<typename _Element_To_Ty, typename _Element_From_Ty>
-	inline ReferenceCountedObjectHolder<_Element_To_Ty> const_pointer_cast(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) {
-		return x ? ReferenceCountedObjectHolder<_Element_To_Ty>(x, const_cast<_Element_To_Ty*>(x.get())) : ReferenceCountedObjectHolder<_Element_To_Ty>();
-	}
-	template<typename _Element_To_Ty, typename _Element_From_Ty>
-	inline ReferenceCountedObjectHolder<_Element_To_Ty> reinterpret_pointer_cast(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) {
-		return x ? ReferenceCountedObjectHolder<_Element_To_Ty>(x, reinterpret_cast<_Element_To_Ty*>(x.get())) : ReferenceCountedObjectHolder<_Element_To_Ty>();
-	}
-	template<typename _Element_To_Ty, typename _Element_From_Ty>
-	inline ReferenceCountedObjectHolder<_Element_To_Ty> dynamic_pointer_cast(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) {
-		if (x) {
-			_Element_To_Ty* p = dynamic_cast<_Element_To_Ty*>(x.get());
-			if (p) {
-				return ReferenceCountedObjectHolder<_Element_To_Ty>(x, p);
-			}
-		}
-		return ReferenceCountedObjectHolder<_Element_To_Ty>();
-	}
 
 	/// <summary>An object that implements <c>ILockableObject</c> and wraps an STL <c>Lockable</c> object.</summary>
 	/// <typeparam name="_Ty">The type of the wrapped object.</typeparam>

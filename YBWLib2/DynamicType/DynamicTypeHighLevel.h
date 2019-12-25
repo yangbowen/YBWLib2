@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_7C74AE76_4A99_4CC0_AF82_AD934257D492
+#ifndef _INCLUDE_GUARD_7C74AE76_4A99_4CC0_AF82_AD934257D492
 #define _INCLUDE_GUARD_7C74AE76_4A99_4CC0_AF82_AD934257D492
 
 #ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
@@ -36,7 +36,7 @@ namespace YBWLib2 {
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_delegate_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>, hash<ConstructorID>>;
+		using map_delegate_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificCreateObjectDelegate<_Class_Ty>>;
 		DynamicTypeClassObj::delegate_create_object_t delegate_create_object;
 		delegate_create_object.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, const DynamicTypeClassObj* _dtclassobj, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
 			map_delegate_create_t* map_delegate_create = reinterpret_cast<map_delegate_create_t*>(_contextvalue1);
@@ -110,7 +110,7 @@ namespace YBWLib2 {
 	) noexcept {
 		static_assert(::std::is_class_v<_Class_Ty>, "The specified class type is not a class.");
 		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified class type is not a dynamic type class.");
-		using map_delegate_placement_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>, hash<ConstructorID>>;
+		using map_delegate_placement_create_t = ::std::unordered_map<ConstructorID, DynamicTypeClassSpecificPlacementCreateObjectDelegate<_Class_Ty>>;
 		DynamicTypeClassObj::delegate_placement_create_object_t delegate_placement_create_object;
 		delegate_placement_create_object.fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, const DynamicTypeClassObj* _dtclassobj, void* _ptr_placement, IndexedDataStore* _indexeddatastore_parameters) noexcept->uintptr_t {
 			map_delegate_placement_create_t* map_delegate_placement_create = reinterpret_cast<map_delegate_placement_create_t*>(_contextvalue1);

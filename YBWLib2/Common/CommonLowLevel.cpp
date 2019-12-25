@@ -1,4 +1,4 @@
-﻿#pragma include_alias("pch.h", "../pch.h")
+#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include "CommonLowLevel.h"
 
@@ -21,7 +21,7 @@ namespace YBWLib2 {
 	YBWLIB2_API bool* is_byte_order_be = nullptr;
 	YBWLIB2_API dummy_t dummy;
 	YBWLIB2_API ::std::mutex* VolatileIDAnchor::mtx_map_volatileidanchor = nullptr;
-	YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>* VolatileIDAnchor::map_volatileidanchor = nullptr;
+	YBWLIB2_API ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>>* VolatileIDAnchor::map_volatileidanchor = nullptr;
 	YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2 = nullptr;
 	YBWLIB2_API IndexedDataEntryID RawAllocatorParameterIndexedDataEntry::entryid;
 
@@ -34,9 +34,9 @@ namespace YBWLib2 {
 		VolatileIDAnchor* volatileidanchor_ret = nullptr;
 		try {
 			::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
-			::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>::const_iterator it_map_volatileidanchor = map_volatileidanchor->find(*_persistentid);
+			::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>>::const_iterator it_map_volatileidanchor = map_volatileidanchor->find(*_persistentid);
 			if (it_map_volatileidanchor == map_volatileidanchor->cend()) {
-				::std::pair<::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>::iterator, bool> ret_emplace = map_volatileidanchor->emplace(*_persistentid, new VolatileIDAnchor(*_persistentid));
+				::std::pair<::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>>::iterator, bool> ret_emplace = map_volatileidanchor->emplace(*_persistentid, new VolatileIDAnchor(*_persistentid));
 				assert(ret_emplace.second);
 				volatileidanchor_ret = ret_emplace.first->second.get();
 			} else {
@@ -206,7 +206,7 @@ namespace YBWLib2 {
 		if (!byte_order_unsigned_long_long->is_le) *is_byte_order_le = false;
 		if (!byte_order_unsigned_long_long->is_be) *is_byte_order_be = false;
 		VolatileIDAnchor::mtx_map_volatileidanchor = new ::std::mutex();
-		VolatileIDAnchor::map_volatileidanchor = new ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>, hash<PersistentID>>();
+		VolatileIDAnchor::map_volatileidanchor = new ::std::unordered_map<PersistentID, ::std::unique_ptr<VolatileIDAnchor>>();
 		rawallocator_crt_YBWLib2 = new rawallocator_t(
 			nullptr, nullptr, nullptr,
 			[](size_t size, size_t align, uintptr_t context) noexcept->void* {

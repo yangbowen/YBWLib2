@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_5FFBCAEB_0B64_4B64_924A_0A630F01A923
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -12,6 +12,7 @@
 #define _INCLUDE_GUARD_30119E3B_9939_4A65_A63A_B13F0B7928DC
 
 #include <cstdint>
+#include <cassert>
 #include <atomic>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
@@ -591,9 +592,15 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_element; }
-		inline _Element_Ty& operator*() const noexcept { return *this->ptr_element; }
-		inline _Element_Ty* operator->() const noexcept { return this->ptr_element; }
-		inline _Element_Ty* get() const noexcept { return this->ptr_element; }
+		inline _Element_Ty& operator*() const noexcept {
+			assert(this->ptr_element);
+			return *this->ptr_element;
+		}
+		inline _Element_Ty* operator->() const noexcept {
+			assert(this->ptr_element);
+			return this->ptr_element;
+		}
+		inline _Element_Ty* const& get() const noexcept { return this->ptr_element; }
 		inline void reset(_Element_Ty*&& _ptr_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
 			this->free();
 			this->ptr_element = _ptr_element;
@@ -688,6 +695,7 @@ namespace YBWLib2 {
 		}
 		inline void set_element_as_mem() noexcept {
 			if (!this->is_element_as_mem) free();
+			this->is_element_as_mem = true;
 		}
 		inline _Element_Ty*& get_ref_ptr_element_element_as_mem() noexcept {
 			this->set_element_as_mem();
@@ -906,8 +914,11 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_array_element; }
-		inline _Element_Ty& operator[](size_t idx_element) const noexcept { return this->ptr_array_element[idx_element]; }
-		inline _Element_Ty* get() const noexcept { return this->ptr_array_element; }
+		inline _Element_Ty& operator[](size_t idx_element) const noexcept {
+			assert(this->ptr_array_element);
+			return this->ptr_array_element[idx_element];
+		}
+		inline _Element_Ty* const& get() const noexcept { return this->ptr_array_element; }
 		inline size_t get_count() const noexcept { return this->count_element; }
 		inline void reset(_Element_Ty*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
 			this->free();
@@ -1019,6 +1030,7 @@ namespace YBWLib2 {
 		}
 		inline void set_element_as_mem() noexcept {
 			if (!this->is_element_as_mem) free();
+			this->is_element_as_mem = true;
 		}
 		inline _Element_Ty*& get_ref_ptr_array_element_element_as_mem() noexcept {
 			this->set_element_as_mem();
@@ -1311,6 +1323,286 @@ namespace YBWLib2 {
 	private:
 		mutable ::std::atomic<uintptr_t> ref_count = 1;
 	};
+
+	/// <summary>
+	/// Reference counted object holder.
+	/// Counts as one reference of the owned object until destructed.
+	/// </summary>
+	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
+	template<typename _Element_Ty>
+	class ReferenceCountedObjectHolder final {
+		template<typename _Element_Ty_Other>
+		friend class ReferenceCountedObjectHolder;
+	public:
+		struct inc_ref_count_t {};
+
+		static constexpr inc_ref_count_t inc_ref_count {};
+
+		using element_type = _Element_Ty;
+		constexpr ReferenceCountedObjectHolder() noexcept {}
+		constexpr ReferenceCountedObjectHolder(nullptr_t) noexcept : ReferenceCountedObjectHolder() {}
+		/// <summary>
+		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, incrementing the object's reference count.
+		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectHolder(_Element_From_Ty* p, inc_ref_count_t) noexcept {
+			if (p) {
+				const IReferenceCountedObject* _ptr_owned = p;
+				_ptr_owned->IncReferenceCount();
+				this->ptr_stored = p;
+				this->ptr_owned = _ptr_owned;
+			}
+		}
+		/// <summary>
+		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, without changing the object's reference count.
+		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p) noexcept {
+			if (p) {
+				this->ptr_stored = p;
+				this->ptr_owned = p;
+				p = nullptr;
+			}
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+			if (x.ptr_owned) {
+				x.ptr_owned->IncReferenceCount();
+				this->ptr_owned = x.ptr_owned;
+			}
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+			this->ptr_owned = x.ptr_owned;
+			x.ptr_stored = nullptr;
+			x.ptr_owned = nullptr;
+		}
+		template<typename _Element_From_Ty>
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, element_type* p) noexcept {
+			const IReferenceCountedObject* _ptr_owned = x.ptr_owned;
+			if (_ptr_owned) {
+				_ptr_owned->IncReferenceCount();
+				this->ptr_owned = _ptr_owned;
+			}
+			if (p) this->ptr_stored = p;
+		}
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder& x) noexcept {
+			if (x.ptr_owned) {
+				x.ptr_owned->IncReferenceCount();
+				this->ptr_owned = x.ptr_owned;
+			}
+			this->ptr_stored = x.ptr_stored;
+		}
+		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder&& x) noexcept {
+			this->ptr_stored = x.ptr_stored;
+			this->ptr_owned = x.ptr_owned;
+			x.ptr_stored = nullptr;
+			x.ptr_owned = nullptr;
+		}
+		inline ~ReferenceCountedObjectHolder() {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+		}
+		inline element_type* const& get() const noexcept { return this->ptr_stored; }
+		inline explicit operator bool() const noexcept { return this->ptr_stored; }
+		inline element_type& operator*() const noexcept { return *this->ptr_stored; }
+		inline element_type* operator->() const noexcept { return this->ptr_stored; }
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			if (x.ptr_owned) {
+				x.ptr_owned->IncReferenceCount();
+				this->ptr_owned = x.ptr_owned;
+			}
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+			return *this;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+			this->ptr_owned = x.ptr_owned;
+			x.ptr_stored = nullptr;
+			x.ptr_owned = nullptr;
+			return *this;
+		}
+		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder& x) noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			if (x.ptr_owned) {
+				x.ptr_owned->IncReferenceCount();
+				this->ptr_owned = x.ptr_owned;
+			}
+			this->ptr_stored = x.ptr_stored;
+			return *this;
+		}
+		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder&& x) noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			this->ptr_stored = x.ptr_stored;
+			this->ptr_owned = x.ptr_owned;
+			x.ptr_stored = nullptr;
+			x.ptr_owned = nullptr;
+			return *this;
+		}
+		template<typename _Element_From_Ty>
+		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->ptr_owned < x.ptr_owned; }
+		inline void reset() noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+		}
+		inline void reset(nullptr_t) noexcept {
+			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
+			if (_ptr_owned) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+		}
+		/// <summary>
+		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
+		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline void reset(_Element_From_Ty* p, inc_ref_count_t) noexcept {
+			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
+			if (_ptr_owned_old) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned_old->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			if (p) {
+				const IReferenceCountedObject* _ptr_owned = p;
+				_ptr_owned->IncReferenceCount();
+				this->ptr_stored = p;
+				this->ptr_owned = _ptr_owned;
+			}
+		}
+		/// <summary>
+		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
+		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
+		/// </summary>
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline void reset(_Element_From_Ty*&& p) noexcept {
+			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
+			if (_ptr_owned_old) {
+				this->ptr_stored = nullptr;
+				this->ptr_owned = nullptr;
+				_ptr_owned_old->DecReferenceCount();
+			} else {
+				this->ptr_stored = nullptr;
+			}
+			if (p) {
+				this->ptr_stored = p;
+				this->ptr_owned = p;
+				p = nullptr;
+			}
+		}
+		/// <summary>
+		/// Releases the stored pointer without changing the reference count.
+		/// </summary>
+		[[nodiscard]] inline element_type*&& release() noexcept {
+			element_type* ptr_stored_old = this->ptr_stored;
+			this->ptr_stored = nullptr;
+			this->ptr_owned = nullptr;
+			return ::std::move(ptr_stored_old);
+		}
+		inline void swap(ReferenceCountedObjectHolder& x) noexcept {
+			element_type* ptr_stored_temp = this->ptr_stored;
+			const IReferenceCountedObject* ptr_owned_temp = this->ptr_owned;
+			this->ptr_stored = x.ptr_stored;
+			this->ptr_owned = x.ptr_owned;
+			x.ptr_stored = ptr_stored_temp;
+			x.ptr_owned = ptr_owned_temp;
+		}
+		inline bool unique() const noexcept { return this && this->ptr_owned && this->ptr_owned->GetReferenceCount() == 1; }
+		inline uintptr_t use_count() const noexcept { return this && this->ptr_owned ? this->ptr_owned->GetReferenceCount() : 0; }
+	private:
+		element_type* ptr_stored = nullptr;
+		const IReferenceCountedObject* ptr_owned = nullptr;
+	};
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator==(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator==(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr == r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator==(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() == nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() != r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator!=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr != r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() != nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() < r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr < r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() < nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() <= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr <= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() <= nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() > r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr > r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() > nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() >= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept;
