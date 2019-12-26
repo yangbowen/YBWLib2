@@ -168,12 +168,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CLRHost\CLRHost.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ReferenceInfo.h" />
     <ClInclude Include="YBWLib2dotNETUnmanagedApi.h" />
     <ClInclude Include="YBWLib2dotNETUnmanagedInit.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CLRHost\CLRHost.cpp" />
     <ClCompile Include="ModuleLocal.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

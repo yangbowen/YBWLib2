@@ -22,6 +22,7 @@
 #include <objbase.h>
 #include "../DynamicType/DynamicType.h"
 #include "Common.h"
+#include "CommonWindows.h"
 
 namespace std {
 	template<typename _Char_Ty, typename _Traits_Ty>

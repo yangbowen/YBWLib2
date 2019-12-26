@@ -1312,7 +1312,6 @@ namespace YBWLib2 {
 		static constexpr unsigned int delegateflags = _delegateflags;
 		static constexpr bool is_noexcept = delegateflags & DelegateFlags::DelegateFlag_Noexcept;
 		struct invoke_constexpr_callable_t {};
-		struct invoke_function_t {};
 		struct invoke_observe_callable_t {};
 		struct invoke_adopt_callable_t {};
 		struct invoke_construct_callable_t {};
@@ -1320,7 +1319,6 @@ namespace YBWLib2 {
 		struct invoke_member_function_t {};
 		struct use_argument_tuple_t {};
 		static constexpr invoke_constexpr_callable_t invoke_constexpr_callable {};
-		static constexpr invoke_function_t invoke_function {};
 		static constexpr invoke_observe_callable_t invoke_observe_callable {};
 		static constexpr invoke_adopt_callable_t invoke_adopt_callable {};
 		static constexpr invoke_construct_callable_t invoke_construct_callable {};
@@ -1331,9 +1329,21 @@ namespace YBWLib2 {
 			::std::conditional_t<
 			is_noexcept,
 			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args)
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(false)
 			>;
 		using fnptr_cleanup_t = DelegateCleanupFnptr;
+		using fnptr_invoke_1contextvalue_t =
+			::std::conditional_t<
+			is_noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(false)
+			>;
+		using fnptr_invoke_0contextvalue_t =
+			::std::conditional_t<
+			is_noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(_Args_Ty... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(_Args_Ty... args) noexcept(false)
+			>;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
 		uintptr_t contextvalue2 = 0;
@@ -1349,25 +1359,27 @@ namespace YBWLib2 {
 			contextvalue2(_contextvalue2),
 			fnptr_cleanup(_fnptr_cleanup) {}
 		constexpr Delegate(
-			invoke_function_t,
-			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(is_noexcept),
-			uintptr_t _contextvalue1 = 0
+			fnptr_invoke_1contextvalue_t _fnptr_invoke,
+			uintptr_t _contextvalue1 = 0,
+			fnptr_cleanup_t _fnptr_cleanup = nullptr
 		) noexcept {
 			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
+			this->fnptr_cleanup = _fnptr_cleanup;
 		}
 		constexpr Delegate(
-			invoke_function_t,
-			return_type(YBWLIB2_CALLTYPE* _fnptr_invoke)(_Args_Ty... args) noexcept(is_noexcept)
+			fnptr_invoke_0contextvalue_t _fnptr_invoke,
+			fnptr_cleanup_t _fnptr_cleanup = nullptr
 		) noexcept {
 			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
 				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
 			};
 			this->contextvalue1 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
+			this->fnptr_cleanup = _fnptr_cleanup;
 		}
 		template<
 			typename _Callable_Invoke_Ty,

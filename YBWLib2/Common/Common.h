@@ -1018,6 +1018,45 @@ namespace YBWLib2 {
 				this->size_mem = sizeof(_Element_Ty) * _count_element;
 				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+			} else {
+				this->destruct();
+			}
+		}
+		template<typename ::std::enable_if<::std::is_trivially_copyable_v<_Element_Ty>, int>::type = 0>
+		inline void reallocate(size_t _count_element) noexcept(false) {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			if (!this->ptr_mem) {
+				this->allocate(_count_element);
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element < reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+				if (this->ptr_array_element) {
+					for (
+						;
+						this->count_element && reinterpret_cast<uintptr_t>(this->ptr_array_element) + sizeof(_Element_Ty) * this->count_element > reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element;
+						--this->count_element
+						)
+						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					if (!this->count_element) this->ptr_array_element = nullptr;
+				}
+				void* ptr_mem_old = this->ptr_mem;
+				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(_Element_Ty) * _count_element, alignof(_Element_Ty[]));
+				if (!this->ptr_mem) {
+					this->rawallocator->Deallocate(ptr_mem_old, this->size_mem);
+					throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+				this->size_mem = sizeof(_Element_Ty) * _count_element;
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+				void* ptr_mem_old = this->ptr_mem;
+				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(_Element_Ty) * _count_element, alignof(_Element_Ty[]));
+				if (!this->ptr_mem) {
+					this->rawallocator->Deallocate(ptr_mem_old, this->size_mem);
+					throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
+				}
+				this->size_mem = sizeof(_Element_Ty) * _count_element;
 			}
 		}
 		inline void free() noexcept {
@@ -1027,6 +1066,19 @@ namespace YBWLib2 {
 				this->ptr_mem = nullptr;
 			}
 			this->size_mem = 0;
+		}
+		template<typename ::std::enable_if<::std::is_trivial_v<_Element_Ty>, int>::type = 0>
+		inline void set_count(size_t _count_element) noexcept(false) {
+			if (this->is_element_as_mem) {
+				if (this->ptr_mem || this->size_mem) abort();
+				this->ptr_mem = this->ptr_array_element;
+				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->is_element_as_mem = false;
+			}
+			this->reallocate(_count_element);
+			assert(this->count_element <= _count_element);
+			for (; this->count_element < _count_element; ++this->count_element)
+				new(this->ptr_array_element + this->count_element) _Element_Ty();
 		}
 		inline void set_element_as_mem() noexcept {
 			if (!this->is_element_as_mem) free();

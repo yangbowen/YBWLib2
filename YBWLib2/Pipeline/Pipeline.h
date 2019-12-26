@@ -1481,6 +1481,11 @@ namespace YBWLib2 {
 	public:
 		using pipelinecontext_type = pipelinecontext_t;
 		using pipelinefiltercontext_type = pipelinefiltercontext_t;
+		static PipelineID GetPipelineID(const pipelinecontext_type& _pipelinecontext) noexcept {
+			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
+			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
+			return Pipeline_GetPipelineID(pipeline);
+		}
 		static IndexedDataStore& GetPipelineUserDataIndexedDataStore(pipelinecontext_type& _pipelinecontext) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1517,6 +1522,14 @@ namespace YBWLib2 {
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+			while (!Pipeline_IsResolved(pipeline, already_shared_locked_pipeline)) {
+				shared_lock_pipeline.unlock();
+				{
+					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+					Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
+				}
+				shared_lock_pipeline.lock();
+			}
 			size_t size_invocationdata = Pipeline_GetInvocationDataSize(pipeline, already_shared_locked_pipeline);
 #if defined(YBWLIB2_NO_ALLOCA)
 			::std::unique_ptr<::std::max_align_t[]> uniqueptr_buf_invocationdata(new ::std::max_align_t[(size_invocationdata - 1) / sizeof(::std::max_align_t) + 1]);
@@ -1606,6 +1619,11 @@ namespace YBWLib2 {
 			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
 			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
+		}
+		static PipelineFilterID GetPipelineFilterID(const pipelinefiltercontext_type& _pipelinefiltercontext) noexcept {
+			assert(_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder());
+			const PipelineFilter& pipelinefilter = *_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder();
+			return PipelineFilter_GetPipelineFilterID(pipelinefilter);
 		}
 		static IndexedDataStore& GetPipelineFilterUserDataIndexedDataStore(pipelinefiltercontext_type& _pipelinefiltercontext) noexcept {
 			assert(_pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder());
@@ -1727,6 +1745,9 @@ namespace YBWLib2 {
 			ReferenceCountedObjectHolder<PipelineFilter>& pipelinefilter = this->pipelinefiltercontext.GetPipelineFilterReferenceCountedObjectHolder();
 			assert(pipelinefilter);
 			return *pipelinefilter;
+		}
+		PipelineFilterID GetPipelineFilterID() const noexcept {
+			return pipelinetraits_type::GetPipelineFilterID(this->pipelinefiltercontext);
 		}
 		const PipelineFilter& operator*() const noexcept { return this->GetPipelineFilter(); }
 		PipelineFilter& operator*() noexcept { return this->GetPipelineFilter(); }
@@ -1858,6 +1879,9 @@ namespace YBWLib2 {
 			ReferenceCountedObjectHolder<Pipeline>& pipeline = this->pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			assert(pipeline);
 			return *pipeline;
+		}
+		PipelineID GetPipelineID() const noexcept {
+			return pipelinetraits_type::GetPipelineID(this->pipelinecontext);
 		}
 		PipelineSharedMutexWrapper&& GetPipelineSharedMutexWrapper() const noexcept {
 			ReferenceCountedObjectHolder<Pipeline>& pipeline = this->pipelinecontext.GetPipelineReferenceCountedObjectHolder();

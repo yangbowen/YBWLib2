@@ -2,6 +2,7 @@
 #include "../YBWLib2/YBWLib2Init.h"
 #include "YBWLib2dotNETUnmanagedApi.h"
 #include "YBWLib2dotNETUnmanagedInit.h"
+#include "CLRHost/CLRHost.h"
 
 namespace YBWLib2 {
 	static void YBWLIB2DOTNETUNMANAGED_CALLTYPE YBWLib2dotNETUnmanaged_RealInitDLL() noexcept;
@@ -10,6 +11,7 @@ namespace YBWLib2 {
 	static void YBWLIB2DOTNETUNMANAGED_CALLTYPE YBWLib2dotNETUnmanaged_RealInitDLL() noexcept {
 		try {
 			YBWLib2_InitModuleLocal();
+			CLRHost_RealInitGlobal();
 		} catch (...) {
 			abort();
 		}
@@ -17,6 +19,7 @@ namespace YBWLib2 {
 
 	static void YBWLIB2DOTNETUNMANAGED_CALLTYPE YBWLib2dotNETUnmanaged_RealUnInitDLL() noexcept {
 		try {
+			CLRHost_RealUnInitGlobal();
 			YBWLib2_UnInitModuleLocal();
 		} catch (...) {
 			abort();
