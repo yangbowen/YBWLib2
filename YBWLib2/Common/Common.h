@@ -779,7 +779,7 @@ namespace YBWLib2 {
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
@@ -862,7 +862,7 @@ namespace YBWLib2 {
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
@@ -1169,8 +1169,8 @@ namespace YBWLib2 {
 	/// Any value originally in <c>*data_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 	/// </param>
 	/// <param name="size_data_out_ret">
-	/// Pointer to a variable that receives the size (in <c>uint8_t</c>s) of the output data.
-	/// After successfully returning from this function, <c>*size_data_out_ret</c> will be set to the size (in <c>uint8_t</c>s) of the output data.
+	/// Pointer to a variable that receives the size (in <c>unsigned char</c>s) of the output data.
+	/// After successfully returning from this function, <c>*size_data_out_ret</c> will be set to the size (in <c>unsigned char</c>s) of the output data.
 	/// Any value originally in <c>*size_data_out_ret</c> will be discarded.
 	/// </param>
 	/// <param name="str_base64_in">Pointer to the input Base64 string, in UTF-8.</param>
@@ -1182,12 +1182,11 @@ namespace YBWLib2 {
 	/// </returns>
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8Base64Decode(
 		const rawallocator_t* rawallocator,
-		uint8_t** data_out_ret,
+		unsigned char** data_out_ret,
 		size_t* size_data_out_ret,
 		const char* str_base64_in,
 		size_t size_str_base64_in
 	) noexcept;
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
 	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
@@ -1204,7 +1203,7 @@ namespace YBWLib2 {
 	/// Any value originally in <c>*size_str_base64_out_ret</c> will be discarded.
 	/// </param>
 	/// <param name="data_in">Pointer to the input data.</param>
-	/// <param name="size_data_in">The size, in <c>uint8_t</c>s, of the input data, pointed to by <c>data_in</c>.</param>
+	/// <param name="size_data_in">The size, in <c>unsigned char</c>s, of the input data, pointed to by <c>data_in</c>.</param>
 	/// <returns>
 	/// Returns a pointer to the exception object if the function fails.
 	/// Returns an empty pointer otherwise.
@@ -1214,10 +1213,9 @@ namespace YBWLib2 {
 		const rawallocator_t* rawallocator,
 		char** str_base64_out_ret,
 		size_t* size_str_base64_out_ret,
-		const uint8_t* data_in,
+		const unsigned char* data_in,
 		size_t size_data_in
 	) noexcept;
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
 	/// <param name="rawallocator">Pointer to an <c>rawallocator_t</c> object for allocating memory used by the function.</param>
@@ -1229,12 +1227,12 @@ namespace YBWLib2 {
 	/// Any value originally in <c>*hash_out_ret</c> will be discarded (without freeing the memory pointed to by it, if any).
 	/// </param>
 	/// <param name="size_hash_out_ret">
-	/// Pointer to a variable that receives the size (in <c>uint8_t</c>s) of the hash.
-	/// After successfully returning from this function, <c>*size_hash_out_ret</c> will be set to the size (in <c>uint8_t</c>s) of the hash.
+	/// Pointer to a variable that receives the size (in <c>unsigned char</c>s) of the hash.
+	/// After successfully returning from this function, <c>*size_hash_out_ret</c> will be set to the size (in <c>unsigned char</c>s) of the hash.
 	/// Any value originally in <c>*size_hash_out_ret</c> will be discarded.
 	/// </param>
 	/// <param name="data_in">Pointer to the input data.</param>
-	/// <param name="size_data_in">The size, in <c>uint8_t</c>s, of the input data, pointed to by <c>data_in</c>.</param>
+	/// <param name="size_data_in">The size, in <c>unsigned char</c>s, of the input data, pointed to by <c>data_in</c>.</param>
 	/// <returns>
 	/// Returns a pointer to the exception object if the function fails.
 	/// Returns an empty pointer otherwise.
@@ -1242,12 +1240,11 @@ namespace YBWLib2 {
 	/// </returns>
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE HashSha256(
 		const rawallocator_t* rawallocator,
-		uint8_t** hash_out_ret,
+		unsigned char** hash_out_ret,
 		size_t* size_hash_out_ret,
-		const uint8_t* data_in,
+		const unsigned char* data_in,
 		size_t size_data_in
 	) noexcept;
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Reference counted object.</summary>
 	class IReferenceCountedObject abstract : public virtual IDynamicTypeObject {

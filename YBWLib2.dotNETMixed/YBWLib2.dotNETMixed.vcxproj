@@ -182,6 +182,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CLRHost\AppDomainManager.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="YBWLib2dotNETMixedApi.h" />
     <ClInclude Include="YBWLib2dotNETMixedInit.h" />
@@ -193,6 +194,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="CLRHost\AppDomainManager.cpp" />
     <ClCompile Include="ModuleLocal_Unmanaged.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>

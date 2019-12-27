@@ -183,12 +183,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ReferenceInfo.dotNETMixed.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="YBWLib2dotNETUnmanagedInit.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -199,30 +193,30 @@
   <ItemGroup>
     <CustomBuild Include="ReferenceInfo.dotNETMixed.tt">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TextTransform -out "%(FileName).cpp" "%(Identity)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TextTransform -out "%(FileName).h" "%(Identity)"
 </Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Transforming Reference Info for YBWLib2.dotNETMixed</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ReferenceInfo.dotNETMixed.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ReferenceInfo.dotNETMixed.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../YBWLib2.dotNETMixed/VersionInfo.t4;../YBWLib2.dotNETMixed/RevisionNumber.t4;../SignatureInfo.t4;%(AdditionalInputs)</AdditionalInputs>
-      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ClCompile</OutputItemType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TextTransform -out "%(FileName).cpp" "%(Identity)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TextTransform -out "%(FileName).h" "%(Identity)"
 </Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Transforming Reference Info for YBWLib2.dotNETMixed</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ReferenceInfo.dotNETMixed.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ReferenceInfo.dotNETMixed.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../YBWLib2.dotNETMixed/VersionInfo.t4;../YBWLib2.dotNETMixed/RevisionNumber.t4;../SignatureInfo.t4;%(AdditionalInputs)</AdditionalInputs>
-      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ClCompile</OutputItemType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TextTransform -out "%(FileName).cpp" "%(Identity)"
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ClInclude</OutputItemType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TextTransform -out "%(FileName).h" "%(Identity)"
 </Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Transforming Reference Info for YBWLib2.dotNETMixed</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ReferenceInfo.dotNETMixed.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ReferenceInfo.dotNETMixed.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../YBWLib2.dotNETMixed/VersionInfo.t4;../YBWLib2.dotNETMixed/RevisionNumber.t4;../SignatureInfo.t4;%(AdditionalInputs)</AdditionalInputs>
-      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClCompile</OutputItemType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TextTransform -out "%(FileName).cpp" "%(Identity)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TextTransform -out "%(FileName).h" "%(Identity)"
 </Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Transforming Reference Info for YBWLib2.dotNETMixed</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ReferenceInfo.dotNETMixed.cpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ReferenceInfo.dotNETMixed.h;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../YBWLib2.dotNETMixed/VersionInfo.t4;../YBWLib2.dotNETMixed/RevisionNumber.t4;../SignatureInfo.t4;%(AdditionalInputs)</AdditionalInputs>
-      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClCompile</OutputItemType>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ClInclude</OutputItemType>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ClInclude</OutputItemType>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClInclude</OutputItemType>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

@@ -82,31 +82,31 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
-	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>> Utf8StringToUtf16String(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
-		rawallocator_t rawallocator(u8str.get_allocator().rawallocator);
+	template<typename _Allocator_Ty>
+	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty> Utf8StringToUtf16String(const ::std::string_view& u8str, const _Allocator_Ty& _allocator = ::std::allocator<char16_t>()) noexcept(false) {
 		return Utf8StringToUtf16String<
-			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>,
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(&rawallocator, u8str, u8str.get_allocator());
+			::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty>,
+			::std::string_view
+		>(rawallocator_crt_module_local, u8str, _allocator);
 	}
 
 	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
-	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf16StringToUtf8String(const ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>& u16str) noexcept(false) {
-		rawallocator_t rawallocator(u16str.get_allocator().rawallocator);
+	template<typename _Allocator_Ty>
+	inline ::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty> Utf16StringToUtf8String(const ::std::u16string_view& u16str, const _Allocator_Ty& _allocator = ::std::allocator<char>()) noexcept(false) {
 		return Utf16StringToUtf8String<
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
-			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>
-		>(&rawallocator, u16str, u16str.get_allocator());
+			::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty>,
+			::std::u16string_view
+		>(rawallocator_crt_module_local, u16str, _allocator);
 	}
 
 	/// <summary>Converts a UTF-8 string into a UTF-16 string.</summary>
-	inline ::std::u16string Utf8StringToUtf16String(const ::std::string& u8str) noexcept(false) {
-		return Utf8StringToUtf16String<::std::u16string, ::std::string>(rawallocator_crt_module_local, u8str, u8str.get_allocator());
+	inline ::std::u16string Utf8StringToUtf16String(const ::std::string_view& u8str) noexcept(false) {
+		return Utf8StringToUtf16String<::std::u16string, ::std::string_view>(rawallocator_crt_module_local, u8str, ::std::allocator<char16_t>());
 	}
 
 	/// <summary>Converts a UTF-16 string into a UTF-8 string.</summary>
-	inline ::std::string Utf16StringToUtf8String(const ::std::u16string& u16str) noexcept(false) {
-		return Utf16StringToUtf8String<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
+	inline ::std::string Utf16StringToUtf8String(const ::std::u16string_view& u16str) noexcept(false) {
+		return Utf16StringToUtf8String<::std::string, ::std::u16string_view>(rawallocator_crt_module_local, u16str, ::std::allocator<char>());
 	}
 
 	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
@@ -118,12 +118,11 @@ namespace YBWLib2 {
 	) noexcept(false) {
 		static_assert(::std::is_class_v<_Vector_Data_Ty>, "The data vector type is not a class.");
 		static_assert(::std::is_class_v<_U8String_Ty>, "The UTF-8 string type is not a class.");
-		objholder_rawallocator_t<uint8_t[]> holder_data_out(_rawallocator);
+		objholder_rawallocator_t<unsigned char[]> holder_data_out(_rawallocator);
 		IException* err = Utf8Base64Decode(_rawallocator, &holder_data_out.get_ref_ptr_array_element_element_as_mem(), &holder_data_out.get_ref_count_element_element_as_mem(), u8str.data(), u8str.size());
 		if (err) throw(err);
 		return _Vector_Data_Ty(holder_data_out.get(), holder_data_out.get() + holder_data_out.get_count(), _allocator_vec_data_out);
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
 	template<typename _U8String_Ty, typename _Vector_Data_Ty>
@@ -139,39 +138,34 @@ namespace YBWLib2 {
 		if (err) throw(err);
 		return _U8String_Ty(holder_u8str_out.get(), holder_u8str_out.get_count(), _allocator_u8str_out);
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
-	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> Utf8Base64Decode(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& u8str) noexcept(false) {
-		rawallocator_t rawallocator(u8str.get_allocator().rawallocator);
+	template<typename _Allocator_Ty>
+	inline ::std::vector<unsigned char, _Allocator_Ty> Utf8Base64Decode(const ::std::string_view& u8str, const _Allocator_Ty& _allocator = ::std::allocator<unsigned char>()) noexcept(false) {
 		return Utf8Base64Decode<
-			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(&rawallocator, u8str, u8str.get_allocator());
+			::std::vector<unsigned char, _Allocator_Ty>,
+			::std::string_view
+		>(rawallocator_crt_module_local, u8str, _allocator);
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
-	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf8Base64Encode(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
-		rawallocator_t rawallocator(vec_data.get_allocator().rawallocator);
+	template<typename _Allocator_Ty, typename _Allocator_From_Ty>
+	inline ::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty> Utf8Base64Encode(const ::std::vector<unsigned char, _Allocator_From_Ty>& vec_data, const _Allocator_Ty& _allocator = ::std::allocator<char>()) noexcept(false) {
 		return Utf8Base64Encode<
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
-			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
-		>(&rawallocator, vec_data, vec_data.get_allocator());
+			::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty>,
+			::std::vector<unsigned char, _Allocator_From_Ty>
+		>(rawallocator_crt_module_local, vec_data, _allocator);
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-decodes some data from a UTF-8 string.</summary>
-	inline ::std::vector<uint8_t> Utf8Base64Decode(const ::std::string& u8str) noexcept(false) {
-		return Utf8Base64Decode<::std::vector<uint8_t>, ::std::string>(rawallocator_crt_module_local, u8str, u8str.get_allocator());
+	inline ::std::vector<unsigned char> Utf8Base64Decode(const ::std::string_view& u8str) noexcept(false) {
+		return Utf8Base64Decode<::std::vector<unsigned char>, ::std::string_view>(rawallocator_crt_module_local, u8str, ::std::allocator<unsigned char>());
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Base64-encodes some data into a UTF-8 string.</summary>
-	inline ::std::string Utf8Base64Encode(const ::std::vector<uint8_t>& u16str) noexcept(false) {
-		return Utf8Base64Encode<::std::string, ::std::vector<uint8_t>>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
+	inline ::std::string Utf8Base64Encode(const ::std::vector<unsigned char>& u16str) noexcept(false) {
+		return Utf8Base64Encode<::std::string, ::std::vector<unsigned char>>(rawallocator_crt_module_local, u16str, ::std::allocator<char>());
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
 	template<typename _Vector_Hash_Ty, typename _Vector_Data_Ty>
@@ -182,28 +176,25 @@ namespace YBWLib2 {
 	) noexcept(false) {
 		static_assert(::std::is_class_v<_Vector_Hash_Ty>, "The hash vector type is not a class.");
 		static_assert(::std::is_class_v<_Vector_Data_Ty>, "The data vector type is not a class.");
-		objholder_rawallocator_t<uint8_t[]> holder_data_hash(_rawallocator);
+		objholder_rawallocator_t<unsigned char[]> holder_data_hash(_rawallocator);
 		IException* err = HashSha256(_rawallocator, &holder_data_hash.get_ref_ptr_array_element_element_as_mem(), &holder_data_hash.get_ref_count_element_element_as_mem(), vec_data.data(), vec_data.size());
 		if (err) throw(err);
 		return _Vector_Hash_Ty(holder_data_hash.get(), holder_data_hash.get() + holder_data_hash.get_count(), _allocator_vec_hash_out);
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
-	inline ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>> HashSha256(const ::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>& vec_data) noexcept(false) {
+	inline ::std::vector<unsigned char, allocator_rawallocator_t<unsigned char>> HashSha256(const ::std::vector<unsigned char, allocator_rawallocator_t<unsigned char>>& vec_data) noexcept(false) {
 		rawallocator_t rawallocator(vec_data.get_allocator().rawallocator);
 		return HashSha256<
-			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>,
-			::std::vector<uint8_t, allocator_rawallocator_t<uint8_t>>
+			::std::vector<unsigned char, allocator_rawallocator_t<unsigned char>>,
+			::std::vector<unsigned char, allocator_rawallocator_t<unsigned char>>
 		>(&rawallocator, vec_data, vec_data.get_allocator());
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>Computes the SHA256 cryptographic hash of some data.</summary>
-	inline ::std::vector<uint8_t> HashSha256(const ::std::vector<uint8_t>& vec_data) noexcept(false) {
-		return HashSha256<::std::vector<uint8_t>, ::std::vector<uint8_t>>(rawallocator_crt_module_local, vec_data, vec_data.get_allocator());
+	inline ::std::vector<unsigned char> HashSha256(const ::std::vector<unsigned char>& vec_data) noexcept(false) {
+		return HashSha256<::std::vector<unsigned char>, ::std::vector<unsigned char>>(rawallocator_crt_module_local, vec_data, vec_data.get_allocator());
 	}
-	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>
 	/// Reference counted object that keeps an STL shared pointer of itself.

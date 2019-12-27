@@ -229,15 +229,16 @@ namespace YBWLib2 {
 		const IID& _iid,
 		_COM_Outptr_ void** _obj_ret
 	) {
+		static_assert(::std::conjunction_v<::std::is_base_of<IUnknown, _Interface_Ty>...>, "At least one of the interface classes is not derived from IUnknown.");
 		assert(_obj);
 		if (!_obj_ret) return E_POINTER;
-		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty * _ptr) noexcept;
+		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty* _ptr) noexcept;
 		using map_cast_t = ::std::unordered_map<IID, fnptr_cast_t, hash_trivially_copyable_t<IID, size_t>>;
 		static const map_cast_t map_cast(
 			{
 				{
 					__uuidof(_Interface_Ty),
-					[](_Class_Ty* _ptr) noexcept->void* { return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
+					[](_Class_Ty* _ptr) noexcept->void* { static_cast<_Interface_Ty*>(_ptr)->AddRef(); return reinterpret_cast<void*>(static_cast<_Interface_Ty*>(_ptr)); }
 				}...
 			}
 		);
@@ -273,14 +274,14 @@ namespace YBWLib2 {
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline COMObjectHolder(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
 			if (_ptr_element) {
-				static_cast<element_type*>(_ptr_element)->IUnknown::AddRef();
+				static_cast<element_type*>(_ptr_element)->AddRef();
 				this->ptr_element = static_cast<element_type*>(_ptr_element);
 			}
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline COMObjectHolder(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
 			if (x.ptr_element) {
-				x.ptr_element->IUnknown::AddRef();
+				x.ptr_element->AddRef();
 				this->ptr_element = static_cast<element_type*>(x.ptr_element);
 			}
 		}
@@ -323,7 +324,7 @@ namespace YBWLib2 {
 		inline COMObjectHolder& operator=(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
 			this->reset();
 			if (x.ptr_element) {
-				x.ptr_element->IUnknown::AddRef();
+				x.ptr_element->AddRef();
 				this->ptr_element = static_cast<element_type*>(x.ptr_element);
 			}
 		}
@@ -345,7 +346,7 @@ namespace YBWLib2 {
 		inline element_type* const& get() const noexcept { return this->ptr_element; }
 		inline void reset() noexcept {
 			if (this->ptr_element) {
-				this->ptr_element->IUnknown::Release();
+				this->ptr_element->Release();
 				this->ptr_element = nullptr;
 			}
 		}
@@ -369,7 +370,7 @@ namespace YBWLib2 {
 		inline void reset(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
 			this->reset();
 			if (_ptr_element) {
-				static_cast<element_type*>(_ptr_element)->IUnknown::AddRef();
+				static_cast<element_type*>(_ptr_element)->AddRef();
 				this->ptr_element = static_cast<element_type*>(_ptr_element);
 			}
 		}
@@ -399,7 +400,7 @@ namespace YBWLib2 {
 			return l.get() == r.get();
 		} else {
 			try {
-				return l.get() == COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() == COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}
@@ -415,7 +416,7 @@ namespace YBWLib2 {
 			return l.get() != r.get();
 		} else {
 			try {
-				return l.get() != COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() != COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}
@@ -431,7 +432,7 @@ namespace YBWLib2 {
 			return l.get() < r.get();
 		} else {
 			try {
-				return l.get() < COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() < COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}
@@ -447,7 +448,7 @@ namespace YBWLib2 {
 			return l.get() <= r.get();
 		} else {
 			try {
-				return l.get() <= COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() <= COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}
@@ -463,7 +464,7 @@ namespace YBWLib2 {
 			return l.get() > r.get();
 		} else {
 			try {
-				return l.get() > COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() > COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}
@@ -479,7 +480,7 @@ namespace YBWLib2 {
 			return l.get() >= r.get();
 		} else {
 			try {
-				return l.get() >= COMObjectHolder<_Element_L_Ty>(r.get());
+				return COMObjectHolder<IUnknown>(l).get() >= COMObjectHolder<IUnknown>(r).get();
 			} catch (...) {
 				abort();
 			}

@@ -1,4 +1,4 @@
-﻿#pragma include_alias("pch.h", "../pch.h")
+#pragma include_alias("pch.h", "../pch.h")
 #include "pch.h"
 #include "../Windows.h"
 #include <wincrypt.h>
@@ -151,12 +151,11 @@ namespace YBWLib2 {
 
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8Base64Decode(
 		const rawallocator_t* rawallocator,
-		uint8_t** data_out_ret,
+		unsigned char** data_out_ret,
 		size_t* size_data_out_ret,
 		const char* str_base64_in,
 		size_t size_str_base64_in
 	) noexcept {
-		static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 		if (!rawallocator) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Decode);
 		if (!data_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Decode);
 		if (!size_data_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Decode);
@@ -166,7 +165,7 @@ namespace YBWLib2 {
 			[&rawallocator, &data_out_ret, &size_data_out_ret, &str_base64_in, &size_str_base64_in, &err_inner]() noexcept(false)->void {
 #ifdef _WIN32_WINNT
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
-				static_assert(sizeof(uint8_t) == sizeof(BYTE), "The size of uint8_t is different from the size of BYTE.");
+				static_assert(sizeof(unsigned char) == sizeof(BYTE), "The size of unsigned char is different from the size of BYTE.");
 				objholder_rawallocator_t<char16_t[]> holder_u16str_base64_in(rawallocator);
 				err_inner = Utf8StringToUtf16String(rawallocator, &holder_u16str_base64_in.get_ref_ptr_array_element_element_as_mem(), &holder_u16str_base64_in.get_ref_count_element_element_as_mem(), str_base64_in, size_str_base64_in);
 				if (err_inner) return;
@@ -175,7 +174,7 @@ namespace YBWLib2 {
 				if (!CryptStringToBinaryW(reinterpret_cast<const wchar_t*>(holder_u16str_base64_in.get()), holder_u16str_base64_in.get_count() & ~(DWORD)0, CRYPT_STRING_BASE64, nullptr, &dword_size_data_out, nullptr, nullptr)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW); return; }
 				if (dword_size_data_out > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				*size_data_out_ret = dword_size_data_out & ~(size_t)0;
-				*data_out_ret = reinterpret_cast<uint8_t*>(rawallocator->Allocate(*size_data_out_ret * sizeof(uint8_t), alignof(uint8_t[])));
+				*data_out_ret = reinterpret_cast<unsigned char*>(rawallocator->Allocate(*size_data_out_ret * sizeof(unsigned char), alignof(unsigned char[])));
 				if (!*data_out_ret) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				if (holder_u16str_base64_in.get_count() > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (
@@ -183,7 +182,7 @@ namespace YBWLib2 {
 					|| dword_size_data_out != *size_data_out_ret
 					) {
 					err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptStringToBinaryW);
-					rawallocator->Deallocate(*data_out_ret, *size_data_out_ret * sizeof(uint8_t));
+					rawallocator->Deallocate(*data_out_ret, *size_data_out_ret * sizeof(unsigned char));
 					*data_out_ret = nullptr;
 					*size_data_out_ret = 0;
 					return;
@@ -210,10 +209,9 @@ namespace YBWLib2 {
 		const rawallocator_t* rawallocator,
 		char** str_base64_out_ret,
 		size_t* size_str_base64_out_ret,
-		const uint8_t* data_in,
+		const unsigned char* data_in,
 		size_t size_data_in
 	) noexcept {
-		static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 		if (!rawallocator) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Encode);
 		if (!str_base64_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Encode);
 		if (!size_str_base64_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::Utf8Base64Encode);
@@ -223,9 +221,9 @@ namespace YBWLib2 {
 			[&rawallocator, &str_base64_out_ret, &size_str_base64_out_ret, &data_in, &size_data_in, &err_inner]() noexcept(false)->void {
 #ifdef _WIN32_WINNT
 				static_assert(sizeof(char16_t) == sizeof(wchar_t), "The size of char16_t is different from the size of wchar_t.");
-				static_assert(sizeof(uint8_t) == sizeof(BYTE), "The size of uint8_t is different from the size of BYTE.");
+				static_assert(sizeof(unsigned char) == sizeof(BYTE), "The size of unsigned char is different from the size of BYTE.");
 				objholder_rawallocator_t<char16_t[]> holder_u16str_base64_out(rawallocator);
-				if (!data_in) data_in = reinterpret_cast<const uint8_t*>(&dummy);
+				if (!data_in) data_in = reinterpret_cast<const unsigned char*>(&dummy);
 				DWORD dword_size_u16str_out = 0;
 				if (size_data_in > MAXDWORD) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				if (!CryptBinaryToStringW(reinterpret_cast<const BYTE*>(data_in), size_data_in & ~(DWORD)0, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &dword_size_u16str_out)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_LAST_ERROR_EXCEPTION(CryptBinaryToStringW); return; }
@@ -265,12 +263,11 @@ namespace YBWLib2 {
 
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE HashSha256(
 		const rawallocator_t* rawallocator,
-		uint8_t** hash_out_ret,
+		unsigned char** hash_out_ret,
 		size_t* size_hash_out_ret,
-		const uint8_t* data_in,
+		const unsigned char* data_in,
 		size_t size_data_in
 	) noexcept {
-		static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 		if (!rawallocator) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::HashSha256);
 		if (!hash_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::HashSha256);
 		if (!size_hash_out_ret) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::HashSha256);
@@ -279,7 +276,7 @@ namespace YBWLib2 {
 		IException* err = WrapFunctionCatchExceptions(
 			[&rawallocator, &hash_out_ret, &size_hash_out_ret, &data_in, &size_data_in, &err_inner]() noexcept(false)->void {
 #ifdef _WIN32_WINNT
-				static_assert(sizeof(uint8_t) == sizeof(UCHAR), "The size of uint8_t is different from the size of UCHAR.");
+				static_assert(sizeof(unsigned char) == sizeof(UCHAR), "The size of unsigned char is different from the size of UCHAR.");
 				struct holder_halgorithm_t {
 					BCRYPT_ALG_HANDLE halgorithm = NULL;
 					~holder_halgorithm_t() {
@@ -298,10 +295,10 @@ namespace YBWLib2 {
 					ntstatus = BCryptGetProperty(holder_halgorithm.halgorithm, BCRYPT_OBJECT_LENGTH, reinterpret_cast<UCHAR*>(&ulong_size_hashobj), sizeof(unsigned long), &ulong_size_result_property, 0);
 					if (!NT_SUCCESS(ntstatus) || ulong_size_result_property != sizeof(unsigned long)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptGetProperty, ntstatus); return; }
 				}
-				objholder_rawallocator_t<uint8_t[]> holder_data_hashobj(rawallocator);
+				objholder_rawallocator_t<unsigned char[]> holder_data_hashobj(rawallocator);
 				if (ulong_size_hashobj > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 				holder_data_hashobj.get_ref_count_element_element_as_mem() = ulong_size_hashobj;
-				holder_data_hashobj.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hashobj.get_count() * sizeof(uint8_t), alignof(uint8_t[])));
+				holder_data_hashobj.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<unsigned char*>(rawallocator->Allocate(holder_data_hashobj.get_count() * sizeof(unsigned char), alignof(unsigned char[])));
 				if (!holder_data_hashobj.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 				{
 					struct holder_hhash_t {
@@ -338,10 +335,10 @@ namespace YBWLib2 {
 						ntstatus = BCryptGetProperty(holder_halgorithm.halgorithm, BCRYPT_HASH_LENGTH, reinterpret_cast<UCHAR*>(&ulong_size_hash), sizeof(unsigned long), &ulong_size_result_property, 0);
 						if (!NT_SUCCESS(ntstatus) || ulong_size_result_property != sizeof(unsigned long)) { err_inner = YBWLIB2_EXCEPTION_CREATE_EXTERNAL_API_FAILURE_WITH_NTSTATUS_EXCEPTION(BCryptGetProperty, ntstatus); return; }
 					}
-					objholder_rawallocator_t<uint8_t[]> holder_data_hash(rawallocator);
+					objholder_rawallocator_t<unsigned char[]> holder_data_hash(rawallocator);
 					if (ulong_size_hash > SIZE_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 					holder_data_hash.get_ref_count_element_element_as_mem() = ulong_size_hash;
-					holder_data_hash.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<uint8_t*>(rawallocator->Allocate(holder_data_hash.get_count() * sizeof(uint8_t), alignof(uint8_t[])));
+					holder_data_hash.get_ref_ptr_array_element_element_as_mem() = reinterpret_cast<unsigned char*>(rawallocator->Allocate(holder_data_hash.get_count() * sizeof(unsigned char), alignof(unsigned char[])));
 					if (!holder_data_hash.get()) { err_inner = YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION(); return; }
 					if (holder_data_hash.get_count() > ULONG_MAX) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 					ntstatus = BCryptFinishHash(holder_hhash.hhash, reinterpret_cast<UCHAR*>(holder_data_hash.get()), holder_data_hash.get_count() & ~(ULONG)0, 0);
@@ -350,7 +347,7 @@ namespace YBWLib2 {
 						void* ptr_mem_hash_out = nullptr;
 						size_t size_mem_hash_out = 0;
 						holder_data_hash.release(*hash_out_ret, *size_hash_out_ret, ptr_mem_hash_out, size_mem_hash_out);
-						if (ptr_mem_hash_out != *hash_out_ret || size_mem_hash_out != *size_hash_out_ret * sizeof(uint8_t)) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
+						if (ptr_mem_hash_out != *hash_out_ret || size_mem_hash_out != *size_hash_out_ret * sizeof(unsigned char)) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
 					}
 				}
 #else

@@ -86,31 +86,31 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
-	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>> AnsiStringToUtf16String(const ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>& ansistr) noexcept(false) {
-		rawallocator_t rawallocator(ansistr.get_allocator().rawallocator);
+	template<typename _Allocator_Ty>
+	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty> AnsiStringToUtf16String(const ::std::string_view& ansistr, const _Allocator_Ty& _allocator = ::std::allocator<char16_t>()) noexcept(false) {
 		return AnsiStringToUtf16String<
-			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>,
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>
-		>(&rawallocator, ansistr, ansistr.get_allocator());
+			::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty>,
+			::std::string_view
+		>(rawallocator_crt_module_local, ansistr, _allocator);
 	}
 
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
-	inline ::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>> Utf16StringToAnsiString(const ::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>& u16str) noexcept(false) {
-		rawallocator_t rawallocator(u16str.get_allocator().rawallocator);
+	template<typename _Allocator_Ty>
+	inline ::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty> Utf16StringToAnsiString(const ::std::u16string_view& u16str, const _Allocator_Ty& _allocator = ::std::allocator<char>()) noexcept(false) {
 		return Utf16StringToAnsiString<
-			::std::basic_string<char, ::std::char_traits<char>, allocator_rawallocator_t<char>>,
-			::std::basic_string<char16_t, ::std::char_traits<char16_t>, allocator_rawallocator_t<char16_t>>
-		>(&rawallocator, u16str, u16str.get_allocator());
+			::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty>,
+			::std::u16string_view
+		>(rawallocator_crt_module_local, u16str, _allocator);
 	}
 
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
-	inline ::std::u16string AnsiStringToUtf16String(const ::std::string& ansistr) noexcept(false) {
-		return AnsiStringToUtf16String<::std::u16string, ::std::string>(rawallocator_crt_module_local, ansistr, ansistr.get_allocator());
+	inline ::std::u16string AnsiStringToUtf16String(const ::std::string_view& ansistr) noexcept(false) {
+		return AnsiStringToUtf16String<::std::u16string, ::std::string_view>(rawallocator_crt_module_local, ansistr, ::std::allocator<char16_t>());
 	}
 
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
-	inline ::std::string Utf16StringToAnsiString(const ::std::u16string& u16str) noexcept(false) {
-		return Utf16StringToAnsiString<::std::string, ::std::u16string>(rawallocator_crt_module_local, u16str, u16str.get_allocator());
+	inline ::std::string Utf16StringToAnsiString(const ::std::u16string_view& u16str) noexcept(false) {
+		return Utf16StringToAnsiString<::std::string, ::std::u16string_view>(rawallocator_crt_module_local, u16str, ::std::allocator<char>());
 	}
 }
 

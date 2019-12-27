@@ -18,8 +18,13 @@
 #include "../../YBWLib2/Pipeline/Pipeline.h"
 #include "../YBWLib2dotNETUnmanagedApi.h"
 #include "CLRHost.h"
+#include "../ReferenceInfo.h"
 
 namespace YBWLib2 {
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4250)
+#endif
 	class CLRHostContext final
 		: public virtual ReferenceCountedObject,
 		public ICLRHostContext,
@@ -117,6 +122,9 @@ namespace YBWLib2 {
 			*_comobjholder_IHostControl_ret = &this->comobjholder_IHostControl;
 		}
 	};
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 	YBWLIB2DOTNETUNMANAGED_API DynamicTypeClassObj* ICLRHostContext::DynamicTypeThisClassObject = nullptr;
 	DynamicTypeClassObj* CLRHostContext::DynamicTypeThisClassObject = nullptr;
@@ -292,7 +300,7 @@ namespace YBWLib2 {
 		HRESULT hr = _clrhostcontext.GetCLRMetaHostPolicyCOMObjectHolder()->GetRequestedRuntime(
 			clrruntimepolicy.metahostpolicyflags,
 			reinterpret_cast<const wchar_t*>(clrruntimepolicy.holder_u16str_path_assembly.get()),
-			clrruntimepolicy.comobjholder_IStream_config.get(),// TODO: Should the reference count be incremented for the argument?
+			clrruntimepolicy.comobjholder_IStream_config.get(),
 			reinterpret_cast<wchar_t*>(clrruntimepolicy.holder_u16str_version.get()),
 			&dword_cch_u16str_version,
 			reinterpret_cast<wchar_t*>(clrruntimepolicy.holder_u16str_version_image.get()),
@@ -346,7 +354,8 @@ namespace YBWLib2 {
 
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetAppDomainManagerType(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept {
 		if (_err) return;
-		HRESULT hr = _clrhostcontext.GetCLRControlCOMObjectHolder()->SetAppDomainManagerType(, );// TODO: Set AppDomainManager Type.
+		static_assert(sizeof(char16_t) == sizeof(wchar_t));
+		HRESULT hr = _clrhostcontext.GetCLRControlCOMObjectHolder()->SetAppDomainManagerType(reinterpret_cast<const wchar_t*>(&u16str_strongname_dotNETMixed), reinterpret_cast<const wchar_t*>(u16str_dotnettypename_dotNETMixed_AppDomainManager));
 		if (!SUCCEEDED(hr)) {
 			_err = new ExternalAPIFailureWithHRESULTException(u8"ICLRControl::SetAppDomainManagerType", sizeof(u8"ICLRControl::SetAppDomainManagerType") / sizeof(char) - 1, nullptr, hr);
 			return;
@@ -356,12 +365,11 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_CreateHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept {
 		if (_err) return;
 		// TODO: Create host control.
-		_clrhostcontext.GetHostControlCOMObjectHolder().reset(new HostControl());
+		//_clrhostcontext.GetHostControlCOMObjectHolder().reset(new HostControl());
 	}
 
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept {
 		if (_err) return;
-		// TODO: Should the reference count be incremented for the argument?
 		HRESULT hr = _clrhostcontext.GetCLRRuntimeHostCOMObjectHolder()->SetHostControl(_clrhostcontext.GetHostControlCOMObjectHolder().get());
 		if (!SUCCEEDED(hr)) {
 			_err = new ExternalAPIFailureWithHRESULTException(u8"ICLRRuntimeHost::SetHostControl", sizeof(u8"ICLRRuntimeHost::SetHostControl") / sizeof(char) - 1, nullptr, hr);

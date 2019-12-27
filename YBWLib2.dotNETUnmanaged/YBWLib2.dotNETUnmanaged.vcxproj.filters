@@ -47,9 +47,6 @@
     <ClCompile Include="YBWLib2dotNETUnmanagedInit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ReferenceInfo.dotNETMixed.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CLRHost\CLRHost.cpp">
       <Filter>Source Files\CLRHost</Filter>
     </ClCompile>
