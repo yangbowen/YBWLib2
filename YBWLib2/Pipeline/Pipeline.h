@@ -1356,7 +1356,7 @@ namespace YBWLib2 {
 				size_t... _Index_Arg_Ty,
 				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
+				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
@@ -1375,7 +1375,7 @@ namespace YBWLib2 {
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
+						)(static_cast<_Args_Delegate_Invoke_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
@@ -1385,7 +1385,7 @@ namespace YBWLib2 {
 				size_t... _Index_Arg_Ty,
 				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
+				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
@@ -1404,7 +1404,7 @@ namespace YBWLib2 {
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(*_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(::std::forward<_Args_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty])))...);
+						)(*_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
@@ -1516,7 +1516,7 @@ namespace YBWLib2 {
 				const pipelinecontext_type& _pipelinecontext,
 				_Callable_PreInvoke_Ty&& _callable_preinvoke,
 				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty&&... _args
+				_Args_Ty... _args
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1559,7 +1559,7 @@ namespace YBWLib2 {
 				pipelinecontext_type& _pipelinecontext,
 				_Callable_PreInvoke_Ty&& _callable_preinvoke,
 				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty&&... _args
+				_Args_Ty... _args
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1934,7 +1934,7 @@ namespace YBWLib2 {
 			typename _Callable_PostInvoke_Ty,
 			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
 			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
 		>
 			void operator()(
 				_Callable_PreInvoke_Ty&& _callable_preinvoke,
@@ -1952,7 +1952,7 @@ namespace YBWLib2 {
 			typename... _Args_Ty,
 			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
 			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
 		>
 			void operator()(_Args_Ty&&... _args) noexcept {
 			pipelinetraits_type::InvokePipeline(

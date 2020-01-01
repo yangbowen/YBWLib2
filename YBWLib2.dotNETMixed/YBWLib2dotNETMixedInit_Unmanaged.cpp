@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch_Unmanaged.h"
 #include "../YBWLib2/YBWLib2Init.h"
 #include "YBWLib2dotNETMixedApi.h"
 #include "YBWLib2dotNETMixedInit.h"

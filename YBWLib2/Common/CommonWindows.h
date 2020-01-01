@@ -215,12 +215,12 @@ namespace YBWLib2 {
 
 	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_AddRef(const IReferenceCountedObject* _obj) noexcept {
 		assert(_obj);
-		return _obj->IncReferenceCount() & ~(ULONG)0;
+		return _obj->GetReferenceCountControlBlock()->IncStrongReferenceCount() & ~(ULONG)0;
 	}
 
 	inline ULONG STDMETHODCALLTYPE COMHelper_ReferenceCountedObject_Release(const IReferenceCountedObject* _obj) noexcept {
 		assert(_obj);
-		return _obj->DecReferenceCount() & ~(ULONG)0;
+		return _obj->GetReferenceCountControlBlock()->DecStrongReferenceCount() & ~(ULONG)0;
 	}
 
 	template<typename _Class_Ty, typename... _Interface_Ty>

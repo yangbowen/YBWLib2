@@ -198,8 +198,7 @@ namespace YBWLib2 {
 
 	/// <summary>
 	/// Reference counted object that keeps an STL shared pointer of itself.
-	/// Objects of this class must be managed by an STL shared pointer before <c>IncReferenceCount</c> is called.
-	/// Has a reference count of <c>0</c> when constructed.
+	/// Objects of this class must be managed by an STL shared pointer before <c>GetReferenceCountControlBlock</c> is called.
 	/// </summary>
 	/// <typeparam name="_Concrete_Class_Ty">The concrete class that inherits from this class.</typeparam>
 	template<typename _Concrete_Class_Ty>
@@ -209,128 +208,62 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedPtrReferenceCountedObject);
-		inline SharedPtrReferenceCountedObject() noexcept
-			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(),
-			ref_count(0),
-			ptr() {}
-		inline SharedPtrReferenceCountedObject(const SharedPtrReferenceCountedObject& x) noexcept
-			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<const ::std::enable_shared_from_this<_Concrete_Class_Ty>&>(x)),
-			ref_count(0),
-			ptr() {}
-		inline SharedPtrReferenceCountedObject(SharedPtrReferenceCountedObject&& x) noexcept
-			: ::std::enable_shared_from_this<_Concrete_Class_Ty>(static_cast<::std::enable_shared_from_this<_Concrete_Class_Ty>&&>(::std::move(x))),
-			ref_count(0),
-			ptr() {}
+		inline SharedPtrReferenceCountedObject() noexcept = default;
+		inline SharedPtrReferenceCountedObject(const SharedPtrReferenceCountedObject& x) noexcept {
+			this->controlblock = nullptr;
+		}
+		inline SharedPtrReferenceCountedObject(SharedPtrReferenceCountedObject&& x) noexcept {
+			this->controlblock = nullptr;
+		}
+		inline virtual ~SharedPtrReferenceCountedObject() {
+			if (this->controlblock) this->controlblock->DecWeakReferenceCount();
+		}
 		inline SharedPtrReferenceCountedObject& operator=(const SharedPtrReferenceCountedObject& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
 			return *this;
 		}
 		inline SharedPtrReferenceCountedObject& operator=(SharedPtrReferenceCountedObject&& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
 			return *this;
 		}
 		/// <summary>
-		/// Gets the reference count.
-		/// This function is thread-safe.
+		/// Returns an <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.
+		/// If the control block hasn't been set up yet, it will be created and set up.
 		/// </summary>
-		/// <returns>The current reference count.</returns>
-		inline virtual uintptr_t GetReferenceCount() const noexcept override {
-			if (!this) return 0;
-			return this->ref_count.load(::std::memory_order_relaxed);
-		}
-		/// <summary>
-		/// Increments the reference count.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t IncReferenceCount() const noexcept override {
-			if (!this) return 0;
-			uintptr_t ref_count_old = this->ref_count.fetch_add(1, ::std::memory_order_acq_rel);
-			if (!ref_count_old) {
-				// The reference count is incremented from 0.
-				// Keep a shared pointer of *this to prevent destruction.
-				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired = this->shared_from_this();
-				// TODO: Implement better mechanism to wait.
-#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
-				while (true) {
-					static constexpr size_t count_spin = 0x10;
-					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
-					size_t i_spin = 0;
-					for (; i_spin < count_spin && this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
-					if (i_spin < count_spin)
-						break;
-					else
-						::std::this_thread::sleep_for(duration_sleep);
-				}
-#else
-				while (true) {
-					static constexpr size_t count_spin = 0x10;
-					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
-					size_t i_spin = 0;
-					for (; i_spin < count_spin && ::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
-					if (i_spin < count_spin)
-						break;
-					else
-						::std::this_thread::sleep_for(duration_sleep);
-				}
-#endif
+		/// <returns>A <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.</returns>
+		inline virtual IReferenceCountControlBlock* GetReferenceCountControlBlock() const noexcept override {
+			if (!this->controlblock) {
+				::std::call_once(
+					this->onceflag_controlblock,
+					[this]() noexcept->void {
+						class ControlBlock final : public ReferenceCountControlBlock {
+						public:
+							explicit ControlBlock(::std::shared_ptr<_Concrete_Class_Ty>&& _sharedptr_managed) : sharedptr_managed(::std::move(_sharedptr_managed)) {}
+							//ControlBlock(const ControlBlock&) = delete;
+							//ControlBlock(ControlBlock&&) = delete;
+							//ControlBlock& operator=(const ControlBlock&) = delete;
+							//ControlBlock& operator=(ControlBlock&&) = delete;
+							/// <summary>Destroys the object managed by this control block.</summary>
+							inline virtual void DestroyManagedObject() noexcept override {
+								this->sharedptr_managed.reset();
+							}
+							/// <summary>Destroys this control block itself.</summary>
+							inline virtual void DestroyControlBlock() noexcept override {
+								delete this;
+							}
+						private:
+							::std::shared_ptr<_Concrete_Class_Ty> sharedptr_managed;
+						};
+						::std::shared_ptr<_Concrete_Class_Ty> sharedptr_managed(const_cast<SharedPtrReferenceCountedObject<_Concrete_Class_Ty>*>(this)->shared_from_this());
+						assert(sharedptr_managed);
+						this->controlblock = new ControlBlock(::std::move(sharedptr_managed));
+					}
+				);
+				assert(this->controlblock);
 			}
-			return ref_count_old + 1;
-		}
-		/// <summary>
-		/// Decrements the reference count.
-		/// Permits the object to be freed if the reference count reaches <c>0</c>.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t DecReferenceCount() const noexcept override {
-			if (!this) return 0;
-			uintptr_t ref_count_old = this->ref_count.fetch_sub(1, ::std::memory_order::memory_order_acq_rel);
-			assert(ref_count_old);
-			if (ref_count_old == 1) {
-				// The reference count is decremented to 0.
-				// Clear the shared pointer.
-				::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr_desired;
-				// TODO: Implement better mechanism to wait.
-#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
-				while (true) {
-					static constexpr size_t count_spin = 0x10;
-					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
-					size_t i_spin = 0;
-					for (; i_spin < count_spin && !this->ptr.atomic_exchange(ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
-					if (i_spin < count_spin)
-						break;
-					else
-						::std::this_thread::sleep_for(duration_sleep);
-				}
-#else
-				while (true) {
-					static constexpr size_t count_spin = 0x10;
-					static constexpr ::std::chrono::duration<unsigned int, ::std::milli> duration_sleep(100);
-					size_t i_spin = 0;
-					for (; i_spin < count_spin && !::std::atomic_exchange_explicit(&this->ptr, ptr_desired, ::std::memory_order_acq_rel); ++i_spin);
-					if (i_spin < count_spin)
-						break;
-					else
-						::std::this_thread::sleep_for(duration_sleep);
-				}
-#endif
-			}
-			return ref_count_old - 1;
+			return this->controlblock;
 		}
 	protected:
-		/// <summary>
-		/// Destructor intentionally declared protected.
-		/// Object users should use the reference counting mechanism instead.
-		/// </summary>
-		virtual ~SharedPtrReferenceCountedObject() = default;
-	private:
-		mutable ::std::atomic<uintptr_t> ref_count = 0;
-#if false// TODO: Add support for C++20 ::std::atomic<::std::shared_ptr>.
-		mutable ::std::atomic<::std::shared_ptr<const volatile _Concrete_Class_Ty>> ptr;
-#else
-		mutable ::std::shared_ptr<const volatile _Concrete_Class_Ty> ptr;
-#endif
+		mutable ReferenceCountControlBlock* controlblock = nullptr;
+		mutable ::std::once_flag onceflag_controlblock;
 	};
 
 	/// <summary>An object that implements <c>ILockableObject</c> and wraps an STL <c>Lockable</c> object.</summary>
@@ -338,7 +271,7 @@ namespace YBWLib2 {
 	template<typename _Ty>
 	class LockableObjectFromSTLWrapper : public virtual ILockableObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedPtrReferenceCountedObject);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(LockableObjectFromSTLWrapper);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(LockableObjectFromSTLWrapper);
 		using wrapped_type = _Ty;
 		template<typename... _Args_Ty>

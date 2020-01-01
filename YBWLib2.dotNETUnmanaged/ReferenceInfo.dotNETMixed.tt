@@ -16,7 +16,7 @@
 #define _INCLUDE_GUARD_73C5D572_D5B4_4007_920F_29A4E1229A16
 
 namespace YBWLib2 {
-	const char16_t u16str_strongname_dotNETMixed[] = u"<#= strongname_dotNETMixed #>";
+	static constexpr char16_t u16str_strongname_dotNETMixed[] = u"<#= strongname_dotNETMixed #>";
 }
 
 #endif

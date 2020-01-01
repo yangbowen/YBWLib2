@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_4CEEB035_7EBA_44EB_AB61_4739CC130675
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -610,13 +610,6 @@ namespace YBWLib2 {
 		/// Object users should use the reference counting mechanism instead.
 		/// </summary>
 		virtual ~Win32File() = default;
-		/// <summary>
-		/// Destructs the object and frees any resources allocated for the object.
-		/// This function is intended to be called only by <c>DecReferenceCount</c>.
-		/// </summary>
-		inline virtual void DeleteMe() noexcept override {
-			delete this;
-		}
 	};
 	static_assert(sizeof(LARGE_INTEGER) == sizeof(LARGE_INTEGER::QuadPart), "The size of LARGE_INTEGER does not equal to the size of its QuadPart.");
 	static_assert(::std::is_same_v<decltype(LARGE_INTEGER::QuadPart), long long>, "The type of LARGE_INTEGER::QuadPart is different from long long.");

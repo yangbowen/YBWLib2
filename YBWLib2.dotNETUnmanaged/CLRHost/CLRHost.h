@@ -194,8 +194,21 @@ namespace YBWLib2 {
 	using PipelineFilterWrapper_CLRHostStop = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostStop>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostStop = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("04f5f136-f14f-445e-bcea-f41251e2fd8d"));
 
+	using PipelineTraits_CLRHostGetHostManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, IID, void*&>;
+	using PipelineWrapper_CLRHostGetHostManager = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostGetHostManager>;
+	using PipelineFilterWrapper_CLRHostGetHostManager = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostGetHostManager>;
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostGetHostManager = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("bf1f158d-68e3-4752-902f-1f5cfbd063d7"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostGetHostManager_CLRHost = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("fe311422-200a-4615-8707-b02852ce4079"));
+
+	using PipelineTraits_CLRHostSetAppDomainManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, DWORD, IUnknown*>;
+	using PipelineWrapper_CLRHostSetAppDomainManager = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostSetAppDomainManager>;
+	using PipelineFilterWrapper_CLRHostSetAppDomainManager = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostSetAppDomainManager>;
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostSetAppDomainManager = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("3a121a77-5d5c-4ed2-890d-61075fc0fda1"));
+
 	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStart pipelinewrapper_CLRHostStart;
 	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStop pipelinewrapper_CLRHostStop;
+	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostGetHostManager pipelinewrapper_CLRHostGetHostManager;
+	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostSetAppDomainManager pipelinewrapper_CLRHostSetAppDomainManager;
 
 	namespace Internal {
 		[[nodiscard]] YBWLIB2DOTNETUNMANAGED_API IException* YBWLIB2DOTNETUNMANAGED_CALLTYPE StartCLRHost(ReferenceCountedObjectHolder<ICLRHostContext>* _clrhostcontext_ret, CLRRuntimePolicy* _clrruntimepolicy) noexcept;

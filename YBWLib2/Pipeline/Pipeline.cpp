@@ -10,7 +10,7 @@
 #include "Pipeline.h"
 
 namespace YBWLib2 {
-	class Pipeline final : public SharedPtrReferenceCountedObject<Pipeline> {
+	class Pipeline final : public ReferenceCountedObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(Pipeline);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(Pipeline);
@@ -285,7 +285,7 @@ namespace YBWLib2 {
 		void AdjustPipelineFilterAttachmentDependencyMaps(PipelineFilterAttachment& _pipelinefilterattachment, size_t _idx_pipelinefilterposition_resolve_new, already_exclusive_locked_this_t) noexcept;
 	};
 
-	class PipelineFilter final : public SharedPtrReferenceCountedObject<PipelineFilter> {
+	class PipelineFilter final : public ReferenceCountedObject {
 		friend class Pipeline;
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(PipelineFilter);
@@ -367,7 +367,7 @@ namespace YBWLib2 {
 		const Pipeline* pipeline = nullptr;
 	};
 
-	class PipelineStore final : public SharedPtrReferenceCountedObject<PipelineStore> {
+	class PipelineStore final : public ReferenceCountedObject {
 	public:
 		PipelineStore() noexcept(false) {}
 		PipelineStore(const PipelineStore&) = delete;
@@ -1591,16 +1591,12 @@ namespace YBWLib2 {
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PipelineID* _pipelineid) noexcept {
 			assert(_pipelineid);
-			::std::shared_ptr<Pipeline> pipeline(new Pipeline(*_pipelineid));
-			pipeline->IncReferenceCount();
-			return pipeline.get();
+			return ReferenceCountedObjectHolder<Pipeline>(new Pipeline(*_pipelineid)).release();
 		}
 
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept {
 			assert(_persistentid_pipelineid);
-			::std::shared_ptr<Pipeline> pipeline(new Pipeline(*_persistentid_pipelineid));
-			pipeline->IncReferenceCount();
-			return pipeline.get();
+			return ReferenceCountedObjectHolder<Pipeline>(new Pipeline(*_persistentid_pipelineid)).release();
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE Pipeline_CastToIReferenceCountedObject(const Pipeline* _pipeline) noexcept {
@@ -1772,26 +1768,12 @@ namespace YBWLib2 {
 
 		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PipelineFilterID* _pipelinefilterid) noexcept {
 			assert(_pipelinefilterid);
-			::std::shared_ptr<PipelineFilter> pipelinefilter;
-			try {
-				pipelinefilter.reset(new PipelineFilter(*_pipelinefilterid));
-			} catch (...) {
-				abort();
-			}
-			pipelinefilter->IncReferenceCount();
-			return pipelinefilter.get();
+			return ReferenceCountedObjectHolder<PipelineFilter>(new PipelineFilter(*_pipelinefilterid)).release();
 		}
 
 		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PersistentID* _persistentid_pipelinefilterid) noexcept {
 			assert(_persistentid_pipelinefilterid);
-			::std::shared_ptr<PipelineFilter> pipelinefilter;
-			try {
-				pipelinefilter.reset(new PipelineFilter(*_persistentid_pipelinefilterid));
-			} catch (...) {
-				abort();
-			}
-			pipelinefilter->IncReferenceCount();
-			return pipelinefilter.get();
+			return ReferenceCountedObjectHolder<PipelineFilter>(new PipelineFilter(*_persistentid_pipelinefilterid)).release();
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineFilter_CastToIReferenceCountedObject(const PipelineFilter* _pipelinefilter) noexcept {
@@ -1858,9 +1840,7 @@ namespace YBWLib2 {
 		}
 
 		YBWLIB2_API PipelineStore* YBWLIB2_CALLTYPE CreatePipelineStore() noexcept {
-			::std::shared_ptr<PipelineStore> pipelinestore(new PipelineStore());
-			pipelinestore->IncReferenceCount();
-			return pipelinestore.get();
+			return ReferenceCountedObjectHolder<PipelineStore>(new PipelineStore()).release();
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(const PipelineStore* _pipelinestore) noexcept {

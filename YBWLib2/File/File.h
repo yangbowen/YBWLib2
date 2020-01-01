@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_BCC6CEB3_1BA0_4B01_B5A3_91415F2D524B
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -2499,13 +2499,6 @@ namespace YBWLib2 {
 				this->fnptr_release_view = nullptr;
 				this->context = 0;
 			}
-			/// <summary>
-			/// Destructs the object and frees any resources allocated for the object.
-			/// This function is intended to be called only by <c>DecReferenceCount</c>.
-			/// </summary>
-			inline virtual void DeleteMe() noexcept override {
-				delete this;
-			}
 		};
 		ReferenceCountedObjectHolder<MemoryBlockHolder> objholder_holder_memory_block;
 		size_t position_file = 0;
@@ -2515,13 +2508,6 @@ namespace YBWLib2 {
 		/// Object users should use the reference counting mechanism instead.
 		/// </summary>
 		virtual ~MemoryFile() = default;
-		/// <summary>
-		/// Destructs the object and frees any resources allocated for the object.
-		/// This function is intended to be called only by <c>DecReferenceCount</c>.
-		/// </summary>
-		inline virtual void DeleteMe() noexcept override {
-			delete this;
-		}
 	};
 #ifdef _MSC_VER
 #pragma warning(pop)

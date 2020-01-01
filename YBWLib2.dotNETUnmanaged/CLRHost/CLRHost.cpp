@@ -46,9 +46,6 @@ namespace YBWLib2 {
 		COMObjectHolder<ICLRStrongName> comobjholder_ICLRStrongName;
 		COMObjectHolder<ICLRControl> comobjholder_ICLRControl;
 		COMObjectHolder<IHostControl> comobjholder_IHostControl;
-		inline virtual void DeleteMe() noexcept override {
-			delete this;
-		}
 		inline virtual void GetCLRRuntimePolicy(const CLRRuntimePolicy** _clrruntimepolicy_ret) const noexcept override {
 			assert(_clrruntimepolicy_ret);
 			*_clrruntimepolicy_ret = &this->clrruntimepolicy;
@@ -122,15 +119,101 @@ namespace YBWLib2 {
 			*_comobjholder_IHostControl_ret = &this->comobjholder_IHostControl;
 		}
 	};
+
+	class CLRHostControl final
+		: public virtual ReferenceCountedObject,
+		public IHostControl,
+		public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(CLRHostControl, , "bc5f544b-0a02-452a-ba73-98f088f5c2a9");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(CLRHostControl);
+		CLRHostControl(const ReferenceCountedObjectHolder<ICLRHostContext>& _clrhostcontext) noexcept {
+			assert(_clrhostcontext);
+			this->refcountedobjectweakholder_clrhostcontext = _clrhostcontext;
+		};
+		virtual ~CLRHostControl() {}
+		inline virtual ULONG STDMETHODCALLTYPE AddRef() override {
+			return YBWLib2::COMHelper_ReferenceCountedObject_AddRef(this);
+		}
+		inline virtual ULONG STDMETHODCALLTYPE Release() override {
+			return YBWLib2::COMHelper_ReferenceCountedObject_Release(this);
+		}
+		inline virtual HRESULT STDMETHODCALLTYPE QueryInterface(
+			/* [in] */ REFIID _iid,
+			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* _obj_ret
+		) override {
+			return YBWLib2::COMHelper_QueryInterface<IUnknown, IHostControl>(this, _iid, _obj_ret);
+		}
+		inline virtual HRESULT STDMETHODCALLTYPE GetHostManager(
+			/* [in] */ REFIID _iid,
+			/* [out] */ void** _hostmanager_ret
+		) noexcept override {
+			if (!_hostmanager_ret) return E_POINTER;
+			ReferenceCountedObjectHolder<ICLRHostContext> clrhostcontext = this->refcountedobjectweakholder_clrhostcontext.lock();
+			if (!clrhostcontext) return HOST_E_CLRNOTAVAILABLE;
+			HRESULT hr = E_NOINTERFACE;
+			*_hostmanager_ret = nullptr;
+			pipelinewrapper_CLRHostGetHostManager(hr, *clrhostcontext, IID(_iid), *_hostmanager_ret);
+			return hr;
+		}
+		inline virtual HRESULT STDMETHODCALLTYPE SetAppDomainManager(
+			/* [in] */ DWORD _appdomainid,
+			/* [in] */ IUnknown* _iunknown_appdomainmanager
+		) noexcept override {
+			ReferenceCountedObjectHolder<ICLRHostContext> clrhostcontext = this->refcountedobjectweakholder_clrhostcontext.lock();
+			if (!clrhostcontext) return HOST_E_CLRNOTAVAILABLE;
+			HRESULT hr = S_OK;
+			pipelinewrapper_CLRHostSetAppDomainManager(hr, *clrhostcontext, _appdomainid, _iunknown_appdomainmanager);
+			return hr;
+		}
+	protected:
+		ReferenceCountedObjectWeakHolder<ICLRHostContext> refcountedobjectweakholder_clrhostcontext;
+	};
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
+	class CLRHostManager_CLRHost final
+		: public virtual ReferenceCountedObject,
+		public IUnknown,
+		public IHostAssemblyManager,
+		public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(CLRHostManager_CLRHost, , "e3c83eb7-2bc7-4d48-aba1-2721300a599a");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(CLRHostManager_CLRHost);
+		CLRHostManager_CLRHost(const ReferenceCountedObjectHolder<ICLRHostContext> & _clrhostcontext) noexcept {
+			assert(_clrhostcontext);
+			this->refcountedobjectweakholder_clrhostcontext = _clrhostcontext;
+		};
+		virtual ~CLRHostManager_CLRHost() {}
+		inline virtual ULONG STDMETHODCALLTYPE AddRef() override {
+			return YBWLib2::COMHelper_ReferenceCountedObject_AddRef(this);
+		}
+		inline virtual ULONG STDMETHODCALLTYPE Release() override {
+			return YBWLib2::COMHelper_ReferenceCountedObject_Release(this);
+		}
+		inline virtual HRESULT STDMETHODCALLTYPE QueryInterface(
+			/* [in] */ REFIID _iid,
+			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* _obj_ret
+		) override {
+			return YBWLib2::COMHelper_QueryInterface<
+				IUnknown,
+				IHostAssemblyManager
+			>(this, _iid, _obj_ret);
+		}
+	protected:
+		ReferenceCountedObjectWeakHolder<ICLRHostContext> refcountedobjectweakholder_clrhostcontext;
+	};
+
 	YBWLIB2DOTNETUNMANAGED_API DynamicTypeClassObj* ICLRHostContext::DynamicTypeThisClassObject = nullptr;
 	DynamicTypeClassObj* CLRHostContext::DynamicTypeThisClassObject = nullptr;
+	DynamicTypeClassObj* CLRHostControl::DynamicTypeThisClassObject = nullptr;
+	DynamicTypeClassObj* CLRHostManager_CLRHost::DynamicTypeThisClassObject = nullptr;
 
 	YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStart pipelinewrapper_CLRHostStart;
 	YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStop pipelinewrapper_CLRHostStop;
+	YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostGetHostManager pipelinewrapper_CLRHostGetHostManager;
+	YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostSetAppDomainManager pipelinewrapper_CLRHostSetAppDomainManager;
 
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_COMInit(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_CreateMetaHost(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept;
@@ -142,11 +225,16 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_CreateHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_StartRuntimeHost(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostGetHostManager_CLRHost(HRESULT& _hr, ICLRHostContext& _clrhostcontext, const IID& _iid, void*& _hostmanager_ret) noexcept;
 
 	namespace Internal {
 		[[nodiscard]] YBWLIB2DOTNETUNMANAGED_API IException* YBWLIB2DOTNETUNMANAGED_CALLTYPE StartCLRHost(ReferenceCountedObjectHolder<ICLRHostContext>* _clrhostcontext_ret, CLRRuntimePolicy* _clrruntimepolicy) noexcept {
 			IException* err = nullptr;
-			ReferenceCountedObjectHolder<CLRHostContext> clrhostcontext(new CLRHostContext());
+			ReferenceCountedObjectHolder<CLRHostContext> clrhostcontext;
+			{
+				::std::shared_ptr<CLRHostContext> sharedptr_clrhostcontext(new CLRHostContext());
+				clrhostcontext = ReferenceCountedObjectHolder<CLRHostContext>(sharedptr_clrhostcontext.get(), ReferenceCountedObjectHolder<CLRHostContext>::inc_ref_count);
+			}
 			if (_clrruntimepolicy) clrhostcontext->ICLRHostContext::GetCLRRuntimePolicy() = *_clrruntimepolicy;
 			pipelinewrapper_CLRHostStart(err, *clrhostcontext);
 			if (_clrhostcontext_ret) *_clrhostcontext_ret = clrhostcontext;
@@ -166,15 +254,33 @@ namespace YBWLib2 {
 				GetDynamicTypeClassPersistentID<CLRHostContext>(),
 				IsDynamicTypeModuleLocalClass<CLRHostContext>(),
 				{
-					DynamicTypeBaseClassDef<CLRHostContext, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>,
+					DynamicTypeBaseClassDef<CLRHostContext, IReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase>,
 					DynamicTypeBaseClassDef<CLRHostContext, ICLRHostContext, 0>
 				},
 				0, sizeof(CLRHostContext), alignof(CLRHostContext)
 			);
+			CLRHostControl::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+				GetDynamicTypeClassPersistentID<CLRHostControl>(),
+				IsDynamicTypeModuleLocalClass<CLRHostControl>(),
+				{ DynamicTypeBaseClassDef<CLRHostControl, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
+				0, sizeof(CLRHostControl), alignof(CLRHostControl)
+			);
+			CLRHostManager_CLRHost::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+				GetDynamicTypeClassPersistentID<CLRHostManager_CLRHost>(),
+				IsDynamicTypeModuleLocalClass<CLRHostManager_CLRHost>(),
+				{ DynamicTypeBaseClassDef<CLRHostManager_CLRHost, ReferenceCountedObject, DynamicTypeBaseClassFlag_VirtualBase> },
+				0, sizeof(CLRHostManager_CLRHost), alignof(CLRHostManager_CLRHost)
+			);
+			GetDynamicTypeClassObject<ICLRHostContext>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(ICLRHostContext)), module_info_current);
+			GetDynamicTypeClassObject<CLRHostContext>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(CLRHostContext)), module_info_current);
+			GetDynamicTypeClassObject<CLRHostControl>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(CLRHostControl)), module_info_current);
+			GetDynamicTypeClassObject<CLRHostManager_CLRHost>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(CLRHostManager_CLRHost)), module_info_current);
 		}
 		{
 			pipelinewrapper_CLRHostStart = PipelineWrapper_CLRHostStart(GetGlobalPipelineStore(), PersistentID_PipelineID_CLRHostStart);
 			pipelinewrapper_CLRHostStop = PipelineWrapper_CLRHostStop(GetGlobalPipelineStore(), PersistentID_PipelineID_CLRHostStop);
+			pipelinewrapper_CLRHostGetHostManager = PipelineWrapper_CLRHostGetHostManager(GetGlobalPipelineStore(), PersistentID_PipelineID_CLRHostGetHostManager);
+			pipelinewrapper_CLRHostSetAppDomainManager = PipelineWrapper_CLRHostSetAppDomainManager(GetGlobalPipelineStore(), PersistentID_PipelineID_CLRHostSetAppDomainManager);
 		}
 		{
 			PipelineFilterWrapper_CLRHostStart pipelinefilterwrapper_CLRHostStart_CLRHost_COMInit(PersistentID_PipelineFilterID_CLRHostStart_CLRHost_COMInit);
@@ -223,6 +329,17 @@ namespace YBWLib2 {
 				pipelinewrapper_CLRHostStart.Resolve(already_exclusive_locked_pipeline);
 			}
 		}
+		{
+			PipelineFilterWrapper_CLRHostGetHostManager pipelinefilterwrapper_CLRHostGetHostManager_CLRHost(PersistentID_PipelineFilterID_CLRHostGetHostManager_CLRHost);
+			pipelinefilterwrapper_CLRHostGetHostManager_CLRHost.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, HRESULT&, ICLRHostContext&, const IID&, void*&>(&CLRHostGetHostManager_CLRHost));
+			pipelinefilterwrapper_CLRHostGetHostManager_CLRHost.SetPipelineFilterPositionArray(PipelineFilterPosition_Back);
+			{
+				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostGetHostManager.GetPipelineSharedMutexWrapper());
+				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+				pipelinewrapper_CLRHostGetHostManager.AttachPipelineFilter(pipelinefilterwrapper_CLRHostGetHostManager_CLRHost, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostGetHostManager.Resolve(already_exclusive_locked_pipeline);
+			}
+		}
 	}
 
 	void YBWLIB2DOTNETUNMANAGED_CALLTYPE CLRHost_RealUnInitGlobal() noexcept {
@@ -231,6 +348,14 @@ namespace YBWLib2 {
 			pipelinewrapper_CLRHostStart = PipelineWrapper_CLRHostStart();
 		}
 		{
+			GetDynamicTypeClassObject<CLRHostManager_CLRHost>()->UnRegisterTypeInfoWrapper(module_info_current);
+			GetDynamicTypeClassObject<CLRHostControl>()->UnRegisterTypeInfoWrapper(module_info_current);
+			GetDynamicTypeClassObject<CLRHostContext>()->UnRegisterTypeInfoWrapper(module_info_current);
+			GetDynamicTypeClassObject<ICLRHostContext>()->UnRegisterTypeInfoWrapper(module_info_current);
+			delete CLRHostManager_CLRHost::DynamicTypeThisClassObject;
+			CLRHostManager_CLRHost::DynamicTypeThisClassObject;
+			delete CLRHostControl::DynamicTypeThisClassObject;
+			CLRHostControl::DynamicTypeThisClassObject;
 			delete CLRHostContext::DynamicTypeThisClassObject;
 			CLRHostContext::DynamicTypeThisClassObject;
 			delete ICLRHostContext::DynamicTypeThisClassObject;
@@ -364,8 +489,7 @@ namespace YBWLib2 {
 
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_CreateHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept {
 		if (_err) return;
-		// TODO: Create host control.
-		//_clrhostcontext.GetHostControlCOMObjectHolder().reset(new HostControl());
+		_clrhostcontext.GetHostControlCOMObjectHolder().reset(new CLRHostControl(ReferenceCountedObjectHolder<ICLRHostContext>(&_clrhostcontext, ReferenceCountedObjectHolder<ICLRHostContext>::inc_ref_count)));
 	}
 
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetHostControl(IException*& _err, ICLRHostContext& _clrhostcontext) noexcept {
@@ -384,5 +508,10 @@ namespace YBWLib2 {
 			_err = new ExternalAPIFailureWithHRESULTException(u8"ICLRRuntimeHost::Start", sizeof(u8"ICLRRuntimeHost::Start") / sizeof(char) - 1, nullptr, hr);
 			return;
 		}
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostGetHostManager_CLRHost(HRESULT& _hr, ICLRHostContext& _clrhostcontext, const IID& _iid, void*& _hostmanager_ret) noexcept {
+		if (FAILED(_hr) && _hr != E_NOINTERFACE) return;
+		// TODO: Implement CLRHostGetHostManager_CLRHost.
 	}
 }

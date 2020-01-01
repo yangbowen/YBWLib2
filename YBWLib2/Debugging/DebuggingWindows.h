@@ -1573,7 +1573,6 @@ namespace YBWLib2 {
 		virtual ~Win32DebuggingProcess();
 		Win32DebuggingProcess& operator=(const Win32DebuggingProcess& x) = delete;
 		Win32DebuggingProcess& operator=(Win32DebuggingProcess&& x) = delete;
-		inline virtual void DeleteMe() noexcept override { delete this; }
 		inline virtual Win32Architecture GetWin32Architecture() const noexcept override { return this->architecture; }
 		/// <summary>Gets a pointer to an <c>Win32HandleHolder</c> object that holds the Win32 handle to the process.</summary>
 		/// <param name="win32handleholder_ret">A pointer to a pointer variable that receives a pointer to the <c>Win32HandleHolder</c> object.</param>

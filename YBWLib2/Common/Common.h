@@ -1246,30 +1246,80 @@ namespace YBWLib2 {
 		size_t size_data_in
 	) noexcept;
 
+	class IReferenceCountControlBlock;
+	class IReferenceCountedObject;
+
+	class IReferenceCountControlBlock abstract : public virtual IDynamicTypeObject {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IReferenceCountControlBlock, YBWLIB2_API, "d42f4bb5-ac59-41a8-90f7-5ae9b6db6f7a");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IReferenceCountControlBlock);
+		/// <summary>
+		/// Gets the strong reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current strong reference count.</returns>
+		virtual uintptr_t GetStrongReferenceCount() const noexcept = 0;
+		/// <summary>
+		/// Gets the weak reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current weak reference count.</returns>
+		virtual uintptr_t GetWeakReferenceCount() const noexcept = 0;
+		/// <summary>
+		/// Increments the strong reference count if and only if the object managed by this control block hasn't expired yet.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>
+		/// The new strong reference count.
+		/// <c>0</c> will be returned if and only if the object managed by this control block has already expired.
+		/// </returns>
+		virtual uintptr_t IncStrongReferenceCount() noexcept = 0;
+		/// <summary>
+		/// Decrements the strong reference count.
+		/// Permits the object to be freed if the strong reference count reaches <c>0</c>.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new strong reference count.</returns>
+		virtual uintptr_t DecStrongReferenceCount() noexcept = 0;
+		/// <summary>
+		/// Increments the weak reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new weak reference count.</returns>
+		virtual uintptr_t IncWeakReferenceCount() noexcept = 0;
+		/// <summary>
+		/// Decrements the weak reference count.
+		/// Permits the control block to be freed if BOTH the strong reference count AND the weak reference count reaches <c>0</c>.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new weak reference count.</returns>
+		virtual uintptr_t DecWeakReferenceCount() noexcept = 0;
+		/// <summary>
+		/// Gets whether the object managed by this control block has expired.
+		/// This function must be thread-safe.
+		/// However, a <c>false</c> return is inherently unreliable, as the object may become expired after the function returns, but before the caller takes subsequent actions.
+		/// </summary>
+		/// <returns>Whether the object managed by this control block has expired.</returns>
+		virtual bool HasObjectExpired() const noexcept = 0;
+	protected:
+		/// <summary>
+		/// Destructor intentionally declared protected.
+		/// Object users should use the reference counting mechanism instead.
+		/// </summary>
+		virtual ~IReferenceCountControlBlock() = default;
+	};
+
 	/// <summary>Reference counted object.</summary>
 	class IReferenceCountedObject abstract : public virtual IDynamicTypeObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IReferenceCountedObject, YBWLIB2_API, "6abec0cb-c444-492c-af61-04f502ade136");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IReferenceCountedObject);
 		/// <summary>
-		/// Gets the reference count.
-		/// This function must be thread-safe.
+		/// Returns an <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.
+		/// If the control block hasn't been set up yet, it will be created and set up.
 		/// </summary>
-		/// <returns>The current reference count.</returns>
-		virtual uintptr_t GetReferenceCount() const noexcept = 0;
-		/// <summary>
-		/// Increments the reference count.
-		/// This function must be thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		virtual uintptr_t IncReferenceCount() const noexcept = 0;
-		/// <summary>
-		/// Decrements the reference count.
-		/// Permits the object to be freed if the reference count reaches <c>0</c>.
-		/// This function must be thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		virtual uintptr_t DecReferenceCount() const noexcept = 0;
+		/// <returns>A <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.</returns>
+		virtual IReferenceCountControlBlock* GetReferenceCountControlBlock() const noexcept = 0;
 	protected:
 		/// <summary>
 		/// Destructor intentionally declared protected.
@@ -1295,172 +1345,267 @@ namespace YBWLib2 {
 		virtual void Unlock() noexcept = 0;
 	};
 
+	class ReferenceCountControlBlock;
+	class ReferenceCountedObject;
+	template<typename _Element_Ty>
+	class ReferenceCountedObjectHolder;
+	template<typename _Element_Ty>
+	class ReferenceCountedObjectWeakHolder;
+
 	/// <summary>
-	/// Reference counted object.
-	/// Has a reference count of <c>1</c> when constructed.
+	/// Reference count control block for <c>ReferenceCountedObject</c>.
+	/// Has a strong reference count of <c>1</c> when constructed.
+	/// Has a weak reference count of <c>1</c> reserved for itself, so that the control block will remain available when there are still strong references.
+	/// </summary>
+	class ReferenceCountControlBlock abstract : public virtual IReferenceCountControlBlock {
+		friend class ReferenceCountedObject;
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountControlBlock, , "d0698257-3fa5-47fa-931e-3af23c4322e9");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountControlBlock);
+		ReferenceCountControlBlock() noexcept = default;
+		ReferenceCountControlBlock(const ReferenceCountControlBlock&) = delete;
+		ReferenceCountControlBlock(ReferenceCountControlBlock&&) = delete;
+		ReferenceCountControlBlock& operator=(const ReferenceCountControlBlock&) = delete;
+		ReferenceCountControlBlock& operator=(ReferenceCountControlBlock&&) = delete;
+		/// <summary>
+		/// Gets the strong reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current strong reference count.</returns>
+		inline virtual uintptr_t GetStrongReferenceCount() const noexcept override {
+			return this->ref_count_strong.load(::std::memory_order_relaxed);
+		}
+		/// <summary>
+		/// Gets the weak reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The current weak reference count.</returns>
+		inline virtual uintptr_t GetWeakReferenceCount() const noexcept override {
+			return this->ref_count_weak.load(::std::memory_order_relaxed);
+		}
+		/// <summary>
+		/// Increments the strong reference count, if and only if the object managed by this control block hasn't expired yet.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>
+		/// The new strong reference count.
+		/// <c>0</c> will be returned if and only if the object managed by this control block has already expired.
+		/// </returns>
+		inline virtual uintptr_t IncStrongReferenceCount() noexcept override {
+			uintptr_t ref_count_strong_old = this->ref_count_strong.load(::std::memory_order_relaxed);
+			while (ref_count_strong_old && !this->ref_count_strong.compare_exchange_weak(ref_count_strong_old, ref_count_strong_old + 1, ::std::memory_order_acq_rel, ::std::memory_order_relaxed));
+			return ref_count_strong_old ? ref_count_strong_old + 1 : 0;
+		}
+		/// <summary>
+		/// Decrements the strong reference count.
+		/// Permits the object to be freed if the strong reference count reaches <c>0</c>.
+		/// Permits the control block to be freed if the weak reference count reaches <c>0</c>.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new strong reference count.</returns>
+		inline virtual uintptr_t DecStrongReferenceCount() noexcept override {
+			uintptr_t ref_count_strong_old = this->ref_count_strong.fetch_sub(1, ::std::memory_order_acq_rel);
+			assert(ref_count_strong_old);
+			if (ref_count_strong_old == 1) this->DestroyManagedObject();
+			return ref_count_strong_old - 1;
+		}
+		/// <summary>
+		/// Increments the weak reference count.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new weak reference count.</returns>
+		inline virtual uintptr_t IncWeakReferenceCount() noexcept override {
+			uintptr_t ref_count_weak_old = this->ref_count_weak.fetch_add(1, ::std::memory_order_relaxed);
+			assert(ref_count_weak_old);
+			return ref_count_weak_old + 1;
+		}
+		/// <summary>
+		/// Decrements the weak reference count.
+		/// Permits the control block to be freed if the weak reference count reaches <c>0</c>.
+		/// This function must be thread-safe.
+		/// </summary>
+		/// <returns>The new weak reference count.</returns>
+		inline virtual uintptr_t DecWeakReferenceCount() noexcept override {
+			uintptr_t ref_count_weak_old = this->ref_count_weak.fetch_sub(1, ::std::memory_order_acq_rel);
+			assert(ref_count_weak_old);
+			if (ref_count_weak_old == 1) this->DestroyControlBlock();
+			return ref_count_weak_old - 1;
+		}
+		/// <summary>
+		/// Gets whether the object managed by this control block has expired.
+		/// This function must be thread-safe.
+		/// However, a <c>false</c> return is inherently unreliable, as the object may become expired after the function returns, but before the caller takes subsequent actions.
+		/// </summary>
+		/// <returns>Whether the object managed by this control block has expired.</returns>
+		inline virtual bool HasObjectExpired() const noexcept override {
+			return !this->GetWeakReferenceCount();
+		}
+	protected:
+		inline virtual ~ReferenceCountControlBlock() {
+			assert(!this->ref_count_strong.load(::std::memory_order_acquire));
+			assert(!this->ref_count_weak.load(::std::memory_order_acquire));
+		}
+		/// <summary>Destroys the object managed by this control block.</summary>
+		virtual void DestroyManagedObject() noexcept = 0;
+		/// <summary>Destroys this control block itself.</summary>
+		virtual void DestroyControlBlock() noexcept = 0;
+	private:
+		mutable ::std::atomic<uintptr_t> ref_count_strong = 1;
+		mutable ::std::atomic<uintptr_t> ref_count_weak = 1;
+	};
+
+	/// <summary>
+	/// Potentially reference counted object.
+	/// Does NOT has a reference count control block when constructed.
 	/// </summary>
 	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
+	private:
+		template<typename _Element_Ty, typename... _Args_Ty>
+		friend ReferenceCountedObjectHolder<_Element_Ty> MakeReferenceCountedObject(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty &&...>);
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
-		inline ReferenceCountedObject() noexcept : ref_count(1) {}
-		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept : ref_count(1) {
+		inline ReferenceCountedObject() noexcept = default;
+		inline ReferenceCountedObject(const ReferenceCountedObject& x) noexcept {
 			static_cast<void>(x);
+			this->controlblock = nullptr;
 		}
-		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept : ref_count(1) {
+		inline ReferenceCountedObject(ReferenceCountedObject&& x) noexcept {
 			static_cast<void>(x);
+			this->controlblock = nullptr;
+		}
+		virtual ~ReferenceCountedObject() {
+			if (this->controlblock) this->controlblock->DecWeakReferenceCount();
 		}
 		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<const IReferenceCountedObject&>(x);
+			static_cast<void>(x);
 			return *this;
 		}
 		inline ReferenceCountedObject& operator=(ReferenceCountedObject&& x) noexcept {
-			static_cast<IReferenceCountedObject&>(*this) = static_cast<IReferenceCountedObject&&>(::std::move(x));
+			static_cast<void>(x);
 			return *this;
 		}
 		/// <summary>
-		/// Gets the reference count.
-		/// This function must be thread-safe.
+		/// Returns an <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.
+		/// If the control block hasn't been set up yet, it will be created and set up.
 		/// </summary>
-		/// <returns>The current reference count.</returns>
-		inline virtual uintptr_t GetReferenceCount() const noexcept override {
-			if (this)
-				return this->ref_count.load(::std::memory_order_relaxed);
-			else
-				return 0;
-		}
-		/// <summary>
-		/// Increments the reference count.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t IncReferenceCount() const noexcept override {
-			if (this) {
-				uintptr_t ref_count_old = this->ref_count.fetch_add(1, ::std::memory_order_relaxed);
-				return ref_count_old + 1;
-			} else {
-				return 0;
+		/// <returns>A <c>IReferenceCountControlBlock*</c> pointer to the control block that manages the object.</returns>
+		inline virtual IReferenceCountControlBlock* GetReferenceCountControlBlock() const noexcept override {
+			if (!this->controlblock) {
+				::std::call_once(
+					this->onceflag_controlblock,
+					[this]() noexcept->void {
+						class ControlBlock final : public ReferenceCountControlBlock {
+						public:
+							explicit ControlBlock(ReferenceCountedObject* _refcountedobject_managed) : refcountedobject_managed(_refcountedobject_managed) {}
+							ControlBlock(const ControlBlock&) = delete;
+							ControlBlock(ControlBlock&&) = delete;
+							ControlBlock& operator=(const ControlBlock&) = delete;
+							ControlBlock& operator=(ControlBlock&&) = delete;
+							/// <summary>Destroys the object managed by this control block.</summary>
+							inline virtual void DestroyManagedObject() noexcept override {
+								delete this->refcountedobject_managed;
+								this->refcountedobject_managed = nullptr;
+							}
+							/// <summary>Destroys this control block itself.</summary>
+							inline virtual void DestroyControlBlock() noexcept override {
+								delete this;
+							}
+						private:
+							ReferenceCountedObject* refcountedobject_managed = nullptr;
+						};
+						this->controlblock = new ControlBlock(const_cast<ReferenceCountedObject*>(this));
+					}
+				);
+				assert(this->controlblock);
 			}
-		}
-		/// <summary>
-		/// Decrements the reference count.
-		/// Frees the object if the reference count reaches <c>0</c>.
-		/// This function is thread-safe.
-		/// </summary>
-		/// <returns>The new reference count.</returns>
-		inline virtual uintptr_t DecReferenceCount() const noexcept override {
-			if (this) {
-				uintptr_t ref_count_old = this->ref_count.fetch_sub(1, ::std::memory_order_acq_rel);
-				assert(ref_count_old);
-				if (ref_count_old == 1) const_cast<ReferenceCountedObject*>(this)->DeleteMe();
-				return ref_count_old - 1;
-			} else {
-				return 0;
-			}
+			return this->controlblock;
 		}
 	protected:
-		/// <summary>
-		/// Destructor intentionally declared protected.
-		/// Object users should use the reference counting mechanism instead.
-		/// </summary>
-		virtual ~ReferenceCountedObject() = default;
-		/// <summary>
-		/// Destructs the object and frees any resources allocated for the object.
-		/// This function is intended to be called only by <c>DecReferenceCount</c>.
-		/// </summary>
-		virtual void DeleteMe() noexcept = 0;
-	private:
-		mutable ::std::atomic<uintptr_t> ref_count = 1;
+		mutable ReferenceCountControlBlock* controlblock = nullptr;
+		mutable ::std::once_flag onceflag_controlblock;
 	};
 
 	/// <summary>
 	/// Reference counted object holder.
-	/// Counts as one reference of the owned object until destructed.
+	/// Counts as one strong reference of the owned object until destructed.
 	/// </summary>
 	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
 	template<typename _Element_Ty>
 	class ReferenceCountedObjectHolder final {
 		template<typename _Element_Ty_Other>
 		friend class ReferenceCountedObjectHolder;
+		template<typename _Element_Ty_Other>
+		friend class ReferenceCountedObjectWeakHolder;
 	public:
 		struct inc_ref_count_t {};
-
 		static constexpr inc_ref_count_t inc_ref_count {};
-
 		using element_type = _Element_Ty;
 		constexpr ReferenceCountedObjectHolder() noexcept {}
 		constexpr ReferenceCountedObjectHolder(nullptr_t) noexcept : ReferenceCountedObjectHolder() {}
 		/// <summary>
-		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, incrementing the object's reference count.
-		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
+		/// Constructs a <c>ReferenceCountedObjectHolder</c> that owns the object the specified pointer points to, incrementing the object's strong reference count.
+		/// Use this function on a pointer to an already reference-counted object that has no reference counts reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
-		inline ReferenceCountedObjectHolder(_Element_From_Ty* p, inc_ref_count_t) noexcept {
-			if (p) {
-				const IReferenceCountedObject* _ptr_owned = p;
-				_ptr_owned->IncReferenceCount();
-				this->ptr_stored = p;
-				this->ptr_owned = _ptr_owned;
+		inline ReferenceCountedObjectHolder(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+			if (_ptr) {
+				const IReferenceCountedObject* refcountedobject_owned = _ptr;
+				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
+				assert(this->controlblock_owned);
+				uintptr_t ref_count_strong_new = this->controlblock_owned->IncStrongReferenceCount();
+				assert(ref_count_strong_new);
+				this->ptr_stored = _ptr;
 			}
 		}
 		/// <summary>
 		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, without changing the object's reference count.
-		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
+		/// Use this function on a pointer to a freshly-created object whose reference count control block hasn't been set up yet,
+		/// or an already reference-counted object that has <c>1</c> strong reference count reserved for the caller..
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& p) noexcept {
-			if (p) {
-				this->ptr_stored = p;
-				this->ptr_owned = p;
-				p = nullptr;
+		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& _ptr) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+			if (_ptr) {
+				const IReferenceCountedObject* refcountedobject_owned = _ptr;
+				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
+				assert(this->controlblock_owned);
+				this->ptr_stored = _ptr;
+				_ptr = nullptr;
 			}
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
+			if (x.controlblock_owned) {
+				uintptr_t ref_count_strong_new = x.controlblock_owned->IncStrongReferenceCount();
+				assert(ref_count_strong_new);
+				this->controlblock_owned = x.controlblock_owned;
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
+			this->ptr_stored = x.ptr_stored;
+			this->controlblock_owned = x.controlblock_owned;
 			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
+			x.controlblock_owned = nullptr;
 		}
 		template<typename _Element_From_Ty>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, element_type* p) noexcept {
-			const IReferenceCountedObject* _ptr_owned = x.ptr_owned;
-			if (_ptr_owned) {
-				_ptr_owned->IncReferenceCount();
-				this->ptr_owned = _ptr_owned;
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, element_type* _ptr) noexcept {
+			if (x.controlblock_owned) {
+				uintptr_t ref_count_strong_new = x.controlblock_owned->IncStrongReferenceCount();
+				assert(ref_count_strong_new);
+				this->controlblock_owned = x.controlblock_owned;
 			}
-			if (p) this->ptr_stored = p;
-		}
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder& x) noexcept {
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			this->ptr_stored = x.ptr_stored;
-		}
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder&& x) noexcept {
-			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
+			if (_ptr) this->ptr_stored = _ptr;
 		}
 		inline ~ReferenceCountedObjectHolder() {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
+			if (this->controlblock_owned) {
+				this->controlblock_owned->DecStrongReferenceCount();
+				this->controlblock_owned = nullptr;
 			}
+			this->ptr_stored = nullptr;
 		}
 		inline element_type* const& get() const noexcept { return this->ptr_stored; }
 		inline explicit operator bool() const noexcept { return this->ptr_stored; }
@@ -1468,153 +1613,80 @@ namespace YBWLib2 {
 		inline element_type* operator->() const noexcept { return this->ptr_stored; }
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+			ReferenceCountedObjectHolder<element_type>(x).swap(*this);
 			return *this;
 		}
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
 		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
-			return *this;
-		}
-		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (x.ptr_owned) {
-				x.ptr_owned->IncReferenceCount();
-				this->ptr_owned = x.ptr_owned;
-			}
-			this->ptr_stored = x.ptr_stored;
-			return *this;
-		}
-		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder&& x) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
-			x.ptr_stored = nullptr;
-			x.ptr_owned = nullptr;
+			ReferenceCountedObjectHolder<element_type>(::std::move(x)).swap(*this);
 			return *this;
 		}
 		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->ptr_owned < x.ptr_owned; }
+		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+		template<typename _Element_From_Ty>
+		inline bool owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept;
 		inline void reset() noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
+			ReferenceCountedObjectHolder<element_type>().swap(*this);
 		}
 		inline void reset(nullptr_t) noexcept {
-			const IReferenceCountedObject* _ptr_owned = this->ptr_owned;
-			if (_ptr_owned) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
+			ReferenceCountedObjectHolder<element_type>(nullptr).swap(*this);
 		}
 		/// <summary>
 		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
-		inline void reset(_Element_From_Ty* p, inc_ref_count_t) noexcept {
-			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
-			if (_ptr_owned_old) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned_old->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (p) {
-				const IReferenceCountedObject* _ptr_owned = p;
-				_ptr_owned->IncReferenceCount();
-				this->ptr_stored = p;
-				this->ptr_owned = _ptr_owned;
-			}
+		inline void reset(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
+			ReferenceCountedObjectHolder<element_type>(_ptr, inc_ref_count).swap(*this);
 		}
 		/// <summary>
 		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
 		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
-		inline void reset(_Element_From_Ty*&& p) noexcept {
-			const IReferenceCountedObject* _ptr_owned_old = this->ptr_owned;
-			if (_ptr_owned_old) {
-				this->ptr_stored = nullptr;
-				this->ptr_owned = nullptr;
-				_ptr_owned_old->DecReferenceCount();
-			} else {
-				this->ptr_stored = nullptr;
-			}
-			if (p) {
-				this->ptr_stored = p;
-				this->ptr_owned = p;
-				p = nullptr;
-			}
+		inline void reset(_Element_From_Ty*&& _ptr) noexcept {
+			ReferenceCountedObjectHolder<element_type>(::std::move(_ptr)).swap(*this);
+		}
+		/// <summary>Releases the stored pointer and the owned control block without changing the reference count.</summary>
+		[[nodiscard]] inline IReferenceCountControlBlock*&& release(element_type*& _ptr_ret) noexcept {
+			element_type* ptr_stored_old = this->ptr_stored;
+			IReferenceCountControlBlock* controlblock_owned_old = this->controlblock_owned;
+			this->ptr_stored = nullptr;
+			this->controlblock_owned = nullptr;
+			_ptr_ret = ptr_stored_old;
+			return ::std::move(controlblock_owned_old);
 		}
 		/// <summary>
 		/// Releases the stored pointer without changing the reference count.
+		/// The owned control block must be the one that manages the stored pointer.
 		/// </summary>
 		[[nodiscard]] inline element_type*&& release() noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, element_type>, "The element type isn't derived from IReferenceCountedObject.");
 			element_type* ptr_stored_old = this->ptr_stored;
+			if (ptr_stored_old) {
+				const IReferenceCountedObject* refcountedobject_stored_old = ptr_stored_old;
+				assert(this->controlblock_owned == refcountedobject_stored_old->GetReferenceCountControlBlock());
+			} else {
+				assert(!this->controlblock_owned);
+			}
 			this->ptr_stored = nullptr;
-			this->ptr_owned = nullptr;
+			this->controlblock_owned = nullptr;
 			return ::std::move(ptr_stored_old);
 		}
 		inline void swap(ReferenceCountedObjectHolder& x) noexcept {
 			element_type* ptr_stored_temp = this->ptr_stored;
-			const IReferenceCountedObject* ptr_owned_temp = this->ptr_owned;
+			IReferenceCountControlBlock* controlblock_owned_temp = this->controlblock_owned;
 			this->ptr_stored = x.ptr_stored;
-			this->ptr_owned = x.ptr_owned;
+			this->controlblock_owned = x.controlblock_owned;
 			x.ptr_stored = ptr_stored_temp;
-			x.ptr_owned = ptr_owned_temp;
+			x.controlblock_owned = controlblock_owned_temp;
 		}
-		inline bool unique() const noexcept { return this && this->ptr_owned && this->ptr_owned->GetReferenceCount() == 1; }
-		inline uintptr_t use_count() const noexcept { return this && this->ptr_owned ? this->ptr_owned->GetReferenceCount() : 0; }
-	private:
+		inline bool unique() const noexcept { return this->controlblock_owned && this->controlblock_owned->GetStrongReferenceCount() == 1; }
+		inline uintptr_t use_count() const noexcept { return this->controlblock_owned ? this->controlblock_owned->GetStrongReferenceCount() : 0; }
+		inline uintptr_t weak_count() const noexcept { return this->controlblock_owned ? this->controlblock_owned->GetWeakReferenceCount() : 0; }
+	protected:
 		element_type* ptr_stored = nullptr;
-		const IReferenceCountedObject* ptr_owned = nullptr;
+		IReferenceCountControlBlock* controlblock_owned = nullptr;
 	};
 	template<typename _Element_L_Ty, typename _Element_R_Ty>
 	inline bool operator==(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
@@ -1652,6 +1724,214 @@ namespace YBWLib2 {
 	inline bool operator>=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
 	template<typename _Element_Ty>
 	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
+
+	/// <summary>
+	/// Reference counted object weak holder.
+	/// Counts as one weak reference of the owned object until destructed.
+	/// </summary>
+	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
+	template<typename _Element_Ty>
+	class ReferenceCountedObjectWeakHolder final {
+		template<typename _Element_Ty_Other>
+		friend class ReferenceCountedObjectHolder;
+		template<typename _Element_Ty_Other>
+		friend class ReferenceCountedObjectWeakHolder;
+	public:
+		struct inc_ref_count_t {};
+		static constexpr inc_ref_count_t inc_ref_count {};
+		using element_type = _Element_Ty;
+		constexpr ReferenceCountedObjectWeakHolder() noexcept {}
+		constexpr ReferenceCountedObjectWeakHolder(nullptr_t) noexcept : ReferenceCountedObjectWeakHolder() {}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+			if (x.controlblock_owned) {
+				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
+				assert(ref_count_weak_new);
+				this->controlblock_owned = x.controlblock_owned;
+			}
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
+			if (x.controlblock_owned) {
+				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
+				assert(ref_count_weak_new);
+				this->controlblock_owned = x.controlblock_owned;
+			}
+			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
+			this->ptr_stored = x.ptr_stored;
+			this->controlblock_owned = x.controlblock_owned;
+			x.ptr_stored = nullptr;
+			x.controlblock_owned = nullptr;
+		}
+		inline ~ReferenceCountedObjectWeakHolder() {
+			if (this->controlblock_owned) {
+				this->controlblock_owned->DecWeakReferenceCount();
+				this->controlblock_owned = nullptr;
+			}
+			this->ptr_stored = nullptr;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+			ReferenceCountedObjectWeakHolder<element_type>(x).swap(*this);
+			return *this;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
+			ReferenceCountedObjectWeakHolder<element_type>(x).swap(*this);
+			return *this;
+		}
+		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
+			ReferenceCountedObjectWeakHolder<element_type>(::std::move(x)).swap(*this);
+			return *this;
+		}
+		template<typename _Element_To_Ty, ::std::enable_if_t<::std::is_convertible_v<element_type*, _Element_To_Ty*>, int> = 0>
+		inline operator ReferenceCountedObjectHolder<_Element_To_Ty>() const noexcept {
+			ReferenceCountedObjectHolder<_Element_To_Ty> refcountedobjectholder;
+			if (!this->controlblock_owned || !this->controlblock_owned->IncStrongReferenceCount()) {
+				assert(false);
+				abort();
+			}
+			refcountedobjectholder.controlblock_owned = this->controlblock_owned;
+			refcountedobjectholder.ptr_stored = this->ptr_stored;
+			return refcountedobjectholder;
+		}
+		inline bool expired() const noexcept {
+			return this->controlblock_owned ? this->controlblock_owned->HasObjectExpired() : true;
+		}
+		template<typename _Element_From_Ty>
+		inline bool owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+		template<typename _Element_From_Ty>
+		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept;
+		inline ReferenceCountedObjectHolder<element_type> lock() const noexcept {
+			ReferenceCountedObjectHolder<element_type> refcountedobjectholder;
+			if (this->controlblock_owned && this->controlblock_owned->IncStrongReferenceCount()) {
+				refcountedobjectholder.controlblock_owned = this->controlblock_owned;
+				refcountedobjectholder.ptr_stored = this->ptr_stored;
+			}
+			return refcountedobjectholder;
+		}
+		inline void reset() noexcept {
+			ReferenceCountedObjectWeakHolder<element_type>().swap(*this);
+		}
+		inline void reset(nullptr_t) noexcept {
+			ReferenceCountedObjectWeakHolder<element_type>(nullptr).swap(*this);
+		}
+		/// <summary>Releases the stored pointer and the owned control block without changing the reference count.</summary>
+		[[nodiscard]] inline IReferenceCountControlBlock*&& release(element_type*& _ptr_ret) noexcept {
+			element_type* ptr_stored_old = this->ptr_stored;
+			IReferenceCountControlBlock* controlblock_owned_old = this->controlblock_owned;
+			this->ptr_stored = nullptr;
+			this->controlblock_owned = nullptr;
+			_ptr_ret = ptr_stored_old;
+			return ::std::move(controlblock_owned_old);
+		}
+		inline void swap(ReferenceCountedObjectWeakHolder& x) noexcept {
+			element_type* ptr_stored_temp = this->ptr_stored;
+			IReferenceCountControlBlock* controlblock_owned_temp = this->controlblock_owned;
+			this->ptr_stored = x.ptr_stored;
+			this->controlblock_owned = x.controlblock_owned;
+			x.ptr_stored = ptr_stored_temp;
+			x.controlblock_owned = controlblock_owned_temp;
+		}
+		inline uintptr_t use_count() const noexcept { return this->controlblock_owned ? this->controlblock_owned->GetStrongReferenceCount() : 0; }
+		inline uintptr_t weak_count() const noexcept { return this->controlblock_owned ? this->controlblock_owned->GetWeakReferenceCount() : 0; }
+	protected:
+		element_type* ptr_stored = nullptr;
+		IReferenceCountControlBlock* controlblock_owned = nullptr;
+	};
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator==(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator==(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr == r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator==(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() == nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator!=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() != r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator!=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr != r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator!=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() != nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() < r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr < r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() < nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator<=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() <= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr <= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator<=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() <= nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() > r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr > r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() > nullptr; }
+	template<typename _Element_L_Ty, typename _Element_R_Ty>
+	inline bool operator>=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() >= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
+	template<typename _Element_Ty>
+	inline bool operator>=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
+
+	template<typename _Element_Ty>
+	template<typename _Element_From_Ty>
+	inline bool ReferenceCountedObjectHolder<_Element_Ty>::owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+	template<typename _Element_Ty>
+	template<typename _Element_From_Ty>
+	inline bool ReferenceCountedObjectWeakHolder<_Element_Ty>::owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+
+	template<
+		typename _Element_Ty,
+		typename... _Args_Ty,
+		typename ::std::enable_if<::std::is_base_of_v<ReferenceCountedObject, _Element_Ty>, int>::type = 0
+	>
+		inline ReferenceCountedObjectHolder<_Element_Ty> MakeReferenceCountedObject(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty&&...>) {
+		using element_type = _Element_Ty;
+		class ControlBlock final : public ReferenceCountControlBlock {
+		public:
+			explicit ControlBlock(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<element_type, _Args_Ty&&...>) {
+				new(&this->GetElement()) element_type(::std::forward<_Args_Ty>(_args)...);
+			}
+			//ControlBlock(const ControlBlock&) = delete;
+			//ControlBlock(ControlBlock&&) = delete;
+			//ControlBlock& operator=(const ControlBlock&) = delete;
+			//ControlBlock& operator=(ControlBlock&&) = delete;
+			inline const element_type* GetElement() const noexcept { return reinterpret_cast<const element_type*>(&this->buf_element); }
+			inline element_type* GetElement() noexcept { return reinterpret_cast<element_type*>(&this->buf_element); }
+			inline const ReferenceCountedObject* GetManagedObject() const noexcept { return static_cast<ReferenceCountedObject*>(this->GetElement()); }
+			inline ReferenceCountedObject* GetManagedObject() noexcept { return static_cast<ReferenceCountedObject*>(this->GetElement()); }
+			/// <summary>Destroys the object managed by this control block.</summary>
+			inline virtual void DestroyManagedObject() noexcept override {
+				this->GetManagedObject()->~element_type();
+			}
+			/// <summary>Destroys this control block itself.</summary>
+			inline virtual void DestroyControlBlock() noexcept override {
+				delete this;
+			}
+		private:
+			alignas(alignof(element_type)) unsigned char buf_element[sizeof(element_type)] = {};
+		};
+		ControlBlock* controlblock = new ControlBlock(::std::forward<_Args_Ty>(_args)...);
+		assert(controlblock);
+		ReferenceCountedObject* refcountedobject_managed = controlblock->GetManagedObject();
+		assert(!refcountedobject_managed->controlblock);
+		::std::call_once(
+			controlblock->GetManagedObject()->onceflag_controlblock,
+			[controlblock, refcountedobject_managed]() noexcept->void {
+				refcountedobject_managed->controlblock = static_cast<ReferenceCountControlBlock*>(controlblock);
+			}
+		);
+		assert(refcountedobject_managed->controlblock == static_cast<ReferenceCountControlBlock*>(controlblock));
+		return ReferenceCountedObjectHolder<element_type>(controlblock->GetElement());
+	}
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept;
 	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept;

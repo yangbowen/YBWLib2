@@ -16,6 +16,7 @@
 #pragma comment(lib, "bcrypt.lib")
 
 namespace YBWLib2 {
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IReferenceCountControlBlock, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IReferenceCountedObject, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ILockableObject, YBWLIB2_API);
 
@@ -369,6 +370,11 @@ namespace YBWLib2 {
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealInitGlobal() noexcept {
+		IReferenceCountControlBlock::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeClassPersistentID<IReferenceCountControlBlock>(),
+			IsDynamicTypeModuleLocalClass<IReferenceCountControlBlock>(),
+			{ DynamicTypeBaseClassDef<IReferenceCountControlBlock, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IReferenceCountControlBlock), alignof(IReferenceCountControlBlock));
 		IReferenceCountedObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
 			GetDynamicTypeClassPersistentID<IReferenceCountedObject>(),
 			IsDynamicTypeModuleLocalClass<IReferenceCountedObject>(),
@@ -386,5 +392,7 @@ namespace YBWLib2 {
 		ILockableObject::DynamicTypeThisClassObject = nullptr;
 		delete IReferenceCountedObject::DynamicTypeThisClassObject;
 		IReferenceCountedObject::DynamicTypeThisClassObject = nullptr;
+		delete IReferenceCountControlBlock::DynamicTypeThisClassObject;
+		IReferenceCountControlBlock::DynamicTypeThisClassObject = nullptr;
 	}
 }

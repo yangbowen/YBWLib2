@@ -4,7 +4,7 @@
 #include "ReferenceInfo.dotNETMixed.h"
 
 namespace YBWLib2 {
-	static constexpr char16_t u16str_dotnettypename_dotNETMixed_AppDomainManager[] = u"YBWLib2.dotNETMixed.AppDomainManager";// TODO
+	static constexpr char16_t u16str_dotnettypename_dotNETMixed_AppDomainManager[] = u"YBWLib2.dotNETMixed.AppDomainManager";
 }
 
 #endif
