@@ -1355,7 +1355,6 @@ namespace YBWLib2 {
 				typename... _Args_Delegate_Invoke_Ty,
 				size_t... _Index_Arg_Ty,
 				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
@@ -1384,7 +1383,6 @@ namespace YBWLib2 {
 				typename... _Args_Delegate_Invoke_Ty,
 				size_t... _Index_Arg_Ty,
 				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_reference<_Args_Delegate_Invoke_Ty>, ::std::is_scalar<_Args_Delegate_Invoke_Ty>>...>, int>::type = 0,
 				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
 			>
 				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {

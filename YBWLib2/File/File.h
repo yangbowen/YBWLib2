@@ -352,12 +352,12 @@ namespace YBWLib2 {
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISeekableFile, YBWLIB2_API, "cfc42a4e-a1f6-4684-93d1-f27d998aafa4");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISeekableFile);
 		/// <summary>
-		/// Returns a pointer to the <c>ILockableObject</c> object that locks the file position.
+		/// Returns a pointer to the <c>IExclusiveLockableObject</c> object that locks the file position.
 		/// The object on which this member function is called, instead of the caller, owns the object pointed to by the returned pointer.
-		/// The <c>ILockableObject</c> object shall be declared <c>mutable</c>.
-		/// The duration of the <c>ILockableObject</c> object shall extend at least until the destruction of this object.
+		/// The <c>IExclusiveLockableObject</c> object shall be declared <c>mutable</c>.
+		/// The duration of the <c>IExclusiveLockableObject</c> object shall extend at least until the destruction of this object.
 		/// </summary>
-		virtual ILockableObject* GetFilePositionLock() const noexcept = 0;
+		virtual IExclusiveLockableObject* GetFilePositionLock() const noexcept = 0;
 		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
 		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
 		/// <returns>
@@ -693,12 +693,12 @@ namespace YBWLib2 {
 			static_cast<void>(x);
 		}
 		/// <summary>
-		/// Returns a pointer to the <c>ILockableObject</c> object that locks the file position.
+		/// Returns a pointer to the <c>IExclusiveLockableObject</c> object that locks the file position.
 		/// The object on which this member function is called, instead of the caller, owns the object pointed to by the returned pointer.
-		/// The <c>ILockableObject</c> object shall be declared <c>mutable</c>.
-		/// The duration of the <c>ILockableObject</c> object shall extend at least until the destruction of this object.
+		/// The <c>IExclusiveLockableObject</c> object shall be declared <c>mutable</c>.
+		/// The duration of the <c>IExclusiveLockableObject</c> object shall extend at least until the destruction of this object.
 		/// </summary>
-		inline virtual ILockableObject* GetFilePositionLock() const noexcept override { return &this->lock_position_file; }
+		inline virtual IExclusiveLockableObject* GetFilePositionLock() const noexcept override { return &this->lock_position_file; }
 		/// <summary>Checks whether the current position is beyond the last byte of the file.</summary>
 		/// <param name="is_eof_ret">Pointer to a variable that receives whether the current position is beyond the last byte of the file.</param>
 		/// <returns>
@@ -835,7 +835,7 @@ namespace YBWLib2 {
 		/// </returns>
 		[[nodiscard]] virtual IException* TellLarge(void* buf_distance, size_t size_buf_distance) const noexcept override = 0;
 	protected:
-		mutable LockableObjectFromSTLWrapper<::std::recursive_mutex> lock_position_file;
+		mutable ExclusiveLockableObjectFromSTLWrapper<::std::recursive_mutex> lock_position_file;
 		/// <summary>
 		/// Destructor intentionally declared protected.
 		/// Object users should use the reference counting mechanism instead.
@@ -1847,10 +1847,10 @@ namespace YBWLib2 {
 			ReadableFile(static_cast<const ReadableFile&>(x)),
 			WriteableFile(static_cast<const WriteableFile&>(x)) {
 				{
-					LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
 					this->objholder_holder_memory_block = x.objholder_holder_memory_block;
 					this->position_file = x.position_file;
 				}
@@ -1870,10 +1870,10 @@ namespace YBWLib2 {
 			ReadableFile(static_cast<ReadableFile&&>(::std::move(x))),
 			WriteableFile(static_cast<WriteableFile&&>(::std::move(x))) {
 				{
-					LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
 					this->objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
 					this->position_file = ::std::move(x.position_file);
 					x.position_file = 0;
@@ -1894,10 +1894,10 @@ namespace YBWLib2 {
 			static_cast<ReadableFile&>(*this) = static_cast<const ReadableFile&>(x);
 			static_cast<WriteableFile&>(*this) = static_cast<const WriteableFile&>(x);
 			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
 				this->objholder_holder_memory_block = x.objholder_holder_memory_block;
 				this->position_file = x.position_file;
 			}
@@ -1917,10 +1917,10 @@ namespace YBWLib2 {
 			static_cast<ReadableFile&>(*this) = static_cast<ReadableFile&&>(::std::move(x));
 			static_cast<WriteableFile&>(*this) = static_cast<WriteableFile&&>(::std::move(x));
 			{
-				LockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file_x(*x.GetFilePositionLock());
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file_x(wrapper_lock_position_file_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block_x(x.lock_objholder_holder_memory_block);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block_x(wrapper_lock_objholder_holder_memory_block_x);
 				this->objholder_holder_memory_block = ::std::move(x.objholder_holder_memory_block);
 				this->position_file = ::std::move(x.position_file);
 				x.position_file = 0;
@@ -1962,15 +1962,15 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &size_ret, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							*size_ret = holder_memory_block->size_memory_block;
 						}
@@ -2000,15 +2000,15 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &size, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							if (size != holder_memory_block->size_memory_block) {
 								if (holder_memory_block->is_readonly || !holder_memory_block->rawallocator) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SetFileSize); return; }
@@ -2047,15 +2047,15 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &is_eof_ret, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							*is_eof_ret = this->position_file >= holder_memory_block->size_memory_block;
 						}
@@ -2088,8 +2088,8 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &distance, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					this->position_file = distance;
 				}
 			);
@@ -2119,15 +2119,15 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &distance, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							if (distance > holder_memory_block->size_memory_block) { err_inner = new BofFileException(this); return; }
 							this->position_file = holder_memory_block->size_memory_block - distance;
@@ -2161,8 +2161,8 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &distance, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					if (distance > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, SeekForward); return; }
 					this->position_file = this->position_file + distance;
 				}
@@ -2193,8 +2193,8 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &distance, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					if (distance > this->position_file) { err_inner = new BofFileException(this); return; }
 					this->position_file = this->position_file - distance;
 				}
@@ -2226,8 +2226,8 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &distance_ret, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					*distance_ret = this->position_file;
 				}
 			);
@@ -2260,16 +2260,16 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &buf, &size_buf, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					if (size_buf > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Read); return; }
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							if (this->position_file + size_buf > holder_memory_block->size_memory_block) { err_inner = new EofFileException(this); return; }
 							if (holder_memory_block->is_readonly) {
@@ -2313,16 +2313,16 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &buf, &size_buf, &err_inner]() noexcept(false)->void {
-					LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
 					if (size_buf > SIZE_MAX - this->position_file) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write); return; }
-					LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 					{
 						MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 						if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-						LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-						::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+						ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+						::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 						{
 							if (holder_memory_block->is_readonly || !holder_memory_block->address_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::MemoryFile, Write); return; }
 							if (this->position_file + size_buf > holder_memory_block->size_memory_block) {
@@ -2370,7 +2370,7 @@ namespace YBWLib2 {
 		/// </summary>
 		class MemoryBlockHolder final : public virtual ReferenceCountedObject {
 		public:
-			mutable LockableObjectFromSTLWrapper<::std::recursive_mutex> lock_memory_block_holder;
+			mutable ExclusiveLockableObjectFromSTLWrapper<::std::recursive_mutex> lock_memory_block_holder;
 			union {
 				void* address_memory_block = nullptr;
 				const void* address_memory_block_readonly;
@@ -2429,10 +2429,10 @@ namespace YBWLib2 {
 			inline MemoryBlockHolder(MemoryBlockHolder&& x) noexcept(false)
 				: ReferenceCountedObject(),
 				lock_memory_block_holder() {
-				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
-				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
 				this->is_readonly = ::std::move(x.is_readonly);
 				if (this->is_readonly) {
 					this->address_memory_block_readonly = ::std::move(x.address_memory_block_readonly);
@@ -2452,10 +2452,10 @@ namespace YBWLib2 {
 			}
 			MemoryBlockHolder& operator=(const MemoryBlockHolder&) = delete;
 			inline MemoryBlockHolder& operator=(MemoryBlockHolder&& x) noexcept(false) {
-				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
-				LockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder_this(this->lock_memory_block_holder);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder_this(wrapper_lock_memory_block_holder_this);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder_x(x.lock_memory_block_holder);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder_x(wrapper_lock_memory_block_holder_x);
 				this->is_readonly = ::std::move(x.is_readonly);
 				if (this->is_readonly) {
 					this->address_memory_block_readonly = ::std::move(x.address_memory_block_readonly);
@@ -2502,7 +2502,7 @@ namespace YBWLib2 {
 		};
 		ReferenceCountedObjectHolder<MemoryBlockHolder> objholder_holder_memory_block;
 		size_t position_file = 0;
-		mutable LockableObjectFromSTLWrapper<::std::recursive_mutex> lock_objholder_holder_memory_block;
+		mutable ExclusiveLockableObjectFromSTLWrapper<::std::recursive_mutex> lock_objholder_holder_memory_block;
 		/// <summary>
 		/// Destructor intentionally declared protected.
 		/// Object users should use the reference counting mechanism instead.

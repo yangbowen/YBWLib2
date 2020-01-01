@@ -186,15 +186,15 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &_rawallocator, &description_ret, &size_description_ret, &should_null_terminate, &err_inner]() noexcept(false)->void {
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_objholder_holder_memory_block(this->lock_objholder_holder_memory_block);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_objholder_holder_memory_block(wrapper_lock_objholder_holder_memory_block);
 				{
 					MemoryBlockHolder* holder_memory_block = this->objholder_holder_memory_block.get();
 					if (!holder_memory_block) { err_inner = YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION(); return; }
-					LockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
-					::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
+					ExclusiveLockableObjectToSTLWrapper wrapper_lock_memory_block_holder(holder_memory_block->lock_memory_block_holder);
+					::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_memory_block_holder(wrapper_lock_memory_block_holder);
 					{
 						static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 						objholder_local_t<AddressStringTemplateParameter> objholder_strtmplparameter_address_memory_block;

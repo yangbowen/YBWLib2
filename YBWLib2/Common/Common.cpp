@@ -18,7 +18,8 @@
 namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IReferenceCountControlBlock, YBWLIB2_API);
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IReferenceCountedObject, YBWLIB2_API);
-	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ILockableObject, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IExclusiveLockableObject, YBWLIB2_API);
+	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(ISharedLockableObject, YBWLIB2_API);
 
 	[[nodiscard]] YBWLIB2_API IException* YBWLIB2_CALLTYPE Utf8StringToUtf16String(
 		const rawallocator_t* rawallocator,
@@ -380,16 +381,23 @@ namespace YBWLib2 {
 			IsDynamicTypeModuleLocalClass<IReferenceCountedObject>(),
 			{ DynamicTypeBaseClassDef<IReferenceCountedObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
 			0, sizeof(IReferenceCountedObject), alignof(IReferenceCountedObject));
-		ILockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
-			GetDynamicTypeClassPersistentID<ILockableObject>(),
-			IsDynamicTypeModuleLocalClass<ILockableObject>(),
-			{ DynamicTypeBaseClassDef<ILockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
-			0, sizeof(ILockableObject), alignof(ILockableObject));
+		IExclusiveLockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeClassPersistentID<IExclusiveLockableObject>(),
+			IsDynamicTypeModuleLocalClass<IExclusiveLockableObject>(),
+			{ DynamicTypeBaseClassDef<IExclusiveLockableObject, IDynamicTypeObject, DynamicTypeBaseClassFlag_VirtualBase> },
+			0, sizeof(IExclusiveLockableObject), alignof(IExclusiveLockableObject));
+		ISharedLockableObject::DynamicTypeThisClassObject = new DynamicTypeClassObj(
+			GetDynamicTypeClassPersistentID<ISharedLockableObject>(),
+			IsDynamicTypeModuleLocalClass<ISharedLockableObject>(),
+			{ DynamicTypeBaseClassDef<ISharedLockableObject, IExclusiveLockableObject, 0> },
+			0, sizeof(ISharedLockableObject), alignof(ISharedLockableObject));
 	}
 
 	void YBWLIB2_CALLTYPE Common_RealUnInitGlobal() noexcept {
-		delete ILockableObject::DynamicTypeThisClassObject;
-		ILockableObject::DynamicTypeThisClassObject = nullptr;
+		delete ISharedLockableObject::DynamicTypeThisClassObject;
+		ISharedLockableObject::DynamicTypeThisClassObject = nullptr;
+		delete IExclusiveLockableObject::DynamicTypeThisClassObject;
+		IExclusiveLockableObject::DynamicTypeThisClassObject = nullptr;
 		delete IReferenceCountedObject::DynamicTypeThisClassObject;
 		IReferenceCountedObject::DynamicTypeThisClassObject = nullptr;
 		delete IReferenceCountControlBlock::DynamicTypeThisClassObject;

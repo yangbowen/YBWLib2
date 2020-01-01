@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_49CC5EC3_F66A_46A0_BE03_0856F77E7E84
+#ifndef _INCLUDE_GUARD_49CC5EC3_F66A_46A0_BE03_0856F77E7E84
 #define _INCLUDE_GUARD_49CC5EC3_F66A_46A0_BE03_0856F77E7E84
 
 #ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
@@ -25,10 +25,10 @@ namespace YBWLib2 {
 		IException* err_inner = nullptr;
 		IException* err = WrapFunctionCatchExceptions(
 			[this, &_rawallocator, &description_ret, &size_description_ret, &should_null_terminate, &err_inner]() noexcept(false)->void {
-				LockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
-				LockableObjectToSTLWrapper wrapper_lock_this(this->lock_this);
-				::std::unique_lock<LockableObjectToSTLWrapper> unique_lock_this(wrapper_lock_this);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_position_file(*this->GetFilePositionLock());
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_position_file(wrapper_lock_position_file);
+				ExclusiveLockableObjectToSTLWrapper wrapper_lock_this(this->lock_this);
+				::std::unique_lock<ExclusiveLockableObjectToSTLWrapper> unique_lock_this(wrapper_lock_this);
 				static constexpr char conststr_unavailable[] = u8"<UNAVAILABLE>";
 				objholder_local_t<Win32HandleStringTemplateParameter> objholder_strtmplparameter_win32handle_file;
 				objholder_strtmplparameter_win32handle_file.construct(objholder_local_t<Win32HandleStringTemplateParameter>::construct_obj, _rawallocator, u8"win32handle_file", this->win32handleholder_file.get());

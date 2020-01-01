@@ -266,33 +266,33 @@ namespace YBWLib2 {
 		mutable ::std::once_flag onceflag_controlblock;
 	};
 
-	/// <summary>An object that implements <c>ILockableObject</c> and wraps an STL <c>Lockable</c> object.</summary>
+	/// <summary>An object that implements <c>IExclusiveLockableObject</c> and wraps an STL <c>Lockable</c> object.</summary>
 	/// <typeparam name="_Ty">The type of the wrapped object.</typeparam>
 	template<typename _Ty>
-	class LockableObjectFromSTLWrapper : public virtual ILockableObject {
+	class ExclusiveLockableObjectFromSTLWrapper : public IExclusiveLockableObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(LockableObjectFromSTLWrapper);
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(LockableObjectFromSTLWrapper);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(ExclusiveLockableObjectFromSTLWrapper);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(ExclusiveLockableObjectFromSTLWrapper);
 		using wrapped_type = _Ty;
 		template<typename... _Args_Ty>
-		inline explicit LockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}
-		inline LockableObjectFromSTLWrapper(const LockableObjectFromSTLWrapper& x) noexcept : obj(x.obj) {}
-		inline LockableObjectFromSTLWrapper(LockableObjectFromSTLWrapper&& x) noexcept : obj(::std::move(x.obj)) {}
-		inline virtual ~LockableObjectFromSTLWrapper() = default;
-		inline LockableObjectFromSTLWrapper& operator=(const LockableObjectFromSTLWrapper& x) noexcept {
-			static_cast<ILockableObject&>(*this) = static_cast<const ILockableObject&>(x);
+		inline explicit ExclusiveLockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}
+		inline ExclusiveLockableObjectFromSTLWrapper(const ExclusiveLockableObjectFromSTLWrapper& x) noexcept : obj(x.obj) {}
+		inline ExclusiveLockableObjectFromSTLWrapper(ExclusiveLockableObjectFromSTLWrapper&& x) noexcept : obj(::std::move(x.obj)) {}
+		inline virtual ~ExclusiveLockableObjectFromSTLWrapper() = default;
+		inline ExclusiveLockableObjectFromSTLWrapper& operator=(const ExclusiveLockableObjectFromSTLWrapper& x) noexcept {
+			this->obj = x.obj;
 			return *this;
 		}
-		inline LockableObjectFromSTLWrapper& operator=(LockableObjectFromSTLWrapper&& x) noexcept {
-			static_cast<ILockableObject&>(*this) = static_cast<ILockableObject&&>(::std::move(x));
+		inline ExclusiveLockableObjectFromSTLWrapper& operator=(ExclusiveLockableObjectFromSTLWrapper&& x) noexcept {
+			this->obj = ::std::move(x.obj);
 			return *this;
 		}
 		/// <summary>Get a reference to the wrapped object.</summary>
-		inline ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() noexcept { return this->obj; }
+		inline ::std::remove_reference_t<wrapped_type>& GetWrappedLockableObject() noexcept { return this->obj; }
 		/// <summary>Get a reference to the wrapped object.</summary>
-		inline const ::std::remove_reference_t<_Ty>& GetWrappedLockableObject() const noexcept { return this->obj; }
-		/// <summary>Locks the object. Blocks if necessary.</summary>
-		inline virtual void Lock() noexcept override {
+		inline const ::std::remove_reference_t<wrapped_type>& GetWrappedLockableObject() const noexcept { return this->obj; }
+		/// <summary>Locks the object in exclusive mode. Blocks if necessary.</summary>
+		inline virtual void LockExclusive() const noexcept override {
 			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::lock), _Ty>) {
 				this->obj.lock();
 			} else {
@@ -303,12 +303,12 @@ namespace YBWLib2 {
 				}
 			}
 		}
-		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
+		/// <summary>Tries to lock the object in exclusive mode. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		inline virtual bool TryLock() noexcept override {
+		inline virtual bool TryLockExclusive() const noexcept override {
 			bool ret = false;
 			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::try_lock), _Ty>) {
 				ret = this->obj.try_lock();
@@ -320,8 +320,8 @@ namespace YBWLib2 {
 				}
 			}
 		}
-		/// <summary>Unlocks the object.</summary>
-		inline virtual void Unlock() noexcept override {
+		/// <summary>Unlocks the object in exclusive mode.</summary>
+		inline virtual void UnlockExclusive() const noexcept override {
 			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::unlock), _Ty>) {
 				this->obj.unlock();
 			} else {
@@ -333,28 +333,176 @@ namespace YBWLib2 {
 			}
 		}
 	private:
-		_Ty obj;
+		mutable _Ty obj;
 	};
 
-	/// <summary>An object that wraps a reference to an <c>ILockableObject</c> object and behaves like an STL <c>Lockable</c> object.</summary>
-	class LockableObjectToSTLWrapper {
+	/// <summary>An object that implements <c>ISharedLockableObject</c> and wraps an STL <c>SharedMutex</c> object.</summary>
+	/// <typeparam name="_Ty">The type of the wrapped object.</typeparam>
+	template<typename _Ty>
+	class SharedLockableObjectFromSTLWrapper : public ISharedLockableObject {
 	public:
-		inline explicit LockableObjectToSTLWrapper(ILockableObject& x) : obj(x) {}
-		inline virtual ~LockableObjectToSTLWrapper() = default;
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(SharedLockableObjectFromSTLWrapper);
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(SharedLockableObjectFromSTLWrapper);
+		using wrapped_type = _Ty;
+		template<typename... _Args_Ty>
+		inline explicit SharedLockableObjectFromSTLWrapper(_Args_Ty&&... args) : obj(::std::forward<_Args_Ty>(args)...) {}
+		inline SharedLockableObjectFromSTLWrapper(const SharedLockableObjectFromSTLWrapper& x) noexcept : obj(x.obj) {}
+		inline SharedLockableObjectFromSTLWrapper(SharedLockableObjectFromSTLWrapper&& x) noexcept : obj(::std::move(x.obj)) {}
+		inline virtual ~SharedLockableObjectFromSTLWrapper() = default;
+		inline SharedLockableObjectFromSTLWrapper& operator=(const SharedLockableObjectFromSTLWrapper& x) noexcept {
+			this->obj = x.obj;
+			return *this;
+		}
+		inline SharedLockableObjectFromSTLWrapper& operator=(SharedLockableObjectFromSTLWrapper&& x) noexcept {
+			this->obj = ::std::move(x.obj);
+			return *this;
+		}
 		/// <summary>Get a reference to the wrapped object.</summary>
-		inline ILockableObject& GetWrappedLockableObject() const { return this->obj; }
+		inline ::std::remove_reference_t<wrapped_type>& GetWrappedLockableObject() noexcept { return this->obj; }
+		/// <summary>Get a reference to the wrapped object.</summary>
+		inline const ::std::remove_reference_t<wrapped_type>& GetWrappedLockableObject() const noexcept { return this->obj; }
+		/// <summary>Locks the object in exclusive mode. Blocks if necessary.</summary>
+		inline virtual void LockExclusive() const noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::lock), _Ty>) {
+				this->obj.lock();
+			} else {
+				try {
+					this->obj.lock();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
+		/// <summary>Tries to lock the object in exclusive mode. Fail immediately if it's already locked by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline virtual bool TryLockExclusive() const noexcept override {
+			bool ret = false;
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::try_lock), _Ty>) {
+				ret = this->obj.try_lock();
+			} else {
+				try {
+					ret = this->obj.try_lock();
+				} catch (...) {
+					abort();
+				}
+			}
+			return ret;
+		}
+		/// <summary>Unlocks the object in exclusive mode.</summary>
+		inline virtual void UnlockExclusive() const noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::unlock), _Ty>) {
+				this->obj.unlock();
+			} else {
+				try {
+					this->obj.unlock();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
+		/// <summary>
+		/// Locks the object in shared mode. Blocks if necessary.
+		/// Multiple threads may simultaneously lock an object in shared mode.
+		/// However, when an object is locked in exclusive mode, no other thread may lock that object in either mode.
+		/// </summary>
+		inline virtual void LockShared() const noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::lock_shared), _Ty>) {
+				this->obj.lock_shared();
+			} else {
+				try {
+					this->obj.lock_shared();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
+		/// <summary>Tries to lock the object in shared mode. Fail immediately if it's already locked in exclusive mode by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline virtual bool TryLockShared() const noexcept override {
+			bool ret = false;
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::try_lock_shared), _Ty>) {
+				ret = this->obj.try_lock_shared();
+			} else {
+				try {
+					ret = this->obj.try_lock_shared();
+				} catch (...) {
+					abort();
+				}
+			}
+			return ret;
+		}
+		/// <summary>Unlocks the object in shared mode.</summary>
+		inline virtual void UnlockShared() const noexcept override {
+			if constexpr (::std::is_nothrow_invocable_r_v<void, decltype(&_Ty::unlock_shared), _Ty>) {
+				this->obj.unlock_shared();
+			} else {
+				try {
+					this->obj.unlock_shared();
+				} catch (...) {
+					abort();
+				}
+			}
+		}
+	private:
+		mutable _Ty obj;
+	};
+
+	/// <summary>An object that wraps a reference to an <c>IExclusiveLockableObject</c> object and behaves like an STL <c>Lockable</c> object.</summary>
+	class ExclusiveLockableObjectToSTLWrapper final {
+	public:
+		inline explicit ExclusiveLockableObjectToSTLWrapper(IExclusiveLockableObject& x) : obj(x) {}
+		inline ~ExclusiveLockableObjectToSTLWrapper() = default;
+		/// <summary>Get a reference to the wrapped object.</summary>
+		inline IExclusiveLockableObject& GetWrappedLockableObject() const { return this->obj; }
 		/// <summary>Locks the object. Blocks if necessary.</summary>
-		inline virtual void lock() noexcept { this->obj.Lock(); }
+		inline void lock() noexcept { this->obj.LockExclusive(); }
 		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		inline virtual bool try_lock() noexcept { return this->obj.TryLock(); }
+		inline bool try_lock() noexcept { return this->obj.TryLockExclusive(); }
 		/// <summary>Unlocks the object.</summary>
-		inline virtual void unlock() noexcept { this->obj.Unlock(); }
+		inline void unlock() noexcept { this->obj.UnlockExclusive(); }
 	private:
-		ILockableObject& obj;
+		IExclusiveLockableObject& obj;
+	};
+
+	/// <summary>An object that wraps a reference to an <c>IExclusiveLockableObject</c> object and behaves like an STL <c>Lockable</c> object.</summary>
+	class SharedLockableObjectToSTLWrapper final {
+	public:
+		inline explicit SharedLockableObjectToSTLWrapper(ISharedLockableObject& x) : obj(x) {}
+		inline ~SharedLockableObjectToSTLWrapper() = default;
+		/// <summary>Get a reference to the wrapped object.</summary>
+		inline ISharedLockableObject& GetWrappedLockableObject() const { return this->obj; }
+		/// <summary>Locks the object. Blocks if necessary.</summary>
+		inline void lock() noexcept { this->obj.LockExclusive(); }
+		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline bool try_lock() noexcept { return this->obj.TryLockExclusive(); }
+		/// <summary>Unlocks the object.</summary>
+		inline void unlock() noexcept { this->obj.UnlockExclusive(); }
+		/// <summary>Locks the object. Blocks if necessary.</summary>
+		inline void lock_shared() noexcept { this->obj.LockShared(); }
+		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline bool try_lock_shared() noexcept { return this->obj.TryLockShared(); }
+		/// <summary>Unlocks the object.</summary>
+		inline void unlock_shared() noexcept { this->obj.UnlockShared(); }
+	private:
+		ISharedLockableObject& obj;
 	};
 }
 

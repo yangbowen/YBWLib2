@@ -41,140 +41,226 @@ namespace YBWLib2 {
 			holder_u16str_version_image(rawallocator_crt_YBWLib2) {}
 	};
 
-	class ICLRHostContext : public virtual IReferenceCountedObject {
+	class ICLRHostContext
+		: public virtual IReferenceCountedObject,
+		public ISharedLockableObject {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ICLRHostContext, YBWLIB2DOTNETUNMANAGED_API, "4775ea09-ca49-4de9-ba4c-5932c3ba8716");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ICLRHostContext);
-		inline const CLRRuntimePolicy& GetCLRRuntimePolicy() const noexcept {
+		inline const IndexedDataStore& GetIndexedDataStore(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
+			const IndexedDataStore* indexeddatastore = nullptr;
+			this->GetIndexedDataStore(&indexeddatastore, _already_shared_locked_this);
+			assert(indexeddatastore);
+			return *indexeddatastore;
+		}
+		inline const IndexedDataStore& GetIndexedDataStore(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const IndexedDataStore* indexeddatastore = nullptr;
+			this->GetIndexedDataStore(&indexeddatastore, _already_exclusive_locked_this);
+			assert(indexeddatastore);
+			return *indexeddatastore;
+		}
+		inline IndexedDataStore& GetIndexedDataStore(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			IndexedDataStore* indexeddatastore = nullptr;
+			this->GetIndexedDataStore(&indexeddatastore, _already_exclusive_locked_this);
+			assert(indexeddatastore);
+			return *indexeddatastore;
+		}
+		inline const CLRRuntimePolicy& GetCLRRuntimePolicy(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const CLRRuntimePolicy* clrruntimepolicy = nullptr;
-			this->GetCLRRuntimePolicy(&clrruntimepolicy);
+			this->GetCLRRuntimePolicy(&clrruntimepolicy, _already_shared_locked_this);
 			assert(clrruntimepolicy);
 			return *clrruntimepolicy;
 		}
-		inline CLRRuntimePolicy& GetCLRRuntimePolicy() noexcept {
+		inline const CLRRuntimePolicy& GetCLRRuntimePolicy(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const CLRRuntimePolicy* clrruntimepolicy = nullptr;
+			this->GetCLRRuntimePolicy(&clrruntimepolicy, _already_exclusive_locked_this);
+			assert(clrruntimepolicy);
+			return *clrruntimepolicy;
+		}
+		inline CLRRuntimePolicy& GetCLRRuntimePolicy(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			CLRRuntimePolicy* clrruntimepolicy = nullptr;
-			this->GetCLRRuntimePolicy(&clrruntimepolicy);
+			this->GetCLRRuntimePolicy(&clrruntimepolicy, _already_exclusive_locked_this);
 			assert(clrruntimepolicy);
 			return *clrruntimepolicy;
 		}
-		inline const COMObjectHolder<ICLRMetaHost>& GetCLRMetaHostCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRMetaHost>& GetCLRMetaHostCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRMetaHost>* comobjholder_ICLRMetaHost = nullptr;
-			this->GetCLRMetaHostCOMObjectHolder(&comobjholder_ICLRMetaHost);
+			this->GetCLRMetaHostCOMObjectHolder(&comobjholder_ICLRMetaHost, _already_shared_locked_this);
 			assert(comobjholder_ICLRMetaHost);
 			return *comobjholder_ICLRMetaHost;
 		}
-		inline COMObjectHolder<ICLRMetaHost>& GetCLRMetaHostCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRMetaHost>& GetCLRMetaHostCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRMetaHost>* comobjholder_ICLRMetaHost = nullptr;
+			this->GetCLRMetaHostCOMObjectHolder(&comobjholder_ICLRMetaHost, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRMetaHost);
+			return *comobjholder_ICLRMetaHost;
+		}
+		inline COMObjectHolder<ICLRMetaHost>& GetCLRMetaHostCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRMetaHost>* comobjholder_ICLRMetaHost = nullptr;
-			this->GetCLRMetaHostCOMObjectHolder(&comobjholder_ICLRMetaHost);
+			this->GetCLRMetaHostCOMObjectHolder(&comobjholder_ICLRMetaHost, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRMetaHost);
 			return *comobjholder_ICLRMetaHost;
 		}
-		inline const COMObjectHolder<ICLRMetaHostPolicy>& GetCLRMetaHostPolicyCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRMetaHostPolicy>& GetCLRMetaHostPolicyCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRMetaHostPolicy>* comobjholder_ICLRMetaHostPolicy = nullptr;
-			this->GetCLRMetaHostPolicyCOMObjectHolder(&comobjholder_ICLRMetaHostPolicy);
+			this->GetCLRMetaHostPolicyCOMObjectHolder(&comobjholder_ICLRMetaHostPolicy, _already_shared_locked_this);
 			assert(comobjholder_ICLRMetaHostPolicy);
 			return *comobjholder_ICLRMetaHostPolicy;
 		}
-		inline COMObjectHolder<ICLRMetaHostPolicy>& GetCLRMetaHostPolicyCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRMetaHostPolicy>& GetCLRMetaHostPolicyCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRMetaHostPolicy>* comobjholder_ICLRMetaHostPolicy = nullptr;
+			this->GetCLRMetaHostPolicyCOMObjectHolder(&comobjholder_ICLRMetaHostPolicy, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRMetaHostPolicy);
+			return *comobjholder_ICLRMetaHostPolicy;
+		}
+		inline COMObjectHolder<ICLRMetaHostPolicy>& GetCLRMetaHostPolicyCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRMetaHostPolicy>* comobjholder_ICLRMetaHostPolicy = nullptr;
-			this->GetCLRMetaHostPolicyCOMObjectHolder(&comobjholder_ICLRMetaHostPolicy);
+			this->GetCLRMetaHostPolicyCOMObjectHolder(&comobjholder_ICLRMetaHostPolicy, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRMetaHostPolicy);
 			return *comobjholder_ICLRMetaHostPolicy;
 		}
-		inline const COMObjectHolder<ICLRRuntimeInfo>& GetCLRRuntimeInfoCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRRuntimeInfo>& GetCLRRuntimeInfoCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRRuntimeInfo>* comobjholder_ICLRRuntimeInfo = nullptr;
-			this->GetCLRRuntimeInfoCOMObjectHolder(&comobjholder_ICLRRuntimeInfo);
+			this->GetCLRRuntimeInfoCOMObjectHolder(&comobjholder_ICLRRuntimeInfo, _already_shared_locked_this);
 			assert(comobjholder_ICLRRuntimeInfo);
 			return *comobjholder_ICLRRuntimeInfo;
 		}
-		inline COMObjectHolder<ICLRRuntimeInfo>& GetCLRRuntimeInfoCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRRuntimeInfo>& GetCLRRuntimeInfoCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRRuntimeInfo>* comobjholder_ICLRRuntimeInfo = nullptr;
+			this->GetCLRRuntimeInfoCOMObjectHolder(&comobjholder_ICLRRuntimeInfo, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRRuntimeInfo);
+			return *comobjholder_ICLRRuntimeInfo;
+		}
+		inline COMObjectHolder<ICLRRuntimeInfo>& GetCLRRuntimeInfoCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRRuntimeInfo>* comobjholder_ICLRRuntimeInfo = nullptr;
-			this->GetCLRRuntimeInfoCOMObjectHolder(&comobjholder_ICLRRuntimeInfo);
+			this->GetCLRRuntimeInfoCOMObjectHolder(&comobjholder_ICLRRuntimeInfo, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRRuntimeInfo);
 			return *comobjholder_ICLRRuntimeInfo;
 		}
-		inline const COMObjectHolder<IMetaDataDispenserEx>& GetMetaDataDispenserExCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<IMetaDataDispenserEx>& GetMetaDataDispenserExCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<IMetaDataDispenserEx>* comobjholder_IMetaDataDispenserEx = nullptr;
-			this->GetMetaDataDispenserExCOMObjectHolder(&comobjholder_IMetaDataDispenserEx);
+			this->GetMetaDataDispenserExCOMObjectHolder(&comobjholder_IMetaDataDispenserEx, _already_shared_locked_this);
 			assert(comobjholder_IMetaDataDispenserEx);
 			return *comobjholder_IMetaDataDispenserEx;
 		}
-		inline COMObjectHolder<IMetaDataDispenserEx>& GetMetaDataDispenserExCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<IMetaDataDispenserEx>& GetMetaDataDispenserExCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<IMetaDataDispenserEx>* comobjholder_IMetaDataDispenserEx = nullptr;
+			this->GetMetaDataDispenserExCOMObjectHolder(&comobjholder_IMetaDataDispenserEx, _already_exclusive_locked_this);
+			assert(comobjholder_IMetaDataDispenserEx);
+			return *comobjholder_IMetaDataDispenserEx;
+		}
+		inline COMObjectHolder<IMetaDataDispenserEx>& GetMetaDataDispenserExCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<IMetaDataDispenserEx>* comobjholder_IMetaDataDispenserEx = nullptr;
-			this->GetMetaDataDispenserExCOMObjectHolder(&comobjholder_IMetaDataDispenserEx);
+			this->GetMetaDataDispenserExCOMObjectHolder(&comobjholder_IMetaDataDispenserEx, _already_exclusive_locked_this);
 			assert(comobjholder_IMetaDataDispenserEx);
 			return *comobjholder_IMetaDataDispenserEx;
 		}
-		inline const COMObjectHolder<ICLRRuntimeHost>& GetCLRRuntimeHostCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRRuntimeHost>& GetCLRRuntimeHostCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRRuntimeHost>* comobjholder_ICLRRuntimeHost = nullptr;
-			this->GetCLRRuntimeHostCOMObjectHolder(&comobjholder_ICLRRuntimeHost);
+			this->GetCLRRuntimeHostCOMObjectHolder(&comobjholder_ICLRRuntimeHost, _already_shared_locked_this);
 			assert(comobjholder_ICLRRuntimeHost);
 			return *comobjholder_ICLRRuntimeHost;
 		}
-		inline COMObjectHolder<ICLRRuntimeHost>& GetCLRRuntimeHostCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRRuntimeHost>& GetCLRRuntimeHostCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRRuntimeHost>* comobjholder_ICLRRuntimeHost = nullptr;
+			this->GetCLRRuntimeHostCOMObjectHolder(&comobjholder_ICLRRuntimeHost, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRRuntimeHost);
+			return *comobjholder_ICLRRuntimeHost;
+		}
+		inline COMObjectHolder<ICLRRuntimeHost>& GetCLRRuntimeHostCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRRuntimeHost>* comobjholder_ICLRRuntimeHost = nullptr;
-			this->GetCLRRuntimeHostCOMObjectHolder(&comobjholder_ICLRRuntimeHost);
+			this->GetCLRRuntimeHostCOMObjectHolder(&comobjholder_ICLRRuntimeHost, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRRuntimeHost);
 			return *comobjholder_ICLRRuntimeHost;
 		}
-		inline const COMObjectHolder<ICLRStrongName>& GetCLRStrongNameCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRStrongName>& GetCLRStrongNameCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRStrongName>* comobjholder_ICLRStrongName = nullptr;
-			this->GetCLRStrongNameCOMObjectHolder(&comobjholder_ICLRStrongName);
+			this->GetCLRStrongNameCOMObjectHolder(&comobjholder_ICLRStrongName, _already_shared_locked_this);
 			assert(comobjholder_ICLRStrongName);
 			return *comobjholder_ICLRStrongName;
 		}
-		inline COMObjectHolder<ICLRStrongName>& GetCLRStrongNameCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRStrongName>& GetCLRStrongNameCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRStrongName>* comobjholder_ICLRStrongName = nullptr;
+			this->GetCLRStrongNameCOMObjectHolder(&comobjholder_ICLRStrongName, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRStrongName);
+			return *comobjholder_ICLRStrongName;
+		}
+		inline COMObjectHolder<ICLRStrongName>& GetCLRStrongNameCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRStrongName>* comobjholder_ICLRStrongName = nullptr;
-			this->GetCLRStrongNameCOMObjectHolder(&comobjholder_ICLRStrongName);
+			this->GetCLRStrongNameCOMObjectHolder(&comobjholder_ICLRStrongName, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRStrongName);
 			return *comobjholder_ICLRStrongName;
 		}
-		inline const COMObjectHolder<ICLRControl>& GetCLRControlCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<ICLRControl>& GetCLRControlCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<ICLRControl>* comobjholder_ICLRControl = nullptr;
-			this->GetCLRControlCOMObjectHolder(&comobjholder_ICLRControl);
+			this->GetCLRControlCOMObjectHolder(&comobjholder_ICLRControl, _already_shared_locked_this);
 			assert(comobjholder_ICLRControl);
 			return *comobjholder_ICLRControl;
 		}
-		inline COMObjectHolder<ICLRControl>& GetCLRControlCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<ICLRControl>& GetCLRControlCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<ICLRControl>* comobjholder_ICLRControl = nullptr;
+			this->GetCLRControlCOMObjectHolder(&comobjholder_ICLRControl, _already_exclusive_locked_this);
+			assert(comobjholder_ICLRControl);
+			return *comobjholder_ICLRControl;
+		}
+		inline COMObjectHolder<ICLRControl>& GetCLRControlCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<ICLRControl>* comobjholder_ICLRControl = nullptr;
-			this->GetCLRControlCOMObjectHolder(&comobjholder_ICLRControl);
+			this->GetCLRControlCOMObjectHolder(&comobjholder_ICLRControl, _already_exclusive_locked_this);
 			assert(comobjholder_ICLRControl);
 			return *comobjholder_ICLRControl;
 		}
-		inline const COMObjectHolder<IHostControl>& GetHostControlCOMObjectHolder() const noexcept {
+		inline const COMObjectHolder<IHostControl>& GetHostControlCOMObjectHolder(already_shared_locked_this_t _already_shared_locked_this) const noexcept {
 			const COMObjectHolder<IHostControl>* comobjholder_IHostControl = nullptr;
-			this->GetHostControlCOMObjectHolder(&comobjholder_IHostControl);
+			this->GetHostControlCOMObjectHolder(&comobjholder_IHostControl, _already_shared_locked_this);
 			assert(comobjholder_IHostControl);
 			return *comobjholder_IHostControl;
 		}
-		inline COMObjectHolder<IHostControl>& GetHostControlCOMObjectHolder() noexcept {
+		inline const COMObjectHolder<IHostControl>& GetHostControlCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const COMObjectHolder<IHostControl>* comobjholder_IHostControl = nullptr;
+			this->GetHostControlCOMObjectHolder(&comobjholder_IHostControl, _already_exclusive_locked_this);
+			assert(comobjholder_IHostControl);
+			return *comobjholder_IHostControl;
+		}
+		inline COMObjectHolder<IHostControl>& GetHostControlCOMObjectHolder(already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
 			COMObjectHolder<IHostControl>* comobjholder_IHostControl = nullptr;
-			this->GetHostControlCOMObjectHolder(&comobjholder_IHostControl);
+			this->GetHostControlCOMObjectHolder(&comobjholder_IHostControl, _already_exclusive_locked_this);
 			assert(comobjholder_IHostControl);
 			return *comobjholder_IHostControl;
 		}
 	protected:
-		virtual void GetCLRRuntimePolicy(const CLRRuntimePolicy** _clrruntimepolicy_ret) const noexcept = 0;
-		virtual void GetCLRRuntimePolicy(CLRRuntimePolicy** _clrruntimepolicy_ret) noexcept = 0;
-		virtual void GetCLRMetaHostCOMObjectHolder(const COMObjectHolder<ICLRMetaHost>** _comobjholder_ICLRMetaHost_ret) const noexcept = 0;
-		virtual void GetCLRMetaHostCOMObjectHolder(COMObjectHolder<ICLRMetaHost>** _comobjholder_ICLRMetaHost_ret) noexcept = 0;
-		virtual void GetCLRMetaHostPolicyCOMObjectHolder(const COMObjectHolder<ICLRMetaHostPolicy>** _comobjholder_ICLRMetaHostPolicy_ret) const noexcept = 0;
-		virtual void GetCLRMetaHostPolicyCOMObjectHolder(COMObjectHolder<ICLRMetaHostPolicy>** _comobjholder_ICLRMetaHostPolicy_ret) noexcept = 0;
-		virtual void GetCLRRuntimeInfoCOMObjectHolder(const COMObjectHolder<ICLRRuntimeInfo>** _comobjholder_ICLRRuntimeInfo_ret) const noexcept = 0;
-		virtual void GetCLRRuntimeInfoCOMObjectHolder(COMObjectHolder<ICLRRuntimeInfo>** _comobjholder_ICLRRuntimeInfo_ret) noexcept = 0;
-		virtual void GetMetaDataDispenserExCOMObjectHolder(const COMObjectHolder<IMetaDataDispenserEx>** _comobjholder_IMetaDataDispenserEx_ret) const noexcept = 0;
-		virtual void GetMetaDataDispenserExCOMObjectHolder(COMObjectHolder<IMetaDataDispenserEx>** _comobjholder_IMetaDataDispenserEx_ret) noexcept = 0;
-		virtual void GetCLRRuntimeHostCOMObjectHolder(const COMObjectHolder<ICLRRuntimeHost>** _comobjholder_ICLRRuntimeHost_ret) const noexcept = 0;
-		virtual void GetCLRRuntimeHostCOMObjectHolder(COMObjectHolder<ICLRRuntimeHost>** _comobjholder_ICLRRuntimeHost_ret) noexcept = 0;
-		virtual void GetCLRStrongNameCOMObjectHolder(const COMObjectHolder<ICLRStrongName>** _comobjholder_ICLRStrongName_ret) const noexcept = 0;
-		virtual void GetCLRStrongNameCOMObjectHolder(COMObjectHolder<ICLRStrongName>** _comobjholder_ICLRStrongName_ret) noexcept = 0;
-		virtual void GetCLRControlCOMObjectHolder(const COMObjectHolder<ICLRControl>** _comobjholder_ICLRControl_ret) const noexcept = 0;
-		virtual void GetCLRControlCOMObjectHolder(COMObjectHolder<ICLRControl>** _comobjholder_ICLRControl_ret) noexcept = 0;
-		virtual void GetHostControlCOMObjectHolder(const COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret) const noexcept = 0;
-		virtual void GetHostControlCOMObjectHolder(COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret) noexcept = 0;
+		virtual void GetIndexedDataStore(const IndexedDataStore** _indexeddatastore_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetIndexedDataStore(const IndexedDataStore** _indexeddatastore_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetIndexedDataStore(IndexedDataStore** _indexeddatastore_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRRuntimePolicy(const CLRRuntimePolicy** _clrruntimepolicy_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimePolicy(const CLRRuntimePolicy** _clrruntimepolicy_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimePolicy(CLRRuntimePolicy** _clrruntimepolicy_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRMetaHostCOMObjectHolder(const COMObjectHolder<ICLRMetaHost>** _comobjholder_ICLRMetaHost_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRMetaHostCOMObjectHolder(const COMObjectHolder<ICLRMetaHost>** _comobjholder_ICLRMetaHost_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRMetaHostCOMObjectHolder(COMObjectHolder<ICLRMetaHost>** _comobjholder_ICLRMetaHost_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRMetaHostPolicyCOMObjectHolder(const COMObjectHolder<ICLRMetaHostPolicy>** _comobjholder_ICLRMetaHostPolicy_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRMetaHostPolicyCOMObjectHolder(const COMObjectHolder<ICLRMetaHostPolicy>** _comobjholder_ICLRMetaHostPolicy_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRMetaHostPolicyCOMObjectHolder(COMObjectHolder<ICLRMetaHostPolicy>** _comobjholder_ICLRMetaHostPolicy_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRRuntimeInfoCOMObjectHolder(const COMObjectHolder<ICLRRuntimeInfo>** _comobjholder_ICLRRuntimeInfo_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimeInfoCOMObjectHolder(const COMObjectHolder<ICLRRuntimeInfo>** _comobjholder_ICLRRuntimeInfo_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimeInfoCOMObjectHolder(COMObjectHolder<ICLRRuntimeInfo>** _comobjholder_ICLRRuntimeInfo_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetMetaDataDispenserExCOMObjectHolder(const COMObjectHolder<IMetaDataDispenserEx>** _comobjholder_IMetaDataDispenserEx_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetMetaDataDispenserExCOMObjectHolder(const COMObjectHolder<IMetaDataDispenserEx>** _comobjholder_IMetaDataDispenserEx_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetMetaDataDispenserExCOMObjectHolder(COMObjectHolder<IMetaDataDispenserEx>** _comobjholder_IMetaDataDispenserEx_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRRuntimeHostCOMObjectHolder(const COMObjectHolder<ICLRRuntimeHost>** _comobjholder_ICLRRuntimeHost_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimeHostCOMObjectHolder(const COMObjectHolder<ICLRRuntimeHost>** _comobjholder_ICLRRuntimeHost_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRRuntimeHostCOMObjectHolder(COMObjectHolder<ICLRRuntimeHost>** _comobjholder_ICLRRuntimeHost_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRStrongNameCOMObjectHolder(const COMObjectHolder<ICLRStrongName>** _comobjholder_ICLRStrongName_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRStrongNameCOMObjectHolder(const COMObjectHolder<ICLRStrongName>** _comobjholder_ICLRStrongName_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRStrongNameCOMObjectHolder(COMObjectHolder<ICLRStrongName>** _comobjholder_ICLRStrongName_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetCLRControlCOMObjectHolder(const COMObjectHolder<ICLRControl>** _comobjholder_ICLRControl_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetCLRControlCOMObjectHolder(const COMObjectHolder<ICLRControl>** _comobjholder_ICLRControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetCLRControlCOMObjectHolder(COMObjectHolder<ICLRControl>** _comobjholder_ICLRControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetHostControlCOMObjectHolder(const COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetHostControlCOMObjectHolder(const COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetHostControlCOMObjectHolder(COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
 	};
 
-	using PipelineTraits_CLRHostStart = YBWLib2::PipelineTraits<IException*&, ICLRHostContext&>;
+	using PipelineTraits_CLRHostStart = YBWLib2::PipelineTraits<IException*&, ICLRHostContext&, already_exclusive_locked_this_t>;
 	using PipelineWrapper_CLRHostStart = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostStart>;
 	using PipelineFilterWrapper_CLRHostStart = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostStart>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostStart = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("74a81fdd-694f-4def-a416-3a91cf7cf8b3"));
@@ -189,12 +275,12 @@ namespace YBWLib2 {
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStart_CLRHost_SetHostControl = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("9d21aff8-7103-4ea8-9378-a18317b06ce6"));
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStart_CLRHost_StartRuntimeHost = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("c75ff1bb-740f-47d1-b7a2-afc7bfe308cc"));
 
-	using PipelineTraits_CLRHostStop = YBWLib2::PipelineTraits<ICLRHostContext&>;
+	using PipelineTraits_CLRHostStop = YBWLib2::PipelineTraits<ICLRHostContext&, already_exclusive_locked_this_t>;
 	using PipelineWrapper_CLRHostStop = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostStop>;
 	using PipelineFilterWrapper_CLRHostStop = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostStop>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostStop = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("04f5f136-f14f-445e-bcea-f41251e2fd8d"));
 
-	using PipelineTraits_CLRHostGetHostManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, IID, void*&>;
+	using PipelineTraits_CLRHostGetHostManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, IID, void*&>;
 	using PipelineWrapper_CLRHostGetHostManager = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostGetHostManager>;
 	using PipelineFilterWrapper_CLRHostGetHostManager = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostGetHostManager>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostGetHostManager = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("bf1f158d-68e3-4752-902f-1f5cfbd063d7"));

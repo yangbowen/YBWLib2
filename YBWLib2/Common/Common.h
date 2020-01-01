@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <cassert>
 #include <atomic>
+#include <mutex>
+#include <shared_mutex>
 #include "CommonLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
@@ -1328,21 +1330,155 @@ namespace YBWLib2 {
 		virtual ~IReferenceCountedObject() = default;
 	};
 
-	/// <summary>Lockable object.</summary>
-	class ILockableObject abstract : public virtual IDynamicTypeObject {
+	/// <summary>Lockable object that only supports locking in exclusive mode.</summary>
+	class IExclusiveLockableObject abstract : public virtual IDynamicTypeObject {
 	public:
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ILockableObject, YBWLIB2_API, "6fdf58be-4668-4967-8f62-9ab35b5cc271");
-		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ILockableObject);
-		/// <summary>Locks the object. Blocks if necessary.</summary>
-		virtual void Lock() noexcept = 0;
-		/// <summary>Tries to lock the object. Fail immediately if it's already locked by another thread.</summary>
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(IExclusiveLockableObject, YBWLIB2_API, "6fdf58be-4668-4967-8f62-9ab35b5cc271");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(IExclusiveLockableObject);
+		/// <summary>Locks the object in exclusive mode. Blocks if necessary.</summary>
+		virtual void LockExclusive() const noexcept = 0;
+		/// <summary>Tries to lock the object in exclusive mode. Fail immediately if it's already locked by another thread.</summary>
 		/// <returns>
 		/// Returns <c>true</c> if the object is successfully locked.
 		/// Returns <c>false</c> if the object isn't successfully locked.
 		/// </returns>
-		virtual bool TryLock() noexcept = 0;
-		/// <summary>Unlocks the object.</summary>
-		virtual void Unlock() noexcept = 0;
+		virtual bool TryLockExclusive() const noexcept = 0;
+		/// <summary>Unlocks the object in exclusive mode.</summary>
+		virtual void UnlockExclusive() const noexcept = 0;
+	};
+
+	/// <summary>Lockable object that supports locking in both exclusive mode and shared mode.</summary>
+	class ISharedLockableObject abstract : public IExclusiveLockableObject {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_GLOBAL(ISharedLockableObject, YBWLIB2_API, "be035d02-3a8b-431c-bae5-c02a7897c9f6");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ISharedLockableObject);
+		/// <summary>
+		/// Locks the object in shared mode. Blocks if necessary.
+		/// Multiple threads may simultaneously lock an object in shared mode.
+		/// However, when an object is locked in exclusive mode, no other thread may lock that object in either mode.
+		/// </summary>
+		virtual void LockShared() const noexcept = 0;
+		/// <summary>Tries to lock the object in shared mode. Fail immediately if it's already locked in exclusive mode by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		virtual bool TryLockShared() const noexcept = 0;
+		/// <summary>Unlocks the object in shared mode.</summary>
+		virtual void UnlockShared() const noexcept = 0;
+	};
+
+	/// <summary>Lockable object that supports recursive locking in both exclusive mode and shared mode.</summary>
+	class RecursiveSharedLockableObject abstract : public ISharedLockableObject {
+	public:
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(RecursiveSharedLockableObject, , "74b4f459-39c8-4c41-b367-37907dec7e39");
+		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(RecursiveSharedLockableObject);
+		/// <summary>Locks the object in exclusive mode. Blocks if necessary.</summary>
+		inline virtual void LockExclusive() const noexcept override {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<map_lockcount_recursive_t>::construct_obj);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.second);
+			if (!it_map_lockcount_recursive->second.first) {
+				this->mtx_this_prelock.lock();
+				this->mtx_this.lock();
+				this->mtx_this_prelock.unlock();
+			}
+			++it_map_lockcount_recursive->second.first;
+		}
+		/// <summary>Tries to lock the object in exclusive mode. Fail immediately if it's already locked by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline virtual bool TryLockExclusive() const noexcept override {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<map_lockcount_recursive_t>::construct_obj);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.second);
+			if (!it_map_lockcount_recursive->second.first) {
+				if (this->mtx_this.try_lock()) {
+					++it_map_lockcount_recursive->second.first;
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				++it_map_lockcount_recursive->second.first;
+				return true;
+			}
+		}
+		/// <summary>Unlocks the object in exclusive mode.</summary>
+		inline virtual void UnlockExclusive() const noexcept override {
+			assert(objholder_map_lockcount_recursive);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->find(this);
+			assert(it_map_lockcount_recursive != objholder_map_lockcount_recursive->end());
+			assert(it_map_lockcount_recursive->second.first && !it_map_lockcount_recursive->second.second);
+			if (!--it_map_lockcount_recursive->second.first) {
+				this->mtx_this.unlock();
+			}
+		}
+		/// <summary>
+		/// Locks the object in shared mode. Blocks if necessary.
+		/// Multiple threads may simultaneously lock an object in shared mode.
+		/// However, when an object is locked in exclusive mode, no other thread may lock that object in either mode.
+		/// </summary>
+		inline virtual void LockShared() const noexcept override {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<map_lockcount_recursive_t>::construct_obj);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.first);
+			if (!it_map_lockcount_recursive->second.second) {
+				this->mtx_this_prelock.lock_shared();
+				this->mtx_this.lock_shared();
+				this->mtx_this_prelock.unlock_shared();
+			}
+			++it_map_lockcount_recursive->second.second;
+		}
+		/// <summary>Tries to lock the object in shared mode. Fail immediately if it's already locked in exclusive mode by another thread.</summary>
+		/// <returns>
+		/// Returns <c>true</c> if the object is successfully locked.
+		/// Returns <c>false</c> if the object isn't successfully locked.
+		/// </returns>
+		inline virtual bool TryLockShared() const noexcept override {
+			if (!objholder_map_lockcount_recursive) objholder_map_lockcount_recursive.construct(objholder_local_t<map_lockcount_recursive_t>::construct_obj);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->try_emplace(this, ::std::make_pair<uintptr_t, uintptr_t>(0, 0)).first;
+			assert(!it_map_lockcount_recursive->second.first);
+			if (!it_map_lockcount_recursive->second.second) {
+				if (this->mtx_this_prelock.try_lock_shared()) {
+					bool is_successful = this->mtx_this.try_lock_shared();
+					this->mtx_this_prelock.unlock_shared();
+					if (is_successful) {
+						++it_map_lockcount_recursive->second.second;
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			} else {
+				++it_map_lockcount_recursive->second.second;
+				return true;
+			}
+		}
+		/// <summary>Unlocks the object in shared mode.</summary>
+		inline virtual void UnlockShared() const noexcept override {
+			assert(objholder_map_lockcount_recursive);
+			map_lockcount_recursive_t::iterator it_map_lockcount_recursive = objholder_map_lockcount_recursive->find(this);
+			assert(it_map_lockcount_recursive != objholder_map_lockcount_recursive->end());
+			assert(!it_map_lockcount_recursive->second.first && it_map_lockcount_recursive->second.second);
+			if (!--it_map_lockcount_recursive->second.second) {
+				this->mtx_this.unlock_shared();
+			}
+		}
+	protected:
+		using map_lockcount_recursive_t = ::std::unordered_map<const RecursiveSharedLockableObject*, ::std::pair<uintptr_t, uintptr_t>>;
+		thread_local static objholder_local_t<map_lockcount_recursive_t> objholder_map_lockcount_recursive;
+		/// <summary>A <c>::std::shared_mutex</c> object used to control concurrent accesses to this object.</summary>
+		mutable ::std::shared_mutex mtx_this;
+		/// <summary>
+		/// Another <c>::std::shared_mutex</c> object used to prevent resource starvation of threads waiting to exclusively lock the object.
+		/// <c>LockShared</c> and <c>TryLockShared</c> acquires shared ownership of this mutex before locking <c>mtx_this</c> and releases this mutex after locking (NOT unlocking) <c>mtx_this</c>.
+		/// </summary>
+		mutable ::std::shared_mutex mtx_this_prelock;
 	};
 
 	class ReferenceCountControlBlock;
