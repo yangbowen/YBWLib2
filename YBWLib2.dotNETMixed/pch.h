@@ -3,6 +3,7 @@
 
 #pragma managed(push, off)
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -50,14 +51,6 @@ typedef NTSTATUS* PNTSTATUS;
 
 #undef min
 #undef max
-
-#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
-#define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
-#endif
-
-#ifndef YBWLIB2_EXCEPTION_MACROS_ENABLED
-#define YBWLIB2_EXCEPTION_MACROS_ENABLED
-#endif
 
 #pragma managed(pop)
 

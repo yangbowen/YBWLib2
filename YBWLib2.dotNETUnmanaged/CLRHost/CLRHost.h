@@ -26,6 +26,7 @@
 #include "../../YBWLib2/Common/CommonSTLHelperWindows.h"
 #include "../../YBWLib2/Pipeline/Pipeline.h"
 #include "../YBWLib2dotNETUnmanagedApi.h"
+#include "../../YBWLib2.dotNETMixed/InteropUnmanaged.h"
 
 namespace YBWLib2 {
 	struct CLRRuntimePolicy final {
@@ -227,6 +228,24 @@ namespace YBWLib2 {
 			assert(comobjholder_IHostControl);
 			return *comobjholder_IHostControl;
 		}
+		inline const dotNETMixed::SharedGCHandle& GetAppDomainManagerSharedGCHandle(DWORD _appdomainid, already_shared_locked_this_t _already_shared_locked_this) const noexcept {
+			const dotNETMixed::SharedGCHandle* sharedgchandle_appdomainmanager = nullptr;
+			this->GetAppDomainManagerSharedGCHandle(&sharedgchandle_appdomainmanager, _appdomainid, _already_shared_locked_this);
+			assert(sharedgchandle_appdomainmanager);
+			return *sharedgchandle_appdomainmanager;
+		}
+		inline const dotNETMixed::SharedGCHandle& GetAppDomainManagerSharedGCHandle(DWORD _appdomainid, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept {
+			const dotNETMixed::SharedGCHandle* sharedgchandle_appdomainmanager = nullptr;
+			this->GetAppDomainManagerSharedGCHandle(&sharedgchandle_appdomainmanager, _appdomainid, _already_exclusive_locked_this);
+			assert(sharedgchandle_appdomainmanager);
+			return *sharedgchandle_appdomainmanager;
+		}
+		inline dotNETMixed::SharedGCHandle& GetAppDomainManagerSharedGCHandle(DWORD _appdomainid, bool _may_insert, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept {
+			dotNETMixed::SharedGCHandle* sharedgchandle_appdomainmanager = nullptr;
+			this->GetAppDomainManagerSharedGCHandle(&sharedgchandle_appdomainmanager, _appdomainid, _may_insert, _already_exclusive_locked_this);
+			assert(sharedgchandle_appdomainmanager);
+			return *sharedgchandle_appdomainmanager;
+		}
 	protected:
 		virtual void GetIndexedDataStore(const IndexedDataStore** _indexeddatastore_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
 		virtual void GetIndexedDataStore(const IndexedDataStore** _indexeddatastore_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
@@ -258,6 +277,9 @@ namespace YBWLib2 {
 		virtual void GetHostControlCOMObjectHolder(const COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
 		virtual void GetHostControlCOMObjectHolder(const COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
 		virtual void GetHostControlCOMObjectHolder(COMObjectHolder<IHostControl>** _comobjholder_IHostControl_ret, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
+		virtual void GetAppDomainManagerSharedGCHandle(const dotNETMixed::SharedGCHandle** _sharedgchandle_appdomainmanager_ret, DWORD _appdomainid, already_shared_locked_this_t _already_shared_locked_this) const noexcept = 0;
+		virtual void GetAppDomainManagerSharedGCHandle(const dotNETMixed::SharedGCHandle** _sharedgchandle_appdomainmanager_ret, DWORD _appdomainid, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept = 0;
+		virtual void GetAppDomainManagerSharedGCHandle(dotNETMixed::SharedGCHandle** _sharedgchandle_AppDomainManager_ret, DWORD _appdomainid, bool _may_insert, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept = 0;
 	};
 
 	using PipelineTraits_CLRHostStart = YBWLib2::PipelineTraits<IException*&, ICLRHostContext&, already_exclusive_locked_this_t>;
@@ -286,10 +308,11 @@ namespace YBWLib2 {
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostGetHostManager = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("bf1f158d-68e3-4752-902f-1f5cfbd063d7"));
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostGetHostManager_CLRHost = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("fe311422-200a-4615-8707-b02852ce4079"));
 
-	using PipelineTraits_CLRHostSetAppDomainManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, DWORD, IUnknown*>;
+	using PipelineTraits_CLRHostSetAppDomainManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, DWORD, COMObjectHolder<IUnknown>&, dotNETMixed::SharedGCHandle&>;
 	using PipelineWrapper_CLRHostSetAppDomainManager = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostSetAppDomainManager>;
 	using PipelineFilterWrapper_CLRHostSetAppDomainManager = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostSetAppDomainManager>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostSetAppDomainManager = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("3a121a77-5d5c-4ed2-890d-61075fc0fda1"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("50a1d33c-2522-4af8-944d-1b1e1725c4a4"));
 
 	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStart pipelinewrapper_CLRHostStart;
 	extern YBWLIB2DOTNETUNMANAGED_API PipelineWrapper_CLRHostStop pipelinewrapper_CLRHostStop;

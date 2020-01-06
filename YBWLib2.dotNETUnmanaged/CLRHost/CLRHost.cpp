@@ -19,6 +19,7 @@
 #include "../YBWLib2dotNETUnmanagedApi.h"
 #include "CLRHost.h"
 #include "../ReferenceInfo.h"
+#include "../../YBWLib2.dotNETMixed/InteropUnmanaged.h"
 
 namespace YBWLib2 {
 #ifdef _MSC_VER
@@ -40,6 +41,7 @@ namespace YBWLib2 {
 			pipelinewrapper_CLRHostStop(*this, already_exclusive_locked_clrhostcontext);
 		}
 	protected:
+		using map_sharedgchandle_appdomainmanager_t = ::std::unordered_map<DWORD, dotNETMixed::SharedGCHandle>;
 		IndexedDataStore indexeddatastore;
 		CLRRuntimePolicy clrruntimepolicy;
 		COMObjectHolder<ICLRMetaHost> comobjholder_ICLRMetaHost;
@@ -49,6 +51,7 @@ namespace YBWLib2 {
 		COMObjectHolder<ICLRRuntimeHost> comobjholder_ICLRRuntimeHost;
 		COMObjectHolder<ICLRStrongName> comobjholder_ICLRStrongName;
 		COMObjectHolder<ICLRControl> comobjholder_ICLRControl;
+		map_sharedgchandle_appdomainmanager_t map_sharedgchandle_appdomainmanager;
 		inline virtual void LockExclusive() const noexcept override { this->RecursiveSharedLockableObject::LockExclusive(); }
 		inline virtual bool TryLockExclusive() const noexcept override { return this->RecursiveSharedLockableObject::TryLockExclusive(); }
 		inline virtual void UnlockExclusive() const noexcept override { this->RecursiveSharedLockableObject::UnlockExclusive(); }
@@ -206,6 +209,44 @@ namespace YBWLib2 {
 			assert(_comobjholder_IHostControl_ret);
 			*_comobjholder_IHostControl_ret = &this->comobjholder_IHostControl;
 		}
+		virtual void GetAppDomainManagerSharedGCHandle(const dotNETMixed::SharedGCHandle** _sharedgchandle_AppDomainManager_ret, DWORD _appdomainid, already_shared_locked_this_t _already_shared_locked_this) const noexcept override {
+			static_cast<void>(_already_shared_locked_this);
+			assert(_sharedgchandle_AppDomainManager_ret);
+
+			map_sharedgchandle_appdomainmanager_t::const_iterator it_map_sharedgchandle_appdomainmanager;
+			it_map_sharedgchandle_appdomainmanager = this->map_sharedgchandle_appdomainmanager.find(_appdomainid);
+			if (it_map_sharedgchandle_appdomainmanager == this->map_sharedgchandle_appdomainmanager.cend()) {
+				*_sharedgchandle_AppDomainManager_ret = &it_map_sharedgchandle_appdomainmanager->second;
+			} else {
+				*_sharedgchandle_AppDomainManager_ret = nullptr;
+			}
+		}
+		virtual void GetAppDomainManagerSharedGCHandle(const dotNETMixed::SharedGCHandle** _sharedgchandle_AppDomainManager_ret, DWORD _appdomainid, already_exclusive_locked_this_t _already_exclusive_locked_this) const noexcept override {
+			static_cast<void>(_already_exclusive_locked_this);
+			assert(_sharedgchandle_AppDomainManager_ret);
+			map_sharedgchandle_appdomainmanager_t::const_iterator it_map_sharedgchandle_appdomainmanager;
+			it_map_sharedgchandle_appdomainmanager = this->map_sharedgchandle_appdomainmanager.find(_appdomainid);
+			if (it_map_sharedgchandle_appdomainmanager == this->map_sharedgchandle_appdomainmanager.cend()) {
+				*_sharedgchandle_AppDomainManager_ret = &it_map_sharedgchandle_appdomainmanager->second;
+			} else {
+				*_sharedgchandle_AppDomainManager_ret = nullptr;
+			}
+		}
+		virtual void GetAppDomainManagerSharedGCHandle(dotNETMixed::SharedGCHandle** _sharedgchandle_AppDomainManager_ret, DWORD _appdomainid, bool _may_insert, already_exclusive_locked_this_t _already_exclusive_locked_this) noexcept override {
+			static_cast<void>(_already_exclusive_locked_this);
+			assert(_sharedgchandle_AppDomainManager_ret);
+			map_sharedgchandle_appdomainmanager_t::iterator it_map_sharedgchandle_appdomainmanager;
+			if (_may_insert) {
+				::std::tie(it_map_sharedgchandle_appdomainmanager, ::std::ignore) = this->map_sharedgchandle_appdomainmanager.insert(::std::pair(_appdomainid, dotNETMixed::SharedGCHandle()));
+			} else {
+				it_map_sharedgchandle_appdomainmanager = this->map_sharedgchandle_appdomainmanager.find(_appdomainid);
+			}
+			if (it_map_sharedgchandle_appdomainmanager == this->map_sharedgchandle_appdomainmanager.end()) {
+				*_sharedgchandle_AppDomainManager_ret = &it_map_sharedgchandle_appdomainmanager->second;
+			} else {
+				*_sharedgchandle_AppDomainManager_ret = nullptr;
+			}
+		}
 	};
 
 	class CLRHostControl final
@@ -252,8 +293,14 @@ namespace YBWLib2 {
 		) noexcept override {
 			ReferenceCountedObjectHolder<ICLRHostContext> clrhostcontext = this->refcountedobjectweakholder_clrhostcontext.lock();
 			if (!clrhostcontext) return HOST_E_CLRNOTAVAILABLE;
+			if (!_iunknown_appdomainmanager) return E_POINTER;
+			COMObjectHolder<IUnknown> comobjholder_IUnknown_appdomainmanager;
+			dotNETMixed::SharedGCHandle sharedgchandle_appdomainmanager;
+			sharedgchandle_appdomainmanager = dotNETMixed::SharedGCHandleFromIUnknown(comobjholder_IUnknown_appdomainmanager, dotNETMixed::GCHandleType::Normal);
 			HRESULT hr = S_OK;
-			pipelinewrapper_CLRHostSetAppDomainManager(hr, *clrhostcontext, _appdomainid, _iunknown_appdomainmanager);
+			SharedLockableObjectToSTLWrapper lockablewrapper_clrhostcontext(*clrhostcontext);
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_clrhostcontext(lockablewrapper_clrhostcontext); already_exclusive_locked_this_t already_exclusive_locked_clrhostcontext;
+			pipelinewrapper_CLRHostSetAppDomainManager(hr, *clrhostcontext, already_exclusive_locked_clrhostcontext, _appdomainid, comobjholder_IUnknown_appdomainmanager, sharedgchandle_appdomainmanager);
 			return hr;
 		}
 	protected:
@@ -265,7 +312,7 @@ namespace YBWLib2 {
 
 	class CLRHostManager_CLRHost final
 		: public virtual ReferenceCountedObject,
-		public IHostAssemblyManager,
+		public IUnknown,
 		public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(CLRHostManager_CLRHost, , "e3c83eb7-2bc7-4d48-aba1-2721300a599a");
@@ -289,20 +336,6 @@ namespace YBWLib2 {
 				IUnknown,
 				IHostAssemblyManager
 			>(this, _iid, _obj_ret);
-		}
-		inline virtual HRESULT STDMETHODCALLTYPE GetNonHostStoreAssemblies(
-			/* [out] */ ICLRAssemblyReferenceList** _clrassemblyreferencelist_ret
-		) override {
-			if (!_clrassemblyreferencelist_ret) return E_POINTER;
-			*_clrassemblyreferencelist_ret = nullptr;
-			return S_OK;
-		}
-		inline virtual HRESULT STDMETHODCALLTYPE GetAssemblyStore(
-			/* [out] */ IHostAssemblyStore** _clrhostassemblystore_ret
-		) override {
-			if (!_clrhostassemblystore_ret) return E_POINTER;
-			*_clrhostassemblystore_ret = nullptr;
-			return E_NOINTERFACE;
 		}
 	protected:
 		ReferenceCountedObjectWeakHolder<ICLRHostContext> refcountedobjectweakholder_clrhostcontext;
@@ -332,6 +365,7 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetHostControl(IException*& _err, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_StartRuntimeHost(IException*& _err, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostGetHostManager_CLRHost(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, const IID& _iid, void*& _hostmanager_ret) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, DWORD _appdomainid, const COMObjectHolder<IUnknown>& _comobjholder_IUnknown_appdomainmanager, const dotNETMixed::SharedGCHandle& _sharedgchandle_appdomainmanager) noexcept;
 
 	namespace Internal {
 		[[nodiscard]] YBWLIB2DOTNETUNMANAGED_API IException* YBWLIB2DOTNETUNMANAGED_CALLTYPE StartCLRHost(ReferenceCountedObjectHolder<ICLRHostContext>* _clrhostcontext_ret, CLRRuntimePolicy* _clrruntimepolicy) noexcept {
@@ -446,6 +480,17 @@ namespace YBWLib2 {
 				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 				pipelinewrapper_CLRHostGetHostManager.AttachPipelineFilter(pipelinefilterwrapper_CLRHostGetHostManager_CLRHost, false, nullptr, already_exclusive_locked_pipeline);
 				pipelinewrapper_CLRHostGetHostManager.Resolve(already_exclusive_locked_pipeline);
+			}
+		}
+		{
+			PipelineFilterWrapper_CLRHostSetAppDomainManager pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle(PersistentID_PipelineFilterID_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle);
+			pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, DWORD, const COMObjectHolder<IUnknown>&, const dotNETMixed::SharedGCHandle&>(&CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle));
+			pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle.SetPipelineFilterPositionArray(PipelineFilterPosition_Back);
+			{
+				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostSetAppDomainManager.GetPipelineSharedMutexWrapper());
+				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+				pipelinewrapper_CLRHostSetAppDomainManager.AttachPipelineFilter(pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostSetAppDomainManager.Resolve(already_exclusive_locked_pipeline);
 			}
 		}
 	}
@@ -634,7 +679,7 @@ namespace YBWLib2 {
 						if (_indexeddatarawvalue_clrhostcontext_CLRHostManager_CLRHost) {
 							CLRHostManager_CLRHost* ptr_clrhostmanager_clrhost = reinterpret_cast<CLRHostManager_CLRHost*>(_indexeddatarawvalue_clrhostcontext_CLRHostManager_CLRHost->contextvalue);
 							if (ptr_clrhostmanager_clrhost) {
-								ReferenceCountedObjectHolder<CLRHostManager_CLRHost>(::std::move(ptr_clrhostmanager_clrhost));
+								ReferenceCountedObjectHolder<CLRHostManager_CLRHost>(::std::move(ptr_clrhostmanager_clrhost)).reset();
 								ptr_clrhostmanager_clrhost = nullptr;
 							}
 						}
@@ -654,5 +699,11 @@ namespace YBWLib2 {
 			assert(SUCCEEDED(_hr));
 			// TODO: Implement CLRHostGetHostManager_CLRHost.
 		}
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, DWORD _appdomainid, const COMObjectHolder<IUnknown>& _comobjholder_IUnknown_appdomainmanager, const dotNETMixed::SharedGCHandle& _sharedgchandle_appdomainmanager) noexcept {
+		if (FAILED(_hr)) return;
+		static_cast<void>(_comobjholder_IUnknown_appdomainmanager);
+		_clrhostcontext.GetAppDomainManagerSharedGCHandle(_appdomainid, true, _already_exclusive_locked_clrhostcontext) = dotNETMixed::SharedGCHandle(dotNETMixed::GCHandle(_sharedgchandle_appdomainmanager, dotNETMixed::GCHandleType::Weak));
 	}
 }

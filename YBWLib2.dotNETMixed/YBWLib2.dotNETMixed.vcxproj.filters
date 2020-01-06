@@ -36,6 +36,15 @@
     <ClInclude Include="pch_Unmanaged.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Interop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InteropUnmanaged.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InteropCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -58,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="CLRHost\AppDomainManager.cpp">
       <Filter>Source Files\CLRHost</Filter>
+    </ClCompile>
+    <ClCompile Include="Interop.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

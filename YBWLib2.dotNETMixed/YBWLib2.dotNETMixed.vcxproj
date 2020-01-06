@@ -183,6 +183,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CLRHost\AppDomainManager.h" />
+    <ClInclude Include="Interop.h" />
+    <ClInclude Include="InteropCommon.h" />
+    <ClInclude Include="InteropUnmanaged.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pch_Unmanaged.h" />
     <ClInclude Include="YBWLib2dotNETMixedApi.h" />
@@ -191,6 +194,7 @@
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="CLRHost\AppDomainManager.cpp" />
+    <ClCompile Include="Interop.cpp" />
     <ClCompile Include="ModuleLocal_Unmanaged.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
