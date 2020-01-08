@@ -301,6 +301,13 @@ namespace YBWLib2 {
 	using PipelineWrapper_CLRHostStop = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostStop>;
 	using PipelineFilterWrapper_CLRHostStop = YBWLib2::PipelineFilterWrapper<PipelineTraits_CLRHostStop>;
 	static constexpr YBWLib2::PersistentID PersistentID_PipelineID_CLRHostStop = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("04f5f136-f14f-445e-bcea-f41251e2fd8d"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_StopRuntimeHost = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("6cce5ea3-463f-4bfd-b3c4-1b7fd37a7ab9"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseHostControl = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("21bff0cd-7105-4e78-a140-e6faf3820606"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseCLRControl = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("410dec32-1dea-4793-bb7a-d1a3d19be007"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("efb67f17-a732-4e20-92e8-3d4b8d8604bf"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseRuntimeInfo = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("e08b636a-2337-4b6b-842b-3f75bf9cdcf8"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseMetaHost = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("40979ccb-1501-4fa8-8b6e-2c5a654586b6"));
+	static constexpr YBWLib2::PersistentID PersistentID_PipelineFilterID_CLRHostStop_CLRHost_COMUnInit = YBWLib2::PersistentID(YBWLib2::UUIDFromUUIDString_CompileTime("c987f27a-1d9d-4a2b-9874-5d3bdfce16cd"));
 
 	using PipelineTraits_CLRHostGetHostManager = YBWLib2::PipelineTraits<HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, IID, void*&>;
 	using PipelineWrapper_CLRHostGetHostManager = YBWLib2::PipelineWrapper<PipelineTraits_CLRHostGetHostManager>;

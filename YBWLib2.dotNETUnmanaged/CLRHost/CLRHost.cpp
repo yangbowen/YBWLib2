@@ -51,6 +51,7 @@ namespace YBWLib2 {
 		COMObjectHolder<ICLRRuntimeHost> comobjholder_ICLRRuntimeHost;
 		COMObjectHolder<ICLRStrongName> comobjholder_ICLRStrongName;
 		COMObjectHolder<ICLRControl> comobjholder_ICLRControl;
+		COMObjectHolder<IHostControl> comobjholder_IHostControl;
 		map_sharedgchandle_appdomainmanager_t map_sharedgchandle_appdomainmanager;
 		inline virtual void LockExclusive() const noexcept override { this->RecursiveSharedLockableObject::LockExclusive(); }
 		inline virtual bool TryLockExclusive() const noexcept override { return this->RecursiveSharedLockableObject::TryLockExclusive(); }
@@ -58,7 +59,6 @@ namespace YBWLib2 {
 		inline virtual void LockShared() const noexcept override { this->RecursiveSharedLockableObject::LockShared(); }
 		inline virtual bool TryLockShared() const noexcept override { return this->RecursiveSharedLockableObject::TryLockShared(); }
 		inline virtual void UnlockShared() const noexcept override { this->RecursiveSharedLockableObject::UnlockShared(); }
-		COMObjectHolder<IHostControl> comobjholder_IHostControl;
 		inline virtual void GetIndexedDataStore(const IndexedDataStore** _indexeddatastore_ret, already_shared_locked_this_t _already_shared_locked_this) const noexcept override {
 			static_cast<void>(_already_shared_locked_this);
 			assert(_indexeddatastore_ret);
@@ -364,6 +364,13 @@ namespace YBWLib2 {
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_CreateHostControl(IException*& _err, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_SetHostControl(IException*& _err, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostStart_CLRHost_StartRuntimeHost(IException*& _err, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_StopRuntimeHost(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseHostControl(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseCLRControl(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseRuntimeInterfaces(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseRuntimeInfo(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseMetaHost(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_COMUnInit(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostGetHostManager_CLRHost(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, const IID& _iid, void*& _hostmanager_ret) noexcept;
 	static void YBWLIB2_CALLTYPE CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, DWORD _appdomainid, const COMObjectHolder<IUnknown>& _comobjholder_IUnknown_appdomainmanager, const dotNETMixed::SharedGCHandle& _sharedgchandle_appdomainmanager) noexcept;
 
@@ -472,26 +479,51 @@ namespace YBWLib2 {
 			}
 		}
 		{
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_StopRuntimeHost);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_StopRuntimeHost));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost.SetPipelineFilterPositionArray(PipelineFilterPosition_Back);
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseHostControl);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_ReleaseHostControl));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost.GetPipelineFilterID()));
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseCLRControl);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_ReleaseCLRControl));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl.GetPipelineFilterID()));
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_ReleaseRuntimeInterfaces));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl.GetPipelineFilterID()));
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInfo(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseRuntimeInfo);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInfo.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_ReleaseRuntimeInfo));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInfo.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces.GetPipelineFilterID()));
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_ReleaseMetaHost);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_ReleaseMetaHost));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInfo.GetPipelineFilterID()));
+			PipelineFilterWrapper_CLRHostStop pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit(PersistentID_PipelineFilterID_CLRHostStop_CLRHost_COMUnInit);
+			pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_COMUnInit));
+			pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost.GetPipelineFilterID()));
+			{
+				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostStop.GetPipelineSharedMutexWrapper());
+				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInterfaces, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseRuntimeInfo, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit, false, nullptr, already_exclusive_locked_pipeline);
+				pipelinewrapper_CLRHostStop.Resolve(already_exclusive_locked_pipeline);
+			}
+		}
+		{
 			PipelineFilterWrapper_CLRHostGetHostManager pipelinefilterwrapper_CLRHostGetHostManager_CLRHost(PersistentID_PipelineFilterID_CLRHostGetHostManager_CLRHost);
 			pipelinefilterwrapper_CLRHostGetHostManager_CLRHost.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, const IID&, void*&>(&CLRHostGetHostManager_CLRHost));
 			pipelinefilterwrapper_CLRHostGetHostManager_CLRHost.SetPipelineFilterPositionArray(PipelineFilterPosition_Back);
-			{
-				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostGetHostManager.GetPipelineSharedMutexWrapper());
-				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-				pipelinewrapper_CLRHostGetHostManager.AttachPipelineFilter(pipelinefilterwrapper_CLRHostGetHostManager_CLRHost, false, nullptr, already_exclusive_locked_pipeline);
-				pipelinewrapper_CLRHostGetHostManager.Resolve(already_exclusive_locked_pipeline);
-			}
+			pipelinefilterwrapper_CLRHostGetHostManager_CLRHost.AttachToPipeline(pipelinewrapper_CLRHostGetHostManager, true, nullptr);
 		}
 		{
 			PipelineFilterWrapper_CLRHostSetAppDomainManager pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle(PersistentID_PipelineFilterID_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle);
 			pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, HRESULT&, ICLRHostContext&, already_exclusive_locked_this_t, DWORD, const COMObjectHolder<IUnknown>&, const dotNETMixed::SharedGCHandle&>(&CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle));
 			pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle.SetPipelineFilterPositionArray(PipelineFilterPosition_Back);
-			{
-				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostSetAppDomainManager.GetPipelineSharedMutexWrapper());
-				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
-				pipelinewrapper_CLRHostSetAppDomainManager.AttachPipelineFilter(pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle, false, nullptr, already_exclusive_locked_pipeline);
-				pipelinewrapper_CLRHostSetAppDomainManager.Resolve(already_exclusive_locked_pipeline);
-			}
+			pipelinefilterwrapper_CLRHostSetAppDomainManager_CLRHost_SaveAppDomainManagerGCHandle.AttachToPipeline(pipelinewrapper_CLRHostSetAppDomainManager, true, nullptr);
 		}
 	}
 
@@ -665,6 +697,40 @@ namespace YBWLib2 {
 			_err = new ExternalAPIFailureWithHRESULTException(u8"ICLRRuntimeHost::Start", sizeof(u8"ICLRRuntimeHost::Start") / sizeof(char) - 1, nullptr, hr);
 			return;
 		}
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_StopRuntimeHost(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		HRESULT hr = _clrhostcontext.GetCLRRuntimeHostCOMObjectHolder(_already_exclusive_locked_clrhostcontext)->Stop();
+		if (!SUCCEEDED(hr)) abort();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseHostControl(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		_clrhostcontext.GetHostControlCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseCLRControl(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		_clrhostcontext.GetCLRControlCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseRuntimeInterfaces(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		_clrhostcontext.GetCLRStrongNameCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+		_clrhostcontext.GetCLRRuntimeHostCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+		_clrhostcontext.GetMetaDataDispenserExCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseRuntimeInfo(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		_clrhostcontext.GetCLRRuntimeInfoCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_ReleaseMetaHost(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		_clrhostcontext.GetCLRMetaHostPolicyCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+		_clrhostcontext.GetCLRMetaHostCOMObjectHolder(_already_exclusive_locked_clrhostcontext).reset();
+	}
+
+	static void YBWLIB2_CALLTYPE CLRHostStop_CLRHost_COMUnInit(ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext) noexcept {
+		static_cast<void>(_clrhostcontext);
+		static_cast<void>(_already_exclusive_locked_clrhostcontext);
+		CoUninitialize();
 	}
 
 	static void YBWLIB2_CALLTYPE CLRHostGetHostManager_CLRHost(HRESULT& _hr, ICLRHostContext& _clrhostcontext, already_exclusive_locked_this_t _already_exclusive_locked_clrhostcontext, const IID& _iid, void*& _hostmanager_ret) noexcept {
