@@ -5,7 +5,7 @@
 		AssemblyDelaySign = true,
 		AssemblyKeyFile = "../dotNETStrongName_IdentityKey_PublicKey.snk",
 		AssemblyKeyName = "",
-		AssemblyIdentityKey = "" +
+		AssemblySignatureKey = "" +
 			"002400000e800000140200000602000000240000525341310010000001000100cd8185060a52d3" +
 			"4598d6f00aa27dec22d4a99467e26be1d82ba229024eb792463cbc8c8b884043095466a04f64cd" +
 			"a450293866be58e42dccb3de5751395697e6ab6499b52c34cf01c5556ae23993a8fdb44e9688ea" +

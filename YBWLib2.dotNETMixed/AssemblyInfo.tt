@@ -32,8 +32,8 @@
 <# if (SignatureInfo.AssemblyKeyName != "") { #>
 [assembly:System::Reflection::AssemblyKeyName("<#= SignatureInfo.AssemblyKeyName #>")];
 <# } #>
-<# if (SignatureInfo.AssemblyIdentityKey != "" && SignatureInfo.AssemblyCounterSignature != "") { #>
-[assembly:System::Reflection::AssemblySignatureKey("<#= SignatureInfo.AssemblyIdentityKey #>","<#= SignatureInfo.AssemblyCounterSignature #>")];
+<# if (SignatureInfo.AssemblySignatureKey != "" && SignatureInfo.AssemblyCounterSignature != "") { #>
+[assembly:System::Reflection::AssemblySignatureKey("<#= SignatureInfo.AssemblySignatureKey #>","<#= SignatureInfo.AssemblyCounterSignature #>")];
 <# } #>
 
 #pragma managed(pop)
