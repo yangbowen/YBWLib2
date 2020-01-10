@@ -1530,6 +1530,14 @@ namespace YBWLib2 {
 			return _pipeline ? static_cast<IReferenceCountedObject*>(_pipeline) : nullptr;
 		}
 
+		YBWLIB2_API const ISharedLockableObject* YBWLIB2_CALLTYPE Pipeline_CastToISharedLockableObject(const Pipeline* _pipeline) noexcept {
+			return _pipeline ? static_cast<const ISharedLockableObject*>(_pipeline) : nullptr;
+		}
+
+		YBWLIB2_API ISharedLockableObject* YBWLIB2_CALLTYPE Pipeline_CastToISharedLockableObject(Pipeline* _pipeline) noexcept {
+			return _pipeline ? static_cast<ISharedLockableObject*>(_pipeline) : nullptr;
+		}
+
 		YBWLIB2_API PipelineID YBWLIB2_CALLTYPE Pipeline_GetPipelineID(const Pipeline* _pipeline) noexcept {
 			assert(_pipeline);
 			return _pipeline->GetPipelineID();

@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <type_traits>
+#include <optional>
 #include <array>
 #include <vector>
 #include <list>
@@ -176,6 +177,8 @@ namespace YBWLib2 {
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE Pipeline_CastToIReferenceCountedObject(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API IReferenceCountedObject* YBWLIB2_CALLTYPE Pipeline_CastToIReferenceCountedObject(Pipeline* _pipeline) noexcept;
+		YBWLIB2_API const ISharedLockableObject* YBWLIB2_CALLTYPE Pipeline_CastToISharedLockableObject(const Pipeline* _pipeline) noexcept;
+		YBWLIB2_API ISharedLockableObject* YBWLIB2_CALLTYPE Pipeline_CastToISharedLockableObject(Pipeline* _pipeline) noexcept;
 		YBWLIB2_API PipelineID YBWLIB2_CALLTYPE Pipeline_GetPipelineID(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API void YBWLIB2_CALLTYPE Pipeline_LockExclusive(const Pipeline* _pipeline) noexcept;
 		YBWLIB2_API bool YBWLIB2_CALLTYPE Pipeline_TryLockExclusive(const Pipeline* _pipeline) noexcept;
@@ -276,6 +279,14 @@ namespace YBWLib2 {
 			);
 	}
 
+	inline const ISharedLockableObject& Pipeline_CastToISharedLockableObject(const Pipeline& _pipeline) noexcept {
+		return *Internal::Pipeline_CastToISharedLockableObject(&_pipeline);
+	}
+
+	inline ISharedLockableObject& Pipeline_CastToISharedLockableObject(Pipeline& _pipeline) noexcept {
+		return *Internal::Pipeline_CastToISharedLockableObject(&_pipeline);
+	}
+
 	inline PipelineID Pipeline_GetPipelineID(const Pipeline& _pipeline) noexcept {
 		return Internal::Pipeline_GetPipelineID(&_pipeline);
 	}
@@ -311,50 +322,6 @@ namespace YBWLib2 {
 	inline const IndexedDataStore& Pipeline_GetUserDataIndexedDataStore(const Pipeline& _pipeline) noexcept {
 		return *Internal::Pipeline_GetUserDataIndexedDataStore(&_pipeline);
 	}
-
-	struct PipelineSharedMutexWrapper final {
-		constexpr PipelineSharedMutexWrapper() noexcept = default;
-		PipelineSharedMutexWrapper(const Pipeline& _pipeline) noexcept : pipeline(&_pipeline) {}
-		PipelineSharedMutexWrapper(const PipelineSharedMutexWrapper&) = default;
-		PipelineSharedMutexWrapper(PipelineSharedMutexWrapper&&) = default;
-		~PipelineSharedMutexWrapper() {
-			this->pipeline = nullptr;
-		}
-		PipelineSharedMutexWrapper& operator=(const PipelineSharedMutexWrapper&) = default;
-		PipelineSharedMutexWrapper& operator=(PipelineSharedMutexWrapper&&) = default;
-		explicit operator bool() const noexcept { return this->pipeline; }
-		const Pipeline& GetPipeline() const noexcept {
-			assert(this->pipeline);
-			return *this->pipeline;
-		}
-		void lock() const noexcept {
-			assert(this->pipeline);
-			Pipeline_LockExclusive(*this->pipeline);
-		}
-		bool try_lock() const noexcept {
-			assert(this->pipeline);
-			return Pipeline_TryLockExclusive(*this->pipeline);
-		}
-		void unlock() const noexcept {
-			assert(this->pipeline);
-			Pipeline_UnlockExclusive(*this->pipeline);
-		}
-		void lock_shared() const noexcept {
-			assert(this->pipeline);
-			Pipeline_LockShared(*this->pipeline);
-		}
-		bool try_lock_shared() const noexcept {
-			assert(this->pipeline);
-			return Pipeline_TryLockShared(*this->pipeline);
-		}
-		void unlock_shared() const noexcept {
-			assert(this->pipeline);
-			Pipeline_UnlockShared(*this->pipeline);
-		}
-	private:
-		const Pipeline* pipeline = nullptr;
-	};
-	static_assert(::std::is_standard_layout_v<PipelineSharedMutexWrapper>, "PipelineSharedMutexWrapper is not standard-layout.");
 
 	inline size_t Pipeline_GetInvocationDataSize(const Pipeline& _pipeline, already_shared_locked_this_t _already_shared_locked_this) noexcept {
 		return Internal::Pipeline_GetInvocationDataSize(&_pipeline, _already_shared_locked_this);
@@ -570,8 +537,8 @@ namespace YBWLib2 {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
 				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+					SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+					::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 					this->offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
 						*this->objholder_pipeline,
 						this->pipelineinvocationpacketdataentryid,
@@ -628,8 +595,8 @@ namespace YBWLib2 {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
 				{
-					PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+					SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+					::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 					this->offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
 						*this->objholder_pipeline,
 						this->pipelineinvocationpacketdataentryid,
@@ -712,8 +679,8 @@ namespace YBWLib2 {
 			assert(this->size_pipelineinvocationpacketdataentry);
 			assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 			{
-				PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-				::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+				SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+				::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 				Pipeline_AddRefInvocationPacketDataEntry(
 					*this->objholder_pipeline,
 					this->pipelineinvocationpacketdataentryid,
@@ -735,8 +702,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_AddRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -749,8 +716,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -785,8 +752,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_DecRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -799,8 +766,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
 					}
 				}
@@ -818,8 +785,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_DecRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -832,8 +799,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
 					}
 				}
@@ -853,8 +820,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_AddRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -867,8 +834,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						size_t _offset_pipelineinvocationpacketdataentry = Pipeline_RegisterInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -892,8 +859,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_DecRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -906,8 +873,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
 					}
 				}
@@ -952,8 +919,8 @@ namespace YBWLib2 {
 					assert(this->size_pipelineinvocationpacketdataentry);
 					assert(this->offset_pipelineinvocationpacketdataentry != SIZE_MAX);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(sharedmutexwrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 						Pipeline_DecRefInvocationPacketDataEntry(
 							*this->objholder_pipeline,
 							this->pipelineinvocationpacketdataentryid,
@@ -966,8 +933,8 @@ namespace YBWLib2 {
 					assert(this->pipelineinvocationpacketdataentryid);
 					assert(this->size_pipelineinvocationpacketdataentry);
 					{
-						PipelineSharedMutexWrapper sharedmutexwrapper_pipeline(*this->objholder_pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(sharedmutexwrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->objholder_pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						Pipeline_UnregisterInvocationPacketDataEntry(*this->objholder_pipeline, this->pipelineinvocationpacketdataentryid, already_exclusive_locked_pipeline);
 					}
 				}
@@ -1241,8 +1208,8 @@ namespace YBWLib2 {
 				~invokedelegatecontext_t() {
 					this->fnptr_rawinvoke = nullptr;
 					if (this->pipeline) {
-						PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*this->pipeline);
-						::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+						SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*this->pipeline));
+						::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 						this->UnassociateWithPipeline(already_exclusive_locked_pipeline);
 					}
 					this->pipeline = nullptr;
@@ -1518,8 +1485,8 @@ namespace YBWLib2 {
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
-			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+			SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(pipeline));
+			::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 			size_t size_invocationdata = Pipeline_GetInvocationDataSize(pipeline, already_shared_locked_pipeline);
 #if defined(YBWLIB2_NO_ALLOCA)
 			::std::unique_ptr<::std::max_align_t[]> uniqueptr_buf_invocationdata(new ::std::max_align_t[(size_invocationdata - 1) / sizeof(::std::max_align_t) + 1]);
@@ -1561,12 +1528,12 @@ namespace YBWLib2 {
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
-			::std::shared_lock<PipelineSharedMutexWrapper> shared_lock_pipeline(pipelinesharedmutexwrapper); already_shared_locked_this_t already_shared_locked_pipeline;
+			SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(pipeline));
+			::std::shared_lock<SharedLockableObjectToSTLWrapper> shared_lock_pipeline(sharedlockablewrapper_pipeline); already_shared_locked_this_t already_shared_locked_pipeline;
 			while (!Pipeline_IsResolved(pipeline, already_shared_locked_pipeline)) {
 				shared_lock_pipeline.unlock();
 				{
-					::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+					::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 					Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
 				}
 				shared_lock_pipeline.lock();
@@ -1606,8 +1573,8 @@ namespace YBWLib2 {
 		static void ResolvePipeline(pipelinecontext_type& _pipelinecontext) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipeline);
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(pipeline));
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			Pipeline_Resolve(pipeline, already_exclusive_locked_pipeline);
 		}
 		static PipelineFilterID GetPipelineFilterID(const pipelinefiltercontext_type& _pipelinefiltercontext) noexcept {
@@ -1626,11 +1593,11 @@ namespace YBWLib2 {
 			return PipelineFilter_GetUserDataIndexedDataStore(pipelinefilter);
 		}
 		static void ClearPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext) noexcept {
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			::std::optional<SharedLockableObjectToSTLWrapper> optional_sharedlockablewrapper_pipeline;
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			if (_pipelinefiltercontext.pipeline) {
-				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
-				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
+				optional_sharedlockablewrapper_pipeline.emplace(Pipeline_CastToISharedLockableObject(*_pipelinefiltercontext.pipeline));
+				unique_lock_pipeline = ::std::unique_lock<SharedLockableObjectToSTLWrapper>(*optional_sharedlockablewrapper_pipeline);
 			}
 			assert(_pipelinefiltercontext.pipelinefilter);
 			_pipelinefiltercontext.ClearInvokeDelegateContext(already_exclusive_locked_pipeline);
@@ -1650,21 +1617,21 @@ namespace YBWLib2 {
 			typename ::std::enable_if<is_detected_v<sfinae_SetInvokeDelegateContext_t, _Delegate_Invoke_Ty&&, ::std::make_index_sequence<count_arg>>, int>::type = 0
 		>
 			static void SetPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext, _Delegate_Invoke_Ty&& _delegate_invoke) noexcept {
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			::std::optional<SharedLockableObjectToSTLWrapper> optional_sharedlockablewrapper_pipeline;
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			if (_pipelinefiltercontext.pipeline) {
-				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
-				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
+				optional_sharedlockablewrapper_pipeline.emplace(Pipeline_CastToISharedLockableObject(*_pipelinefiltercontext.pipeline));
+				unique_lock_pipeline = ::std::unique_lock<SharedLockableObjectToSTLWrapper>(*optional_sharedlockablewrapper_pipeline);
 			}
 			assert(_pipelinefiltercontext.pipelinefilter);
 			_pipelinefiltercontext.SetInvokeDelegateContext(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline);
 		}
 		static void SetPipelineFilterPositionArray(pipelinefiltercontext_t& _pipelinefiltercontext, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper;
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			::std::optional<SharedLockableObjectToSTLWrapper> optional_sharedlockablewrapper_pipeline;
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			if (_pipelinefiltercontext.pipeline) {
-				pipelinesharedmutexwrapper = PipelineSharedMutexWrapper(*_pipelinefiltercontext.pipeline);
-				unique_lock_pipeline = ::std::unique_lock<PipelineSharedMutexWrapper>(pipelinesharedmutexwrapper);
+				optional_sharedlockablewrapper_pipeline.emplace(Pipeline_CastToISharedLockableObject(*_pipelinefiltercontext.pipeline));
+				unique_lock_pipeline = ::std::unique_lock<SharedLockableObjectToSTLWrapper>(*optional_sharedlockablewrapper_pipeline);
 			}
 			static_cast<void>(already_exclusive_locked_pipeline);
 			assert(_pipelinefiltercontext.pipelinefilter);
@@ -1681,8 +1648,8 @@ namespace YBWLib2 {
 		}
 		static void AttachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) noexcept {
 			assert(_pipelinecontext.pipeline);
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*_pipelinecontext.pipeline);
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*_pipelinecontext.pipeline));
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			AttachPipelineFilter(_pipelinefiltercontext, _pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_pipeline);
 		}
 		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
@@ -1696,8 +1663,8 @@ namespace YBWLib2 {
 		}
 		static void DetachPipelineFilter(pipelinefiltercontext_t& _pipelinefiltercontext, pipelinecontext_t& _pipelinecontext, bool _should_resolve_immediately) noexcept {
 			assert(_pipelinecontext.pipeline);
-			PipelineSharedMutexWrapper pipelinesharedmutexwrapper(*_pipelinefiltercontext.pipeline);
-			::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+			SharedLockableObjectToSTLWrapper sharedlockablewrapper_pipeline(Pipeline_CastToISharedLockableObject(*_pipelinefiltercontext.pipeline));
+			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(sharedlockablewrapper_pipeline); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			DetachPipelineFilter(_pipelinefiltercontext, _pipelinecontext, _should_resolve_immediately, already_exclusive_locked_pipeline);
 		}
 	};
@@ -1873,10 +1840,10 @@ namespace YBWLib2 {
 		PipelineID GetPipelineID() const noexcept {
 			return pipelinetraits_type::GetPipelineID(this->pipelinecontext);
 		}
-		PipelineSharedMutexWrapper&& GetPipelineSharedMutexWrapper() const noexcept {
+		SharedLockableObjectToSTLWrapper&& GetPipelineSharedLockableWrapper() const noexcept {
 			const ReferenceCountedObjectHolder<Pipeline>& pipeline = this->pipelinecontext.GetPipelineReferenceCountedObjectHolder();
 			assert(pipeline);
-			return PipelineSharedMutexWrapper(*pipeline);
+			return SharedLockableObjectToSTLWrapper(Pipeline_CastToISharedLockableObject(*pipeline));
 		}
 		const Pipeline& operator*() const noexcept { return this->GetPipeline(); }
 		Pipeline& operator*() noexcept { return this->GetPipeline(); }

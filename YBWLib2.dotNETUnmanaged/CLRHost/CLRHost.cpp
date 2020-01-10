@@ -463,8 +463,8 @@ namespace YBWLib2 {
 			pipelinefilterwrapper_CLRHostStart_CLRHost_StartRuntimeHost.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, IException*&, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStart_CLRHost_StartRuntimeHost));
 			pipelinefilterwrapper_CLRHostStart_CLRHost_StartRuntimeHost.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStart_CLRHost_SetHostControl.GetPipelineFilterID()));
 			{
-				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostStart.GetPipelineSharedMutexWrapper());
-				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+				SharedLockableObjectToSTLWrapper pipelinesharedlockablewrapper(pipelinewrapper_CLRHostStart.GetPipelineSharedLockableWrapper());
+				::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(pipelinesharedlockablewrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 				pipelinewrapper_CLRHostStart.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStart_CLRHost_COMInit, false, nullptr, already_exclusive_locked_pipeline);
 				pipelinewrapper_CLRHostStart.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStart_CLRHost_CreateMetaHost, false, nullptr, already_exclusive_locked_pipeline);
 				pipelinewrapper_CLRHostStart.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStart_CLRHost_MakeRuntimePolicy, false, nullptr, already_exclusive_locked_pipeline);
@@ -501,8 +501,8 @@ namespace YBWLib2 {
 			pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit.SetInvokeDelegate(Delegate<DelegateFlag_Noexcept, void, ICLRHostContext&, already_exclusive_locked_this_t>(&CLRHostStop_CLRHost_COMUnInit));
 			pipelinefilterwrapper_CLRHostStop_CLRHost_COMUnInit.SetPipelineFilterPositionArray(PipelineFilterPosition(PipelineFilterPositionType::PipelineFilterPositionType_AfterRef, pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseMetaHost.GetPipelineFilterID()));
 			{
-				PipelineSharedMutexWrapper pipelinesharedmutexwrapper(pipelinewrapper_CLRHostStop.GetPipelineSharedMutexWrapper());
-				::std::unique_lock<PipelineSharedMutexWrapper> unique_lock_pipeline(pipelinesharedmutexwrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
+				SharedLockableObjectToSTLWrapper pipelinesharedlockablewrapper(pipelinewrapper_CLRHostStop.GetPipelineSharedLockableWrapper());
+				::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline(pipelinesharedlockablewrapper); already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_StopRuntimeHost, false, nullptr, already_exclusive_locked_pipeline);
 				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseHostControl, false, nullptr, already_exclusive_locked_pipeline);
 				pipelinewrapper_CLRHostStop.AttachPipelineFilter(pipelinefilterwrapper_CLRHostStop_CLRHost_ReleaseCLRControl, false, nullptr, already_exclusive_locked_pipeline);
