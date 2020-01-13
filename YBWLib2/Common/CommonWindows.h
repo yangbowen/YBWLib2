@@ -265,32 +265,32 @@ namespace YBWLib2 {
 		/// Constructs a <c>COMObjectHolder</c> that manages the COM object the specified pointer points to, without changing the object's reference count.
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline explicit COMObjectHolder(_Element_From_Ty*&& _ptr_element) noexcept : ptr_element(static_cast<element_type*&&>(_ptr_element)) {}
 		/// <summary>
 		/// Constructs a <c>COMObjectHolder</c> that manages the COM object the specified pointer points to, incrementing the object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
 			if (_ptr_element) {
 				static_cast<element_type*>(_ptr_element)->AddRef();
 				this->ptr_element = static_cast<element_type*>(_ptr_element);
 			}
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
 			if (x.ptr_element) {
 				x.ptr_element->AddRef();
 				this->ptr_element = static_cast<element_type*>(x.ptr_element);
 			}
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder(COMObjectHolder<_Element_From_Ty>&& x) noexcept {
 			this->ptr_element = static_cast<element_type*&&>(::std::move(x.ptr_element));
 			x.ptr_element = nullptr;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder(const COMObjectHolder<_Element_From_Ty>& x) noexcept(false) {
 			if (x.ptr_element) {
 				HRESULT hr = x->QueryInterface(__uuidof(element_type), &this->get_ref_ptr_element());
@@ -303,7 +303,7 @@ namespace YBWLib2 {
 				}
 			}
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<!::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder(COMObjectHolder<_Element_From_Ty>&& x) noexcept(false) {
 			if (x.ptr_element) {
 				HRESULT hr = x->QueryInterface(__uuidof(element_type), &this->get_ref_ptr_element());
@@ -320,7 +320,7 @@ namespace YBWLib2 {
 		inline ~COMObjectHolder() {
 			this->reset();
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder& operator=(const COMObjectHolder<_Element_From_Ty>& x) noexcept {
 			this->reset();
 			if (x.ptr_element) {
@@ -328,7 +328,7 @@ namespace YBWLib2 {
 				this->ptr_element = static_cast<element_type*>(x.ptr_element);
 			}
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline COMObjectHolder& operator=(COMObjectHolder<_Element_From_Ty>&& x) noexcept {
 			this->reset();
 			this->ptr_element = static_cast<element_type*&&>(::std::move(x.ptr_element));
@@ -357,7 +357,7 @@ namespace YBWLib2 {
 		/// Makes this object manage the object the specified pointer points to, without changing the object's reference count.
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty*&& _ptr_element) noexcept {
 			this->reset();
 			this->ptr_element = static_cast<element_type*&&>(_ptr_element);
@@ -366,7 +366,7 @@ namespace YBWLib2 {
 		/// Makes this object manage the object the specified pointer points to, incrementing the object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty* _ptr_element, inc_ref_count_t) noexcept {
 			this->reset();
 			if (_ptr_element) {

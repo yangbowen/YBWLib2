@@ -1611,7 +1611,10 @@ namespace YBWLib2 {
 			this->controlblock = nullptr;
 		}
 		virtual ~ReferenceCountedObject() {
-			if (this->controlblock) this->controlblock->DecWeakReferenceCount();
+			if (this->controlblock) {
+				this->controlblock->DecWeakReferenceCount();
+				this->controlblock = nullptr;
+			}
 		}
 		inline ReferenceCountedObject& operator=(const ReferenceCountedObject& x) noexcept {
 			static_cast<void>(x);
@@ -1683,7 +1686,7 @@ namespace YBWLib2 {
 		/// Constructs a <c>ReferenceCountedObjectHolder</c> that owns the object the specified pointer points to, incrementing the object's strong reference count.
 		/// Use this function on a pointer to an already reference-counted object that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
 			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
 			if (_ptr) {
@@ -1700,7 +1703,7 @@ namespace YBWLib2 {
 		/// Use this function on a pointer to a freshly-created object whose reference count control block hasn't been set up yet,
 		/// or an already reference-counted object that has <c>1</c> strong reference count reserved for the caller..
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& _ptr) noexcept {
 			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
 			if (_ptr) {
@@ -1711,7 +1714,7 @@ namespace YBWLib2 {
 				_ptr = nullptr;
 			}
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_strong_new = x.controlblock_owned->IncStrongReferenceCount();
@@ -1720,7 +1723,7 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
 			this->ptr_stored = x.ptr_stored;
 			this->controlblock_owned = x.controlblock_owned;
@@ -1747,12 +1750,12 @@ namespace YBWLib2 {
 		inline explicit operator bool() const noexcept { return this->ptr_stored; }
 		inline element_type& operator*() const noexcept { return *this->ptr_stored; }
 		inline element_type* operator->() const noexcept { return this->ptr_stored; }
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
 			ReferenceCountedObjectHolder<element_type>(x).swap(*this);
 			return *this;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
 			ReferenceCountedObjectHolder<element_type>(::std::move(x)).swap(*this);
 			return *this;
@@ -1771,7 +1774,7 @@ namespace YBWLib2 {
 		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
 			ReferenceCountedObjectHolder<element_type>(_ptr, inc_ref_count).swap(*this);
 		}
@@ -1779,7 +1782,7 @@ namespace YBWLib2 {
 		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty*&& _ptr) noexcept {
 			ReferenceCountedObjectHolder<element_type>(::std::move(_ptr)).swap(*this);
 		}
@@ -1878,7 +1881,7 @@ namespace YBWLib2 {
 		using element_type = _Element_Ty;
 		constexpr ReferenceCountedObjectWeakHolder() noexcept {}
 		constexpr ReferenceCountedObjectWeakHolder(nullptr_t) noexcept : ReferenceCountedObjectWeakHolder() {}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
@@ -1887,7 +1890,7 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
@@ -1896,7 +1899,7 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
 			this->ptr_stored = x.ptr_stored;
 			this->controlblock_owned = x.controlblock_owned;
@@ -1910,22 +1913,22 @@ namespace YBWLib2 {
 			}
 			this->ptr_stored = nullptr;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
 			ReferenceCountedObjectWeakHolder<element_type>(x).swap(*this);
 			return *this;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
 			ReferenceCountedObjectWeakHolder<element_type>(x).swap(*this);
 			return *this;
 		}
-		template<typename _Element_From_Ty, ::std::enable_if_t<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int> = 0>
+		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectWeakHolder& operator=(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
 			ReferenceCountedObjectWeakHolder<element_type>(::std::move(x)).swap(*this);
 			return *this;
 		}
-		template<typename _Element_To_Ty, ::std::enable_if_t<::std::is_convertible_v<element_type*, _Element_To_Ty*>, int> = 0>
+		template<typename _Element_To_Ty, typename ::std::enable_if<::std::is_convertible_v<element_type*, _Element_To_Ty*>, int>::type = 0>
 		inline operator ReferenceCountedObjectHolder<_Element_To_Ty>() const noexcept {
 			ReferenceCountedObjectHolder<_Element_To_Ty> refcountedobjectholder;
 			if (!this->controlblock_owned || !this->controlblock_owned->IncStrongReferenceCount()) {
