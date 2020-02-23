@@ -1494,7 +1494,7 @@ namespace YBWLib2 {
 				assert(it_map_pipeline->second);
 				//return it_map_pipeline->second;
 				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline = it_map_pipeline->second;
+				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
 				return pipeline;
 			}
 		}
@@ -1505,7 +1505,7 @@ namespace YBWLib2 {
 				assert(it_map_pipeline->second);
 				//return it_map_pipeline->second;
 				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline = it_map_pipeline->second;
+				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
 				return pipeline;
 			} else {
 				bool is_successful_emplace = false;
@@ -1515,7 +1515,7 @@ namespace YBWLib2 {
 				assert(it_map_pipeline->second);
 				//return it_map_pipeline->second;
 				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline = it_map_pipeline->second;
+				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
 				return pipeline;
 			}
 		}
