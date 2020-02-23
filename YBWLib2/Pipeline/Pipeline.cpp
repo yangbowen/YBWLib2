@@ -128,6 +128,7 @@ namespace YBWLib2 {
 				x.data_initial_invocationpacketdataentry.reset();
 				this->delegate_initialize = ::std::move(x.delegate_initialize);
 				this->delegate_cleanup = ::std::move(x.delegate_cleanup);
+				return *this;
 			}
 		};
 		struct PipelineFilterAttachment final {
@@ -1491,7 +1492,10 @@ namespace YBWLib2 {
 			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
 			if (it_map_pipeline != this->map_pipeline.cend()) {
 				assert(it_map_pipeline->second);
-				return it_map_pipeline->second;
+				//return it_map_pipeline->second;
+				ReferenceCountedObjectHolder<Pipeline> pipeline;
+				pipeline = it_map_pipeline->second;
+				return pipeline;
 			}
 		}
 		{
@@ -1499,16 +1503,23 @@ namespace YBWLib2 {
 			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
 			if (it_map_pipeline != this->map_pipeline.cend()) {
 				assert(it_map_pipeline->second);
-				return it_map_pipeline->second;
+				//return it_map_pipeline->second;
+				ReferenceCountedObjectHolder<Pipeline> pipeline;
+				pipeline = it_map_pipeline->second;
+				return pipeline;
 			} else {
 				bool is_successful_emplace = false;
 				::std::tie(it_map_pipeline, is_successful_emplace) = this->map_pipeline.emplace(_pipelineid, CreatePipeline(_pipelineid));
 				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 				assert(it_map_pipeline != this->map_pipeline.cend());
 				assert(it_map_pipeline->second);
-				return it_map_pipeline->second;
+				//return it_map_pipeline->second;
+				ReferenceCountedObjectHolder<Pipeline> pipeline;
+				pipeline = it_map_pipeline->second;
+				return pipeline;
 			}
 		}
+		// TODO: Debug violation of reference count invariance that seems to be related to NRVO.
 	}
 
 	namespace Internal {
