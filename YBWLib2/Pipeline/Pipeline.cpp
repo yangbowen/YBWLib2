@@ -1793,10 +1793,10 @@ namespace YBWLib2 {
 			return _pipelinestore ? static_cast<IReferenceCountedObject*>(_pipelinestore) : nullptr;
 		}
 
-		YBWLIB2_API ReferenceCountedObjectHolder<Pipeline> YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept {
+		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept {
 			static_assert(::std::is_standard_layout_v<ReferenceCountedObjectHolder<Pipeline>>, "ReferenceCountedObjectHolder<Pipeline> is not standard layout.");
 			assert(_pipelinestore);
-			return _pipelinestore->ReferencePipelineFromPipelineID(*_pipelineid);
+			return _pipelinestore->ReferencePipelineFromPipelineID(*_pipelineid).release();
 		}
 	}
 

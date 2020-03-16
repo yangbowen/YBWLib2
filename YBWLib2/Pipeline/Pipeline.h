@@ -254,7 +254,7 @@ namespace YBWLib2 {
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(const PipelineStore* _pipelinestore) noexcept;
 		YBWLIB2_API IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(PipelineStore* _pipelinestore) noexcept;
-		YBWLIB2_API ReferenceCountedObjectHolder<Pipeline> YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept;
+		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept;
 	};
 
 	inline ReferenceCountedObjectHolder<Pipeline> CreatePipeline(const PipelineID& _pipelineid) noexcept {
@@ -510,12 +510,26 @@ namespace YBWLib2 {
 	}
 
 	inline ReferenceCountedObjectHolder<Pipeline> PipelineStore_ReferencePipelineFromPipelineID(PipelineStore& _pipelinestore, const PipelineID& _pipelineid) noexcept {
-		return Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &_pipelineid);
+		Pipeline* ptr_pipeline = Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &_pipelineid);
+		assert(ptr_pipeline);
+		IReferenceCountedObject* ptr_referencecountedobject = Internal::Pipeline_CastToIReferenceCountedObject(ptr_pipeline);
+		assert(ptr_referencecountedobject);
+		return ReferenceCountedObjectHolder<Pipeline>(
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
+			ptr_pipeline
+			);
 	}
 
 	inline ReferenceCountedObjectHolder<Pipeline> PipelineStore_ReferencePipelineFromPersistentID(PipelineStore& _pipelinestore, const PersistentID& _persistentid_pipelineid) noexcept {
 		PipelineID pipelineid(_persistentid_pipelineid);
-		return Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &pipelineid);
+		Pipeline* ptr_pipeline = Internal::PipelineStore_ReferencePipelineFromPipelineID(&_pipelinestore, &pipelineid);
+		assert(ptr_pipeline);
+		IReferenceCountedObject* ptr_referencecountedobject = Internal::Pipeline_CastToIReferenceCountedObject(ptr_pipeline);
+		assert(ptr_referencecountedobject);
+		return ReferenceCountedObjectHolder<Pipeline>(
+			ReferenceCountedObjectHolder<IReferenceCountedObject>(::std::move(ptr_referencecountedobject)),
+			ptr_pipeline
+			);
 	}
 
 	class PipelineInvocationPacketDataEntryHolder final {
