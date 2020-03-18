@@ -299,7 +299,7 @@ namespace YBWLib2 {
 		virtual ~PipelineStore() = default;
 		PipelineStore& operator=(const PipelineStore&) = delete;
 		PipelineStore& operator=(PipelineStore&&) = delete;
-		ReferenceCountedObjectHolder<Pipeline> ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept;
+		Pipeline* ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept;
 	protected:
 		using map_pipeline_t = ::std::unordered_map<PipelineID, ReferenceCountedObjectHolder<Pipeline>>;
 		::std::shared_mutex mtx_this;
@@ -1486,15 +1486,14 @@ namespace YBWLib2 {
 		_pipelinefilterattachment.idx_pipelinefilterposition_resolve = _idx_pipelinefilterposition_resolve_new;
 	}
 
-	ReferenceCountedObjectHolder<Pipeline> PipelineStore::ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept {
+	Pipeline* PipelineStore::ReferencePipelineFromPipelineID(const PipelineID& _pipelineid) noexcept {
 		{
 			::std::shared_lock<::std::shared_mutex> shared_lock_this(this->mtx_this);
 			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
 			if (it_map_pipeline != this->map_pipeline.cend()) {
 				assert(it_map_pipeline->second);
-				//return it_map_pipeline->second;
-				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
+				Pipeline* pipeline = it_map_pipeline->second.get();
+				pipeline->GetReferenceCountControlBlock()->IncStrongReferenceCount();
 				return pipeline;
 			}
 		}
@@ -1503,9 +1502,8 @@ namespace YBWLib2 {
 			map_pipeline_t::const_iterator it_map_pipeline = this->map_pipeline.find(_pipelineid);
 			if (it_map_pipeline != this->map_pipeline.cend()) {
 				assert(it_map_pipeline->second);
-				//return it_map_pipeline->second;
-				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
+				Pipeline* pipeline = it_map_pipeline->second.get();
+				pipeline->GetReferenceCountControlBlock()->IncStrongReferenceCount();
 				return pipeline;
 			} else {
 				bool is_successful_emplace = false;
@@ -1513,9 +1511,8 @@ namespace YBWLib2 {
 				assert(is_successful_emplace); static_cast<void>(is_successful_emplace);
 				assert(it_map_pipeline != this->map_pipeline.cend());
 				assert(it_map_pipeline->second);
-				//return it_map_pipeline->second;
-				ReferenceCountedObjectHolder<Pipeline> pipeline;
-				pipeline.reset(it_map_pipeline->second.get(), ReferenceCountedObjectHolder<Pipeline>::inc_ref_count);
+				Pipeline* pipeline = it_map_pipeline->second.get();
+				pipeline->GetReferenceCountControlBlock()->IncStrongReferenceCount();
 				return pipeline;
 			}
 		}
@@ -1525,12 +1522,12 @@ namespace YBWLib2 {
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PipelineID* _pipelineid) noexcept {
 			assert(_pipelineid);
-			return ReferenceCountedObjectHolder<Pipeline>(new Pipeline(*_pipelineid)).release();
+			return new Pipeline(*_pipelineid);
 		}
 
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept {
 			assert(_persistentid_pipelineid);
-			return ReferenceCountedObjectHolder<Pipeline>(new Pipeline(*_persistentid_pipelineid)).release();
+			return new Pipeline(*_persistentid_pipelineid);
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE Pipeline_CastToIReferenceCountedObject(const Pipeline* _pipeline) noexcept {
@@ -1710,12 +1707,12 @@ namespace YBWLib2 {
 
 		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PipelineFilterID* _pipelinefilterid) noexcept {
 			assert(_pipelinefilterid);
-			return ReferenceCountedObjectHolder<PipelineFilter>(new PipelineFilter(*_pipelinefilterid)).release();
+			return new PipelineFilter(*_pipelinefilterid);
 		}
 
 		YBWLIB2_API PipelineFilter* YBWLIB2_CALLTYPE CreatePipelineFilter(const PersistentID* _persistentid_pipelinefilterid) noexcept {
 			assert(_persistentid_pipelinefilterid);
-			return ReferenceCountedObjectHolder<PipelineFilter>(new PipelineFilter(*_persistentid_pipelinefilterid)).release();
+			return new PipelineFilter(*_persistentid_pipelinefilterid);
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineFilter_CastToIReferenceCountedObject(const PipelineFilter* _pipelinefilter) noexcept {
@@ -1782,7 +1779,7 @@ namespace YBWLib2 {
 		}
 
 		YBWLIB2_API PipelineStore* YBWLIB2_CALLTYPE CreatePipelineStore() noexcept {
-			return ReferenceCountedObjectHolder<PipelineStore>(new PipelineStore()).release();
+			return new PipelineStore();
 		}
 
 		YBWLIB2_API const IReferenceCountedObject* YBWLIB2_CALLTYPE PipelineStore_CastToIReferenceCountedObject(const PipelineStore* _pipelinestore) noexcept {
@@ -1796,7 +1793,7 @@ namespace YBWLib2 {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE PipelineStore_ReferencePipelineFromPipelineID(PipelineStore* _pipelinestore, const PipelineID* _pipelineid) noexcept {
 			static_assert(::std::is_standard_layout_v<ReferenceCountedObjectHolder<Pipeline>>, "ReferenceCountedObjectHolder<Pipeline> is not standard layout.");
 			assert(_pipelinestore);
-			return _pipelinestore->ReferencePipelineFromPipelineID(*_pipelineid).release();
+			return _pipelinestore->ReferencePipelineFromPipelineID(*_pipelineid);
 		}
 	}
 

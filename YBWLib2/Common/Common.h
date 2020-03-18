@@ -1689,14 +1689,7 @@ namespace YBWLib2 {
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
 			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
-			if (_ptr) {
-				const IReferenceCountedObject* refcountedobject_owned = _ptr;
-				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
-				assert(this->controlblock_owned);
-				uintptr_t ref_count_strong_new = this->controlblock_owned->IncStrongReferenceCount();
-				assert(ref_count_strong_new);
-				this->ptr_stored = _ptr;
-			}
+			this->reset(_ptr, inc_ref_count);
 		}
 		/// <summary>
 		/// Constructs a <c>ReferenceCountedObjectHolder</c> that manages the object the specified pointer points to, without changing the object's reference count.
@@ -1706,13 +1699,7 @@ namespace YBWLib2 {
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& _ptr) noexcept {
 			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
-			if (_ptr) {
-				const IReferenceCountedObject* refcountedobject_owned = _ptr;
-				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
-				assert(this->controlblock_owned);
-				this->ptr_stored = _ptr;
-				_ptr = nullptr;
-			}
+			this->reset(::std::move(_ptr));
 		}
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
@@ -1768,7 +1755,15 @@ namespace YBWLib2 {
 		/// </summary>
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
-			ReferenceCountedObjectHolder<element_type>(_ptr, inc_ref_count).swap(*this);
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+			if (_ptr) {
+				const IReferenceCountedObject* refcountedobject_owned = _ptr;
+				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
+				assert(this->controlblock_owned);
+				uintptr_t ref_count_strong_new = this->controlblock_owned->IncStrongReferenceCount();
+				assert(ref_count_strong_new);
+				this->ptr_stored = _ptr;
+			}
 		}
 		/// <summary>
 		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
@@ -1776,7 +1771,14 @@ namespace YBWLib2 {
 		/// </summary>
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void reset(_Element_From_Ty*&& _ptr) noexcept {
-			ReferenceCountedObjectHolder<element_type>(::std::move(_ptr)).swap(*this);
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+			if (_ptr) {
+				const IReferenceCountedObject* refcountedobject_owned = _ptr;
+				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
+				assert(this->controlblock_owned);
+				this->ptr_stored = _ptr;
+				_ptr = nullptr;
+			}
 		}
 		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
 		inline void assign(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {

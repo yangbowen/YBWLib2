@@ -529,6 +529,8 @@ namespace YBWLib2 {
 
 	void YBWLIB2DOTNETUNMANAGED_CALLTYPE CLRHost_RealUnInitGlobal() noexcept {
 		{
+			pipelinewrapper_CLRHostSetAppDomainManager = PipelineWrapper_CLRHostSetAppDomainManager();
+			pipelinewrapper_CLRHostGetHostManager = PipelineWrapper_CLRHostGetHostManager();
 			pipelinewrapper_CLRHostStop = PipelineWrapper_CLRHostStop();
 			pipelinewrapper_CLRHostStart = PipelineWrapper_CLRHostStart();
 		}
