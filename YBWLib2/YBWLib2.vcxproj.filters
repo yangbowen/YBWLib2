@@ -186,6 +186,9 @@
     <ClInclude Include="Exception\ExceptionMacroUndef.h">
       <Filter>Header Files\Exception</Filter>
     </ClInclude>
+    <ClInclude Include="Pipeline\PipelinePrivateClassDef.h">
+      <Filter>Header Files\Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

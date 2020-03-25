@@ -31,6 +31,10 @@
 #include "../Common/Common.h"
 #include "../Common/CommonSTLHelper.h"
 
+// This is used to temporarily workaround a compiler bug in VC++.
+// The class definitions exposed by defining this macro are not supposed to be accessed directly outside the source file.
+#define YBWLIB2_PIPELINE_EXPOSE_PRIVATE_CLASSES
+
 namespace YBWLib2 {
 	class Pipeline;
 	class PipelineFilter;
@@ -170,7 +174,13 @@ namespace YBWLib2 {
 
 	inline PipelineFilterPosition PipelineFilterPosition_Front(PipelineFilterPositionType::PipelineFilterPositionType_Front);
 	inline PipelineFilterPosition PipelineFilterPosition_Back(PipelineFilterPositionType::PipelineFilterPositionType_Back);
+}
 
+#ifdef YBWLIB2_PIPELINE_EXPOSE_PRIVATE_CLASSES
+#include "PipelinePrivateClassDef.h"
+#endif
+
+namespace YBWLib2 {
 	namespace Internal {
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PipelineID* _pipelineid) noexcept;
 		YBWLIB2_API Pipeline* YBWLIB2_CALLTYPE CreatePipeline(const PersistentID* _persistentid_pipelineid) noexcept;
