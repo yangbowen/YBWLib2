@@ -554,9 +554,11 @@ namespace YBWLib2 {
 			PipelineInvocationPacketDataEntryCleanupDelegate&& _delegate_cleanup_invocationpacketdataentry
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			is_addref_only(false) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -585,9 +587,11 @@ namespace YBWLib2 {
 			already_exclusive_locked_this_t _already_exclusive_locked_pipeline
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			is_addref_only(false) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -612,9 +616,11 @@ namespace YBWLib2 {
 			always_assign_delegate_pipelineinvocationpacketdataentry_t _always_assign_delegate_pipelineinvocationpacketdataentry
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			is_addref_only(false) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -645,9 +651,11 @@ namespace YBWLib2 {
 			already_exclusive_locked_this_t _already_exclusive_locked_pipeline
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			is_addref_only(false) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			if (this->objholder_pipeline) {
 				assert(this->pipelineinvocationpacketdataentryid);
 				assert(this->size_pipelineinvocationpacketdataentry);
@@ -671,10 +679,12 @@ namespace YBWLib2 {
 			already_shared_locked_this_t _already_shared_locked_pipeline
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			offset_pipelineinvocationpacketdataentry(_offset_invocationpacketdataentry),
 			is_addref_only(true) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			assert(this->pipelineinvocationpacketdataentryid);
 			assert(this->objholder_pipeline);
 			assert(this->size_pipelineinvocationpacketdataentry);
@@ -694,10 +704,12 @@ namespace YBWLib2 {
 			size_t _offset_invocationpacketdataentry
 		) noexcept
 			: pipelineinvocationpacketdataentryid(_pipelineinvocationpacketdataentryid),
-			objholder_pipeline(_objholder_pipeline),
+			//objholder_pipeline(_objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(_size_invocationpacketdataentry),
 			offset_pipelineinvocationpacketdataentry(_offset_invocationpacketdataentry),
 			is_addref_only(true) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(_objholder_pipeline);
 			assert(this->pipelineinvocationpacketdataentryid);
 			assert(this->objholder_pipeline);
 			assert(this->size_pipelineinvocationpacketdataentry);
@@ -716,10 +728,12 @@ namespace YBWLib2 {
 		}
 		PipelineInvocationPacketDataEntryHolder(const PipelineInvocationPacketDataEntryHolder& x) noexcept
 			: pipelineinvocationpacketdataentryid(x.pipelineinvocationpacketdataentryid),
-			objholder_pipeline(x.objholder_pipeline),
+			//objholder_pipeline(x.objholder_pipeline),
 			size_pipelineinvocationpacketdataentry(x.size_pipelineinvocationpacketdataentry),
 			offset_pipelineinvocationpacketdataentry(x.offset_pipelineinvocationpacketdataentry),
 			is_addref_only(x.is_addref_only) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(x.objholder_pipeline);
 			if (this->objholder_pipeline) {
 				if (this->is_addref_only) {
 					assert(this->pipelineinvocationpacketdataentryid);
@@ -759,10 +773,12 @@ namespace YBWLib2 {
 		}
 		PipelineInvocationPacketDataEntryHolder(PipelineInvocationPacketDataEntryHolder&& x) noexcept
 			: pipelineinvocationpacketdataentryid(::std::move(x.pipelineinvocationpacketdataentryid)),
-			objholder_pipeline(::std::move(x.objholder_pipeline)),
+			//objholder_pipeline(::std::move(x.objholder_pipeline)),
 			size_pipelineinvocationpacketdataentry(::std::move(x.size_pipelineinvocationpacketdataentry)),
 			offset_pipelineinvocationpacketdataentry(::std::move(x.offset_pipelineinvocationpacketdataentry)),
 			is_addref_only(::std::move(x.is_addref_only)) {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->objholder_pipeline.assign(::std::move(x.objholder_pipeline));
 			x.pipelineinvocationpacketdataentryid = PipelineInvocationPacketDataEntryID();
 			x.objholder_pipeline.reset();
 			x.size_pipelineinvocationpacketdataentry = 0;
