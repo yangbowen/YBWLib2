@@ -1224,7 +1224,6 @@ namespace YBWLib2 {
 				return pipeline;
 			}
 		}
-		// TODO: Debug violation of reference count invariance that seems to be related to NRVO.
 	}
 
 	namespace Internal {
@@ -1517,16 +1516,16 @@ namespace YBWLib2 {
 				0, sizeof(Pipeline), alignof(Pipeline)
 			);
 		}
-		Internal::pipelinestore_global = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID(Internal::persistentid_pipelineinvocationpacketdataentryid_arr_ptr_arg);
 		Internal::indexeddataentryid_invokedelegatecontext = IndexedDataEntryID(Internal::persistentid_indexeddataentryid_invokedelegatecontext);
+		Internal::pipelinestore_global = new ReferenceCountedObjectHolder<PipelineStore>(CreatePipelineStore());
 	}
 
 	void YBWLIB2_CALLTYPE Pipeline_RealUnInitGlobal() noexcept {
-		Internal::indexeddataentryid_invokedelegatecontext = IndexedDataEntryID();
-		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
 		delete Internal::pipelinestore_global;
 		Internal::pipelinestore_global = nullptr;
+		Internal::indexeddataentryid_invokedelegatecontext = IndexedDataEntryID();
+		Internal::pipelineinvocationpacketdataentryid_arr_ptr_arg = PipelineInvocationPacketDataEntryID();
 		{
 			delete Pipeline::DynamicTypeThisClassObject;
 			Pipeline::DynamicTypeThisClassObject = nullptr;
