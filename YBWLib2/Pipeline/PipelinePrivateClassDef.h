@@ -58,7 +58,10 @@ namespace YBWLib2 {
 			for (const ::std::pair<const PipelineFilterID, PipelineFilterAttachment>& val_map_pipelinefilterattachment : this->map_pipelinefilterattachment) {
 				if (!val_map_pipelinefilterattachment.second.IsZombie()) {
 					assert(val_map_pipelinefilterattachment.second.pipelinefilter);
-					vec_pipelinefilter_pending_detach.push_back(val_map_pipelinefilterattachment.second.pipelinefilter);
+					// TODO: Remove workaround of compiler bug when no longer necessary.
+					//vec_pipelinefilter_pending_detach.push_back(val_map_pipelinefilterattachment.second.pipelinefilter);
+					vec_pipelinefilter_pending_detach.push_back(ReferenceCountedObjectHolder<PipelineFilter>());
+					vec_pipelinefilter_pending_detach.back().assign(val_map_pipelinefilterattachment.second.pipelinefilter);
 				}
 			}
 			for (const ReferenceCountedObjectHolder<PipelineFilter>& pipelinefilter_pending_detach : vec_pipelinefilter_pending_detach)

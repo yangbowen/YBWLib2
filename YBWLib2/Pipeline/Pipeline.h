@@ -1347,7 +1347,9 @@ namespace YBWLib2 {
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				invokedelegatecontext_t* invokedelegatecontext = indexeddatarawvalue_invokedelegatecontext ? reinterpret_cast<invokedelegatecontext_t*>(indexeddatarawvalue_invokedelegatecontext->contextvalue) : nullptr;
 				if (invokedelegatecontext) invokedelegatecontext->UnassociateWithPipeline(_already_exclusive_locked_pipeline);
-				this->pipeline = _pipeline;
+				//this->pipeline = _pipeline;
+				// TODO: Remove workaround of compiler bug when no longer necessary.
+				this->pipeline.assign(_pipeline);
 				if (invokedelegatecontext) {
 					invokedelegatecontext->AssociateWithPipeline(this->pipeline.get(), _already_exclusive_locked_pipeline);
 					PipelineFilter_SetRawInvokeDelegate(*this->pipelinefilter, PipelineFilterRawInvokeDelegate(invokedelegatecontext->fnptr_rawinvoke, reinterpret_cast<uintptr_t>(invokedelegatecontext)));
