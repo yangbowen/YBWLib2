@@ -271,7 +271,7 @@ namespace YBWLib2 {
 			/* [in] */ REFIID _iid,
 			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* _obj_ret
 		) override {
-			return YBWLib2::COMHelper_QueryInterface<IUnknown, IHostControl>(this, _iid, _obj_ret);
+			return YBWLib2::COMHelper_QueryInterface<CLRHostControl, IUnknown, IHostControl>(this, _iid, _obj_ret);
 		}
 		inline virtual HRESULT STDMETHODCALLTYPE GetHostManager(
 			/* [in] */ REFIID _iid,
@@ -333,8 +333,8 @@ namespace YBWLib2 {
 			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* _obj_ret
 		) override {
 			return YBWLib2::COMHelper_QueryInterface<
-				IUnknown,
-				IHostAssemblyManager
+				CLRHostManager_CLRHost,
+				IUnknown
 			>(this, _iid, _obj_ret);
 		}
 	protected:

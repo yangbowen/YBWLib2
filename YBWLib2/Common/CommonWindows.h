@@ -230,6 +230,7 @@ namespace YBWLib2 {
 		_COM_Outptr_ void** _obj_ret
 	) {
 		static_assert(::std::conjunction_v<::std::is_base_of<IUnknown, _Interface_Ty>...>, "At least one of the interface classes is not derived from IUnknown.");
+		static_assert(::std::conjunction_v<::std::is_convertible<_Class_Ty*, _Interface_Ty*>...>, "Pointer to at least one of the interface classes cannot be implicitly converted from pointer to the specified class.");
 		assert(_obj);
 		if (!_obj_ret) return E_POINTER;
 		using fnptr_cast_t = void* (__stdcall*)(_Class_Ty* _ptr) noexcept;
