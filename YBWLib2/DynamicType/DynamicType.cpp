@@ -54,8 +54,11 @@ namespace YBWLib2 {
 			: dtclassid_thisclass(_dtclassid_thisclass),
 			dtclassid_baseclass(_dtclassid_baseclass),
 			dtclassobj_baseclass(_dtclassobj_baseclass),
-			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route),
-			vec_upcast_step(_vec_upcast_step) {}
+			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route)/*,
+			vec_upcast_step(_vec_upcast_step)*/ {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->vec_upcast_step.assign(_vec_upcast_step.cbegin(), _vec_upcast_step.cend());
+		}
 		inline DynamicTypeTotalBaseClass(
 			const DynamicTypeClassID& _dtclassid_thisclass,
 			const DynamicTypeClassID& _dtclassid_baseclass,
@@ -65,8 +68,11 @@ namespace YBWLib2 {
 			: dtclassid_thisclass(_dtclassid_thisclass),
 			dtclassid_baseclass(_dtclassid_baseclass),
 			dtclassobj_baseclass(_dtclassobj_baseclass),
-			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route),
-			vec_upcast_step(::std::move(_vec_upcast_step)) {}
+			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route)/*,
+			vec_upcast_step(::std::move(_vec_upcast_step))*/ {
+			// TODO: Remove workaround of compiler bug when no longer necessary.
+			this->vec_upcast_step.assign(_vec_upcast_step.cbegin(), _vec_upcast_step.cend());
+		}
 	};
 
 	class _impl_DynamicTypeClassObj {
