@@ -526,8 +526,8 @@ namespace YBWLib2 {
 			};
 			::std::stack<state_recurse_dependency_t> stack_state_recurse_dependency;
 			::std::unordered_set<PipelineFilterID> set_pipelinefilterid_depended;
-			::std::list<PipelineFilterAttachment*>::const_iterator* it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
-			::std::list<PipelineFilterAttachment*>::const_iterator it_list_pipelinefilterattachment_invocation_return_temp;
+			::std::list<PipelineFilterAttachment*>::const_iterator it_list_pipelinefilterattachment_invocation_return_recurse_dependency;
+			bool is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = false;
 			// Recursively resolve dependencies.
 			// The recursion is simulated using a stack and a loop.
 			while (true) {
@@ -543,13 +543,16 @@ namespace YBWLib2 {
 							// The pipeline filter attachment has already been updated.
 							// Return the result directly.
 							if (it_map_pipelinefilterattachment == this->map_pipelinefilterattachment.cend()) {
-								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = ::std::list<PipelineFilterAttachment*>::const_iterator();
+								is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = false;
 							} else {
 								state_recurse_dependency.pipelinefilterattachment = &it_map_pipelinefilterattachment->second;
 								if (state_recurse_dependency.pipelinefilterattachment->idx_pipelinefilterposition_resolve == SIZE_MAX) {
-									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = ::std::list<PipelineFilterAttachment*>::const_iterator();
+									is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = false;
 								} else {
-									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency = state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+									is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = true;
 								}
 							}
 						} else {
@@ -575,7 +578,8 @@ namespace YBWLib2 {
 								this->AdjustPipelineFilterAttachmentDependencyMapsClear(*state_recurse_dependency.pipelinefilterattachment, _already_exclusive_locked_this);
 								state_recurse_dependency.pipelinefilterattachment = nullptr;
 								this->map_pipelinefilterattachment.erase(it_map_pipelinefilterattachment);
-								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+								it_list_pipelinefilterattachment_invocation_return_recurse_dependency = ::std::list<PipelineFilterAttachment*>::const_iterator();
+								is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = false;
 							} else {
 								// The pipeline filter attachment is not a zombie.
 								// Start resolve dependencies of this pipeline filter attachment.
@@ -616,7 +620,8 @@ namespace YBWLib2 {
 								assert(it_map_pipelinefilterattachment_unchained != this->map_pipelinefilterattachment_unchained.end());
 							}
 							this->AdjustPipelineFilterAttachmentDependencyMaps(*state_recurse_dependency.pipelinefilterattachment, state_recurse_dependency.idx_pipelinefilterposition_resolving, _already_exclusive_locked_this);
-							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = nullptr;
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = ::std::list<PipelineFilterAttachment*>::const_iterator();
+							is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = false;
 							static_cast<void>(this->map_pipelinefilterattachment_floating.erase(state_recurse_dependency.pipelinefilterid));
 							// Remove the pipeline filter attachment from the pending update map.
 							map_pipelinefilterattachment_pending_update.erase(state_recurse_dependency.it_map_pipelinefilterattachment_pending_update);
@@ -636,16 +641,16 @@ namespace YBWLib2 {
 						{
 							// The pipeline filter attachment should be inserted at the front of the invocation list.
 							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
-							it_list_pipelinefilterattachment_invocation_return_temp = this->list_pipelinefilterattachment_invocation.cbegin();
-							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = this->list_pipelinefilterattachment_invocation.cbegin();
+							is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = true;
 							break;
 						}
 						case PipelineFilterPositionType::PipelineFilterPositionType_Back:
 						{
 							// The pipeline filter attachment should be inserted at the back of the invocation list.
 							state_recurse_dependency.checkpoint = state_recurse_dependency_t::Checkpoint::Checkpoint_AfterResolveDepended;
-							it_list_pipelinefilterattachment_invocation_return_temp = this->list_pipelinefilterattachment_invocation.cend();
-							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &it_list_pipelinefilterattachment_invocation_return_temp;
+							it_list_pipelinefilterattachment_invocation_return_recurse_dependency = this->list_pipelinefilterattachment_invocation.cend();
+							is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = true;
 							break;
 						}
 						case PipelineFilterPositionType::PipelineFilterPositionType_BeforeRef:
@@ -674,7 +679,7 @@ namespace YBWLib2 {
 					{
 						assert(state_recurse_dependency.vec_pipelinefilterposition);
 						assert(state_recurse_dependency.idx_pipelinefilterposition_resolving < state_recurse_dependency.vec_pipelinefilterposition->size());
-						if (!it_list_pipelinefilterattachment_invocation_return_recurse_dependency) {
+						if (!is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency) {
 							// The pipeline filter attachment cannot be inserted here.
 							// Continue to check the next candidate position.
 							++state_recurse_dependency.idx_pipelinefilterposition_resolving;
@@ -704,27 +709,30 @@ namespace YBWLib2 {
 						{
 							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
 								this->list_pipelinefilterattachment_invocation.insert(
-									*it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
 									state_recurse_dependency.pipelinefilterattachment
 								);
 							break;
 						}
 						case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 						{
-							assert(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency != this->list_pipelinefilterattachment_invocation.cend());
-							++(*it_list_pipelinefilterattachment_invocation_return_recurse_dependency);
+							assert(it_list_pipelinefilterattachment_invocation_return_recurse_dependency != ::std::list<PipelineFilterAttachment*>::const_iterator());
+							assert(it_list_pipelinefilterattachment_invocation_return_recurse_dependency != this->list_pipelinefilterattachment_invocation.cend());
+							++it_list_pipelinefilterattachment_invocation_return_recurse_dependency;
 							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
 								this->list_pipelinefilterattachment_invocation.insert(
-									*it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
+									it_list_pipelinefilterattachment_invocation_return_recurse_dependency,
 									state_recurse_dependency.pipelinefilterattachment
 								);
+							--it_list_pipelinefilterattachment_invocation_return_recurse_dependency;
 							break;
 						}
 						default:
 							assert(false); abort();
 						}
 						this->AdjustPipelineFilterAttachmentDependencyMaps(*state_recurse_dependency.pipelinefilterattachment, state_recurse_dependency.idx_pipelinefilterposition_resolving, _already_exclusive_locked_this);
-						it_list_pipelinefilterattachment_invocation_return_recurse_dependency = &state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+						it_list_pipelinefilterattachment_invocation_return_recurse_dependency = state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation;
+						is_available_it_list_pipelinefilterattachment_invocation_return_recurse_dependency = true;
 						static_cast<void>(this->map_pipelinefilterattachment_floating.erase(state_recurse_dependency.pipelinefilterid));
 						// Remove the pipeline filter attachment from the pending update map.
 						map_pipelinefilterattachment_pending_update.erase(state_recurse_dependency.it_map_pipelinefilterattachment_pending_update);
