@@ -716,7 +716,8 @@ namespace YBWLib2 {
 						}
 						case PipelineFilterPositionType::PipelineFilterPositionType_AfterRef:
 						{
-							assert(it_list_pipelinefilterattachment_invocation_return_recurse_dependency != ::std::list<PipelineFilterAttachment*>::const_iterator());
+							// We cannot make the following assertion check, because past-the-end iterators of valid container objects cannot be compared with value-initialized iterators of the same type.
+							//assert(it_list_pipelinefilterattachment_invocation_return_recurse_dependency != ::std::list<PipelineFilterAttachment*>::const_iterator());
 							assert(it_list_pipelinefilterattachment_invocation_return_recurse_dependency != this->list_pipelinefilterattachment_invocation.cend());
 							++it_list_pipelinefilterattachment_invocation_return_recurse_dependency;
 							state_recurse_dependency.pipelinefilterattachment->it_list_pipelinefilterattachment_invocation =
