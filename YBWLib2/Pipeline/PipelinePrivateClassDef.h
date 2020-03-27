@@ -34,6 +34,15 @@
 #include "../Common/Common.h"
 #include "../Common/CommonSTLHelper.h"
 
+#ifdef _DEBUG
+// Defining this macro enables calling Pipeline::Resolve for a last time before finishing destructing of Pipeline.
+// This should be unnecessary, since the state of the pipeline no longer matters when it is being destructed.
+// However, this may help diagnosing pipeline-related bugs.
+#ifndef YBWLIB2_PIPELINE_RESOLVE_BEFORE_DESTRUCT
+#define YBWLIB2_PIPELINE_RESOLVE_BEFORE_DESTRUCT
+#endif
+#endif
+
 namespace YBWLib2 {
 	class Pipeline final
 		: public ReferenceCountedObject,
@@ -66,6 +75,12 @@ namespace YBWLib2 {
 			}
 			for (const ReferenceCountedObjectHolder<PipelineFilter>& pipelinefilter_pending_detach : vec_pipelinefilter_pending_detach)
 				this->DetachPipelineFilter(pipelinefilter_pending_detach.get(), false, already_exclusive_locked_this);
+			// Defining this macro enables calling Pipeline::Resolve for a last time before finishing destructing of Pipeline.
+			// This should be unnecessary, since the state of the pipeline no longer matters when it is being destructed.
+			// However, this may help diagnosing pipeline-related bugs.
+#ifdef YBWLIB2_PIPELINE_RESOLVE_BEFORE_DESTRUCT
+			this->Resolve(already_exclusive_locked_this);
+#endif
 		}
 		Pipeline& operator=(const Pipeline&) = delete;
 		Pipeline& operator=(Pipeline&&) = delete;
