@@ -1710,7 +1710,7 @@ namespace YBWLib2 {
 		inline static constexpr unsigned char count_bit_flags_ptr_controlblock = 0x1;
 		static_assert(count_bit_flags_ptr_controlblock < sizeof(uintptr_t) * CHAR_BIT, "count_bit_flags_ptr_controlblock exceeds bit size of uintptr_t.");
 		inline static constexpr uintptr_t GetControlBlockPointerFlagsMask() noexcept {
-			return (~(uintptr_t)(1 << count_bit_flags_ptr_controlblock)) - 1;
+			return ((uintptr_t)1 << count_bit_flags_ptr_controlblock) - 1;
 		}
 		inline static constexpr uintptr_t GetControlBlockPointerAddressMask() noexcept {
 			return ~GetControlBlockPointerFlagsMask();
