@@ -17,7 +17,7 @@ namespace YBWLib2 {
 	YBWLIB2_DYNAMIC_TYPE_IMPLEMENT_CLASS(IDynamicTypeObject, YBWLIB2_API);
 
 	static ::std::recursive_mutex* mtx_dtenv = nullptr;
-	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>* map_dtclassobj_global = nullptr;
+	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>* map_dtclassobj_global = nullptr;
 
 	class DynamicTypeTotalBaseClass {
 	public:
@@ -141,8 +141,8 @@ namespace YBWLib2 {
 			if (_dtclassid && *_dtclassid) {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
-					if (it_dtclassobj != map_dtclassobj_global->end()) ret = &it_dtclassobj->second;
+					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>::iterator it_dtclassobj = map_dtclassobj_global->find(*_dtclassid);
+					if (it_dtclassobj != map_dtclassobj_global->end()) ret = it_dtclassobj->second;
 				}
 			}
 		} catch (...) {
@@ -405,7 +405,7 @@ namespace YBWLib2 {
 		try {
 			{
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-				if (!map_dtclassobj_global->emplace(this->dtclassid, *this).second) abort();
+				if (!map_dtclassobj_global->emplace(this->dtclassid, this).second) abort();
 			}
 		} catch (...) {
 			abort();
@@ -430,7 +430,7 @@ namespace YBWLib2 {
 		if (!wrapper_lockable_dtenv) abort();
 		map_fnptr_FindDynamicTypeClassObject_module = new ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>();
 		if (!map_fnptr_FindDynamicTypeClassObject_module) abort();
-		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>();
+		map_dtclassobj_global = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>();
 		if (!map_dtclassobj_global) abort();
 		ConstructorID_Default = ConstructorID(PersistentID_ConstructorID_Default);
 		ConstructorID_Copy = ConstructorID(PersistentID_ConstructorID_Copy);

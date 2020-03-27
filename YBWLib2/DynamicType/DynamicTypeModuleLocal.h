@@ -19,7 +19,7 @@
 namespace YBWLib2 {
 	extern YBWLIB2_API ::std::unordered_map<const module_info_t*, DynamicTypeClassObj*(YBWLIB2_CALLTYPE*)(const DynamicTypeClassID* _dtclassid) noexcept>* map_fnptr_FindDynamicTypeClassObject_module;
 
-	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>* map_dtclassobj_module_local = nullptr;
+	static ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>* map_dtclassobj_module_local = nullptr;
 
 	DynamicTypeClassObj* DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(const DynamicTypeClassID* _dtclassid) noexcept {
 		DynamicTypeClassObj* ret = nullptr;
@@ -27,8 +27,8 @@ namespace YBWLib2 {
 			if (_dtclassid && *_dtclassid) {
 				{
 					::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>::iterator it_dtclassobj = map_dtclassobj_module_local->find(*_dtclassid);
-					if (it_dtclassobj != map_dtclassobj_module_local->end()) ret = &it_dtclassobj->second;
+					::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>::iterator it_dtclassobj = map_dtclassobj_module_local->find(*_dtclassid);
+					if (it_dtclassobj != map_dtclassobj_module_local->end()) ret = it_dtclassobj->second;
 				}
 			}
 		} catch (...) {
@@ -124,7 +124,7 @@ namespace YBWLib2 {
 		try {
 			{
 				::std::lock_guard<wrapper_lockable_t> lock_guard_dtenv(*wrapper_lockable_dtenv);
-				if (!map_dtclassobj_module_local->emplace(this->dtclassid, *this).second) abort();
+				if (!map_dtclassobj_module_local->emplace(this->dtclassid, this).second) abort();
 			}
 		} catch (...) {
 			abort();
@@ -190,7 +190,7 @@ namespace YBWLib2 {
 				return DynamicTypeClassObj::FindDynamicTypeClassObjectModuleLocal(_dtclassid);
 			}
 		).second) abort();
-		map_dtclassobj_module_local = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj&>();
+		map_dtclassobj_module_local = new ::std::unordered_map<DynamicTypeClassID, DynamicTypeClassObj*>();
 		if (!map_dtclassobj_module_local) abort();
 		GetDynamicTypeClassObject<IDynamicTypeObject>()->RegisterTypeInfoWrapper(wrapper_type_info_t(typeid(IDynamicTypeObject)), module_info_current);
 	}
