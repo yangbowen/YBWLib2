@@ -1636,22 +1636,64 @@ namespace YBWLib2 {
 					[this]() noexcept->void {
 						class ControlBlock final : public ReferenceCountControlBlock {
 						public:
-							explicit ControlBlock(ReferenceCountedObject* _refcountedobject_managed) : refcountedobject_managed(_refcountedobject_managed) {}
+							explicit ControlBlock(ReferenceCountedObject* _refcountedobject_managed) {
+								this->SetManagedObject(_refcountedobject_managed);
+								this->SetFlags(0);
+							}
 							ControlBlock(const ControlBlock&) = delete;
 							ControlBlock(ControlBlock&&) = delete;
 							ControlBlock& operator=(const ControlBlock&) = delete;
 							ControlBlock& operator=(ControlBlock&&) = delete;
 							/// <summary>Destroys the object managed by this control block.</summary>
 							inline virtual void DestroyManagedObject() noexcept override {
-								delete this->refcountedobject_managed;
-								this->refcountedobject_managed = nullptr;
+								assert(!(this->GetFlags() & Flags::Flag_DeferDestroyControlBlock));
+								// The managed object holds a weak reference to itself (in order to avoid the control block being destroyed prematurely).
+								// Setting this flag ensures the destruction of *this is deferred to before the returning of this member function.
+								this->SetFlags(this->GetFlags() | Flags::Flag_DeferDestroyControlBlock);
+								delete this->GetManagedObject();
+								this->SetManagedObject(nullptr);
+								if (!(this->GetFlags() & Flags::Flag_DeferDestroyControlBlock)) {
+									// DestroyControlBlock has deferred destroying the control block.
+									// The control block should be destroyed now.
+									// This branch is taken if this function is called as a part of destroying the managed object.
+									delete this;
+								} else {
+									// This branch is taken if DestroyControlBlock is not called as a part of destroying the managed object,
+									// and the control block should remain valid after this function returns.
+									this->SetFlags(this->GetFlags() & ~Flags::Flag_DeferDestroyControlBlock);
+								}
 							}
 							/// <summary>Destroys this control block itself.</summary>
 							inline virtual void DestroyControlBlock() noexcept override {
-								delete this;
+								if (this->GetFlags() & Flags::Flag_DeferDestroyControlBlock) {
+									// DestroyManagedObject has required that the destruction of *this be deferred.
+									// Clearing the flag tells DestroyManagedObject to destroy the control block when it has finished its work.
+									// This branch is taken if this function is called as a part of destroying the managed object.
+									this->SetFlags(this->GetFlags() & ~Flags::Flag_DeferDestroyControlBlock);
+								} else {
+									// This branch is taken if the managed object has already been destroyed.
+									delete this;
+								}
 							}
 						private:
-							ReferenceCountedObject* refcountedobject_managed = nullptr;
+							enum Flags : uintptr_t {
+								Flag_DeferDestroyControlBlock = 1 << 0x0
+							};
+							uintptr_t data = 0;
+							inline ReferenceCountedObject* GetManagedObject() const noexcept {
+								return reinterpret_cast<ReferenceCountedObject*>(this->data & GetControlBlockPointerAddressMask());
+							}
+							inline uintptr_t GetFlags() const noexcept {
+								return this->data & GetControlBlockPointerFlagsMask();
+							}
+							inline void SetManagedObject(ReferenceCountedObject* _refcountedobject_managed) noexcept {
+								assert(!(reinterpret_cast<uintptr_t>(_refcountedobject_managed) & GetControlBlockPointerFlagsMask()));
+								this->data = reinterpret_cast<uintptr_t>(_refcountedobject_managed) | this->data & GetControlBlockPointerFlagsMask();
+							}
+							inline void SetFlags(uintptr_t _flags) noexcept {
+								assert(!(_flags & GetControlBlockPointerAddressMask()));
+								this->data = _flags | this->data & GetControlBlockPointerAddressMask();
+							}
 						};
 						this->controlblock = new ControlBlock(const_cast<ReferenceCountedObject*>(this));
 					}
@@ -1661,7 +1703,23 @@ namespace YBWLib2 {
 			return this->controlblock;
 		}
 	protected:
-		mutable ReferenceCountControlBlock* controlblock = nullptr;
+		/// <summary>
+		/// Pointers to objects of this class are always suitably aligned so that the lowest this many bits remain zero.
+		/// Reference count control blocks use this space to store additional state information along with the pointer.
+		/// </summary>
+		inline static constexpr unsigned char count_bit_flags_ptr_controlblock = 0x1;
+		static_assert(count_bit_flags_ptr_controlblock < sizeof(uintptr_t) * CHAR_BIT, "count_bit_flags_ptr_controlblock exceeds bit size of uintptr_t.");
+		inline static constexpr uintptr_t GetControlBlockPointerFlagsMask() noexcept {
+			return (~(uintptr_t)(1 << count_bit_flags_ptr_controlblock)) - 1;
+		}
+		inline static constexpr uintptr_t GetControlBlockPointerAddressMask() noexcept {
+			return ~GetControlBlockPointerFlagsMask();
+		}
+		/// <remarks>
+		/// Pointers to objects of this class are always suitably aligned so that the lowest this many bits remain zero.
+		/// Reference count control blocks use this space to store additional state information along with the pointer.
+		/// </remarks>
+		alignas(least_common_multiple<size_t>(alignof(ReferenceCountControlBlock*), count_bit_flags_ptr_controlblock)) mutable ReferenceCountControlBlock* controlblock = nullptr;
 		mutable ::std::once_flag onceflag_controlblock;
 	};
 
@@ -2076,13 +2134,38 @@ namespace YBWLib2 {
 			inline ReferenceCountedObject* GetManagedObject() noexcept { return static_cast<ReferenceCountedObject*>(this->GetElement()); }
 			/// <summary>Destroys the object managed by this control block.</summary>
 			inline virtual void DestroyManagedObject() noexcept override {
+				assert(!this->flag_defer_destroy_control_block);
+				// The managed object holds a weak reference to itself (in order to avoid the control block being destroyed prematurely).
+				// Setting this flag ensures the destruction of *this is deferred to before the returning of this member function.
+				this->flag_defer_destroy_control_block = true;
 				this->GetManagedObject()->~element_type();
+				if (!this->flag_defer_destroy_control_block) {
+					// DestroyControlBlock has deferred destroying the control block.
+					// The control block should be destroyed now.
+					// This branch is taken if this function is called as a part of destroying the managed object.
+					delete this;
+				}
+				else {
+					// This branch is taken if DestroyControlBlock is not called as a part of destroying the managed object,
+					// and the control block should remain valid after this function returns.
+					this->flag_defer_destroy_control_block = false;
+				}
 			}
 			/// <summary>Destroys this control block itself.</summary>
 			inline virtual void DestroyControlBlock() noexcept override {
-				delete this;
+				if (this->flag_defer_destroy_control_block) {
+					// DestroyManagedObject has required that the destruction of *this be deferred.
+					// Clearing the flag tells DestroyManagedObject to destroy the control block when it has finished its work.
+					// This branch is taken if this function is called as a part of destroying the managed object.
+					this->flag_defer_destroy_control_block = false;
+				}
+				else {
+					// This branch is taken if the managed object has already been destroyed.
+					delete this;
+				}
 			}
 		private:
+			bool flag_defer_destroy_control_block = false;
 			alignas(alignof(element_type)) unsigned char buf_element[sizeof(element_type)] = {};
 		};
 		ControlBlock* controlblock = new ControlBlock(::std::forward<_Args_Ty>(_args)...);
