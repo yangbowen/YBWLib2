@@ -611,6 +611,7 @@ namespace YBWLib2 {
 		static_assert(sizeof(wchar_t) == sizeof(char16_t));
 		assert(clrruntimepolicy.holder_u16str_version.get_count() <= MAXDWORD);
 		DWORD dword_cch_u16str_version = clrruntimepolicy.holder_u16str_version.get_count() & ~(DWORD)0;
+		clrruntimepolicy.holder_u16str_version_image.construct(MAX_PATH + 1, objholder_rawallocator_t<char16_t[]>::construct_obj);
 		assert(clrruntimepolicy.holder_u16str_version_image.get_count() <= MAXDWORD);
 		DWORD dword_cch_u16str_version_image = clrruntimepolicy.holder_u16str_version_image.get_count() & ~(DWORD)0;
 		HRESULT hr = _clrhostcontext.GetCLRMetaHostPolicyCOMObjectHolder(_already_exclusive_locked_clrhostcontext)->GetRequestedRuntime(
