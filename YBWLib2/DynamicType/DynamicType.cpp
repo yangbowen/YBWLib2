@@ -46,34 +46,6 @@ namespace YBWLib2 {
 		DynamicTypeClassObj* dtclassobj_top_virtual_along_route = nullptr;
 		::std::vector<upcast_step_t> vec_upcast_step;
 		inline DynamicTypeTotalBaseClass() noexcept = default;
-		inline DynamicTypeTotalBaseClass(
-			const DynamicTypeClassID& _dtclassid_thisclass,
-			const DynamicTypeClassID& _dtclassid_baseclass,
-			DynamicTypeClassObj* _dtclassobj_baseclass,
-			DynamicTypeClassObj* _dtclassobj_top_virtual_along_route,
-			const ::std::vector<upcast_step_t>& _vec_upcast_step)
-			: dtclassid_thisclass(_dtclassid_thisclass),
-			dtclassid_baseclass(_dtclassid_baseclass),
-			dtclassobj_baseclass(_dtclassobj_baseclass),
-			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route)/*,
-			vec_upcast_step(_vec_upcast_step)*/ {
-			// TODO: Remove workaround of compiler bug when no longer necessary.
-			this->vec_upcast_step.assign(_vec_upcast_step.cbegin(), _vec_upcast_step.cend());
-		}
-		inline DynamicTypeTotalBaseClass(
-			const DynamicTypeClassID& _dtclassid_thisclass,
-			const DynamicTypeClassID& _dtclassid_baseclass,
-			DynamicTypeClassObj* _dtclassobj_baseclass,
-			DynamicTypeClassObj* _dtclassobj_top_virtual_along_route,
-			::std::vector<upcast_step_t>&& _vec_upcast_step)
-			: dtclassid_thisclass(_dtclassid_thisclass),
-			dtclassid_baseclass(_dtclassid_baseclass),
-			dtclassobj_baseclass(_dtclassobj_baseclass),
-			dtclassobj_top_virtual_along_route(_dtclassobj_top_virtual_along_route)/*,
-			vec_upcast_step(::std::move(_vec_upcast_step))*/ {
-			// TODO: Remove workaround of compiler bug when no longer necessary.
-			this->vec_upcast_step.assign(_vec_upcast_step.cbegin(), _vec_upcast_step.cend());
-		}
 	};
 
 	class _impl_DynamicTypeClassObj {
