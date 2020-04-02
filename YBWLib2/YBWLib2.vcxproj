@@ -27,6 +27,8 @@
     <ClInclude Include="Common\CommonSTLHelperWindows.h" />
     <ClInclude Include="Common\CommonWindows.h" />
     <ClInclude Include="Common\CommonWindowsModuleLocal.h" />
+    <ClInclude Include="Concurrency\Concurrency.h" />
+    <ClInclude Include="Concurrency\ConcurrencyModuleLocal.h" />
     <ClInclude Include="Debugging\DebuggingWindows.h" />
     <ClInclude Include="Debugging\DebuggingWindowsModuleLocal.h" />
     <ClInclude Include="DynamicType\DynamicType.h" />
@@ -66,6 +68,7 @@
     <ClCompile Include="Common\Common.cpp" />
     <ClCompile Include="Common\CommonLowLevel.cpp" />
     <ClCompile Include="Common\CommonWindows.cpp" />
+    <ClCompile Include="Concurrency\Concurrency.cpp" />
     <ClCompile Include="Debugging\DebuggingWindows.cpp" />
     <ClCompile Include="DynamicType\DynamicType.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />

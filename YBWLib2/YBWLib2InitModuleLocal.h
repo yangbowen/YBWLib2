@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_9F152DB0_9C4B_4804_BFF3_EF102AC3D6C9
+#ifndef _INCLUDE_GUARD_9F152DB0_9C4B_4804_BFF3_EF102AC3D6C9
 #define _INCLUDE_GUARD_9F152DB0_9C4B_4804_BFF3_EF102AC3D6C9
 
 #include <atomic>
@@ -16,6 +16,7 @@
 #include "Common/CommonWindows.h"
 #endif
 #include "Pipeline/Pipeline.h"
+#include "Concurrency/Concurrency.h"
 #include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
 #ifdef _WIN32_WINNT
@@ -53,6 +54,7 @@ namespace YBWLib2 {
 			CommonWindows_RealInitModuleLocal();
 #endif
 			Pipeline_RealInitModuleLocal();
+			Concurrency_RealInitModuleLocal();
 			JSON_RealInitModuleLocal();
 			UserInterface_RealInitModuleLocal();
 #ifdef _WIN32_WINNT
@@ -84,6 +86,7 @@ namespace YBWLib2 {
 #endif
 			UserInterface_RealUnInitModuleLocal();
 			JSON_RealUnInitModuleLocal();
+			Concurrency_RealUnInitModuleLocal();
 			Pipeline_RealUnInitModuleLocal();
 #ifdef _WIN32_WINNT
 			CommonWindows_RealUnInitModuleLocal();

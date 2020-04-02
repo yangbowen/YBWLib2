@@ -1,4 +1,4 @@
-﻿// This header file provides definitions for per-module data structures.
+// This header file provides definitions for per-module data structures.
 // For each executable module that uses functionalities provided by this library,
 // include this header file in one and only one source file.
 
@@ -18,6 +18,7 @@
 #include "Common/CommonWindowsModuleLocal.h"
 #endif
 #include "Pipeline/PipelineModuleLocal.h"
+#include "Concurrency/ConcurrencyModuleLocal.h"
 #include "JSON/JSONModuleLocal.h"
 #include "UserInterface/UserInterfaceModuleLocal.h"
 #ifdef _WIN32_WINNT

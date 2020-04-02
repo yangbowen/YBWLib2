@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Windows.h"
 #include "YBWLib2Api.h"
 #include "YBWLib2Init.h"
@@ -14,6 +14,7 @@
 #include "Common/CommonWindows.h"
 #endif
 #include "Pipeline/Pipeline.h"
+#include "Concurrency/Concurrency.h"
 #include "JSON/JSON.h"
 #include "UserInterface/UserInterface.h"
 #ifdef _WIN32_WINNT
@@ -58,6 +59,8 @@ namespace YBWLib2 {
 #endif
 			Pipeline_RealInitGlobal();
 			Pipeline_RealInitModuleLocal();
+			Concurrency_RealInitGlobal();
+			Concurrency_RealInitModuleLocal();
 			JSON_RealInitGlobal();
 			JSON_RealInitModuleLocal();
 			Internal::YBWLib2InternalConfig_RealInitGlobal();
@@ -121,6 +124,8 @@ namespace YBWLib2 {
 			Internal::YBWLib2InternalConfig_RealUnInitGlobal();
 			JSON_RealUnInitModuleLocal();
 			JSON_RealUnInitGlobal();
+			Concurrency_RealUnInitModuleLocal();
+			Concurrency_RealUnInitGlobal();
 			Pipeline_RealUnInitModuleLocal();
 			Pipeline_RealUnInitGlobal();
 #ifdef _WIN32_WINNT

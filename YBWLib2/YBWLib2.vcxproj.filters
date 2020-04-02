@@ -61,6 +61,12 @@
     <Filter Include="Source Files\Pipeline">
       <UniqueIdentifier>{63fe595b-4742-4e2b-b26d-29b326e49517}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Concurrency">
+      <UniqueIdentifier>{67101921-bf4d-45ce-93f6-c0d403dfb4ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Concurrency">
+      <UniqueIdentifier>{3dc2103e-9779-4b5f-8182-0380d415b98c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -189,6 +195,12 @@
     <ClInclude Include="Pipeline\PipelinePrivateClassDef.h">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Concurrency\Concurrency.h">
+      <Filter>Header Files\Concurrency</Filter>
+    </ClInclude>
+    <ClInclude Include="Concurrency\ConcurrencyModuleLocal.h">
+      <Filter>Header Files\Concurrency</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -247,6 +259,9 @@
     </ClCompile>
     <ClCompile Include="Pipeline\Pipeline.cpp">
       <Filter>Source Files\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Concurrency\Concurrency.cpp">
+      <Filter>Source Files\Concurrency</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
