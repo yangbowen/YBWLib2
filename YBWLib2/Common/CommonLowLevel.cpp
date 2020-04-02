@@ -57,18 +57,28 @@ namespace YBWLib2 {
 	YBWLIB2_API void VolatileIDAnchor::DecrementReferenceCount() const noexcept {
 		try {
 			uintptr_t value_refcount = this->refcount.load(::std::memory_order_relaxed);
-			while (true) {
-				assert(value_refcount);
-				if (value_refcount == 1) {
-					::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
-					if (this->refcount.compare_exchange_weak(value_refcount, 0, ::std::memory_order_acq_rel, ::std::memory_order_relaxed)) {
-						bool is_ok_erase = map_volatileidanchor->erase(this->persistentid);
-						static_cast<void>(is_ok_erase);
-						assert(is_ok_erase);
-						break;
-					}
+			assert(value_refcount);
+			while (value_refcount != 1) {
+				if (this->refcount.compare_exchange_weak(value_refcount, value_refcount - 1, ::std::memory_order_release, ::std::memory_order_relaxed)) {
+					assert(value_refcount != 1);
+					break;
 				} else {
-					if (this->refcount.compare_exchange_weak(value_refcount, value_refcount - 1, ::std::memory_order_release, ::std::memory_order_relaxed)) break;
+					assert(value_refcount);
+				}
+			}
+			if (value_refcount == 1) {
+				::std::unique_lock<::std::mutex> unique_lock_mtx_map_volatileidanchor(*mtx_map_volatileidanchor);
+				while (true) {
+					if (this->refcount.compare_exchange_weak(value_refcount, value_refcount - 1, ::std::memory_order_acq_rel, ::std::memory_order_relaxed)) {
+						if (value_refcount == 1) {
+							bool is_ok_erase = map_volatileidanchor->erase(this->persistentid);
+							static_cast<void>(is_ok_erase);
+							assert(is_ok_erase);
+						}
+						break;
+					} else {
+						assert(value_refcount);
+					}
 				}
 			}
 		} catch (...) {

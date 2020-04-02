@@ -25,6 +25,7 @@
 #if !defined(YBWLIB2_NO_ALLOCA) && defined(_MSC_VER)
 #include <malloc.h>
 #endif
+#include "../Common/CommonLowLevel.h"
 #include "../Exception/ExceptionLowLevel.h"
 #include "../DynamicType/DynamicType.h"
 #include "../Exception/Exception.h"
