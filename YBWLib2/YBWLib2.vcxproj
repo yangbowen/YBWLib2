@@ -229,6 +229,7 @@ popd
       <LanguageStandard>stdcpp17</LanguageStandard>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <AdditionalOptions>/ZH:SHA_256 /Zc:__cplusplus /Zc:strictStrings /utf-8 /validate-charset %(AdditionalOptions)</AdditionalOptions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -252,6 +253,7 @@ popd
       <LanguageStandard>stdcpp17</LanguageStandard>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <AdditionalOptions>/ZH:SHA_256 /Zc:__cplusplus /Zc:strictStrings /utf-8 /validate-charset %(AdditionalOptions)</AdditionalOptions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -278,12 +280,13 @@ popd
       <LanguageStandard>stdcpp17</LanguageStandard>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <AdditionalOptions>/ZH:SHA_256 /Zc:__cplusplus /Zc:strictStrings /utf-8 /validate-charset %(AdditionalOptions)</AdditionalOptions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>
@@ -306,12 +309,13 @@ popd
       <LanguageStandard>stdcpp17</LanguageStandard>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <AdditionalOptions>/ZH:SHA_256 /Zc:__cplusplus /Zc:strictStrings /utf-8 /validate-charset %(AdditionalOptions)</AdditionalOptions>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
       <AdditionalOptions>/NATVIS:YBWLib2.natvis %(AdditionalOptions)</AdditionalOptions>

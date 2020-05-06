@@ -33,23 +33,23 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	template<typename _Uint_Ty>
-	[[nodiscard]] inline IException* GenericUintFromLarge(_Uint_Ty& uint_ret, const void* buf_uint_from, size_t size_buf_uint_from) noexcept {
-		static_assert(::std::is_object_v<_Uint_Ty>, "The specified unsigned integral type is not an object type.");
-		static_assert(::std::is_integral_v<_Uint_Ty>, "The specified unsigned integral type is not integral.");
-		static_assert(::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not unsigned.");
+	template<typename T_Uint>
+	[[nodiscard]] inline IException* GenericUintFromLarge(T_Uint& uint_ret, const void* buf_uint_from, size_t size_buf_uint_from) noexcept {
+		static_assert(::std::is_object_v<T_Uint>, "The specified unsigned integral type is not an object type.");
+		static_assert(::std::is_integral_v<T_Uint>, "The specified unsigned integral type is not integral.");
+		static_assert(::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not unsigned.");
 		if (!size_buf_uint_from) {
 			uint_ret = 0;
 			return nullptr;
 		}
 		if (!buf_uint_from) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 		uint_ret = 0;
-		if (sizeof(_Uint_Ty) >= size_buf_uint_from) {
+		if (sizeof(T_Uint) >= size_buf_uint_from) {
 			if (*is_byte_order_le) {
 				memcpy(&uint_ret, buf_uint_from, size_buf_uint_from);
 				return nullptr;
 			} else if (*is_byte_order_be) {
-				memcpy(reinterpret_cast<uint8_t*>(&uint_ret) + (sizeof(_Uint_Ty) - size_buf_uint_from), buf_uint_from, size_buf_uint_from);
+				memcpy(reinterpret_cast<uint8_t*>(&uint_ret) + (sizeof(T_Uint) - size_buf_uint_from), buf_uint_from, size_buf_uint_from);
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
@@ -58,20 +58,20 @@ namespace YBWLib2 {
 			if (*is_byte_order_le) {
 				{
 					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + size_buf_uint_from;
-					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + sizeof(_Uint_Ty); p_from < limit_p_from; ++p_from)
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + sizeof(T_Uint); p_from < limit_p_from; ++p_from)
 						if (*p_from)
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 				}
-				memcpy(&uint_ret, buf_uint_from, sizeof(_Uint_Ty));
+				memcpy(&uint_ret, buf_uint_from, sizeof(T_Uint));
 				return nullptr;
 			} else if (*is_byte_order_be) {
 				{
-					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(_Uint_Ty));
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(T_Uint));
 					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_uint_from); p_from < limit_p_from; ++p_from)
 						if (*p_from)
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
 				}
-				memcpy(&uint_ret, reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(_Uint_Ty)), sizeof(_Uint_Ty));
+				memcpy(&uint_ret, reinterpret_cast<const uint8_t*>(buf_uint_from) + (size_buf_uint_from - sizeof(T_Uint)), sizeof(T_Uint));
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintFromLarge);
@@ -94,11 +94,11 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	template<typename _Uint_Ty>
-	[[nodiscard]] inline IException* GenericUintToLarge(_Uint_Ty uint, void* buf_uint_to, size_t size_buf_uint_to) noexcept {
-		static_assert(::std::is_object_v<_Uint_Ty>, "The specified unsigned integral type is not an object type.");
-		static_assert(::std::is_integral_v<_Uint_Ty>, "The specified unsigned integral type is not integral.");
-		static_assert(::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not unsigned.");
+	template<typename T_Uint>
+	[[nodiscard]] inline IException* GenericUintToLarge(T_Uint uint, void* buf_uint_to, size_t size_buf_uint_to) noexcept {
+		static_assert(::std::is_object_v<T_Uint>, "The specified unsigned integral type is not an object type.");
+		static_assert(::std::is_integral_v<T_Uint>, "The specified unsigned integral type is not integral.");
+		static_assert(::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not unsigned.");
 		if (!size_buf_uint_to) {
 			if (uint)
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
@@ -106,20 +106,20 @@ namespace YBWLib2 {
 				return nullptr;
 		}
 		if (!buf_uint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
-		if (size_buf_uint_to >= sizeof(_Uint_Ty)) {
+		if (size_buf_uint_to >= sizeof(T_Uint)) {
 			if (*is_byte_order_le) {
-				memcpy(buf_uint_to, &uint, sizeof(_Uint_Ty));
-				memset(reinterpret_cast<uint8_t*>(buf_uint_to) + sizeof(_Uint_Ty), 0, size_buf_uint_to - sizeof(_Uint_Ty));
+				memcpy(buf_uint_to, &uint, sizeof(T_Uint));
+				memset(reinterpret_cast<uint8_t*>(buf_uint_to) + sizeof(T_Uint), 0, size_buf_uint_to - sizeof(T_Uint));
 				return nullptr;
 			} else if (*is_byte_order_be) {
-				memset(buf_uint_to, 0, size_buf_uint_to - sizeof(_Uint_Ty));
-				memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - sizeof(_Uint_Ty)), &uint, sizeof(_Uint_Ty));
+				memset(buf_uint_to, 0, size_buf_uint_to - sizeof(T_Uint));
+				memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - sizeof(T_Uint)), &uint, sizeof(T_Uint));
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
 			}
 		} else {
-			size_t size_needed_uint = sizeof(_Uint_Ty) - count_leading_zero<_Uint_Ty>(uint) / 0x8;
+			size_t size_needed_uint = sizeof(T_Uint) - count_leading_zero<T_Uint>(uint) / 0x8;
 			if (size_buf_uint_to >= size_needed_uint) {
 				if (*is_byte_order_le) {
 					memcpy(buf_uint_to, &uint, size_needed_uint);
@@ -127,7 +127,7 @@ namespace YBWLib2 {
 					return nullptr;
 				} else if (*is_byte_order_be) {
 					memset(buf_uint_to, 0, size_buf_uint_to - size_needed_uint);
-					memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - size_needed_uint), reinterpret_cast<const uint8_t*>(&uint) + (sizeof(_Uint_Ty) - size_needed_uint), size_needed_uint);
+					memcpy(reinterpret_cast<uint8_t*>(buf_uint_to) + (size_buf_uint_to - size_needed_uint), reinterpret_cast<const uint8_t*>(&uint) + (sizeof(T_Uint) - size_needed_uint), size_needed_uint);
 					return nullptr;
 				} else {
 					return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericUintToLarge);
@@ -222,11 +222,11 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	template<typename _Sint_Ty>
-	[[nodiscard]] inline IException* GenericSintFromLarge(_Sint_Ty& sint_ret, const void* buf_sint_from, size_t size_buf_sint_from) noexcept {
-		static_assert(::std::is_object_v<_Sint_Ty>, "The specified signed integral type is not an object type.");
-		static_assert(::std::is_integral_v<_Sint_Ty>, "The specified signed integral type is not integral.");
-		static_assert(::std::is_signed_v<_Sint_Ty>, "The specified signed integral type is not signed.");
+	template<typename T_Sint>
+	[[nodiscard]] inline IException* GenericSintFromLarge(T_Sint& sint_ret, const void* buf_sint_from, size_t size_buf_sint_from) noexcept {
+		static_assert(::std::is_object_v<T_Sint>, "The specified signed integral type is not an object type.");
+		static_assert(::std::is_integral_v<T_Sint>, "The specified signed integral type is not integral.");
+		static_assert(::std::is_signed_v<T_Sint>, "The specified signed integral type is not signed.");
 		if (!size_buf_sint_from) {
 			sint_ret = 0;
 			return nullptr;
@@ -240,14 +240,14 @@ namespace YBWLib2 {
 		} else {
 			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
 		}
-		if (sizeof(_Sint_Ty) >= size_buf_sint_from) {
+		if (sizeof(T_Sint) >= size_buf_sint_from) {
 			if (*is_byte_order_le) {
 				memcpy(&sint_ret, buf_sint_from, size_buf_sint_from);
-				memset(reinterpret_cast<uint8_t*>(&sint_ret) + size_buf_sint_from, byte_sign_extend, sizeof(_Sint_Ty) - size_buf_sint_from);
+				memset(reinterpret_cast<uint8_t*>(&sint_ret) + size_buf_sint_from, byte_sign_extend, sizeof(T_Sint) - size_buf_sint_from);
 				return nullptr;
 			} else if (*is_byte_order_be) {
-				memset(&sint_ret, byte_sign_extend, sizeof(_Sint_Ty) - size_buf_sint_from);
-				memcpy(reinterpret_cast<uint8_t*>(&sint_ret) + (sizeof(_Sint_Ty) - size_buf_sint_from), buf_sint_from, size_buf_sint_from);
+				memset(&sint_ret, byte_sign_extend, sizeof(T_Sint) - size_buf_sint_from);
+				memcpy(reinterpret_cast<uint8_t*>(&sint_ret) + (sizeof(T_Sint) - size_buf_sint_from), buf_sint_from, size_buf_sint_from);
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
@@ -256,24 +256,24 @@ namespace YBWLib2 {
 			if (*is_byte_order_le) {
 				{
 					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + size_buf_sint_from;
-					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + sizeof(_Sint_Ty); p_from < limit_p_from; ++p_from)
+					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + sizeof(T_Sint); p_from < limit_p_from; ++p_from)
 						if (*p_from != byte_sign_extend)
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
 				}
-				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (sizeof(_Sint_Ty) - 1)) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (sizeof(T_Sint) - 1)) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
 					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
-				memcpy(&sint_ret, buf_sint_from, sizeof(_Sint_Ty));
+				memcpy(&sint_ret, buf_sint_from, sizeof(T_Sint));
 				return nullptr;
 			} else if (*is_byte_order_be) {
 				{
-					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty));
+					const uint8_t* limit_p_from = reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(T_Sint));
 					for (const uint8_t* p_from = reinterpret_cast<const uint8_t*>(buf_sint_from); p_from < limit_p_from; ++p_from)
 						if (*p_from != byte_sign_extend)
 							return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
 				}
-				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty))) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
+				if ((*(reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(T_Sint))) & (1 << (0x8 - 1))) != (byte_sign_extend & (1 << (0x8 - 1))))
 					return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
-				memcpy(&sint_ret, reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(_Sint_Ty)), sizeof(_Sint_Ty));
+				memcpy(&sint_ret, reinterpret_cast<const uint8_t*>(buf_sint_from) + (size_buf_sint_from - sizeof(T_Sint)), sizeof(T_Sint));
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintFromLarge);
@@ -296,11 +296,11 @@ namespace YBWLib2 {
 	/// Returns an empty pointer otherwise.
 	/// The caller is responsible for destructing and freeing the object pointed to.
 	/// </returns>
-	template<typename _Sint_Ty>
-	[[nodiscard]] inline IException* GenericSintToLarge(_Sint_Ty sint, void* buf_sint_to, size_t size_buf_sint_to) noexcept {
-		static_assert(::std::is_object_v<_Sint_Ty>, "The specified signed integral type is not an object type.");
-		static_assert(::std::is_integral_v<_Sint_Ty>, "The specified signed integral type is not integral.");
-		static_assert(::std::is_signed_v<_Sint_Ty>, "The specified signed integral type is not signed.");
+	template<typename T_Sint>
+	[[nodiscard]] inline IException* GenericSintToLarge(T_Sint sint, void* buf_sint_to, size_t size_buf_sint_to) noexcept {
+		static_assert(::std::is_object_v<T_Sint>, "The specified signed integral type is not an object type.");
+		static_assert(::std::is_integral_v<T_Sint>, "The specified signed integral type is not integral.");
+		static_assert(::std::is_signed_v<T_Sint>, "The specified signed integral type is not signed.");
 		if (!size_buf_sint_to) {
 			if (sint)
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
@@ -309,20 +309,20 @@ namespace YBWLib2 {
 		}
 		if (!buf_sint_to) return YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
 		uint8_t byte_sign_extend = sint < 0 ? ~(uint8_t)0 : 0;
-		if (size_buf_sint_to >= sizeof(_Sint_Ty)) {
+		if (size_buf_sint_to >= sizeof(T_Sint)) {
 			if (*is_byte_order_le) {
-				memcpy(buf_sint_to, &sint, sizeof(_Sint_Ty));
-				memset(reinterpret_cast<uint8_t*>(buf_sint_to) + sizeof(_Sint_Ty), byte_sign_extend, size_buf_sint_to - sizeof(_Sint_Ty));
+				memcpy(buf_sint_to, &sint, sizeof(T_Sint));
+				memset(reinterpret_cast<uint8_t*>(buf_sint_to) + sizeof(T_Sint), byte_sign_extend, size_buf_sint_to - sizeof(T_Sint));
 				return nullptr;
 			} else if (*is_byte_order_be) {
-				memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - sizeof(_Sint_Ty));
-				memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - sizeof(_Sint_Ty)), &sint, sizeof(_Sint_Ty));
+				memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - sizeof(T_Sint));
+				memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - sizeof(T_Sint)), &sint, sizeof(T_Sint));
 				return nullptr;
 			} else {
 				return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
 			}
 		} else {
-			size_t size_needed_sint = sizeof(_Sint_Ty) - (count_leading_zero<::std::make_unsigned_t<_Sint_Ty>>(sint < 0 ? ~(::std::make_unsigned_t<_Sint_Ty>)sint : (::std::make_unsigned_t<_Sint_Ty>)sint) - 1) / 0x8;
+			size_t size_needed_sint = sizeof(T_Sint) - (count_leading_zero<::std::make_unsigned_t<T_Sint>>(sint < 0 ? ~(::std::make_unsigned_t<T_Sint>)sint : (::std::make_unsigned_t<T_Sint>)sint) - 1) / 0x8;
 			if (size_buf_sint_to >= size_needed_sint) {
 				if (*is_byte_order_le) {
 					memcpy(buf_sint_to, &sint, size_needed_sint);
@@ -330,7 +330,7 @@ namespace YBWLib2 {
 					return nullptr;
 				} else if (*is_byte_order_be) {
 					memset(buf_sint_to, byte_sign_extend, size_buf_sint_to - size_needed_sint);
-					memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - size_needed_sint), reinterpret_cast<const uint8_t*>(&sint) + (sizeof(_Sint_Ty) - size_needed_sint), size_needed_sint);
+					memcpy(reinterpret_cast<uint8_t*>(buf_sint_to) + (size_buf_sint_to - size_needed_sint), reinterpret_cast<const uint8_t*>(&sint) + (sizeof(T_Sint) - size_needed_sint), size_needed_sint);
 					return nullptr;
 				} else {
 					return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_NOCLASS(::YBWLib2::GenericSintToLarge);
@@ -426,68 +426,68 @@ namespace YBWLib2 {
 	static_assert(sizeof(uint8_t) == 1, "The size of uint8_t is not 1.");
 
 	/// <summary>An object for holding a pointer to another object that's placement-created in memory allocated by a <c>rawallocator_t</c> object.</summary>
-	template<typename _Element_Ty>
+	template<typename T_Element>
 	struct objholder_rawallocator_t final {
-		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
-		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
+		static_assert(::std::is_object_v<T_Element>, "The element type is not an object type.");
+		static_assert(!::std::is_const_v<T_Element>, "The element type is const-qualified.");
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};
 		inline static constexpr void* align(void* _ptr) noexcept {
-			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
+			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element) - 1) % alignof(T_Element)) - 1);
 		}
 		inline static constexpr const void* align(const void* _ptr) noexcept {
-			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty) - 1) % alignof(_Element_Ty)) - 1);
+			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element) - 1) % alignof(T_Element)) - 1);
 		}
 		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator) noexcept(false)
 			: rawallocator(_rawallocator) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 		}
-		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator, _Element_Ty*&& _ptr_element, void*&& _ptr_mem, size_t _size_mem) noexcept(false)
+		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator, T_Element*&& _ptr_element, void*&& _ptr_mem, size_t _size_mem) noexcept(false)
 			: rawallocator(_rawallocator), ptr_element(::std::move(_ptr_element)), ptr_mem(::std::move(_ptr_mem)), size_mem(_size_mem) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			_ptr_element = nullptr;
 			_ptr_mem = nullptr;
 		}
-		template<typename... _Args_Ty>
-		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, construct_obj_t, _Args_Ty&&... args) noexcept(false)
+		template<typename... T_Args>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, construct_obj_t, T_Args&&... args) noexcept(false)
 			: rawallocator(_rawallocator) {
-			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
+			static_assert(::std::is_constructible_v<T_Element, T_Args...>, "The element type is not constructible with the specified arguments.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty);
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+			this->size_mem = sizeof(T_Element);
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			this->ptr_element = new(this->ptr_mem) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+			this->ptr_element = new(this->ptr_mem) T_Element(::std::forward<T_Args>(args)...);
 		}
-		template<typename _Callable_Ty>
-		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, _Callable_Ty _callable) noexcept(false)
+		template<typename T_Callable>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, T_Callable _callable) noexcept(false)
 			: rawallocator(_rawallocator) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*>, "The callable value is invalid.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty);
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+			this->size_mem = sizeof(T_Element);
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			this->ptr_element = _callable(static_cast<void*>(this->ptr_mem));
 		}
 		inline objholder_rawallocator_t(const objholder_rawallocator_t& x) noexcept(false) : rawallocator(x.rawallocator) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_element) {
-					this->size_mem = sizeof(_Element_Ty);
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+					this->size_mem = sizeof(T_Element);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-				this->ptr_element = new(this->ptr_mem) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->ptr_mem) T_Element(*x.ptr_element);
 			}
 		}
 		inline objholder_rawallocator_t(objholder_rawallocator_t&& x) noexcept(false) {
@@ -505,11 +505,11 @@ namespace YBWLib2 {
 		}
 		inline ~objholder_rawallocator_t() {
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				if (this->is_element_as_mem) {
 					if (this->ptr_mem || this->size_mem) abort();
 					this->ptr_mem = this->ptr_element;
-					this->size_mem = sizeof(_Element_Ty);
+					this->size_mem = sizeof(T_Element);
 					this->is_element_as_mem = false;
 				}
 				this->ptr_element = nullptr;
@@ -524,14 +524,14 @@ namespace YBWLib2 {
 			this->rawallocator = nullptr;
 		}
 		inline objholder_rawallocator_t& operator=(const objholder_rawallocator_t& x) noexcept(false) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				if (this->is_element_as_mem) {
 					if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 					this->ptr_mem = this->ptr_element;
-					this->size_mem = sizeof(_Element_Ty);
+					this->size_mem = sizeof(T_Element);
 					this->is_element_as_mem = false;
 				}
 				this->ptr_element = nullptr;
@@ -546,31 +546,31 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_element) {
-					this->size_mem = sizeof(_Element_Ty);
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+					this->size_mem = sizeof(T_Element);
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, operator=));
-				this->ptr_element = new(this->ptr_mem) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->ptr_mem) T_Element(*x.ptr_element);
 			}
 			return *this;
 		}
 		inline objholder_rawallocator_t& operator=(objholder_rawallocator_t&& x) noexcept(false) {
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				if (this->is_element_as_mem) {
 					if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 					this->ptr_mem = this->ptr_element;
-					this->size_mem = sizeof(_Element_Ty);
+					this->size_mem = sizeof(T_Element);
 					this->is_element_as_mem = false;
 				}
 				this->ptr_element = nullptr;
@@ -594,16 +594,16 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_element; }
-		inline _Element_Ty& operator*() const noexcept {
+		inline T_Element& operator*() const noexcept {
 			assert(this->ptr_element);
 			return *this->ptr_element;
 		}
-		inline _Element_Ty* operator->() const noexcept {
+		inline T_Element* operator->() const noexcept {
 			assert(this->ptr_element);
 			return this->ptr_element;
 		}
-		inline _Element_Ty* const& get() const noexcept { return this->ptr_element; }
-		inline void reset(_Element_Ty*&& _ptr_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
+		inline T_Element* const& get() const noexcept { return this->ptr_element; }
+		inline void reset(T_Element*&& _ptr_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
 			this->free();
 			this->ptr_element = _ptr_element;
 			_ptr_element = nullptr;
@@ -611,12 +611,12 @@ namespace YBWLib2 {
 			_ptr_mem = nullptr;
 			this->size_mem = _size_mem;
 		}
-		inline void release(_Element_Ty*& _ptr_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
+		inline void release(T_Element*& _ptr_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
 			_ptr_element = this->ptr_element;
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_element;
-				this->size_mem = sizeof(_Element_Ty);
+				this->size_mem = sizeof(T_Element);
 				this->is_element_as_mem = false;
 			}
 			this->ptr_element = nullptr;
@@ -625,27 +625,27 @@ namespace YBWLib2 {
 			_size_mem = this->size_mem;
 			this->size_mem = nullptr;
 		}
-		template<typename... _Args_Ty>
-		inline void construct(construct_obj_t, _Args_Ty&&... args) noexcept(false) {
-			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
+		template<typename... T_Args>
+		inline void construct(construct_obj_t, T_Args&&... args) noexcept(false) {
+			static_assert(::std::is_constructible_v<T_Element, T_Args...>, "The element type is not constructible with the specified arguments.");
 			if (this->is_element_as_mem && this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				void* ptr_mem_aligned = this->ptr_element;
 				this->ptr_element = nullptr;
-				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+				this->ptr_element = new(ptr_mem_aligned) T_Element(::std::forward<T_Args>(args)...);
 			} else {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
-				this->ptr_element = new(ptr_mem_aligned) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(T_Element) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				this->ptr_element = new(ptr_mem_aligned) T_Element(::std::forward<T_Args>(args)...);
 			}
 		}
-		template<typename _Callable_Ty>
-		inline void construct(_Callable_Ty _callable) noexcept(false) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+		template<typename T_Callable>
+		inline void construct(T_Callable _callable) noexcept(false) {
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*>, "The callable value is invalid.");
 			if (this->is_element_as_mem && this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				void* ptr_mem_aligned = this->ptr_element;
 				this->ptr_element = nullptr;
 				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
@@ -653,7 +653,7 @@ namespace YBWLib2 {
 				this->destruct();
 				this->allocate();
 				void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+				if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(T_Element) > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_element = _callable(static_cast<void*>(ptr_mem_aligned));
 			}
 		}
@@ -661,11 +661,11 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_element;
-				this->size_mem = sizeof(_Element_Ty);
+				this->size_mem = sizeof(T_Element);
 				this->is_element_as_mem = false;
 			}
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 		}
@@ -673,17 +673,17 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_element;
-				this->size_mem = sizeof(_Element_Ty);
+				this->size_mem = sizeof(T_Element);
 				this->is_element_as_mem = false;
 			}
 			if (!this->ptr_mem) {
-				this->size_mem = sizeof(_Element_Ty);
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+				this->size_mem = sizeof(T_Element);
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(T_Element) != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				this->free();
-				this->size_mem = sizeof(_Element_Ty);
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty));
+				this->size_mem = sizeof(T_Element);
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			}
 		}
@@ -699,12 +699,12 @@ namespace YBWLib2 {
 			if (!this->is_element_as_mem) free();
 			this->is_element_as_mem = true;
 		}
-		inline _Element_Ty*& get_ref_ptr_element_element_as_mem() noexcept {
+		inline T_Element*& get_ref_ptr_element_element_as_mem() noexcept {
 			this->set_element_as_mem();
 			return this->ptr_element;
 		}
 	private:
-		_Element_Ty* ptr_element = nullptr;
+		T_Element* ptr_element = nullptr;
 		const rawallocator_t* rawallocator = nullptr;
 		void* ptr_mem = nullptr;
 		size_t size_mem = 0;
@@ -712,53 +712,53 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>An object for holding a pointer to an array of objects that's placement-created in memory allocated by a <c>rawallocator_t</c> object.</summary>
-	template<typename _Element_Ty>
-	struct objholder_rawallocator_t<_Element_Ty[]> final {
-		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
-		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
+	template<typename T_Element>
+	struct objholder_rawallocator_t<T_Element[]> final {
+		static_assert(::std::is_object_v<T_Element>, "The element type is not an object type.");
+		static_assert(!::std::is_const_v<T_Element>, "The element type is const-qualified.");
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};
 		inline static constexpr void* align(void* _ptr) noexcept {
-			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - 1) % alignof(_Element_Ty[])) - 1);
+			return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element[]) - 1) % alignof(T_Element[])) - 1);
 		}
 		inline static constexpr const void* align(const void* _ptr) noexcept {
-			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(_Element_Ty[]) - 1) % alignof(_Element_Ty[])) - 1);
+			return reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element[]) - ((reinterpret_cast<uintptr_t>(_ptr) + alignof(T_Element[]) - 1) % alignof(T_Element[])) - 1);
 		}
 		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator) noexcept(false)
 			: rawallocator(_rawallocator) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 		}
-		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator, _Element_Ty*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept(false)
+		inline constexpr objholder_rawallocator_t(const rawallocator_t* _rawallocator, T_Element*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept(false)
 			: rawallocator(_rawallocator), ptr_array_element(::std::move(_ptr_array_element)), count_element(_count_element), ptr_mem(::std::move(_ptr_mem)), size_mem(_size_mem) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			_ptr_array_element = nullptr;
 			_ptr_mem = nullptr;
 		}
-		template<typename... _Args_Ty>
-		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false)
+		template<typename... T_Args>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, construct_obj_t, T_Args&&... args) noexcept(false)
 			: rawallocator(_rawallocator) {
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) * _count_element;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+			this->size_mem = sizeof(T_Element) * _count_element;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			try {
-				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
+				this->ptr_array_element = reinterpret_cast<T_Element*>(this->ptr_mem);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
-					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<decltype(::std::declval<_Args_Ty>()[this->count_element])>(args[this->count_element])...);
+					new(this->ptr_array_element + this->count_element) T_Element(::std::forward<decltype(::std::declval<T_Args>()[this->count_element])>(args[this->count_element])...);
 			} catch (...) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 				throw;
 			}
 		}
-		template<typename _Callable_Ty>
-		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, _Callable_Ty _callable) noexcept(false)
+		template<typename T_Callable>
+		inline objholder_rawallocator_t(const rawallocator_t* _rawallocator, size_t _count_element, T_Callable _callable) noexcept(false)
 			: rawallocator(_rawallocator) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*, size_t>, "The callable value is invalid.");
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*, size_t>, "The callable value is invalid.");
 			if (!_rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
-			this->size_mem = sizeof(_Element_Ty) * _count_element;
-			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+			this->size_mem = sizeof(T_Element) * _count_element;
+			this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 			if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			this->count_element = _count_element;
 			try {
@@ -769,31 +769,31 @@ namespace YBWLib2 {
 			}
 		}
 		inline objholder_rawallocator_t(const objholder_rawallocator_t& x) noexcept(false) : rawallocator(x.rawallocator) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_array_element) {
-					this->size_mem = sizeof(_Element_Ty) * x.count_element;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+					this->size_mem = sizeof(T_Element) * x.count_element;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_array_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 				try {
-					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
+					this->ptr_array_element = reinterpret_cast<T_Element*>(this->ptr_mem);
 					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
-						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
+						new(this->ptr_array_element + this->count_element) T_Element(static_cast<const T_Element&>(x.ptr_array_element[this->count_element]));
 				} catch (...) {
 					for (; this->count_element; --this->count_element)
-						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+						this->ptr_array_element[this->count_element - 1].~T_Element();
 					this->ptr_array_element = nullptr;
 					throw;
 				}
@@ -818,12 +818,12 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (this->ptr_array_element) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -835,17 +835,17 @@ namespace YBWLib2 {
 			this->rawallocator = nullptr;
 		}
 		inline objholder_rawallocator_t& operator=(const objholder_rawallocator_t& x) noexcept(false) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (!x.rawallocator) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (this->ptr_array_element) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -857,26 +857,26 @@ namespace YBWLib2 {
 			if (x.is_element_as_mem) {
 				if (x.ptr_mem || x.size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				if (x.ptr_array_element) {
-					this->size_mem = sizeof(_Element_Ty) * x.count_element;
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+					this->size_mem = sizeof(T_Element) * x.count_element;
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			} else {
 				this->size_mem = x.size_mem;
 				if (x.ptr_mem) {
-					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+					this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 					if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
 			}
 			if (x.ptr_array_element) {
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_INVALID_PARAMETER_EXCEPTION_CLASS(::YBWLib2::objholder_rawallocator_t, objholder_rawallocator_t));
 				try {
-					this->ptr_array_element = reinterpret_cast<_Element_Ty*>(this->ptr_mem);
+					this->ptr_array_element = reinterpret_cast<T_Element*>(this->ptr_mem);
 					for (this->count_element = 0; this->count_element < x.count_element; ++this->count_element)
-						new(this->ptr_array_element + this->count_element) _Element_Ty(static_cast<const _Element_Ty&>(x.ptr_array_element[this->count_element]));
+						new(this->ptr_array_element + this->count_element) T_Element(static_cast<const T_Element&>(x.ptr_array_element[this->count_element]));
 				} catch (...) {
 					for (; this->count_element; --this->count_element)
-						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+						this->ptr_array_element[this->count_element - 1].~T_Element();
 					this->ptr_array_element = nullptr;
 					throw;
 				}
@@ -888,12 +888,12 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (this->ptr_array_element) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 			}
 			if (this->ptr_mem) {
@@ -916,13 +916,13 @@ namespace YBWLib2 {
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_array_element; }
-		inline _Element_Ty& operator[](size_t idx_element) const noexcept {
+		inline T_Element& operator[](size_t idx_element) const noexcept {
 			assert(this->ptr_array_element);
 			return this->ptr_array_element[idx_element];
 		}
-		inline _Element_Ty* const& get() const noexcept { return this->ptr_array_element; }
+		inline T_Element* const& get() const noexcept { return this->ptr_array_element; }
 		inline size_t get_count() const noexcept { return this->count_element; }
-		inline void reset(_Element_Ty*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
+		inline void reset(T_Element*&& _ptr_array_element, size_t _count_element, void*&& _ptr_mem, size_t _size_mem) noexcept {
 			this->free();
 			this->ptr_array_element = _ptr_array_element;
 			_ptr_array_element = nullptr;
@@ -931,11 +931,11 @@ namespace YBWLib2 {
 			this->count_element = _count_element;
 			this->size_mem = _size_mem;
 		}
-		inline void release(_Element_Ty*& _ptr_array_element, size_t& _count_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
+		inline void release(T_Element*& _ptr_array_element, size_t& _count_element, void*& _ptr_mem, size_t& _size_mem) noexcept {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			_ptr_array_element = this->ptr_array_element;
@@ -947,42 +947,42 @@ namespace YBWLib2 {
 			_size_mem = this->size_mem;
 			this->size_mem = 0;
 		}
-		template<typename... _Args_Ty>
-		inline void construct(size_t _count_element, construct_obj_t, _Args_Ty&&... args) noexcept(false) {
+		template<typename... T_Args>
+		inline void construct(size_t _count_element, construct_obj_t, T_Args&&... args) noexcept(false) {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(T_Element) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			try {
-				this->ptr_array_element = reinterpret_cast<_Element_Ty*>(ptr_mem_aligned);
+				this->ptr_array_element = reinterpret_cast<T_Element*>(ptr_mem_aligned);
 				for (this->count_element = 0; this->count_element < _count_element; ++this->count_element)
-					new(this->ptr_array_element + this->count_element) _Element_Ty(::std::forward<decltype(::std::declval<_Args_Ty>()[this->count_element])>(args[this->count_element])...);
+					new(this->ptr_array_element + this->count_element) T_Element(::std::forward<decltype(::std::declval<T_Args>()[this->count_element])>(args[this->count_element])...);
 			} catch (...) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 				throw;
 			}
 		}
-		template<typename _Callable_Ty>
-		inline void construct(size_t _count_element, _Callable_Ty _callable) noexcept(false) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*, size_t>, "The callable value is invalid.");
+		template<typename T_Callable>
+		inline void construct(size_t _count_element, T_Callable _callable) noexcept(false) {
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*, size_t>, "The callable value is invalid.");
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			this->destruct();
 			this->allocate(_count_element);
 			void* ptr_mem_aligned = objholder_rawallocator_t::align(this->ptr_mem);
-			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
+			if (reinterpret_cast<uintptr_t>(ptr_mem_aligned) + sizeof(T_Element) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) throw(YBWLIB2_EXCEPTION_CREATE_UNEXPECTED_EXCEPTION_EXCEPTION());
 			this->count_element = _count_element;
 			try {
 				this->ptr_array_element = _callable(static_cast<void*>(ptr_mem_aligned), _count_element);
@@ -995,12 +995,12 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (this->ptr_array_element) {
 				for (; this->count_element; --this->count_element)
-					this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+					this->ptr_array_element[this->count_element - 1].~T_Element();
 				this->ptr_array_element = nullptr;
 			}
 		}
@@ -1008,57 +1008,57 @@ namespace YBWLib2 {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (!this->ptr_mem) {
-				this->size_mem = sizeof(_Element_Ty) * _count_element;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+				this->size_mem = sizeof(T_Element) * _count_element;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(T_Element) * _count_element != reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				this->free();
-				this->size_mem = sizeof(_Element_Ty) * _count_element;
-				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(_Element_Ty[]));
+				this->size_mem = sizeof(T_Element) * _count_element;
+				this->ptr_mem = this->rawallocator->Allocate(this->size_mem, alignof(T_Element[]));
 				if (!this->ptr_mem) throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 			} else {
 				this->destruct();
 			}
 		}
-		template<typename ::std::enable_if<::std::is_trivially_copyable_v<_Element_Ty>, int>::type = 0>
+		template<typename ::std::enable_if<::std::is_trivially_copyable_v<T_Element>, int>::type = 0>
 		inline void reallocate(size_t _count_element) noexcept(false) {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			if (!this->ptr_mem) {
 				this->allocate(_count_element);
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element < reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(T_Element) * _count_element < reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				if (this->ptr_array_element) {
 					for (
 						;
-						this->count_element && reinterpret_cast<uintptr_t>(this->ptr_array_element) + sizeof(_Element_Ty) * this->count_element > reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element;
+						this->count_element && reinterpret_cast<uintptr_t>(this->ptr_array_element) + sizeof(T_Element) * this->count_element > reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(T_Element) * _count_element;
 						--this->count_element
 						)
-						this->ptr_array_element[this->count_element - 1].~_Element_Ty();
+						this->ptr_array_element[this->count_element - 1].~T_Element();
 					if (!this->count_element) this->ptr_array_element = nullptr;
 				}
 				void* ptr_mem_old = this->ptr_mem;
-				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(_Element_Ty) * _count_element, alignof(_Element_Ty[]));
+				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(T_Element) * _count_element, alignof(T_Element[]));
 				if (!this->ptr_mem) {
 					this->rawallocator->Deallocate(ptr_mem_old, this->size_mem);
 					throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
-				this->size_mem = sizeof(_Element_Ty) * _count_element;
-			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(_Element_Ty) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
+				this->size_mem = sizeof(T_Element) * _count_element;
+			} else if (reinterpret_cast<uintptr_t>(objholder_rawallocator_t::align(this->ptr_mem)) + sizeof(T_Element) * _count_element > reinterpret_cast<uintptr_t>(this->ptr_mem) + this->size_mem) {
 				void* ptr_mem_old = this->ptr_mem;
-				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(_Element_Ty) * _count_element, alignof(_Element_Ty[]));
+				this->ptr_mem = this->rawallocator->Reallocate(ptr_mem_old, this->size_mem, sizeof(T_Element) * _count_element, alignof(T_Element[]));
 				if (!this->ptr_mem) {
 					this->rawallocator->Deallocate(ptr_mem_old, this->size_mem);
 					throw(YBWLIB2_EXCEPTION_CREATE_MEMORY_ALLOC_FAILURE_EXCEPTION());
 				}
-				this->size_mem = sizeof(_Element_Ty) * _count_element;
+				this->size_mem = sizeof(T_Element) * _count_element;
 			}
 		}
 		inline void free() noexcept {
@@ -1069,24 +1069,24 @@ namespace YBWLib2 {
 			}
 			this->size_mem = 0;
 		}
-		template<typename ::std::enable_if<::std::is_trivial_v<_Element_Ty>, int>::type = 0>
+		template<typename ::std::enable_if<::std::is_trivial_v<T_Element>, int>::type = 0>
 		inline void set_count(size_t _count_element) noexcept(false) {
 			if (this->is_element_as_mem) {
 				if (this->ptr_mem || this->size_mem) abort();
 				this->ptr_mem = this->ptr_array_element;
-				this->size_mem = sizeof(_Element_Ty) * this->count_element;
+				this->size_mem = sizeof(T_Element) * this->count_element;
 				this->is_element_as_mem = false;
 			}
 			this->reallocate(_count_element);
 			assert(this->count_element <= _count_element);
 			for (; this->count_element < _count_element; ++this->count_element)
-				new(this->ptr_array_element + this->count_element) _Element_Ty();
+				new(this->ptr_array_element + this->count_element) T_Element();
 		}
 		inline void set_element_as_mem() noexcept {
 			if (!this->is_element_as_mem) free();
 			this->is_element_as_mem = true;
 		}
-		inline _Element_Ty*& get_ref_ptr_array_element_element_as_mem() noexcept {
+		inline T_Element*& get_ref_ptr_array_element_element_as_mem() noexcept {
 			this->set_element_as_mem();
 			return this->ptr_array_element;
 		}
@@ -1095,7 +1095,7 @@ namespace YBWLib2 {
 			return this->count_element;
 		}
 	private:
-		_Element_Ty* ptr_array_element = nullptr;
+		T_Element* ptr_array_element = nullptr;
 		size_t count_element = 0;
 		const rawallocator_t* rawallocator = nullptr;
 		void* ptr_mem = nullptr;
@@ -1483,9 +1483,9 @@ namespace YBWLib2 {
 
 	class ReferenceCountControlBlock;
 	class ReferenceCountedObject;
-	template<typename _Element_Ty>
+	template<typename T_Element>
 	class ReferenceCountedObjectHolder;
-	template<typename _Element_Ty>
+	template<typename T_Element>
 	class ReferenceCountedObjectWeakHolder;
 
 	/// <summary>
@@ -1596,8 +1596,8 @@ namespace YBWLib2 {
 	/// </summary>
 	class ReferenceCountedObject abstract : public virtual IReferenceCountedObject {
 	private:
-		template<typename _Element_Ty, typename... _Args_Ty>
-		friend ReferenceCountedObjectHolder<_Element_Ty> MakeReferenceCountedObject(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty &&...>);
+		template<typename T_Element, typename... T_Args>
+		friend ReferenceCountedObjectHolder<T_Element> MakeReferenceCountedObject(T_Args&&... _args) noexcept(::std::is_nothrow_constructible_v<T_Element, T_Args&&...>);
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(ReferenceCountedObject, , "8c28401a-e53e-4f56-ab55-7a21fb37be19");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(ReferenceCountedObject);
@@ -1727,26 +1727,26 @@ namespace YBWLib2 {
 	/// Reference counted object holder.
 	/// Counts as one strong reference of the owned object until destructed.
 	/// </summary>
-	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
-	template<typename _Element_Ty>
+	/// <typeparam name="T_Element">The type of the object objects of this class dereferences to.</typeparam>
+	template<typename T_Element>
 	class ReferenceCountedObjectHolder final {
-		template<typename _Element_Ty_Other>
+		template<typename T_Element_Other>
 		friend class ReferenceCountedObjectHolder;
-		template<typename _Element_Ty_Other>
+		template<typename T_Element_Other>
 		friend class ReferenceCountedObjectWeakHolder;
 	public:
 		struct inc_ref_count_t {};
 		static constexpr inc_ref_count_t inc_ref_count {};
-		using element_type = _Element_Ty;
+		using element_type = T_Element;
 		constexpr ReferenceCountedObjectHolder() noexcept {}
 		constexpr ReferenceCountedObjectHolder(nullptr_t) noexcept : ReferenceCountedObjectHolder() {}
 		/// <summary>
 		/// Constructs a <c>ReferenceCountedObjectHolder</c> that owns the object the specified pointer points to, incrementing the object's strong reference count.
 		/// Use this function on a pointer to an already reference-counted object that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectHolder(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
-			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectHolder(T_Element_From* _ptr, inc_ref_count_t) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, T_Element_From>, "The element type isn't derived from IReferenceCountedObject.");
 			this->reset(_ptr, inc_ref_count);
 		}
 		/// <summary>
@@ -1754,21 +1754,21 @@ namespace YBWLib2 {
 		/// Use this function on a pointer to a freshly-created object whose reference count control block hasn't been set up yet,
 		/// or an already reference-counted object that has <c>1</c> strong reference count reserved for the caller..
 		/// </summary>
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline explicit ReferenceCountedObjectHolder(_Element_From_Ty*&& _ptr) noexcept {
-			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline explicit ReferenceCountedObjectHolder(T_Element_From*&& _ptr) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, T_Element_From>, "The element type isn't derived from IReferenceCountedObject.");
 			this->reset(::std::move(_ptr));
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectHolder(ReferenceCountedObjectHolder<T_Element_From>&& x) noexcept {
 			this->assign(::std::move(x));
 		}
-		template<typename _Element_From_Ty>
-		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x, element_type* _ptr) noexcept {
+		template<typename T_Element_From>
+		inline ReferenceCountedObjectHolder(const ReferenceCountedObjectHolder<T_Element_From>& x, element_type* _ptr) noexcept {
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_strong_new = x.controlblock_owned->IncStrongReferenceCount();
 				assert(ref_count_strong_new);
@@ -1783,20 +1783,20 @@ namespace YBWLib2 {
 		inline explicit operator bool() const noexcept { return this->ptr_stored; }
 		inline element_type& operator*() const noexcept { return *this->ptr_stored; }
 		inline element_type* operator->() const noexcept { return this->ptr_stored; }
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectHolder& operator=(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 			return *this;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectHolder& operator=(ReferenceCountedObjectHolder<T_Element_From>&& x) noexcept {
 			this->assign(::std::move(x));
 			return *this;
 		}
-		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
-		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept;
+		template<typename T_Element_From>
+		inline bool owner_before(const ReferenceCountedObjectHolder<T_Element_From>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+		template<typename T_Element_From>
+		inline bool owner_before(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) const noexcept;
 		inline void reset() noexcept {
 			if (this->controlblock_owned) {
 				this->controlblock_owned->DecStrongReferenceCount();
@@ -1811,9 +1811,9 @@ namespace YBWLib2 {
 		/// Makes this object manages the object the specified pointer points to, incrementing the later object's reference count.
 		/// Use this function on an existing pointer that has no reference counts reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void reset(_Element_From_Ty* _ptr, inc_ref_count_t) noexcept {
-			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void reset(T_Element_From* _ptr, inc_ref_count_t) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, T_Element_From>, "The element type isn't derived from IReferenceCountedObject.");
 			if (_ptr) {
 				const IReferenceCountedObject* refcountedobject_owned = _ptr;
 				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
@@ -1827,9 +1827,9 @@ namespace YBWLib2 {
 		/// Makes this object manage the object the specified pointer points to, without changing the later object's reference count.
 		/// Use this function on a freshly obtained pointer that has one reference count reserved for the caller.
 		/// </summary>
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void reset(_Element_From_Ty*&& _ptr) noexcept {
-			static_assert(::std::is_base_of_v<IReferenceCountedObject, _Element_From_Ty>, "The element type isn't derived from IReferenceCountedObject.");
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void reset(T_Element_From*&& _ptr) noexcept {
+			static_assert(::std::is_base_of_v<IReferenceCountedObject, T_Element_From>, "The element type isn't derived from IReferenceCountedObject.");
 			if (_ptr) {
 				const IReferenceCountedObject* refcountedobject_owned = _ptr;
 				this->controlblock_owned = refcountedobject_owned->GetReferenceCountControlBlock();
@@ -1838,8 +1838,8 @@ namespace YBWLib2 {
 				_ptr = nullptr;
 			}
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void assign(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void assign(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->reset();
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_strong_new = x.controlblock_owned->IncStrongReferenceCount();
@@ -1848,8 +1848,8 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void assign(ReferenceCountedObjectHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void assign(ReferenceCountedObjectHolder<T_Element_From>&& x) noexcept {
 			this->reset();
 			this->ptr_stored = x.ptr_stored;
 			this->controlblock_owned = x.controlblock_owned;
@@ -1897,93 +1897,93 @@ namespace YBWLib2 {
 		element_type* ptr_stored = nullptr;
 		IReferenceCountControlBlock* controlblock_owned = nullptr;
 	};
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator==(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() == nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() != nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() < nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() <= nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() > nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_L_Ty>& l, const ReferenceCountedObjectHolder<_Element_R_Ty>& r) { return l.get() >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(nullptr_t, const ReferenceCountedObjectHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(const ReferenceCountedObjectHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator==(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() == r.get(); }
+	template<typename T_Element>
+	inline bool operator==(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr == r.get(); }
+	template<typename T_Element>
+	inline bool operator==(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() == nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator!=(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() != r.get(); }
+	template<typename T_Element>
+	inline bool operator!=(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr != r.get(); }
+	template<typename T_Element>
+	inline bool operator!=(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() != nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator<(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() < r.get(); }
+	template<typename T_Element>
+	inline bool operator<(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr < r.get(); }
+	template<typename T_Element>
+	inline bool operator<(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() < nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator<=(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() <= r.get(); }
+	template<typename T_Element>
+	inline bool operator<=(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr <= r.get(); }
+	template<typename T_Element>
+	inline bool operator<=(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() <= nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator>(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() > r.get(); }
+	template<typename T_Element>
+	inline bool operator>(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr > r.get(); }
+	template<typename T_Element>
+	inline bool operator>(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() > nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator>=(const ReferenceCountedObjectHolder<T_Element_L>& l, const ReferenceCountedObjectHolder<T_Element_R>& r) { return l.get() >= r.get(); }
+	template<typename T_Element>
+	inline bool operator>=(nullptr_t, const ReferenceCountedObjectHolder<T_Element>& r) { return nullptr >= r.get(); }
+	template<typename T_Element>
+	inline bool operator>=(const ReferenceCountedObjectHolder<T_Element>& l, nullptr_t) { return l.get() >= nullptr; }
 
 	/// <summary>
 	/// Reference counted object weak holder.
 	/// Counts as one weak reference of the owned object until destructed.
 	/// </summary>
-	/// <typeparam name="_Element_Ty">The type of the object objects of this class dereferences to.</typeparam>
-	template<typename _Element_Ty>
+	/// <typeparam name="T_Element">The type of the object objects of this class dereferences to.</typeparam>
+	template<typename T_Element>
 	class ReferenceCountedObjectWeakHolder final {
-		template<typename _Element_Ty_Other>
+		template<typename T_Element_Other>
 		friend class ReferenceCountedObjectHolder;
-		template<typename _Element_Ty_Other>
+		template<typename T_Element_Other>
 		friend class ReferenceCountedObjectWeakHolder;
 	public:
 		struct inc_ref_count_t {};
 		static constexpr inc_ref_count_t inc_ref_count {};
-		using element_type = _Element_Ty;
+		using element_type = T_Element;
 		constexpr ReferenceCountedObjectWeakHolder() noexcept {}
 		constexpr ReferenceCountedObjectWeakHolder(nullptr_t) noexcept : ReferenceCountedObjectWeakHolder() {}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder(ReferenceCountedObjectWeakHolder<T_Element_From>&& x) noexcept {
 			this->assign(::std::move(x));
 		}
 		inline ~ReferenceCountedObjectWeakHolder() {
 			this->reset();
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 			return *this;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) noexcept {
 			this->assign(x);
 			return *this;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline ReferenceCountedObjectWeakHolder& operator=(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline ReferenceCountedObjectWeakHolder& operator=(ReferenceCountedObjectWeakHolder<T_Element_From>&& x) noexcept {
 			this->assign(::std::move(x));
 			return *this;
 		}
-		template<typename _Element_To_Ty, typename ::std::enable_if<::std::is_convertible_v<element_type*, _Element_To_Ty*>, int>::type = 0>
-		inline operator ReferenceCountedObjectHolder<_Element_To_Ty>() const noexcept {
-			ReferenceCountedObjectHolder<_Element_To_Ty> refcountedobjectholder;
+		template<typename T_Element_To, typename ::std::enable_if<::std::is_convertible_v<element_type*, T_Element_To*>, int>::type = 0>
+		inline operator ReferenceCountedObjectHolder<T_Element_To>() const noexcept {
+			ReferenceCountedObjectHolder<T_Element_To> refcountedobjectholder;
 			if (!this->controlblock_owned || !this->controlblock_owned->IncStrongReferenceCount()) {
 				assert(false);
 				abort();
@@ -1995,10 +1995,10 @@ namespace YBWLib2 {
 		inline bool expired() const noexcept {
 			return this->controlblock_owned ? this->controlblock_owned->HasObjectExpired() : true;
 		}
-		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
-		template<typename _Element_From_Ty>
-		inline bool owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept;
+		template<typename T_Element_From>
+		inline bool owner_before(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+		template<typename T_Element_From>
+		inline bool owner_before(const ReferenceCountedObjectHolder<T_Element_From>& x) const noexcept;
 		inline ReferenceCountedObjectHolder<element_type> lock() const noexcept {
 			ReferenceCountedObjectHolder<element_type> refcountedobjectholder;
 			if (this->controlblock_owned && this->controlblock_owned->IncStrongReferenceCount()) {
@@ -2017,8 +2017,8 @@ namespace YBWLib2 {
 		inline void reset(nullptr_t) noexcept {
 			this->reset();
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void assign(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void assign(const ReferenceCountedObjectHolder<T_Element_From>& x) noexcept {
 			this->reset();
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
@@ -2027,8 +2027,8 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void assign(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void assign(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) noexcept {
 			this->reset();
 			if (x.controlblock_owned) {
 				uintptr_t ref_count_weak_new = x.controlblock_owned->IncWeakReferenceCount();
@@ -2037,8 +2037,8 @@ namespace YBWLib2 {
 			}
 			if (x.ptr_stored) this->ptr_stored = x.ptr_stored;
 		}
-		template<typename _Element_From_Ty, typename ::std::enable_if<::std::is_convertible_v<_Element_From_Ty*, element_type*>, int>::type = 0>
-		inline void assign(ReferenceCountedObjectWeakHolder<_Element_From_Ty>&& x) noexcept {
+		template<typename T_Element_From, typename ::std::enable_if<::std::is_convertible_v<T_Element_From*, element_type*>, int>::type = 0>
+		inline void assign(ReferenceCountedObjectWeakHolder<T_Element_From>&& x) noexcept {
 			this->reset();
 			this->ptr_stored = x.ptr_stored;
 			this->controlblock_owned = x.controlblock_owned;
@@ -2068,61 +2068,61 @@ namespace YBWLib2 {
 		element_type* ptr_stored = nullptr;
 		IReferenceCountControlBlock* controlblock_owned = nullptr;
 	};
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator==(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr == r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator==(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() == nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator!=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr != r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator!=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() != nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr < r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() < nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator<=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr <= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator<=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() <= nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr > r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() > nullptr; }
-	template<typename _Element_L_Ty, typename _Element_R_Ty>
-	inline bool operator>=(const ReferenceCountedObjectWeakHolder<_Element_L_Ty>& l, const ReferenceCountedObjectWeakHolder<_Element_R_Ty>& r) { return l.get() >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(nullptr_t, const ReferenceCountedObjectWeakHolder<_Element_Ty>& r) { return nullptr >= r.get(); }
-	template<typename _Element_Ty>
-	inline bool operator>=(const ReferenceCountedObjectWeakHolder<_Element_Ty>& l, nullptr_t) { return l.get() >= nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator==(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() == r.get(); }
+	template<typename T_Element>
+	inline bool operator==(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr == r.get(); }
+	template<typename T_Element>
+	inline bool operator==(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() == nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator!=(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() != r.get(); }
+	template<typename T_Element>
+	inline bool operator!=(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr != r.get(); }
+	template<typename T_Element>
+	inline bool operator!=(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() != nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator<(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() < r.get(); }
+	template<typename T_Element>
+	inline bool operator<(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr < r.get(); }
+	template<typename T_Element>
+	inline bool operator<(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() < nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator<=(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() <= r.get(); }
+	template<typename T_Element>
+	inline bool operator<=(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr <= r.get(); }
+	template<typename T_Element>
+	inline bool operator<=(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() <= nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator>(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() > r.get(); }
+	template<typename T_Element>
+	inline bool operator>(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr > r.get(); }
+	template<typename T_Element>
+	inline bool operator>(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() > nullptr; }
+	template<typename T_Element_L, typename T_Element_R>
+	inline bool operator>=(const ReferenceCountedObjectWeakHolder<T_Element_L>& l, const ReferenceCountedObjectWeakHolder<T_Element_R>& r) { return l.get() >= r.get(); }
+	template<typename T_Element>
+	inline bool operator>=(nullptr_t, const ReferenceCountedObjectWeakHolder<T_Element>& r) { return nullptr >= r.get(); }
+	template<typename T_Element>
+	inline bool operator>=(const ReferenceCountedObjectWeakHolder<T_Element>& l, nullptr_t) { return l.get() >= nullptr; }
 
-	template<typename _Element_Ty>
-	template<typename _Element_From_Ty>
-	inline bool ReferenceCountedObjectHolder<_Element_Ty>::owner_before(const ReferenceCountedObjectWeakHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
-	template<typename _Element_Ty>
-	template<typename _Element_From_Ty>
-	inline bool ReferenceCountedObjectWeakHolder<_Element_Ty>::owner_before(const ReferenceCountedObjectHolder<_Element_From_Ty>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+	template<typename T_Element>
+	template<typename T_Element_From>
+	inline bool ReferenceCountedObjectHolder<T_Element>::owner_before(const ReferenceCountedObjectWeakHolder<T_Element_From>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
+	template<typename T_Element>
+	template<typename T_Element_From>
+	inline bool ReferenceCountedObjectWeakHolder<T_Element>::owner_before(const ReferenceCountedObjectHolder<T_Element_From>& x) const noexcept { return this->controlblock_owned < x.controlblock_owned; }
 
 	template<
-		typename _Element_Ty,
-		typename... _Args_Ty,
-		typename ::std::enable_if<::std::is_base_of_v<ReferenceCountedObject, _Element_Ty>, int>::type = 0
+		typename T_Element,
+		typename... T_Args,
+		typename ::std::enable_if<::std::is_base_of_v<ReferenceCountedObject, T_Element>, int>::type = 0
 	>
-		inline ReferenceCountedObjectHolder<_Element_Ty> MakeReferenceCountedObject(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty&&...>) {
-		using element_type = _Element_Ty;
+		inline ReferenceCountedObjectHolder<T_Element> MakeReferenceCountedObject(T_Args&&... _args) noexcept(::std::is_nothrow_constructible_v<T_Element, T_Args&&...>) {
+		using element_type = T_Element;
 		class ControlBlock final : public ReferenceCountControlBlock {
 		public:
-			explicit ControlBlock(_Args_Ty&&... _args) noexcept(::std::is_nothrow_constructible_v<element_type, _Args_Ty&&...>) {
-				new(&this->GetElement()) element_type(::std::forward<_Args_Ty>(_args)...);
+			explicit ControlBlock(T_Args&&... _args) noexcept(::std::is_nothrow_constructible_v<element_type, T_Args&&...>) {
+				new(&this->GetElement()) element_type(::std::forward<T_Args>(_args)...);
 			}
 			//ControlBlock(const ControlBlock&) = delete;
 			//ControlBlock(ControlBlock&&) = delete;
@@ -2168,7 +2168,7 @@ namespace YBWLib2 {
 			bool flag_defer_destroy_control_block = false;
 			alignas(alignof(element_type)) unsigned char buf_element[sizeof(element_type)] = {};
 		};
-		ControlBlock* controlblock = new ControlBlock(::std::forward<_Args_Ty>(_args)...);
+		ControlBlock* controlblock = new ControlBlock(::std::forward<T_Args>(_args)...);
 		assert(controlblock);
 		ReferenceCountedObject* refcountedobject_managed = controlblock->GetManagedObject();
 		assert(!refcountedobject_managed->controlblock);

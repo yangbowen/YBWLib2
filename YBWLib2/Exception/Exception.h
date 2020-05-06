@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_32EC34B6_5BCE_48CC_B1F7_BEDFC08A5774
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -96,18 +96,18 @@ namespace YBWLib2 {
 	extern YBWLIB2_API rawallocator_t* rawallocator_exception;
 
 	/// <summary>Allocator template structure for allocating memory for exception handling.</summary>
-	template<typename _Ty>
+	template<typename T>
 	struct allocator_exception_t {
-		typedef _Ty value_type;
-		typedef _Ty* pointer;
-		typedef const _Ty* const_pointer;
-		typedef _Ty& reference;
-		typedef const _Ty& const_reference;
+		typedef T value_type;
+		typedef T* pointer;
+		typedef const T* const_pointer;
+		typedef T& reference;
+		typedef const T& const_reference;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
-		template<typename _Rebind_Ty>
+		template<typename T_Rebind>
 		struct rebind {
-			using other = allocator_exception_t<_Rebind_Ty>;
+			using other = allocator_exception_t<T_Rebind>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
@@ -116,20 +116,20 @@ namespace YBWLib2 {
 		inline constexpr allocator_exception_t() noexcept = default;
 		inline constexpr allocator_exception_t(const allocator_exception_t&) noexcept : allocator_exception_t() {}
 		inline constexpr allocator_exception_t(allocator_exception_t&&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception_t(allocator_exception_t<_Rebind_From_Ty>&&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_exception_t<_Rebind_Ty>() const noexcept { return allocator_exception_t<_Rebind_Ty>(); }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
-		template<typename _Element_Ty>
-		inline constexpr bool operator==(const allocator_exception_t<_Element_Ty>&) const noexcept { return true; }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
-		template<typename _Element_Ty>
-		inline constexpr bool operator!=(const allocator_exception_t<_Element_Ty>&) const noexcept { return false; }
+		template<typename T_Rebind_From>
+		inline constexpr allocator_exception_t(const allocator_exception_t<T_Rebind_From>&) noexcept : allocator_exception_t() {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_exception_t(allocator_exception_t<T_Rebind_From>&&) noexcept : allocator_exception_t() {}
+		template<typename T_Rebind>
+		inline constexpr operator allocator_exception_t<T_Rebind>() const noexcept { return allocator_exception_t<T_Rebind>(); }
+		template<typename T_Allocator>
+		inline constexpr bool operator==(const T_Allocator&) const noexcept { return false; }
+		template<typename T_Element>
+		inline constexpr bool operator==(const allocator_exception_t<T_Element>&) const noexcept { return true; }
+		template<typename T_Allocator>
+		inline constexpr bool operator!=(const T_Allocator&) const noexcept { return true; }
+		template<typename T_Element>
+		inline constexpr bool operator!=(const allocator_exception_t<T_Element>&) const noexcept { return false; }
 		inline pointer address(reference ref) const noexcept { return ::std::addressof(ref); }
 		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
 		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept {
@@ -141,13 +141,13 @@ namespace YBWLib2 {
 			ExceptionFreeMemory(ptr);
 		}
 		inline size_type max_size() const noexcept { return ExceptionGetMaxMemorySize() / sizeof(value_type); }
-		template<typename _Element_Ty, typename... _Args_Ty>
-		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
-			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty...>(args...));
+		template<typename T_Element, typename... T_Args>
+		inline void construct(T_Element* ptr, T_Args&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T_Element(::std::forward<T_Args...>(args...));
 		}
-		template<typename _Element_Ty>
-		inline void destroy(_Element_Ty* ptr) {
-			ptr->~_Element_Ty();
+		template<typename T_Element>
+		inline void destroy(T_Element* ptr) {
+			ptr->~T_Element();
 		}
 		inline constexpr allocator_exception_t select_on_container_copy_construction() const noexcept { return allocator_exception_t(*this); }
 	};
@@ -159,9 +159,9 @@ namespace YBWLib2 {
 		typedef const void* const_pointer;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
-		template<typename _Rebind_Ty>
+		template<typename T_Rebind>
 		struct rebind {
-			using other = allocator_exception_t<_Rebind_Ty>;
+			using other = allocator_exception_t<T_Rebind>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
@@ -170,27 +170,27 @@ namespace YBWLib2 {
 		inline constexpr allocator_exception_t() noexcept = default;
 		inline constexpr allocator_exception_t(const allocator_exception_t&) noexcept : allocator_exception_t() {}
 		inline constexpr allocator_exception_t(allocator_exception_t&&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception_t(const allocator_exception_t<_Rebind_From_Ty>&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_exception_t(allocator_exception_t<_Rebind_From_Ty>&&) noexcept : allocator_exception_t() {}
-		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_exception_t<_Rebind_Ty>() const noexcept { return allocator_exception_t<_Rebind_Ty>(); }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
-		template<typename _Element_Ty>
-		inline constexpr bool operator==(const allocator_exception_t<_Element_Ty>&) const noexcept { return true; }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
-		template<typename _Element_Ty>
-		inline constexpr bool operator!=(const allocator_exception_t<_Element_Ty>&) const noexcept { return false; }
-		template<typename _Element_Ty, typename... _Args_Ty>
-		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
-			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty...>(args...));
+		template<typename T_Rebind_From>
+		inline constexpr allocator_exception_t(const allocator_exception_t<T_Rebind_From>&) noexcept : allocator_exception_t() {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_exception_t(allocator_exception_t<T_Rebind_From>&&) noexcept : allocator_exception_t() {}
+		template<typename T_Rebind>
+		inline constexpr operator allocator_exception_t<T_Rebind>() const noexcept { return allocator_exception_t<T_Rebind>(); }
+		template<typename T_Allocator>
+		inline constexpr bool operator==(const T_Allocator&) const noexcept { return false; }
+		template<typename T_Element>
+		inline constexpr bool operator==(const allocator_exception_t<T_Element>&) const noexcept { return true; }
+		template<typename T_Allocator>
+		inline constexpr bool operator!=(const T_Allocator&) const noexcept { return true; }
+		template<typename T_Element>
+		inline constexpr bool operator!=(const allocator_exception_t<T_Element>&) const noexcept { return false; }
+		template<typename T_Element, typename... T_Args>
+		inline void construct(T_Element* ptr, T_Args&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T_Element(::std::forward<T_Args...>(args...));
 		}
-		template<typename _Element_Ty>
-		inline void destroy(_Element_Ty* ptr) {
-			ptr->~_Element_Ty();
+		template<typename T_Element>
+		inline void destroy(T_Element* ptr) {
+			ptr->~T_Element();
 		}
 		inline constexpr allocator_exception_t select_on_container_copy_construction() const noexcept { return allocator_exception_t(*this); }
 	};

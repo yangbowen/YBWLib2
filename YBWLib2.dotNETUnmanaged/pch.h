@@ -25,6 +25,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_NO_STATUS
+#define NOMINMAX
 #include <Windows.h>
 
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
@@ -45,9 +46,6 @@ typedef NTSTATUS* PNTSTATUS;
 #ifndef NT_ERROR
 #define NT_ERROR(Status) ((((ULONG)(Status)) >> 30) == 3)
 #endif
-
-#undef min
-#undef max
 
 #ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED

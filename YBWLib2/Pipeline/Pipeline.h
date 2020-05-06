@@ -1033,12 +1033,12 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<PipelineInvocationPacketDataEntryHolder>, "PipelineInvocationPacketDataEntryHolder is not standard-layout.");
 
-	template<typename _Data_Ty>
+	template<typename T_Data>
 	class PipelineInvocationPacketDataEntryHolderWrapper final {
 	public:
-		static_assert(::std::is_object_v<_Data_Ty>, "The specified type is not an object type.");
-		static_assert(::std::is_nothrow_destructible_v<_Data_Ty>, "The specified type is not nothrow-destructible.");
-		using data_type = _Data_Ty;
+		static_assert(::std::is_object_v<T_Data>, "The specified type is not an object type.");
+		static_assert(::std::is_nothrow_destructible_v<T_Data>, "The specified type is not nothrow-destructible.");
+		using data_type = T_Data;
 		constexpr PipelineInvocationPacketDataEntryHolderWrapper() noexcept = default;
 		template<typename ::std::enable_if<::std::is_nothrow_copy_constructible_v<data_type>, int>::type = 0>
 		PipelineInvocationPacketDataEntryHolderWrapper(
@@ -1159,13 +1159,13 @@ namespace YBWLib2 {
 		return **Internal::pipelinestore_modulelocal;
 	}
 
-	template<typename... _Args_Ty>
+	template<typename... T_Args>
 	class PipelineTraits final : public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
 	public:
-		static constexpr size_t count_arg = sizeof...(_Args_Ty);
+		static constexpr size_t count_arg = sizeof...(T_Args);
 	private:
 		struct pipelinecontext_t final : public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
-			friend class PipelineTraits<_Args_Ty...>;
+			friend class PipelineTraits<T_Args...>;
 			constexpr pipelinecontext_t() noexcept = default;
 			explicit pipelinecontext_t(ReferenceCountedObjectHolder<Pipeline>&& _pipeline) noexcept
 				: pipeline(::std::move(_pipeline)) {
@@ -1219,7 +1219,7 @@ namespace YBWLib2 {
 			}
 		};
 		struct pipelinefiltercontext_t final : public RawAllocatorAllocatedClass<&rawallocator_crt_YBWLib2> {
-			friend class PipelineTraits<_Args_Ty...>;
+			friend class PipelineTraits<T_Args...>;
 			constexpr pipelinefiltercontext_t() noexcept = default;
 			explicit pipelinefiltercontext_t(const PipelineFilterID& _pipelinefilterid) noexcept
 				: pipelinefilter(CreatePipelineFilter(_pipelinefilterid)) {}
@@ -1289,8 +1289,8 @@ namespace YBWLib2 {
 					assert(!mod_alignment(reinterpret_cast<uintptr_t>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg), (uintptr_t)alignof(uintptr_t)));
 					return ptr_pipelineinvocationpacketdataentry_arr_ptr_arg;
 				}
-				template<typename _Delegate_Invoke_Ty>
-				void SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke, PipelineFilterRawInvokeDelegate::fnptr_invoke_t _fnptr_rawinvoke, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				template<typename T_Delegate_Invoke>
+				void SetInvokeDelegate(T_Delegate_Invoke&& _delegate_invoke, PipelineFilterRawInvokeDelegate::fnptr_invoke_t _fnptr_rawinvoke, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 					static_cast<void>(_already_exclusive_locked_pipeline);
 					this->fnptr_rawinvoke = nullptr;
 					if (this->fnptr_cleanup_delegate_invoke) {
@@ -1362,12 +1362,12 @@ namespace YBWLib2 {
 					indexeddatastore_userdata_pipelinefilter.RemoveEntryByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 			}
 			template<
-				typename... _Args_Delegate_Invoke_Ty,
-				size_t... _Index_Arg_Ty,
-				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
+				typename... T_Args_Delegate_Invoke,
+				size_t... index_arg,
+				typename ::std::enable_if<sizeof...(T_Args_Delegate_Invoke) == count_arg && sizeof...(index_arg) == count_arg, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<T_Args&&, T_Args_Delegate_Invoke>, ::std::is_convertible<T_Args&, T_Args_Delegate_Invoke>>...>, int>::type = 0
 			>
-				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>&& _delegate_invoke, ::std::index_sequence<index_arg...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
@@ -1379,23 +1379,23 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = invokedelegatecontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
-					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
+					Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>(
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(static_cast<_Args_Delegate_Invoke_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
+						)(static_cast<T_Args_Delegate_Invoke>(*reinterpret_cast<::std::remove_reference_t<T_Args>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[index_arg]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
-				typename... _Args_Delegate_Invoke_Ty,
-				size_t... _Index_Arg_Ty,
-				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<_Args_Ty&&, _Args_Delegate_Invoke_Ty>, ::std::is_convertible<_Args_Ty&, _Args_Delegate_Invoke_Ty>>...>, int>::type = 0
+				typename... T_Args_Delegate_Invoke,
+				size_t... index_arg,
+				typename ::std::enable_if<sizeof...(T_Args_Delegate_Invoke) == count_arg && sizeof...(index_arg) == count_arg, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::disjunction<::std::is_convertible<T_Args&&, T_Args_Delegate_Invoke>, ::std::is_convertible<T_Args&, T_Args_Delegate_Invoke>>...>, int>::type = 0
 			>
-				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket&, T_Args_Delegate_Invoke...>&& _delegate_invoke, ::std::index_sequence<index_arg...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
@@ -1407,24 +1407,24 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = invokedelegatecontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
-					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
+					Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>(
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(*_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(*reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
+						)(*_pipelineinvocationpacket, static_cast<T_Args_Delegate_Invoke>(*reinterpret_cast<::std::remove_reference_t<T_Args>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[index_arg]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
-				typename... _Args_Delegate_Invoke_Ty,
-				size_t... _Index_Arg_Ty,
-				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
+				typename... T_Args_Delegate_Invoke,
+				size_t... index_arg,
+				typename ::std::enable_if<sizeof...(T_Args_Delegate_Invoke) == count_arg && sizeof...(index_arg) == count_arg, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<T_Args_Delegate_Invoke>...>, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<T_Args>*, T_Args_Delegate_Invoke>...>, int>::type = 0
 			>
-				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>&& _delegate_invoke, ::std::index_sequence<index_arg...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
@@ -1436,24 +1436,24 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = invokedelegatecontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
-					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
+					Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>(
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
+						)(static_cast<T_Args_Delegate_Invoke>(reinterpret_cast<::std::remove_reference_t<T_Args>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[index_arg]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
 			}
 			template<
-				typename... _Args_Delegate_Invoke_Ty,
-				size_t... _Index_Arg_Ty,
-				typename ::std::enable_if<sizeof...(_Args_Delegate_Invoke_Ty) == count_arg && sizeof...(_Index_Arg_Ty) == count_arg, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<_Args_Delegate_Invoke_Ty>...>, int>::type = 0,
-				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<_Args_Ty>*, _Args_Delegate_Invoke_Ty>...>, int>::type = 0
+				typename... T_Args_Delegate_Invoke,
+				size_t... index_arg,
+				typename ::std::enable_if<sizeof...(T_Args_Delegate_Invoke) == count_arg && sizeof...(index_arg) == count_arg, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::is_pointer<T_Args_Delegate_Invoke>...>, int>::type = 0,
+				typename ::std::enable_if<::std::conjunction_v<::std::is_convertible<::std::remove_reference_t<T_Args>*, T_Args_Delegate_Invoke>...>, int>::type = 0
 			>
-				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, _Args_Delegate_Invoke_Ty...>&& _delegate_invoke, ::std::index_sequence<_Index_Arg_Ty...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
+				void SetInvokeDelegateContext(Delegate<DelegateFlag_Noexcept, void, PipelineInvocationPacket*, T_Args_Delegate_Invoke...>&& _delegate_invoke, ::std::index_sequence<index_arg...>, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) noexcept {
 				IndexedDataStore& indexeddatastore_userdata_pipelinefilter = PipelineFilter_GetUserDataIndexedDataStore(*this->pipelinefilter);
 				IndexedDataRawValue* indexeddatarawvalue_invokedelegatecontext = indexeddatastore_userdata_pipelinefilter.GetRawValueByEntryID(Internal::indexeddataentryid_invokedelegatecontext);
 				if (!indexeddatarawvalue_invokedelegatecontext)
@@ -1465,12 +1465,12 @@ namespace YBWLib2 {
 					static_cast<void>(_contextvalue2);
 					assert(_pipelineinvocationpacket);
 					uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = invokedelegatecontext->GetPipelineInvocationDataEntry_ArgPtrArr(*_pipelineinvocationpacket);
-					Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>(
-						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, _Args_Delegate_Invoke_Ty...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
+					Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>(
+						reinterpret_cast<typename Delegate<DelegateFlag_Noexcept, void, T_Args_Delegate_Invoke...>::fnptr_invoke_t>(invokedelegatecontext->fnptr_invoke_delegate_invoke),
 						invokedelegatecontext->contextvalue1_delegate_invoke,
 						invokedelegatecontext->contextvalue2_delegate_invoke,
 						nullptr
-						)(_pipelineinvocationpacket, static_cast<_Args_Delegate_Invoke_Ty>(reinterpret_cast<::std::remove_reference_t<_Args_Ty>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[_Index_Arg_Ty]))...);
+						)(_pipelineinvocationpacket, static_cast<T_Args_Delegate_Invoke>(reinterpret_cast<::std::remove_reference_t<T_Args>*>(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg[index_arg]))...);
 				};
 				invokedelegatecontext.SetInvokeDelegate(_delegate_invoke, fnptr_rawinvoke, _already_exclusive_locked_pipeline);
 				this->AssociateWithPipeline(this->pipeline, _already_exclusive_locked_pipeline);
@@ -1515,16 +1515,16 @@ namespace YBWLib2 {
 			return Pipeline_IsResolved(pipeline, _already_exclusive_locked_pipeline);
 		}
 		template<
-			typename _Callable_PreInvoke_Ty,
-			typename _Callable_PostInvoke_Ty,
-			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PreInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0,
-			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PostInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0
+			typename T_Callable_PreInvoke,
+			typename T_Callable_PostInvoke,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<T_Callable_PreInvoke&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<T_Callable_PostInvoke&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0
 		>
 			static void InvokePipeline(
 				const pipelinecontext_type& _pipelinecontext,
-				_Callable_PreInvoke_Ty&& _callable_preinvoke,
-				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty... _args
+				T_Callable_PreInvoke&& _callable_preinvoke,
+				T_Callable_PostInvoke&& _callable_postinvoke,
+				T_Args... _args
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			const Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1547,9 +1547,9 @@ namespace YBWLib2 {
 				uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
 				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<uintptr_t>(::std::addressof(_args))), ...);
 			}
-			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			::std::invoke(::std::forward<T_Callable_PreInvoke>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
-			::std::invoke(::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			::std::invoke(::std::forward<T_Callable_PostInvoke>(_callable_postinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_CleanupInvocationPacket(pipeline, pipelineinvocationpacket, already_shared_locked_pipeline);
 #if !defined(YBWLIB2_NO_ALLOCA) && defined(_MSC_VER)
 			_freea(buf_invocationdata); buf_invocationdata = nullptr;
@@ -1558,16 +1558,16 @@ namespace YBWLib2 {
 #endif
 		}
 		template<
-			typename _Callable_PreInvoke_Ty,
-			typename _Callable_PostInvoke_Ty,
-			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PreInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0,
-			typename ::std::enable_if<::std::is_nothrow_invocable_v<_Callable_PostInvoke_Ty&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0
+			typename T_Callable_PreInvoke,
+			typename T_Callable_PostInvoke,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<T_Callable_PreInvoke&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0,
+			typename ::std::enable_if<::std::is_nothrow_invocable_v<T_Callable_PostInvoke&&, const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t>, int>::type = 0
 		>
 			static void InvokePipeline(
 				pipelinecontext_type& _pipelinecontext,
-				_Callable_PreInvoke_Ty&& _callable_preinvoke,
-				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty... _args
+				T_Callable_PreInvoke&& _callable_preinvoke,
+				T_Callable_PostInvoke&& _callable_postinvoke,
+				T_Args... _args
 			) noexcept {
 			assert(_pipelinecontext.GetPipelineReferenceCountedObjectHolder());
 			Pipeline& pipeline = *_pipelinecontext.GetPipelineReferenceCountedObjectHolder();
@@ -1598,9 +1598,9 @@ namespace YBWLib2 {
 				uintptr_t* ptr_pipelineinvocationpacketdataentry_arr_ptr_arg = _pipelinecontext.GetPipelineInvocationDataEntry_ArgPtrArr(*pipelineinvocationpacket);
 				((*(ptr_pipelineinvocationpacketdataentry_arr_ptr_arg++) = reinterpret_cast<uintptr_t>(::std::addressof(_args))), ...);
 			}
-			::std::invoke(::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			::std::invoke(::std::forward<T_Callable_PreInvoke>(_callable_preinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_RawInvoke(pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
-			::std::invoke(::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
+			::std::invoke(::std::forward<T_Callable_PostInvoke>(_callable_postinvoke), pipeline, *pipelineinvocationpacket, already_shared_locked_pipeline);
 			Pipeline_CleanupInvocationPacket(pipeline, pipelineinvocationpacket, already_shared_locked_pipeline);
 #if !defined(YBWLIB2_NO_ALLOCA) && defined(_MSC_VER)
 			_freea(buf_invocationdata); buf_invocationdata = nullptr;
@@ -1646,20 +1646,20 @@ namespace YBWLib2 {
 			_pipelinefiltercontext.ClearInvokeDelegateContext(already_exclusive_locked_pipeline);
 		}
 	private:
-		template<typename... _Args_Ty>
+		template<typename... T_Args>
 		struct sfinae_SetInvokeDelegateContext final {
-			using type = decltype(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()));
-			using is_nothrow = ::std::bool_constant<noexcept(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<_Args_Ty>()..., ::std::declval<already_exclusive_locked_this_t>()))>;
+			using type = decltype(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<T_Args>()..., ::std::declval<already_exclusive_locked_this_t>()));
+			using is_nothrow = ::std::bool_constant<noexcept(::std::declval<pipelinefiltercontext_t>().SetInvokeDelegateContext(::std::declval<T_Args>()..., ::std::declval<already_exclusive_locked_this_t>()))>;
 			static constexpr bool is_nothrow_v = is_nothrow::value;
 		};
-		template<typename... _Args_Ty>
-		using sfinae_SetInvokeDelegateContext_t = typename sfinae_SetInvokeDelegateContext<_Args_Ty...>::type;
+		template<typename... T_Args>
+		using sfinae_SetInvokeDelegateContext_t = typename sfinae_SetInvokeDelegateContext<T_Args...>::type;
 	public:
 		template<
-			typename _Delegate_Invoke_Ty,
-			typename ::std::enable_if<is_detected_v<sfinae_SetInvokeDelegateContext_t, _Delegate_Invoke_Ty&&, ::std::make_index_sequence<count_arg>>, int>::type = 0
+			typename T_Delegate_Invoke,
+			typename ::std::enable_if<is_detected_v<sfinae_SetInvokeDelegateContext_t, T_Delegate_Invoke&&, ::std::make_index_sequence<count_arg>>, int>::type = 0
 		>
-			static void SetPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext, _Delegate_Invoke_Ty&& _delegate_invoke) noexcept {
+			static void SetPipelineFilterInvokeDelegate(pipelinefiltercontext_t& _pipelinefiltercontext, T_Delegate_Invoke&& _delegate_invoke) noexcept {
 			::std::optional<SharedLockableObjectToSTLWrapper> optional_sharedlockablewrapper_pipeline;
 			::std::unique_lock<SharedLockableObjectToSTLWrapper> unique_lock_pipeline; already_exclusive_locked_this_t already_exclusive_locked_pipeline;
 			if (_pipelinefiltercontext.pipeline) {
@@ -1667,7 +1667,7 @@ namespace YBWLib2 {
 				unique_lock_pipeline = ::std::unique_lock<SharedLockableObjectToSTLWrapper>(*optional_sharedlockablewrapper_pipeline);
 			}
 			assert(_pipelinefiltercontext.pipelinefilter);
-			_pipelinefiltercontext.SetInvokeDelegateContext(::std::forward<_Delegate_Invoke_Ty>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline);
+			_pipelinefiltercontext.SetInvokeDelegateContext(::std::forward<T_Delegate_Invoke>(_delegate_invoke), ::std::make_index_sequence<count_arg>(), already_exclusive_locked_pipeline);
 		}
 		static void SetPipelineFilterPositionArray(pipelinefiltercontext_t& _pipelinefiltercontext, const PipelineFilterPosition* _arr_pipelinefilterposition, size_t _size_pipelinefilterposition) noexcept {
 			::std::optional<SharedLockableObjectToSTLWrapper> optional_sharedlockablewrapper_pipeline;
@@ -1712,16 +1712,16 @@ namespace YBWLib2 {
 		}
 	};
 
-	template<typename _PipelineTraits_Ty>
+	template<typename T_PipelineTraits>
 	class PipelineFilterWrapper;
-	template<typename _PipelineTraits_Ty>
+	template<typename T_PipelineTraits>
 	class PipelineWrapper;
 
-	template<typename _PipelineTraits_Ty>
+	template<typename T_PipelineTraits>
 	class PipelineFilterWrapper final {
-		friend class PipelineWrapper<_PipelineTraits_Ty>;
+		friend class PipelineWrapper<T_PipelineTraits>;
 	public:
-		using pipelinetraits_type = _PipelineTraits_Ty;
+		using pipelinetraits_type = T_PipelineTraits;
 		constexpr PipelineFilterWrapper() noexcept = default;
 		PipelineFilterWrapper(const PipelineFilterID& _pipelinefilterid) noexcept : pipelinefiltercontext(_pipelinefilterid) {}
 		PipelineFilterWrapper(const PersistentID& _persistentid_pipelinefilterid) noexcept : pipelinefiltercontext(_persistentid_pipelinefilterid) {}
@@ -1767,13 +1767,13 @@ namespace YBWLib2 {
 			pipelinetraits_type::ClearPipelineFilterInvokeDelegate(this->pipelinefiltercontext);
 			return ::std::move(*this);
 		}
-		template<typename _Delegate_Invoke_Ty>
-		PipelineFilterWrapper& SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke) & noexcept {
+		template<typename T_Delegate_Invoke>
+		PipelineFilterWrapper& SetInvokeDelegate(T_Delegate_Invoke&& _delegate_invoke) & noexcept {
 			pipelinetraits_type::SetPipelineFilterInvokeDelegate(this->pipelinefiltercontext, ::std::move(_delegate_invoke));
 			return *this;
 		}
-		template<typename _Delegate_Invoke_Ty>
-		PipelineFilterWrapper&& SetInvokeDelegate(_Delegate_Invoke_Ty&& _delegate_invoke) && noexcept {
+		template<typename T_Delegate_Invoke>
+		PipelineFilterWrapper&& SetInvokeDelegate(T_Delegate_Invoke&& _delegate_invoke) && noexcept {
 			pipelinetraits_type::SetPipelineFilterInvokeDelegate(this->pipelinefiltercontext, ::std::move(_delegate_invoke));
 			return ::std::move(*this);
 		}
@@ -1849,11 +1849,11 @@ namespace YBWLib2 {
 		typename pipelinetraits_type::pipelinefiltercontext_type pipelinefiltercontext;
 	};
 
-	template<typename _PipelineTraits_Ty>
+	template<typename T_PipelineTraits>
 	class PipelineWrapper final {
-		friend class PipelineFilterWrapper<_PipelineTraits_Ty>;
+		friend class PipelineFilterWrapper<T_PipelineTraits>;
 	public:
-		using pipelinetraits_type = _PipelineTraits_Ty;
+		using pipelinetraits_type = T_PipelineTraits;
 		constexpr PipelineWrapper() noexcept = default;
 		PipelineWrapper(const ReferenceCountedObjectHolder<Pipeline>& _pipeline) noexcept : pipelinecontext(ReferenceCountedObjectHolder<Pipeline>(_pipeline)) {}
 		PipelineWrapper(ReferenceCountedObjectHolder<Pipeline>&& _pipeline) noexcept : pipelinecontext(::std::move(_pipeline)) {}
@@ -1893,81 +1893,81 @@ namespace YBWLib2 {
 		const Pipeline* operator->() const noexcept { return &this->GetPipeline(); }
 		Pipeline* operator->() noexcept { return &this->GetPipeline(); }
 	private:
-		template<typename... _Args_Ty>
+		template<typename... T_Args>
 		struct sfinae_InvokePipeline final {
-			using type = decltype(pipelinetraits_type::InvokePipeline(::std::declval<_Args_Ty>()...));
-			using is_nothrow = ::std::bool_constant<noexcept(pipelinetraits_type::InvokePipeline(::std::declval<_Args_Ty>()...))>;
+			using type = decltype(pipelinetraits_type::InvokePipeline(::std::declval<T_Args>()...));
+			using is_nothrow = ::std::bool_constant<noexcept(pipelinetraits_type::InvokePipeline(::std::declval<T_Args>()...))>;
 			static constexpr bool is_nothrow_v = is_nothrow::value;
 		};
-		template<typename... _Args_Ty>
-		using sfinae_InvokePipeline_t = typename sfinae_InvokePipeline<_Args_Ty...>::type;
+		template<typename... T_Args>
+		using sfinae_InvokePipeline_t = typename sfinae_InvokePipeline<T_Args...>::type;
 	public:
 		template<
-			typename... _Args_Ty,
-			typename _Callable_PreInvoke_Ty,
-			typename _Callable_PostInvoke_Ty,
-			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
-			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, const typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename... T_Args,
+			typename T_Callable_PreInvoke,
+			typename T_Callable_PostInvoke,
+			typename ::std::enable_if<sizeof...(T_Args) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, const typename pipelinetraits_type::pipelinecontext_type&, T_Callable_PreInvoke&&, T_Callable_PostInvoke&&, T_Args&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, T_Callable_PreInvoke&&, T_Callable_PostInvoke&&, T_Args&&...>::is_nothrow_v, int>::type = 0
 		>
 			void operator()(
-				_Callable_PreInvoke_Ty&& _callable_preinvoke,
-				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty&&... _args
+				T_Callable_PreInvoke&& _callable_preinvoke,
+				T_Callable_PostInvoke&& _callable_postinvoke,
+				T_Args&&... _args
 				) const noexcept {
 			pipelinetraits_type::InvokePipeline(
 				this->pipelinecontext,
-				::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke),
-				::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke),
-				::std::forward<_Args_Ty>(_args)...
+				::std::forward<T_Callable_PreInvoke>(_callable_preinvoke),
+				::std::forward<T_Callable_PostInvoke>(_callable_postinvoke),
+				::std::forward<T_Args>(_args)...
 			);
 		}
 		template<
-			typename... _Args_Ty,
-			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
-			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename... T_Args,
+			typename ::std::enable_if<sizeof...(T_Args) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, T_Args&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<const typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, T_Args&&...>::is_nothrow_v, int>::type = 0
 		>
-			void operator()(_Args_Ty&&... _args) const noexcept {
+			void operator()(T_Args&&... _args) const noexcept {
 			pipelinetraits_type::InvokePipeline(
 				this->pipelinecontext,
 				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
 				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
-				::std::forward<_Args_Ty>(_args)...
+				::std::forward<T_Args>(_args)...
 			);
 		}
 		template<
-			typename... _Args_Ty,
-			typename _Callable_PreInvoke_Ty,
-			typename _Callable_PostInvoke_Ty,
-			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
-			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, _Callable_PreInvoke_Ty&&, _Callable_PostInvoke_Ty&&, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename... T_Args,
+			typename T_Callable_PreInvoke,
+			typename T_Callable_PostInvoke,
+			typename ::std::enable_if<sizeof...(T_Args) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, T_Callable_PreInvoke&&, T_Callable_PostInvoke&&, T_Args&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, T_Callable_PreInvoke&&, T_Callable_PostInvoke&&, T_Args&&...>::is_nothrow_v, int>::type = 0
 		>
 			void operator()(
-				_Callable_PreInvoke_Ty&& _callable_preinvoke,
-				_Callable_PostInvoke_Ty&& _callable_postinvoke,
-				_Args_Ty&&... _args
+				T_Callable_PreInvoke&& _callable_preinvoke,
+				T_Callable_PostInvoke&& _callable_postinvoke,
+				T_Args&&... _args
 				) noexcept {
 			pipelinetraits_type::InvokePipeline(
 				this->pipelinecontext,
-				::std::forward<_Callable_PreInvoke_Ty>(_callable_preinvoke),
-				::std::forward<_Callable_PostInvoke_Ty>(_callable_postinvoke),
-				::std::forward<_Args_Ty>(_args)...
+				::std::forward<T_Callable_PreInvoke>(_callable_preinvoke),
+				::std::forward<T_Callable_PostInvoke>(_callable_postinvoke),
+				::std::forward<T_Args>(_args)...
 			);
 		}
 		template<
-			typename... _Args_Ty,
-			typename ::std::enable_if<sizeof...(_Args_Ty) == pipelinetraits_type::count_arg, int>::type = 0,
-			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>, int>::type = 0,
-			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, _Args_Ty&&...>::is_nothrow_v, int>::type = 0
+			typename... T_Args,
+			typename ::std::enable_if<sizeof...(T_Args) == pipelinetraits_type::count_arg, int>::type = 0,
+			typename ::std::enable_if<is_detected_v<sfinae_InvokePipeline_t, typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, T_Args&&...>, int>::type = 0,
+			typename ::std::enable_if<sfinae_InvokePipeline<typename pipelinetraits_type::pipelinecontext_type&, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, void (*)(const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept, T_Args&&...>::is_nothrow_v, int>::type = 0
 		>
-			void operator()(_Args_Ty&&... _args) noexcept {
+			void operator()(T_Args&&... _args) noexcept {
 			pipelinetraits_type::InvokePipeline(
 				this->pipelinecontext,
 				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
 				[](const Pipeline&, PipelineInvocationPacket&, already_shared_locked_this_t) noexcept->void {},
-				::std::forward<_Args_Ty>(_args)...
+				::std::forward<T_Args>(_args)...
 			);
 		}
 		IndexedDataStore& GetUserDataIndexedDataStore() noexcept {
@@ -2058,50 +2058,50 @@ namespace YBWLib2 {
 		typename pipelinetraits_type::pipelinecontext_type pipelinecontext;
 	};
 
-	template<typename _PipelineTraits_Ty>
-	inline PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
-		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+	template<typename T_PipelineTraits>
+	inline PipelineFilterWrapper<T_PipelineTraits>& PipelineFilterWrapper<T_PipelineTraits>::AttachToPipeline(PipelineWrapper<T_PipelineTraits>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+		T_PipelineTraits::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
 		return *this;
 	}
 
-	template<typename _PipelineTraits_Ty>
-	inline PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
-		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
+	template<typename T_PipelineTraits>
+	inline PipelineFilterWrapper<T_PipelineTraits>&& PipelineFilterWrapper<T_PipelineTraits>::AttachToPipeline(PipelineWrapper<T_PipelineTraits>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+		T_PipelineTraits::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret, _already_exclusive_locked_pipeline);
 		return ::std::move(*this);
 	}
 
-	template<typename _PipelineTraits_Ty>
-	inline PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
-		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+	template<typename T_PipelineTraits>
+	inline PipelineFilterWrapper<T_PipelineTraits>& PipelineFilterWrapper<T_PipelineTraits>::AttachToPipeline(PipelineWrapper<T_PipelineTraits>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) & noexcept {
+		T_PipelineTraits::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
 		return *this;
 	}
 
-	template<typename _PipelineTraits_Ty>
-	inline PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::AttachToPipeline(PipelineWrapper<_PipelineTraits_Ty>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
-		_PipelineTraits_Ty::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
+	template<typename T_PipelineTraits>
+	inline PipelineFilterWrapper<T_PipelineTraits>&& PipelineFilterWrapper<T_PipelineTraits>::AttachToPipeline(PipelineWrapper<T_PipelineTraits>& _pipelinewrapper, bool _should_resolve_immediately, size_t* _idx_pipelinefilterposition_resolve_ret) && noexcept {
+		T_PipelineTraits::AttachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _idx_pipelinefilterposition_resolve_ret);
 		return ::std::move(*this);
 	}
 
-	template<typename _PipelineTraits_Ty>
-	PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
+	template<typename T_PipelineTraits>
+	PipelineFilterWrapper<T_PipelineTraits>& PipelineFilterWrapper<T_PipelineTraits>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) & noexcept {
 		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
 		return *this;
 	}
 
-	template<typename _PipelineTraits_Ty>
-	PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
+	template<typename T_PipelineTraits>
+	PipelineFilterWrapper<T_PipelineTraits>&& PipelineFilterWrapper<T_PipelineTraits>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately, already_exclusive_locked_this_t _already_exclusive_locked_pipeline) && noexcept {
 		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately, _already_exclusive_locked_pipeline);
 		return ::std::move(*this);
 	}
 
-	template<typename _PipelineTraits_Ty>
-	PipelineFilterWrapper<_PipelineTraits_Ty>& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) & noexcept {
+	template<typename T_PipelineTraits>
+	PipelineFilterWrapper<T_PipelineTraits>& PipelineFilterWrapper<T_PipelineTraits>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) & noexcept {
 		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately);
 		return *this;
 	}
 
-	template<typename _PipelineTraits_Ty>
-	PipelineFilterWrapper<_PipelineTraits_Ty>&& PipelineFilterWrapper<_PipelineTraits_Ty>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) && noexcept {
+	template<typename T_PipelineTraits>
+	PipelineFilterWrapper<T_PipelineTraits>&& PipelineFilterWrapper<T_PipelineTraits>::DetachFromPipeline(PipelineWrapper<pipelinetraits_type>& _pipelinewrapper, bool _should_resolve_immediately) && noexcept {
 		pipelinetraits_type::DetachPipelineFilter(this->pipelinefiltercontext, _pipelinewrapper.pipelinecontext, _should_resolve_immediately);
 		return ::std::move(*this);
 	}

@@ -25,23 +25,23 @@
 #include "CommonWindows.h"
 
 namespace std {
-	template<typename _Char_Ty, typename _Traits_Ty>
-	inline basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(basic_ostream<_Char_Ty, _Traits_Ty>& os, const ::YBWLib2::Win32HandleHolder& x) {
+	template<typename T_Char, typename T_Traits>
+	inline basic_ostream<T_Char, T_Traits>& operator<<(basic_ostream<T_Char, T_Traits>& os, const ::YBWLib2::Win32HandleHolder& x) {
 		return os << x.get();
 	}
 	inline void swap(::YBWLib2::Win32HandleHolder& l, ::YBWLib2::Win32HandleHolder& r) noexcept { l.swap(r); }
 
-	template<typename _Char_Ty, typename _Traits_Ty, typename _Element_Ty>
-	inline basic_ostream<_Char_Ty, _Traits_Ty>& operator<<(basic_ostream<_Char_Ty, _Traits_Ty>& os, const ::YBWLib2::COMObjectHolder<_Element_Ty>& x) {
+	template<typename T_Char, typename T_Traits, typename T_Element>
+	inline basic_ostream<T_Char, T_Traits>& operator<<(basic_ostream<T_Char, T_Traits>& os, const ::YBWLib2::COMObjectHolder<T_Element>& x) {
 		return os << x.get();
 	}
-	template<typename _Element_Ty>
-	inline void swap(::YBWLib2::COMObjectHolder<_Element_Ty>& l, ::YBWLib2::COMObjectHolder<_Element_Ty>& r) noexcept { l.swap(r); }
-	template<typename _Element_To_Ty, typename _Element_From_Ty>
-	inline ::YBWLib2::COMObjectHolder<_Element_To_Ty> dynamic_pointer_cast(const ::YBWLib2::COMObjectHolder<_Element_From_Ty>& x) noexcept(false) {
-		::YBWLib2::COMObjectHolder<_Element_To_Ty> comobjholder;
+	template<typename T_Element>
+	inline void swap(::YBWLib2::COMObjectHolder<T_Element>& l, ::YBWLib2::COMObjectHolder<T_Element>& r) noexcept { l.swap(r); }
+	template<typename T_Element_To, typename T_Element_From>
+	inline ::YBWLib2::COMObjectHolder<T_Element_To> dynamic_pointer_cast(const ::YBWLib2::COMObjectHolder<T_Element_From>& x) noexcept(false) {
+		::YBWLib2::COMObjectHolder<T_Element_To> comobjholder;
 		if (x) {
-			HRESULT hr = x->QueryInterface(__uuidof(_Element_To_Ty), &comobjholder.get_ref_ptr_element());
+			HRESULT hr = x->QueryInterface(__uuidof(T_Element_To), &comobjholder.get_ref_ptr_element());
 			if (FAILED(hr)) {
 				if (hr != E_NOINTERFACE) {
 					throw(new ::YBWLib2::ExternalAPIFailureWithHRESULTException(u8"IUnknown::QueryInterface", sizeof(u8"IUnknown::QueryInterface") / sizeof(char) - 1, nullptr, hr));
@@ -56,49 +56,49 @@ namespace std {
 
 namespace YBWLib2 {
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
-	template<typename _U16String_Ty, typename _AnsiString_Ty>
-	inline _U16String_Ty AnsiStringToUtf16String(
+	template<typename T_U16String, typename T_AnsiString>
+	inline T_U16String AnsiStringToUtf16String(
 		const rawallocator_t* _rawallocator,
-		const _AnsiString_Ty& ansistr,
-		const typename _U16String_Ty::allocator_type& _allocator_u16str_out
+		const T_AnsiString& ansistr,
+		const typename T_U16String::allocator_type& _allocator_u16str_out
 	) noexcept(false) {
-		static_assert(::std::is_class_v<_U16String_Ty>, "The UTF-16 string type is not a class.");
-		static_assert(::std::is_class_v<_AnsiString_Ty>, "The ANSI string type is not a class.");
+		static_assert(::std::is_class_v<T_U16String>, "The UTF-16 string type is not a class.");
+		static_assert(::std::is_class_v<T_AnsiString>, "The ANSI string type is not a class.");
 		objholder_rawallocator_t<char16_t[]> holder_u16str_out(_rawallocator);
 		IException* err = AnsiStringToUtf16String(_rawallocator, &holder_u16str_out.get_ref_ptr_array_element_element_as_mem(), &holder_u16str_out.get_ref_count_element_element_as_mem(), ansistr.data(), ansistr.size());
 		if (err) throw(err);
-		return _U16String_Ty(holder_u16str_out.get(), holder_u16str_out.get_count(), _allocator_u16str_out);
+		return T_U16String(holder_u16str_out.get(), holder_u16str_out.get_count(), _allocator_u16str_out);
 	}
 
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
-	template<typename _AnsiString_Ty, typename _U16String_Ty>
-	inline _AnsiString_Ty Utf16StringToAnsiString(
+	template<typename T_AnsiString, typename T_U16String>
+	inline T_AnsiString Utf16StringToAnsiString(
 		const rawallocator_t* _rawallocator,
-		const _U16String_Ty& u16str,
-		const typename _AnsiString_Ty::allocator_type& _allocator_ansistr_out
+		const T_U16String& u16str,
+		const typename T_AnsiString::allocator_type& _allocator_ansistr_out
 	) noexcept(false) {
-		static_assert(::std::is_class_v<_AnsiString_Ty>, "The ANSI string type is not a class.");
-		static_assert(::std::is_class_v<_U16String_Ty>, "The UTF-16 string type is not a class.");
+		static_assert(::std::is_class_v<T_AnsiString>, "The ANSI string type is not a class.");
+		static_assert(::std::is_class_v<T_U16String>, "The UTF-16 string type is not a class.");
 		objholder_rawallocator_t<char[]> holder_ansistr_out(_rawallocator);
 		IException* err = Utf16StringToAnsiString(_rawallocator, &holder_ansistr_out.get_ref_ptr_array_element_element_as_mem(), &holder_ansistr_out.get_ref_count_element_element_as_mem(), u16str.data(), u16str.size());
 		if (err) throw(err);
-		return _AnsiString_Ty(holder_ansistr_out.get(), holder_ansistr_out.get_count(), _allocator_ansistr_out);
+		return T_AnsiString(holder_ansistr_out.get(), holder_ansistr_out.get_count(), _allocator_ansistr_out);
 	}
 
 	/// <summary>Converts a ANSI string into a UTF-16 string.</summary>
-	template<typename _Allocator_Ty>
-	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty> AnsiStringToUtf16String(const ::std::string_view& ansistr, const _Allocator_Ty& _allocator = ::std::allocator<char16_t>()) noexcept(false) {
+	template<typename T_Allocator>
+	inline ::std::basic_string<char16_t, ::std::char_traits<char16_t>, T_Allocator> AnsiStringToUtf16String(const ::std::string_view& ansistr, const T_Allocator& _allocator = ::std::allocator<char16_t>()) noexcept(false) {
 		return AnsiStringToUtf16String<
-			::std::basic_string<char16_t, ::std::char_traits<char16_t>, _Allocator_Ty>,
+			::std::basic_string<char16_t, ::std::char_traits<char16_t>, T_Allocator>,
 			::std::string_view
 		>(rawallocator_crt_module_local, ansistr, _allocator);
 	}
 
 	/// <summary>Converts a UTF-16 string into a ANSI string.</summary>
-	template<typename _Allocator_Ty>
-	inline ::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty> Utf16StringToAnsiString(const ::std::u16string_view& u16str, const _Allocator_Ty& _allocator = ::std::allocator<char>()) noexcept(false) {
+	template<typename T_Allocator>
+	inline ::std::basic_string<char, ::std::char_traits<char>, T_Allocator> Utf16StringToAnsiString(const ::std::u16string_view& u16str, const T_Allocator& _allocator = ::std::allocator<char>()) noexcept(false) {
 		return Utf16StringToAnsiString<
-			::std::basic_string<char, ::std::char_traits<char>, _Allocator_Ty>,
+			::std::basic_string<char, ::std::char_traits<char>, T_Allocator>,
 			::std::u16string_view
 		>(rawallocator_crt_module_local, u16str, _allocator);
 	}

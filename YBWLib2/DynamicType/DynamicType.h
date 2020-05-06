@@ -72,10 +72,10 @@ namespace YBWLib2 {
 	/// Use this template function instead of directly referencing the <c>DynamicTypeNoClass</c> static member variable.
 	/// Provide specializations for this template to support classes that do not declare the no-class boolean as the static member variable <c>DynamicTypeNoClass</c>.
 	/// </summary>
-	template<typename _Class_Ty>
+	template<typename T_Class>
 	inline constexpr bool IsDynamicTypeNoClass() {
-		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
-		return _Class_Ty::DynamicTypeNoClass;
+		static_assert(::std::is_class_v<T_Class>, "The specified type is not a class.");
+		return T_Class::DynamicTypeNoClass;
 	}
 	/// <summary>
 	/// Checks whether the specified class type has been declared module-local.
@@ -84,22 +84,22 @@ namespace YBWLib2 {
 	/// Use this template function instead of directly referencing the <c>DynamicTypeModuleLocalClass</c> static member variable.
 	/// Provide specializations for this template to support classes that do not declare the module-local boolean as the static member variable <c>DynamicTypeModuleLocalClass</c>.
 	/// </summary>
-	template<typename _Class_Ty>
+	template<typename T_Class>
 	inline constexpr bool IsDynamicTypeModuleLocalClass() {
-		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
-		return _Class_Ty::DynamicTypeModuleLocalClass;
+		static_assert(::std::is_class_v<T_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class>(), "The specified type is not a dynamic type class.");
+		return T_Class::DynamicTypeModuleLocalClass;
 	}
 	/// <summary>
 	/// Gets a pointer to the <c>DynamicTypeClassObj</c> object that represents the specified class type.
 	/// Use this template function instead of directly referencing the <c>DynamicTypeThisClassObject</c> static member variable.
 	/// Provide specializations for this template to support classes that do not declare the pointer to the <c>DynamicTypeClassObj</c> object as the static member variable <c>DynamicTypeThisClassObject</c>.
 	/// </summary>
-	template<typename _Class_Ty>
+	template<typename T_Class>
 	inline constexpr DynamicTypeClassObj* GetDynamicTypeClassObject() {
-		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
-		return _Class_Ty::DynamicTypeThisClassObject;
+		static_assert(::std::is_class_v<T_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class>(), "The specified type is not a dynamic type class.");
+		return T_Class::DynamicTypeThisClassObject;
 	}
 	/// <summary>
 	/// Gets a reference to the <c>PersistentID</c> identifier that persistently identifies the specified class type.
@@ -107,18 +107,18 @@ namespace YBWLib2 {
 	/// Provide specializations for this template to support classes that do not declare the <c>PersistentID</c> identifier as the static member variable <c>DynamicTypeThisClassPersistentID</c>.
 	/// Notice that this identifier must be either <c>constexpr</c> or statically initialized, so that it's available before global constructors get executed.
 	/// </summary>
-	template<typename _Class_Ty>
+	template<typename T_Class>
 	inline constexpr const PersistentID& GetDynamicTypeClassPersistentID() {
-		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
-		return _Class_Ty::DynamicTypeThisClassPersistentID;
+		static_assert(::std::is_class_v<T_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class>(), "The specified type is not a dynamic type class.");
+		return T_Class::DynamicTypeThisClassPersistentID;
 	}
 	/// <summary>Gets a reference to the <c>DynamicTypeClassID</c> identifier that identifies the specified class type.</summary>
-	template<typename _Class_Ty>
+	template<typename T_Class>
 	inline constexpr const DynamicTypeClassID& GetDynamicTypeClassID() {
-		static_assert(::std::is_class_v<_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_Ty>(), "The specified type is not a dynamic type class.");
-		DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Class_Ty>();
+		static_assert(::std::is_class_v<T_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class>(), "The specified type is not a dynamic type class.");
+		DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<T_Class>();
 		assert(dtclassobj);
 		return dtclassobj->GetDynamicTypeClassID();
 	}
@@ -126,16 +126,16 @@ namespace YBWLib2 {
 	/// Gets a function pointer to a function that statically casts a pointer from one dynamic type class to another.
 	/// Provide specializations for this template to support classes that implement custom static type cast mechanism.
 	/// </summary>
-	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	template<typename T_Class_To, typename T_Class_From>
 	inline fnptr_dynamic_type_upcast_t DynamicTypeGetStaticCastFnptr() {
-		static_assert(::std::is_class_v<_Class_To_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_To_Ty>(), "The specified type is not a dynamic type class.");
-		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified type is not a dynamic type class.");
+		static_assert(::std::is_class_v<T_Class_To>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_To>(), "The specified type is not a dynamic type class.");
+		static_assert(::std::is_class_v<T_Class_From>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_From>(), "The specified type is not a dynamic type class.");
 		return [](uintptr_t ptr_from, const DynamicTypeClassObj* dtclassobj_from, const DynamicTypeBaseClassDefObj* dtbaseclassdef) noexcept->uintptr_t {
 			static_cast<void>(dtclassobj_from);
 			static_cast<void>(dtbaseclassdef);
-			return reinterpret_cast<uintptr_t>(static_cast<_Class_To_Ty*>(reinterpret_cast<_Class_From_Ty*>(ptr_from)));
+			return reinterpret_cast<uintptr_t>(static_cast<T_Class_To*>(reinterpret_cast<T_Class_From*>(ptr_from)));
 		};
 	}
 
@@ -675,28 +675,28 @@ namespace YBWLib2 {
 	//{ Dynamic type class declarations, implementations and initializations helper templates
 
 	/// <summary>Base class definition structure template for dynamic type classes.</summary>
-	template<typename _This_Class_Ty, typename _Base_Class_Ty, DynamicTypeBaseClassFlags dtbaseclassflags>
+	template<typename T_This_Class, typename T_Base_Class, DynamicTypeBaseClassFlags dtbaseclassflags>
 	struct DynamicTypeBaseClassDef_t {
-		static_assert(::std::is_class_v<_This_Class_Ty>, "The specified derived class type is not a class.");
-		static_assert(::std::is_class_v<_Base_Class_Ty>, "The specified base class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_This_Class_Ty>(), "The specified derived class type is not a dynamic type class.");
-		static_assert(!IsDynamicTypeNoClass<_Base_Class_Ty>(), "The specified base class type is not a dynamic type class.");
+		static_assert(::std::is_class_v<T_This_Class>, "The specified derived class type is not a class.");
+		static_assert(::std::is_class_v<T_Base_Class>, "The specified base class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_This_Class>(), "The specified derived class type is not a dynamic type class.");
+		static_assert(!IsDynamicTypeNoClass<T_Base_Class>(), "The specified base class type is not a dynamic type class.");
 		static_assert(
-			IsDynamicTypeModuleLocalClass<_This_Class_Ty>() || !IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
+			IsDynamicTypeModuleLocalClass<T_This_Class>() || !IsDynamicTypeModuleLocalClass<T_Base_Class>(),
 			"The specified derived class type is non-module-local, but the specified base class type is module-local."
 			);
 		inline operator DynamicTypeBaseClassDefObj() const {
 			return DynamicTypeBaseClassDefObj(
-				GetDynamicTypeClassID<_Base_Class_Ty>(),
-				IsDynamicTypeModuleLocalClass<_Base_Class_Ty>(),
+				GetDynamicTypeClassID<T_Base_Class>(),
+				IsDynamicTypeModuleLocalClass<T_Base_Class>(),
 				dtbaseclassflags,
-				DynamicTypeGetStaticCastFnptr<_Base_Class_Ty, _This_Class_Ty>()
+				DynamicTypeGetStaticCastFnptr<T_Base_Class, T_This_Class>()
 			);
 		}
 	};
 	/// <summary>Base class definition variable template for dynamic type classes.</summary>
-	template<typename _This_Class_Ty, typename _Base_Class_Ty, DynamicTypeBaseClassFlags dtbaseclassflags>
-	constexpr DynamicTypeBaseClassDef_t<_This_Class_Ty, _Base_Class_Ty, dtbaseclassflags> DynamicTypeBaseClassDef {};
+	template<typename T_This_Class, typename T_Base_Class, DynamicTypeBaseClassFlags dtbaseclassflags>
+	constexpr DynamicTypeBaseClassDef_t<T_This_Class, T_Base_Class, dtbaseclassflags> DynamicTypeBaseClassDef {};
 
 	//}
 #pragma endregion These templates aid in the declarations, implementations and initializations of dynamic type classes.
@@ -768,20 +768,20 @@ namespace YBWLib2 {
 #pragma region Dynamic type casting intermediates
 	//{ Dynamic type casting
 
-	template<typename _Most_Derived_DT_Class_Ty>
+	template<typename T_Most_Derived_DT_Class>
 	inline uintptr_t DynamicTypeDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
-		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
-		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Most_Derived_DT_Class_Ty>();
+		static_assert(::std::is_class_v<T_Most_Derived_DT_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Most_Derived_DT_Class>(), "The specified type is not a dynamic type class.");
+		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<T_Most_Derived_DT_Class>();
 		if (!dtclassobj) abort();
 		return dtclassobj->DynamicUpcastTo(ptr, dtclassobj_target);
 	}
 
-	template<typename _Most_Derived_DT_Class_Ty>
+	template<typename T_Most_Derived_DT_Class>
 	inline uintptr_t DynamicTypeCanDynamicUpcastTo(uintptr_t ptr, const DynamicTypeClassObj* dtclassobj_target) {
-		static_assert(::std::is_class_v<_Most_Derived_DT_Class_Ty>, "The specified type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Most_Derived_DT_Class_Ty>(), "The specified type is not a dynamic type class.");
-		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<_Most_Derived_DT_Class_Ty>();
+		static_assert(::std::is_class_v<T_Most_Derived_DT_Class>, "The specified type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Most_Derived_DT_Class>(), "The specified type is not a dynamic type class.");
+		const DynamicTypeClassObj* dtclassobj = GetDynamicTypeClassObject<T_Most_Derived_DT_Class>();
 		if (!dtclassobj) abort();
 		return dtclassobj->CanDynamicUpcastTo(ptr, dtclassobj_target);
 	}
@@ -823,50 +823,50 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>Structure template for type casting using dynamic type functionality.</summary>
-	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	template<typename T_Class_To, typename T_Class_From>
 	struct DynamicTypeCast_t {
-		static_assert(::std::is_class_v<_Class_To_Ty>, "The specified target class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_To_Ty>(), "The specified target class type is not a dynamic type class.");
-		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_To_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
-		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified source class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified source class type is not a dynamic type class.");
-		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
-		static_assert(::std::is_convertible_v<move_cv_t<void, _Class_From_Ty>, move_cv_t<void, _Class_To_Ty>>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
-		inline _Class_To_Ty* operator()(_Class_From_Ty* ptr) const {
+		static_assert(::std::is_class_v<T_Class_To>, "The specified target class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_To>(), "The specified target class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, T_Class_To>, "The specified target class type is not derived from IDynamicTypeObject.");
+		static_assert(::std::is_class_v<T_Class_From>, "The specified source class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_From>(), "The specified source class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, T_Class_From>, "The specified target class type is not derived from IDynamicTypeObject.");
+		static_assert(::std::is_convertible_v<move_cv_t<void, T_Class_From>, move_cv_t<void, T_Class_To>>, "The specified source class type has extra cv-qualifiers that the specified target class type doesn't.");
+		inline T_Class_To* operator()(T_Class_From* ptr) const {
 			if constexpr (
-				::std::is_convertible_v<::std::remove_cv_t<_Class_From_Ty>*, ::std::remove_cv_t<_Class_To_Ty>*>
-				&& !IsDynamicTypeModuleLocalClass<_Class_To_Ty>()
-				&& !IsDynamicTypeModuleLocalClass<_Class_From_Ty>()
+				::std::is_convertible_v<::std::remove_cv_t<T_Class_From>*, ::std::remove_cv_t<T_Class_To>*>
+				&& !IsDynamicTypeModuleLocalClass<T_Class_To>()
+				&& !IsDynamicTypeModuleLocalClass<T_Class_From>()
 				) {
-				return ptr ? static_cast<_Class_To_Ty*>(ptr) : nullptr;
+				return ptr ? static_cast<T_Class_To*>(ptr) : nullptr;
 			} else {
-				return ptr ? reinterpret_cast<_Class_To_Ty*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeClassObject<_Class_To_Ty>())) : nullptr;
+				return ptr ? reinterpret_cast<T_Class_To*>(ptr->DynamicTypeRawCastTo(GetDynamicTypeClassObject<T_Class_To>())) : nullptr;
 			}
 		}
 	};
 	/// <summary>Variable template for type casting using dynamic type functionality.</summary>
-	template<typename _Class_To_Ty, typename _Class_From_Ty>
-	constexpr DynamicTypeCast_t<_Class_To_Ty, _Class_From_Ty> DynamicTypeCast {};
+	template<typename T_Class_To, typename T_Class_From>
+	constexpr DynamicTypeCast_t<T_Class_To, T_Class_From> DynamicTypeCast {};
 
 	/// <summary>Structure template for checking type casting validity using dynamic type functionality.</summary>
-	template<typename _Class_To_Ty, typename _Class_From_Ty>
+	template<typename T_Class_To, typename T_Class_From>
 	struct DynamicTypeCanCast_t {
-		static_assert(::std::is_class_v<_Class_To_Ty>, "The specified target class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_To_Ty>(), "The specified target class type is not a dynamic type class.");
-		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_To_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
-		static_assert(::std::is_class_v<_Class_From_Ty>, "The specified source class type is not a class.");
-		static_assert(!IsDynamicTypeNoClass<_Class_From_Ty>(), "The specified source class type is not a dynamic type class.");
-		static_assert(::std::is_base_of_v<IDynamicTypeObject, _Class_From_Ty>, "The specified target class type is not derived from IDynamicTypeObject.");
-		inline bool operator()(_Class_From_Ty* ptr) const {
-			if constexpr (::std::is_convertible_v<move_cv_t<void, _Class_From_Ty>, move_cv_t<void, _Class_To_Ty>>) {
+		static_assert(::std::is_class_v<T_Class_To>, "The specified target class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_To>(), "The specified target class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, T_Class_To>, "The specified target class type is not derived from IDynamicTypeObject.");
+		static_assert(::std::is_class_v<T_Class_From>, "The specified source class type is not a class.");
+		static_assert(!IsDynamicTypeNoClass<T_Class_From>(), "The specified source class type is not a dynamic type class.");
+		static_assert(::std::is_base_of_v<IDynamicTypeObject, T_Class_From>, "The specified target class type is not derived from IDynamicTypeObject.");
+		inline bool operator()(T_Class_From* ptr) const {
+			if constexpr (::std::is_convertible_v<move_cv_t<void, T_Class_From>, move_cv_t<void, T_Class_To>>) {
 				if constexpr (
-					::std::is_convertible_v<::std::remove_cv_t<_Class_From_Ty>*, ::std::remove_cv_t<_Class_To_Ty>*>
-					&& !IsDynamicTypeModuleLocalClass<_Class_To_Ty>()
-					&& !IsDynamicTypeModuleLocalClass<_Class_From_Ty>()
+					::std::is_convertible_v<::std::remove_cv_t<T_Class_From>*, ::std::remove_cv_t<T_Class_To>*>
+					&& !IsDynamicTypeModuleLocalClass<T_Class_To>()
+					&& !IsDynamicTypeModuleLocalClass<T_Class_From>()
 					) {
 					return ptr;
 				} else {
-					return ptr && ptr->DynamicTypeRawCanCastTo(GetDynamicTypeClassObject<_Class_To_Ty>());
+					return ptr && ptr->DynamicTypeRawCanCastTo(GetDynamicTypeClassObject<T_Class_To>());
 				}
 			} else {
 				return false;
@@ -874,8 +874,8 @@ namespace YBWLib2 {
 		}
 	};
 	/// <summary>Variable template for checking type casting validity using dynamic type functionality.</summary>
-	template<typename _Class_To_Ty, typename _Class_From_Ty>
-	constexpr DynamicTypeCanCast_t<_Class_To_Ty, _Class_From_Ty> DynamicTypeCanCast {};
+	template<typename T_Class_To, typename T_Class_From>
+	constexpr DynamicTypeCanCast_t<T_Class_To, T_Class_From> DynamicTypeCanCast {};
 
 	//}
 #pragma endregion IDynamicTypeObject is used as a virtual base class of other dynamic type classes. This enables casting the object dynamically using information provided by the most derived dynamic type class (often the concrete class).

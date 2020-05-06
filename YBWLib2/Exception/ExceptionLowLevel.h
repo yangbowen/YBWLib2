@@ -1,4 +1,4 @@
-﻿#ifndef _INCLUDE_GUARD_5A563FBB_E8FB_48E1_8AAC_FC3EA9D2674A
+#ifndef _INCLUDE_GUARD_5A563FBB_E8FB_48E1_8AAC_FC3EA9D2674A
 #define _INCLUDE_GUARD_5A563FBB_E8FB_48E1_8AAC_FC3EA9D2674A
 
 #include <cstdint>
@@ -58,21 +58,21 @@ namespace YBWLib2 {
 		(*fnptr_delete_iexception)(_ptr);
 	}
 
-	template<typename _Callable_Ty>
-	inline IException* WrapFunctionCatchExceptions(_Callable_Ty _callable) noexcept {
-		static_assert(::std::is_invocable_r_v<void, _Callable_Ty>, "The callable value is invalid.");
-		if constexpr (::std::is_nothrow_invocable_r_v<void, _Callable_Ty>) {
+	template<typename T_Callable>
+	inline IException* WrapFunctionCatchExceptions(T_Callable _callable) noexcept {
+		static_assert(::std::is_invocable_r_v<void, T_Callable>, "The callable value is invalid.");
+		if constexpr (::std::is_nothrow_invocable_r_v<void, T_Callable>) {
 			_callable();
 			return nullptr;
 		} else {
-			::std::add_pointer_t<_Callable_Ty> ptr_callable = ::std::addressof(_callable);
+			::std::add_pointer_t<T_Callable> ptr_callable = ::std::addressof(_callable);
 			const atomic_fnptr_wrap_function_catch_exceptions_raw_t* ptr_atomic_fnptr_wrap_function_catch_exceptions_raw = GetThreadLocalRawWrapFunctionCatchExceptionsFnptrAtomicPtr();
 			if (!ptr_atomic_fnptr_wrap_function_catch_exceptions_raw) abort();
 			fnptr_wrap_function_catch_exceptions_raw_t fnptr_wrap_function_catch_exceptions_raw = GetRawWrapFunctionCatchExceptionsFnptr(ptr_atomic_fnptr_wrap_function_catch_exceptions_raw);
 			if (!fnptr_wrap_function_catch_exceptions_raw) abort();
 			return (*fnptr_wrap_function_catch_exceptions_raw)(
 				[](uintptr_t _context) {
-					::std::add_pointer_t<_Callable_Ty> ptr_callable = reinterpret_cast<::std::add_pointer_t<_Callable_Ty>>(_context);
+					::std::add_pointer_t<T_Callable> ptr_callable = reinterpret_cast<::std::add_pointer_t<T_Callable>>(_context);
 					(*ptr_callable)();
 				}, reinterpret_cast<uintptr_t>(ptr_callable));
 		}

@@ -1,4 +1,4 @@
-﻿#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
+#ifndef YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #define _MACRO_DEFINE_TEMP_YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED_DF400AB1_E704_482A_8699_42E85042DA8A
 #define YBWLIB2_DYNAMIC_TYPE_MACROS_ENABLED
 #endif
@@ -257,12 +257,12 @@ namespace YBWLib2 {
 	/// An implementation for <c>IJSONSAXHandler</c> that wraps a JSON SAX handler that satisfies <c>::rapidjson::Handler</c> concept.
 	/// Satisfies <c>::rapidjson::Handler</c> concept.
 	/// </summary>
-	template<typename _Wrapped_Ty>
+	template<typename T_Wrapped>
 	class JSONSAXHandlerWrapper : public virtual IJSONSAXHandler {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(JSONSAXHandlerWrapper);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(JSONSAXHandlerWrapper);
-		explicit JSONSAXHandlerWrapper(_Wrapped_Ty& _wrapped) : wrapped(&_wrapped) {}
+		explicit JSONSAXHandlerWrapper(T_Wrapped& _wrapped) : wrapped(&_wrapped) {}
 		inline virtual ~JSONSAXHandlerWrapper() { this->wrapped = nullptr; }
 		virtual bool Null() override { return this->wrapped->Null(); }
 		virtual bool Bool(bool value) override { return this->wrapped->Bool(value); }
@@ -279,23 +279,23 @@ namespace YBWLib2 {
 		virtual bool StartArray() override { return this->wrapped->StartArray(); }
 		virtual bool EndArray(size_t count_element) override { return this->wrapped->EndArray(count_element); }
 	protected:
-		_Wrapped_Ty* wrapped;
+		T_Wrapped* wrapped;
 	};
 
 	/// <summary>An implementation for <c>IJSONSAXGenerator</c> that wraps a <c>::rapidjson::GenericReader</c> object.</summary>
-	template<typename _Wrapped_Ty, unsigned flags_rapidjson_parse, typename _Stream_Input_Ty, typename _Fn_Get_Parse_Error_Ty>
+	template<typename T_Wrapped, unsigned flags_rapidjson_parse, typename T_Stream_Input, typename T_Fn_Get_Parse_Error>
 	class ReaderJSONSAXGeneratorWrapper : public virtual IJSONSAXGenerator {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(ReaderJSONSAXGeneratorWrapper);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(ReaderJSONSAXGeneratorWrapper);
 		static_assert(
-			!(::std::is_pointer_v<_Fn_Get_Parse_Error_Ty> && ::std::is_function_v<::std::remove_pointer_t<_Fn_Get_Parse_Error_Ty>>),
-			"The function type should be used instead of the function pointer type as the actual template parameter for _Fn_Get_Parse_Error_Ty."
+			!(::std::is_pointer_v<T_Fn_Get_Parse_Error> && ::std::is_function_v<::std::remove_pointer_t<T_Fn_Get_Parse_Error>>),
+			"The function type should be used instead of the function pointer type as the actual template parameter for T_Fn_Get_Parse_Error."
 			);
 		explicit ReaderJSONSAXGeneratorWrapper(
-			_Wrapped_Ty& _wrapped,
-			_Stream_Input_Ty& _stream_input,
-			_Fn_Get_Parse_Error_Ty& _fn_get_parse_error,
+			T_Wrapped& _wrapped,
+			T_Stream_Input& _stream_input,
+			T_Fn_Get_Parse_Error& _fn_get_parse_error,
 			bool _is_iterative
 		) : wrapped(&_wrapped), stream_input(&_stream_input), fn_get_parse_error(&_fn_get_parse_error), is_iterative(_is_iterative) {}
 		inline virtual ~ReaderJSONSAXGeneratorWrapper() {
@@ -320,7 +320,7 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
-					if (!this->wrapped->Parse<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
+					if (!this->wrapped->Parse<flags_rapidjson_parse, T_Stream_Input, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
 						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
 						return;
 					}
@@ -371,7 +371,7 @@ namespace YBWLib2 {
 			IException* err_inner = nullptr;
 			IException* err = WrapFunctionCatchExceptions(
 				[this, &jsonsaxhandler, &err_inner]() noexcept(false)->void {
-					if (!this->wrapped->IterativeParseNext<flags_rapidjson_parse, _Stream_Input_Ty, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
+					if (!this->wrapped->IterativeParseNext<flags_rapidjson_parse, T_Stream_Input, IJSONSAXHandler>(*this->stream_input, *jsonsaxhandler)) {
 						err_inner = new ParseErrorJSONException(this->wrapped->GetErrorOffset(), (*this->fn_get_parse_error)(this->wrapped->GetParseErrorCode()));
 						return;
 					}
@@ -387,19 +387,19 @@ namespace YBWLib2 {
 			}
 		}
 	protected:
-		_Wrapped_Ty* wrapped;
-		_Stream_Input_Ty* stream_input;
-		_Fn_Get_Parse_Error_Ty* fn_get_parse_error;
+		T_Wrapped* wrapped;
+		T_Stream_Input* stream_input;
+		T_Fn_Get_Parse_Error* fn_get_parse_error;
 		const bool is_iterative;
 	};
 
 	/// <summary>An implementation for <c>IJSONSAXGenerator</c> that wraps a <c>::rapidjson::GenericValue</c> object.</summary>
-	template<typename _Wrapped_Ty>
+	template<typename T_Wrapped>
 	class ValueJSONSAXGeneratorWrapper : public virtual IJSONSAXGenerator {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_NO_CLASS(ValueJSONSAXGeneratorWrapper);
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INHERIT(ValueJSONSAXGeneratorWrapper);
-		explicit ValueJSONSAXGeneratorWrapper(_Wrapped_Ty& _wrapped) : wrapped(&_wrapped) {}
+		explicit ValueJSONSAXGeneratorWrapper(T_Wrapped& _wrapped) : wrapped(&_wrapped) {}
 		inline virtual ~ValueJSONSAXGeneratorWrapper() {
 			this->wrapped = nullptr;
 		}
@@ -445,7 +445,7 @@ namespace YBWLib2 {
 			return YBWLIB2_EXCEPTION_CREATE_INVALID_CALL_EXCEPTION_CLASS(::YBWLib2::ValueJSONSAXGeneratorWrapper, GenerateIterativeNext);
 		}
 	protected:
-		_Wrapped_Ty* wrapped;
+		T_Wrapped* wrapped;
 	};
 
 	class JSONSAXGeneratorParameterIndexedDataEntry final {

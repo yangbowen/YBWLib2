@@ -37,38 +37,38 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
-	template<typename _Ty, typename _Cv_Ty>
+	template<typename T, typename T_Cv>
 	struct move_cv {
-		using type = typename ::std::conditional_t<::std::is_volatile_v<_Cv_Ty>, typename ::std::add_volatile_t<
-			typename ::std::conditional_t<::std::is_const_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
+		using type = typename ::std::conditional_t<::std::is_volatile_v<T_Cv>, typename ::std::add_volatile_t<
+			typename ::std::conditional_t<::std::is_const_v<T_Cv>, typename ::std::add_const_t<T>, typename ::std::remove_const_t<T>>
 		>, typename ::std::remove_volatile_t<
-			typename ::std::conditional_t<::std::is_const_v<_Cv_Ty>, typename ::std::add_const_t<_Ty>, typename ::std::remove_const_t<_Ty>>
+			typename ::std::conditional_t<::std::is_const_v<T_Cv>, typename ::std::add_const_t<T>, typename ::std::remove_const_t<T>>
 			>>;
 	};
 
 	/// <summary>Obtains a type resulting from moving the <c>const</c> and <c>volatile</c> qualification information from another type to one type.</summary>
-	template<typename _Ty, typename _Cv_Ty>
-	using move_cv_t = typename move_cv<_Ty, _Cv_Ty>::type;
+	template<typename T, typename T_Cv>
+	using move_cv_t = typename move_cv<T, T_Cv>::type;
 
 	/// <summary>A helper type that encloses a value known at compile time.</summary>
-	template<typename _Ty, _Ty _value>
+	template<typename T, T _value>
 	struct enclose_constexpr_value_t {
-		using value_type = _Ty;
+		using value_type = T;
 		static constexpr value_type value = _value;
 	};
 
-	namespace Internal {
-		template<typename _Default_Ty, typename _AlwaysVoid_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
+	namespace Internal_Detected {
+		template<typename T_Default, typename T_AlwaysVoid, template<typename...> typename T_Template, typename... T_Args>
 		struct detected_helper_t {
 			using value_t = ::std::false_type;
-			using type = _Default_Ty;
+			using type = T_Default;
 			static constexpr typename value_t::value_type value = value_t::value;
 		};
 
-		template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-		struct detected_helper_t<_Default_Ty, ::std::void_t<_Template_Ty<_Args_Ty...>>, _Template_Ty, _Args_Ty...> {
+		template<typename T_Default, template<typename...> typename T_Template, typename... T_Args>
+		struct detected_helper_t<T_Default, ::std::void_t<T_Template<T_Args...>>, T_Template, T_Args...> {
 			using value_t = ::std::true_type;
-			using type = _Template_Ty<_Args_Ty...>;
+			using type = T_Template<T_Args...>;
 			static constexpr typename value_t::value_type value = value_t::value;
 		};
 	}
@@ -83,39 +83,39 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>Detects template specialization.</summary>
-	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using is_detected = typename Internal::detected_helper_t<nonesuch, void, _Template_Ty, _Args_Ty...>::value_t;
+	template<template<typename...> typename T_Template, typename... T_Args>
+	using is_detected = typename Internal_Detected::detected_helper_t<nonesuch, void, T_Template, T_Args...>::value_t;
 	/// <summary>Detects template specialization.</summary>
-	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	constexpr bool is_detected_v = is_detected<_Template_Ty, _Args_Ty...>::value;
+	template<template<typename...> typename T_Template, typename... T_Args>
+	constexpr bool is_detected_v = is_detected<T_Template, T_Args...>::value;
 
 	/// <summary>Detects template specialization.</summary>
-	template<template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using detected_t = typename Internal::detected_helper_t<nonesuch, void, _Template_Ty, _Args_Ty...>::type;
+	template<template<typename...> typename T_Template, typename... T_Args>
+	using detected_t = typename Internal_Detected::detected_helper_t<nonesuch, void, T_Template, T_Args...>::type;
 	/// <summary>Detects template specialization.</summary>
-	template<typename _Expected_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using is_detected_exact = ::std::is_same<detected_t<_Template_Ty, _Args_Ty...>, _Expected_Ty>;
+	template<typename T_Expected, template<typename...> typename T_Template, typename... T_Args>
+	using is_detected_exact = ::std::is_same<detected_t<T_Template, T_Args...>, T_Expected>;
 	/// <summary>Detects template specialization.</summary>
-	template<typename _Expected_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	constexpr bool is_detected_exact_v = is_detected_exact<_Expected_Ty, _Template_Ty, _Args_Ty...>::value;
+	template<typename T_Expected, template<typename...> typename T_Template, typename... T_Args>
+	constexpr bool is_detected_exact_v = is_detected_exact<T_Expected, T_Template, T_Args...>::value;
 	/// <summary>Detects template specialization.</summary>
-	template<typename _To_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using is_detected_convertible = ::std::is_convertible<detected_t<_Template_Ty, _Args_Ty...>, _To_Ty>;
+	template<typename T_To, template<typename...> typename T_Template, typename... T_Args>
+	using is_detected_convertible = ::std::is_convertible<detected_t<T_Template, T_Args...>, T_To>;
 	/// <summary>Detects template specialization.</summary>
-	template<typename _To_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	constexpr bool is_detected_convertible_v = is_detected_convertible<_To_Ty, _Template_Ty, _Args_Ty...>::value;
+	template<typename T_To, template<typename...> typename T_Template, typename... T_Args>
+	constexpr bool is_detected_convertible_v = is_detected_convertible<T_To, T_Template, T_Args...>::value;
 
 	/// <summary>Detects template specialization.</summary>
-	template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using detected_or = Internal::detected_helper_t<_Default_Ty, void, _Template_Ty, _Args_Ty...>;
+	template<typename T_Default, template<typename...> typename T_Template, typename... T_Args>
+	using detected_or = Internal_Detected::detected_helper_t<T_Default, void, T_Template, T_Args...>;
 	/// <summary>Detects template specialization.</summary>
-	template<typename _Default_Ty, template<typename...> typename _Template_Ty, typename... _Args_Ty>
-	using detected_or_t = typename detected_or<_Default_Ty, _Template_Ty, _Args_Ty...>::type;
+	template<typename T_Default, template<typename...> typename T_Template, typename... T_Args>
+	using detected_or_t = typename detected_or<T_Default, T_Template, T_Args...>::type;
 
 	/// <summary>A helper type whose instances always compares less than the specified original type.</summary>
-	template<typename _Ty>
+	template<typename T>
 	struct below_min_t {
-		using original_type = _Ty;
+		using original_type = T;
 		using is_always_equal = ::std::true_type;
 		constexpr below_min_t() noexcept = default;
 		constexpr below_min_t(const below_min_t&) noexcept = default;
@@ -138,9 +138,9 @@ namespace YBWLib2 {
 	};
 
 	/// <summary>A helper type whose instances always compares greater than the specified original type.</summary>
-	template<typename _Ty>
+	template<typename T>
 	struct above_max_t {
-		using original_type = _Ty;
+		using original_type = T;
 		using is_always_equal = ::std::true_type;
 		constexpr above_max_t() noexcept = default;
 		constexpr above_max_t(const above_max_t&) noexcept = default;
@@ -162,56 +162,56 @@ namespace YBWLib2 {
 		constexpr bool operator>=(const original_type&) const noexcept { return true; }
 	};
 
-	template<typename _Ty>
-	constexpr bool operator==(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator!=(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator<=(const _Ty&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator>(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator>=(const _Ty&, const below_min_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator==(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator!=(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<=(const _Ty&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator>(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator>=(const _Ty&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator==(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator!=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator>(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator>=(const below_min_t<_Ty>&, const above_max_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator==(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator!=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator<(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator<=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return false; }
-	template<typename _Ty>
-	constexpr bool operator>(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
-	template<typename _Ty>
-	constexpr bool operator>=(const above_max_t<_Ty>&, const below_min_t<_Ty>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator==(const T&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator!=(const T&, const below_min_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<(const T&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator<=(const T&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator>(const T&, const below_min_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator>=(const T&, const below_min_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator==(const T&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator!=(const T&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<(const T&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<=(const T&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator>(const T&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator>=(const T&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator==(const below_min_t<T>&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator!=(const below_min_t<T>&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<(const below_min_t<T>&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<=(const below_min_t<T>&, const above_max_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator>(const below_min_t<T>&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator>=(const below_min_t<T>&, const above_max_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator==(const above_max_t<T>&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator!=(const above_max_t<T>&, const below_min_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator<(const above_max_t<T>&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator<=(const above_max_t<T>&, const below_min_t<T>&) noexcept { return false; }
+	template<typename T>
+	constexpr bool operator>(const above_max_t<T>&, const below_min_t<T>&) noexcept { return true; }
+	template<typename T>
+	constexpr bool operator>=(const above_max_t<T>&, const below_min_t<T>&) noexcept { return true; }
 
-	namespace Internal {
+	namespace Internal_ByteOrder {
 		// Helpers for byte_order_t.
 		template<unsigned char i>
 		struct byte_order_bytearray_test_helper_t {
@@ -224,27 +224,27 @@ namespace YBWLib2 {
 		};
 		template<unsigned char i>
 		constexpr byte_order_bytearray_test_helper_t<i> byte_order_bytearray_test_helper{};
-		template<typename _Ty, unsigned char i>
-		constexpr _Ty byte_order_number_test_le_helper = byte_order_number_test_le_helper<_Ty, i - 1> | (((_Ty)i) << (i * CHAR_BIT));
-		template<typename _Ty>
-		constexpr _Ty byte_order_number_test_le_helper<_Ty, 0> = 0;
-		template<typename _Ty, unsigned char i>
-		constexpr _Ty byte_order_number_test_be_helper = byte_order_number_test_be_helper<_Ty, i - 1> | (((_Ty)(sizeof(_Ty) - i - 1)) << (i * CHAR_BIT));
-		template<typename _Ty>
-		constexpr _Ty byte_order_number_test_be_helper<_Ty, 0> = sizeof(_Ty) - 1;
+		template<typename T, unsigned char i>
+		constexpr T byte_order_number_test_le_helper = byte_order_number_test_le_helper<T, i - 1> | (((T)i) << (i * CHAR_BIT));
+		template<typename T>
+		constexpr T byte_order_number_test_le_helper<T, 0> = 0;
+		template<typename T, unsigned char i>
+		constexpr T byte_order_number_test_be_helper = byte_order_number_test_be_helper<T, i - 1> | (((T)(sizeof(T) - i - 1)) << (i * CHAR_BIT));
+		template<typename T>
+		constexpr T byte_order_number_test_be_helper<T, 0> = sizeof(T) - 1;
 	}
 
 	/// <summary>Obtains byte order information about a given unsigned intergral type.</summary>
-	template<typename _Ty>
+	template<typename T>
 	struct byte_order_t final {
-		static_assert(::std::is_integral_v<_Ty> && ::std::is_unsigned_v<_Ty>, "The specified type is not an unsigned integral type.");
-		static constexpr _Ty number_test_le = Internal::byte_order_number_test_le_helper<_Ty, sizeof(_Ty) - 1>;
-		static constexpr _Ty number_test_be = Internal::byte_order_number_test_be_helper<_Ty, sizeof(_Ty) - 1>;
-		const _Ty number_test;
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
+		static constexpr T number_test_le = Internal_ByteOrder::byte_order_number_test_le_helper<T, sizeof(T) - 1>;
+		static constexpr T number_test_be = Internal_ByteOrder::byte_order_number_test_be_helper<T, sizeof(T) - 1>;
+		const T number_test;
 		const bool is_le;
 		const bool is_be;
 		byte_order_t()
-			: number_test(*reinterpret_cast<const _Ty*>(&Internal::byte_order_bytearray_test_helper<sizeof(_Ty) - 1>)),
+			: number_test(*reinterpret_cast<const T*>(&Internal_ByteOrder::byte_order_bytearray_test_helper<sizeof(T) - 1>)),
 			is_le(number_test == number_test_le),
 			is_be(number_test == number_test_be) {}
 	};
@@ -263,10 +263,116 @@ namespace YBWLib2 {
 	extern YBWLIB2_API bool* is_byte_order_le;
 	extern YBWLIB2_API bool* is_byte_order_be;
 
+	template<typename T>
+	inline constexpr T bitrotateleft(T x, size_t n) noexcept {
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T>::radix == 2, "Only integrals represented using binary are supported.");
+		if constexpr (!(::std::numeric_limits<T>::digits & (::std::numeric_limits<T>::digits - 1))) {
+			return (x << n) | (x >> ((-n) & (::std::numeric_limits<T>::digits - 1)));
+		} else {
+			return n ? (x << n) | (x >> (::std::numeric_limits<T>::digits - n)) : x;
+		}
+	}
+	template<typename T>
+	inline constexpr T bitrotateright(T x, size_t n) noexcept {
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T>::radix == 2, "Only integrals represented using binary are supported.");
+		if constexpr (!(::std::numeric_limits<T>::digits & (::std::numeric_limits<T>::digits - 1))) {
+			return (x >> n) | (x << ((-n) & (::std::numeric_limits<T>::digits - 1)));
+		} else {
+			return n ? (x >> n) | (x << (::std::numeric_limits<T>::digits - n)) : x;
+		}
+	}
+
+	template<typename T, size_t n>
+	inline constexpr T bitrotateleft_fixed(T x) noexcept {
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T>::radix == 2, "Only integrals represented using binary are supported.");
+		if constexpr (!n)
+			return x;
+		else
+			return (x << n) | (x >> (::std::numeric_limits<T>::digits - n));
+	}
+
+	template<typename T, size_t n>
+	inline constexpr T bitrotateright_fixed(T x) noexcept {
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T>::radix == 2, "Only integrals represented using binary are supported.");
+		if constexpr (!n)
+			return x;
+		else
+			return (x >> n) | (x << (::std::numeric_limits<T>::digits - n));
+	}
+
+	template<typename T_To, typename T_From, size_t count_from>
+	inline constexpr void binaryrepack_littleendian(T_To(&result)[(::std::numeric_limits<T_From>::digits * count_from - 1) / ::std::numeric_limits<T_To>::digits + 1], const T_From(&x)[count_from]) noexcept {
+		static_assert(::std::is_integral_v<T_To> && ::std::is_unsigned_v<T_To>, "A specified type is not an unsigned integral type.");
+		static_assert(::std::is_integral_v<T_From> && ::std::is_unsigned_v<T_From>, "A specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T_To>::radix == 2, "Only integrals represented using binary are supported.");
+		static_assert(::std::numeric_limits<T_From>::radix == 2, "Only integrals represented using binary are supported.");
+		static_assert(count_from > 0, "The source bit count must be greater than 0.");
+		if constexpr (!(::std::numeric_limits<T_To>::digits % ::std::numeric_limits<T_From>::digits)) {
+			// Simple merge.
+			static constexpr size_t n = ::std::numeric_limits<T_To>::digits / ::std::numeric_limits<T_From>::digits;
+			for (size_t i = 0; i < count_from / n; ++i) {
+				result[i] = 0;
+				for (size_t j = 0; j < n; ++j) {
+					result[i] |= x[i * n + j] << j;
+				}
+			}
+			if constexpr (count_from % n) {
+				result[count_from / n] = 0;
+				for (size_t j = 0; j < count_from % n; ++j) {
+					result[count_from / n] |= x[count_from / n * n + j] << j;
+				}
+			}
+		} else if constexpr (!(::std::numeric_limits<T_From>::digits % ::std::numeric_limits<T_To>::digits)) {
+			// Simple split.
+			static constexpr size_t n = ::std::numeric_limits<T_From>::digits / ::std::numeric_limits<T_To>::digits;
+			for (size_t i = 0; i < count_from; ++i) {
+				for (size_t j = 0; j < n; ++j) {
+					result[i * n + j] = (x[i] >> (::std::numeric_limits<T_To>::digits * j)) & ~(T_To)0;
+				}
+			}
+		} else {
+			// Generic cases.
+			for (size_t i = 0; i < (::std::numeric_limits<T_From>::digits * count_from - 1) / ::std::numeric_limits<T_To>::digits + 1; ++i) result[i] = 0;
+			size_t i = 0;
+			size_t j = 0;
+			size_t u = 0;
+			size_t v = 0;
+			while (i < count_from) {
+				size_t w = ::std::numeric_limits<T_To>::digits - u < ::std::numeric_limits<T_From>::digits - v ? ::std::numeric_limits<T_To>::digits - u : ::std::numeric_limits<T_From>::digits - v;
+				result[i] |= (T_To)((x[j] >> v) & ((1 << w) - 1)) << u;
+				u += w;
+				v += w;
+				if (u == ::std::numeric_limits<T_To>::digits) { ++i;u = 0; }
+				if (v == ::std::numeric_limits<T_From>::digits) { ++j;v = 0; }
+			}
+		}
+	}
+
+	template<
+		typename T_To,
+		typename T_From,
+		size_t count_from,
+		typename ::std::enable_if<::std::numeric_limits<T_From>::digits * count_from <= ::std::numeric_limits<T_To>::digits, int>::type = 0
+	>
+		inline constexpr T_To binaryrepack_littleendian(const T_From(&x)[count_from]) noexcept {
+		static_assert(::std::is_integral_v<T_To> && ::std::is_unsigned_v<T_To>, "A specified type is not an unsigned integral type.");
+		static_assert(::std::is_integral_v<T_From> && ::std::is_unsigned_v<T_From>, "A specified type is not an unsigned integral type.");
+		static_assert(::std::numeric_limits<T_To>::radix == 2, "Only integrals represented using binary are supported.");
+		static_assert(::std::numeric_limits<T_From>::radix == 2, "Only integrals represented using binary are supported.");
+		static_assert(count_from > 0, "The source bit count must be greater than 0.");
+		T_To result[1] = {};
+		binaryrepack_littleendian<T_To, T_From, count_from>(result, x);
+		return result[0];
+	}
+
 	/// <summary>Gets the smallest power of <c>2</c> that's greater than an unsigned integral value.</summary>
-	template<typename _Uint_Ty>
-	inline constexpr _Uint_Ty ceil_to_power_of_two(_Uint_Ty x) noexcept {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+	template<typename T_Uint>
+	inline constexpr T_Uint ceil_to_power_of_two(T_Uint x) noexcept {
+		static_assert(::std::is_integral_v<T_Uint> && ::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not an unsigned integral type.");
 		if ((x & (x - 1)) && (x << 1) < x) abort();
 		bool should_increment_exponent = false;
 		if (!x) {
@@ -276,73 +382,73 @@ namespace YBWLib2 {
 		return should_increment_exponent ? x << 1 : x;
 	}
 
-	namespace Internal {
+	namespace Internal_CountLeadingZero {
 		// Helpers for count_leading_zero.
-		template<typename _Uint_Ty, size_t bitsize>
-		inline constexpr void count_leading_zero_helper(_Uint_Ty& x, size_t& n) {
-			static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-			static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-			static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		template<typename T_Uint, size_t bitsize>
+		inline constexpr void count_leading_zero_helper(T_Uint& x, size_t& n) {
+			static_assert(::std::is_integral_v<T_Uint> && ::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not an unsigned integral type.");
+			static_assert(!(sizeof(T_Uint) & (sizeof(T_Uint) - 1)), "Integral sizes not a power of 2 is not currently supported.");
+			static_assert(bitsize <= sizeof(T_Uint) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 			if constexpr ((bitsize & (bitsize - 1)) != 0) {
 				static_assert(
 					!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
 					&& ceil_to_power_of_two(bitsize) > bitsize
-					&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
+					&& ceil_to_power_of_two(bitsize) <= sizeof(T_Uint) * CHAR_BIT
 					, "Unexpected error."
 					);
 				// Shifts the bits to the left.
 				x <<= ceil_to_power_of_two(bitsize) - bitsize;
 				// Sets the trailing bits.
-				x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1);
-				count_leading_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
+				x |= (((T_Uint)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1);
+				count_leading_zero_helper<T_Uint, ceil_to_power_of_two(bitsize)>(x, n);
 			} else if constexpr (!bitsize) {
 				return;
 			} else if constexpr (bitsize == 0x1) {
 				static constexpr size_t table_1[(size_t)1 << 0x1] = { 0x1, 0x0 };
-				n += table_1[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x1))& (((size_t)1 << 0x1) - 1)];
+				n += table_1[(x >> (sizeof(T_Uint) * CHAR_BIT - 0x1))& (((size_t)1 << 0x1) - 1)];
 			} else if constexpr (bitsize == 0x2) {
 				static constexpr size_t table_2[(size_t)1 << 0x2] = { 0x2, 0x1, 0x0, 0x0 };
-				n += table_2[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x2))& (((size_t)1 << 0x2) - 1)];
+				n += table_2[(x >> (sizeof(T_Uint) * CHAR_BIT - 0x2))& (((size_t)1 << 0x2) - 1)];
 			} else if constexpr (bitsize == 0x4) {
 				static constexpr size_t table_4[(size_t)1 << 0x4] = { 0x4, 0x3, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
-				n += table_4[(x >> (sizeof(_Uint_Ty) * CHAR_BIT - 0x4))& (((size_t)1 << 0x4) - 1)];
+				n += table_4[(x >> (sizeof(T_Uint) * CHAR_BIT - 0x4))& (((size_t)1 << 0x4) - 1)];
 			} else {
 				static_assert(!(bitsize & 1), "Unexpected error.");
-				if (!(x & ((((_Uint_Ty)1 << (bitsize >> 1)) - 1) << (sizeof(_Uint_Ty) * CHAR_BIT - (bitsize >> 1))))) {
+				if (!(x & ((((T_Uint)1 << (bitsize >> 1)) - 1) << (sizeof(T_Uint) * CHAR_BIT - (bitsize >> 1))))) {
 					n += (bitsize >> 1);
 					x <<= (bitsize >> 1);
 				}
-				count_leading_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
+				count_leading_zero_helper<T_Uint, (bitsize >> 1)>(x, n);
 			}
 		}
 	}
 
 	/// <summary>Count leading zeros in an unsigned integral value.</summary>
-	template<typename _Uint_Ty>
-	inline constexpr size_t count_leading_zero(_Uint_Ty x) {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+	template<typename T_Uint>
+	inline constexpr size_t count_leading_zero(T_Uint x) {
+		static_assert(::std::is_integral_v<T_Uint> && ::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		Internal::count_leading_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
+		Internal_CountLeadingZero::count_leading_zero_helper<T_Uint, sizeof(T_Uint) * CHAR_BIT>(x, n);
 		return n;
 	}
 
-	namespace Internal {
+	namespace Internal_CountTrailingZero {
 		// Helpers for count_trailing_zero.
-		template<typename _Uint_Ty, size_t bitsize>
-		inline constexpr void count_trailing_zero_helper(_Uint_Ty& x, size_t& n) {
-			static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
-			static_assert(!(sizeof(_Uint_Ty) & (sizeof(_Uint_Ty) - 1)), "Integral sizes not a power of 2 is not currently supported.");
-			static_assert(bitsize <= sizeof(_Uint_Ty) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
+		template<typename T_Uint, size_t bitsize>
+		inline constexpr void count_trailing_zero_helper(T_Uint& x, size_t& n) {
+			static_assert(::std::is_integral_v<T_Uint> && ::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not an unsigned integral type.");
+			static_assert(!(sizeof(T_Uint) & (sizeof(T_Uint) - 1)), "Integral sizes not a power of 2 is not currently supported.");
+			static_assert(bitsize <= sizeof(T_Uint) * CHAR_BIT, "The specified bitsize is greater than the bitsize of the specified unsigned integral type.");
 			if constexpr ((bitsize & (bitsize - 1)) != 0) {
 				static_assert(
 					!(ceil_to_power_of_two(bitsize) & (ceil_to_power_of_two(bitsize) - 1))
 					&& ceil_to_power_of_two(bitsize) > bitsize
-					&& ceil_to_power_of_two(bitsize) <= sizeof(_Uint_Ty) * CHAR_BIT
+					&& ceil_to_power_of_two(bitsize) <= sizeof(T_Uint) * CHAR_BIT
 					, "Unexpected error."
 					);
 				// Sets the leading bits.
-				x |= (((_Uint_Ty)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1) << bitsize;
-				count_trailing_zero_helper<_Uint_Ty, ceil_to_power_of_two(bitsize)>(x, n);
+				x |= (((T_Uint)1 << (ceil_to_power_of_two(bitsize) - bitsize)) - 1) << bitsize;
+				count_trailing_zero_helper<T_Uint, ceil_to_power_of_two(bitsize)>(x, n);
 			} else if constexpr (!bitsize) {
 				return;
 			} else if constexpr (bitsize == 0x1) {
@@ -356,119 +462,119 @@ namespace YBWLib2 {
 				n += table_4[x & (((size_t)1 << 0x4) - 1)];
 			} else {
 				static_assert(!(bitsize & 1), "Unexpected error.");
-				if (!(x & (((_Uint_Ty)1 << (bitsize >> 1)) - 1))) {
+				if (!(x & (((T_Uint)1 << (bitsize >> 1)) - 1))) {
 					n += (bitsize >> 1);
 					x >>= (bitsize >> 1);
 				}
-				count_trailing_zero_helper<_Uint_Ty, (bitsize >> 1)>(x, n);
+				count_trailing_zero_helper<T_Uint, (bitsize >> 1)>(x, n);
 			}
 		}
 	}
 
 	/// <summary>Count trailing zeros in an unsigned integral value.</summary>
-	template<typename _Uint_Ty>
-	inline constexpr size_t count_trailing_zero(_Uint_Ty x) {
-		static_assert(::std::is_integral_v<_Uint_Ty> && ::std::is_unsigned_v<_Uint_Ty>, "The specified unsigned integral type is not an unsigned integral type.");
+	template<typename T_Uint>
+	inline constexpr size_t count_trailing_zero(T_Uint x) {
+		static_assert(::std::is_integral_v<T_Uint> && ::std::is_unsigned_v<T_Uint>, "The specified unsigned integral type is not an unsigned integral type.");
 		size_t n = 0;
-		Internal::count_trailing_zero_helper<_Uint_Ty, sizeof(_Uint_Ty) * CHAR_BIT>(x, n);
+		Internal_CountTrailingZero::count_trailing_zero_helper<T_Uint, sizeof(T_Uint) * CHAR_BIT>(x, n);
 		return n;
 	}
 
 	/// <summary>Calculates the greatest common denominator of two values.</summary>
-	template<typename _Ty, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline constexpr _Ty greatest_common_denominator(_Ty a, _Ty b) {
-		_Ty c(a % b);
+	template<typename T, typename ::std::enable_if<::std::is_fundamental_v<T>, int>::type = 0>
+	inline constexpr T greatest_common_denominator(T a, T b) {
+		T c(a % b);
 		if (!c)
 			return b;
 		else
-			return greatest_common_denominator<_Ty>(b, c);
+			return greatest_common_denominator<T>(b, c);
 	}
 
 	/// <summary>Calculates the greatest common denominator of two values.</summary>
-	template<typename _Ty, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline constexpr _Ty greatest_common_denominator(const _Ty& a, const _Ty& b) {
-		_Ty c(a % b);
+	template<typename T, typename ::std::enable_if<!::std::is_fundamental_v<T>, int>::type = 0>
+	inline constexpr T greatest_common_denominator(const T& a, const T& b) {
+		T c(a % b);
 		if (!c)
 			return b;
 		else
-			return greatest_common_denominator<_Ty>(b, c);
+			return greatest_common_denominator<T>(b, c);
 	}
 
 	/// <summary>Calculates the least common multiple of two values.</summary>
-	template<typename _Ty, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline constexpr _Ty least_common_multiple(_Ty a, _Ty b) {
-		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
+	template<typename T, typename ::std::enable_if<::std::is_fundamental_v<T>, int>::type = 0>
+	inline constexpr T least_common_multiple(T a, T b) {
+		return (a / greatest_common_denominator<T>(a, b)) * b;
 	}
 
 	/// <summary>Calculates the least common multiple of two values.</summary>
-	template<typename _Ty, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline constexpr _Ty least_common_multiple(const _Ty& a, const _Ty& b) {
-		return (a / greatest_common_denominator<_Ty>(a, b)) * b;
+	template<typename T, typename ::std::enable_if<!::std::is_fundamental_v<T>, int>::type = 0>
+	inline constexpr T least_common_multiple(const T& a, const T& b) {
+		return (a / greatest_common_denominator<T>(a, b)) * b;
 	}
 
 	namespace Internal {
 		// Helpers for get_lookup_table_least_common_multiple.
-		template<typename _Ty>
-		using get_lookup_table_least_common_multiple_helper_value_index_t = ::std::conditional_t < sizeof(size_t) < sizeof(_Ty), size_t, _Ty > ;
+		template<typename T>
+		using get_lookup_table_least_common_multiple_helper_value_index_t = ::std::conditional_t < sizeof(size_t) < sizeof(T), size_t, T > ;
 
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base, bool is_odd_count_element>
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<T> value_index_base, bool is_odd_count_element>
 		struct get_lookup_table_least_common_multiple_helper1_t;
 
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, false> {
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<T> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<T, count_element, value_fixed, value_index_base, false> {
 			static_assert(!(count_element % 2));
-			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base, (count_element / 2) % 2> branch_0;
-			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element / 2, value_fixed, value_index_base + count_element / 2, (count_element / 2) % 2> branch_1;
+			get_lookup_table_least_common_multiple_helper1_t<T, count_element / 2, value_fixed, value_index_base, (count_element / 2) % 2> branch_0;
+			get_lookup_table_least_common_multiple_helper1_t<T, count_element / 2, value_fixed, value_index_base + count_element / 2, (count_element / 2) % 2> branch_1;
 		};
 
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, value_index_base, true> {
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<T> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<T, count_element, value_fixed, value_index_base, true> {
 			static_assert(count_element % 2);
-			get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element - 1, value_fixed, value_index_base, false> truncated;
-			const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + count_element);
+			get_lookup_table_least_common_multiple_helper1_t<T, count_element - 1, value_fixed, value_index_base, false> truncated;
+			const T remainder = least_common_multiple<T>(value_fixed, value_index_base + count_element);
 		};
 
-		template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(0), value_fixed, value_index_base, false>;
+		template<typename T, T value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<T> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<T, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<T>>(0), value_fixed, value_index_base, false>;
 
-		template<typename _Ty, _Ty value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> value_index_base>
-		struct get_lookup_table_least_common_multiple_helper1_t<_Ty, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<_Ty>>(1), value_fixed, value_index_base, true> {
-			const _Ty remainder = least_common_multiple<_Ty>(value_fixed, value_index_base + 1);
+		template<typename T, T value_fixed, get_lookup_table_least_common_multiple_helper_value_index_t<T> value_index_base>
+		struct get_lookup_table_least_common_multiple_helper1_t<T, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t<T>>(1), value_fixed, value_index_base, true> {
+			const T remainder = least_common_multiple<T>(value_fixed, value_index_base + 1);
 		};
 
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-		using get_lookup_table_least_common_multiple_helper2_t = get_lookup_table_least_common_multiple_helper1_t<_Ty, count_element, value_fixed, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t>(0), count_element % 2>;
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed>
+		using get_lookup_table_least_common_multiple_helper2_t = get_lookup_table_least_common_multiple_helper1_t<T, count_element, value_fixed, static_cast<get_lookup_table_least_common_multiple_helper_value_index_t>(0), count_element % 2>;
 
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-		constexpr get_lookup_table_least_common_multiple_helper2_t<_Ty, count_element, value_fixed> get_lookup_table_least_common_multiple_helper2{};
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed>
+		constexpr get_lookup_table_least_common_multiple_helper2_t<T, count_element, value_fixed> get_lookup_table_least_common_multiple_helper2{};
 
 		/// <summary>
 		/// Gets a reference to a lookup table of least common multiples with one fixed value.
 		/// The index in the lookup table is the non-fixed value MINUS ONE.
 		/// Used in alignment calculations.
 		/// </summary>
-		template<typename _Ty, get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element, _Ty value_fixed>
-		inline const _Ty* get_lookup_table_least_common_multiple() noexcept {
-			return reinterpret_cast<const _Ty*>(&get_lookup_table_least_common_multiple_helper2<_Ty, count_element, value_fixed>);
+		template<typename T, get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element, T value_fixed>
+		inline const T* get_lookup_table_least_common_multiple() noexcept {
+			return reinterpret_cast<const T*>(&get_lookup_table_least_common_multiple_helper2<T, count_element, value_fixed>);
 		}
 	}
 
 	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
-	template<typename _Ty, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline _Ty least_common_multiple_optimized1(_Ty value_runtime) {
-		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+	template<typename T, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element_lookup_table, T value_fixed, typename ::std::enable_if<::std::is_fundamental_v<T>, int>::type = 0>
+	inline T least_common_multiple_optimized1(T value_runtime) {
+		return value_runtime > count_element_lookup_table ? least_common_multiple<T>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<T, count_element_lookup_table, value_fixed>()[value_runtime - 1];
 	}
 
 	/// <summary>Calculates the least common multiple of a run-time value and a compile-time-fixed value, using a lookup table to optimize for small values.</summary>
-	template<typename _Ty, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<_Ty> count_element_lookup_table, _Ty value_fixed, typename ::std::enable_if<!::std::is_fundamental_v<_Ty>, int>::type = 0>
-	inline _Ty least_common_multiple_optimized1(const _Ty& value_runtime) {
-		return value_runtime > count_element_lookup_table ? least_common_multiple<_Ty>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<_Ty, count_element_lookup_table, value_fixed>()[value_runtime - 1];
+	template<typename T, Internal::get_lookup_table_least_common_multiple_helper_value_index_t<T> count_element_lookup_table, T value_fixed, typename ::std::enable_if<!::std::is_fundamental_v<T>, int>::type = 0>
+	inline T least_common_multiple_optimized1(const T& value_runtime) {
+		return value_runtime > count_element_lookup_table ? least_common_multiple<T>(value_runtime, value_fixed) : Internal::get_lookup_table_least_common_multiple<T, count_element_lookup_table, value_fixed>()[value_runtime - 1];
 	}
 
 	/// <summary>Integer modulus operation optimized for alignment calculations.</summary>
-	template<typename _Ty>
-	inline constexpr _Ty mod_alignment(_Ty dividend, _Ty divisor) {
-		static_assert(::std::is_integral_v<_Ty> && ::std::is_unsigned_v<_Ty>, "The specified type is not an unsigned integral type.");
+	template<typename T>
+	inline constexpr T mod_alignment(T dividend, T divisor) {
+		static_assert(::std::is_integral_v<T> && ::std::is_unsigned_v<T>, "The specified type is not an unsigned integral type.");
 		if (!divisor) abort();
 		if (divisor & (divisor - 1))
 			return dividend % divisor;
@@ -478,15 +584,15 @@ namespace YBWLib2 {
 
 	namespace Internal {
 		// Helpers for hash_trivially_copyable_t.
-		template<typename _Ty, typename _Hash_Ty, size_t size_hash>
+		template<typename T, typename T_Hash, size_t size_hash>
 		struct hash_trivially_copyable_helper_t {};
-		template<typename _Ty, typename _Hash_Ty>
-		struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint32_t)> {
-			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
-			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
-			static_assert(sizeof(_Hash_Ty) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
-			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept {
-				_Hash_Ty _hash = fnv1a_offset_basis;
+		template<typename T, typename T_Hash>
+		struct hash_trivially_copyable_helper_t<T, T_Hash, sizeof(uint32_t)> {
+			static_assert(::std::is_trivially_copyable_v<T>, "The specified type is not a trivially copyable type.");
+			static_assert(::std::is_integral_v<T_Hash>&& ::std::is_unsigned_v<T_Hash>, "The specified hash type is not an unsigned integral type.");
+			static_assert(sizeof(T_Hash) == sizeof(uint32_t), "The specified hash size does not equal to the size of the specified hash type.");
+			inline T_Hash operator()(typename ::std::conditional_t<::std::is_fundamental_v<T>, T, const T&> data) const volatile noexcept {
+				T_Hash _hash = fnv1a_offset_basis;
 				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
 				return _hash;
 			}
@@ -494,13 +600,13 @@ namespace YBWLib2 {
 			static constexpr size_t fnv1a_offset_basis = 0x811C9DC5;
 			static constexpr size_t fnv1a_prime = 0x1000193;
 		};
-		template<typename _Ty, typename _Hash_Ty>
-		struct hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(uint64_t)> {
-			static_assert(::std::is_trivially_copyable_v<_Ty>, "The specified type is not a trivially copyable type.");
-			static_assert(::std::is_integral_v<_Hash_Ty>&& ::std::is_unsigned_v<_Hash_Ty>, "The specified hash type is not an unsigned integral type.");
-			static_assert(sizeof(_Hash_Ty) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
-			inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept {
-				_Hash_Ty _hash = fnv1a_offset_basis;
+		template<typename T, typename T_Hash>
+		struct hash_trivially_copyable_helper_t<T, T_Hash, sizeof(uint64_t)> {
+			static_assert(::std::is_trivially_copyable_v<T>, "The specified type is not a trivially copyable type.");
+			static_assert(::std::is_integral_v<T_Hash>&& ::std::is_unsigned_v<T_Hash>, "The specified hash type is not an unsigned integral type.");
+			static_assert(sizeof(T_Hash) == sizeof(uint64_t), "The specified hash size does not equal to the size of the specified hash type.");
+			inline T_Hash operator()(typename ::std::conditional_t<::std::is_fundamental_v<T>, T, const T&> data) const volatile noexcept {
+				T_Hash _hash = fnv1a_offset_basis;
 				for (size_t i = 0; i < sizeof(data); ++i) _hash = (_hash ^ reinterpret_cast<const unsigned char*>(&data)[i])* fnv1a_prime;
 				return _hash;
 			}
@@ -511,9 +617,9 @@ namespace YBWLib2 {
 	}
 
 	/// <summary>Hashes a trivially copyable object.</summary>
-	template<typename _Ty, typename _Hash_Ty>
+	template<typename T, typename T_Hash>
 	struct hash_trivially_copyable_t {
-		inline _Hash_Ty operator()(typename ::std::conditional_t<::std::is_fundamental_v<_Ty>, _Ty, const _Ty&> data) const volatile noexcept { return Internal::hash_trivially_copyable_helper_t<_Ty, _Hash_Ty, sizeof(_Hash_Ty)>()(data); }
+		inline T_Hash operator()(typename ::std::conditional_t<::std::is_fundamental_v<T>, T, const T&> data) const volatile noexcept { return Internal::hash_trivially_copyable_helper_t<T, T_Hash, sizeof(T_Hash)>()(data); }
 	};
 
 	struct dummy_t {};
@@ -552,7 +658,7 @@ namespace YBWLib2 {
 		return ((uint64_t)hex_uint32_from_string({ str[0], str[1], str[2], str[3], str[4], str[5], str[6], str[7], 0 }) << 0x20) | hex_uint32_from_string({ str[8], str[9], str[10], str[11], str[12], str[13], str[14], str[15], 0 });
 	}
 
-	template<typename _Ty>
+	template<typename T>
 	struct inttype_traits_t {};
 
 	namespace NatvisInternal {
@@ -1128,18 +1234,18 @@ namespace YBWLib2 {
 	static_assert(::std::is_standard_layout_v<rawallocator_t>, "rawallocator_t is not standard-layout.");
 
 	/// <summary>Allocator template structure for allocating memory using a <c>rawallocator_t</c> object.</summary>
-	template<typename _Ty>
+	template<typename T>
 	struct allocator_rawallocator_t {
-		typedef _Ty value_type;
-		typedef _Ty* pointer;
-		typedef const _Ty* const_pointer;
-		typedef _Ty& reference;
-		typedef const _Ty& const_reference;
+		typedef T value_type;
+		typedef T* pointer;
+		typedef const T* const_pointer;
+		typedef T& reference;
+		typedef const T& const_reference;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
-		template<typename _Rebind_Ty>
+		template<typename T_Rebind>
 		struct rebind {
-			using other = allocator_rawallocator_t<_Rebind_Ty>;
+			using other = allocator_rawallocator_t<T_Rebind>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
@@ -1150,30 +1256,30 @@ namespace YBWLib2 {
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
 		inline allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		inline allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<T_Rebind_From>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<T_Rebind_From>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<T_Rebind_From>& x) noexcept {
 			this->rawallocator = x.rawallocator;
 			return *this;
 		}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<T_Rebind_From>&& x) noexcept {
 			this->rawallocator = x.rawallocator;
 			return *this;
 		}
-		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
-		template<typename _Element_Ty>
-		inline bool operator==(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator == r.rawallocator; }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
-		template<typename _Element_Ty>
-		inline bool operator!=(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator != r.rawallocator; }
+		template<typename T_Rebind>
+		inline constexpr operator allocator_rawallocator_t<T_Rebind>() const noexcept { return allocator_rawallocator_t<T_Rebind>(this->rawallocator); }
+		template<typename T_Allocator>
+		inline constexpr bool operator==(const T_Allocator&) const noexcept { return false; }
+		template<typename T_Other>
+		inline bool operator==(const allocator_rawallocator_t<T_Other>& r) const noexcept { return this->rawallocator == r.rawallocator; }
+		template<typename T_Allocator>
+		inline constexpr bool operator!=(const T_Allocator&) const noexcept { return true; }
+		template<typename T_Other>
+		inline bool operator!=(const allocator_rawallocator_t<T_Other>& r) const noexcept { return this->rawallocator != r.rawallocator; }
 		inline pointer address(reference ref) const noexcept { return ::std::addressof(ref); }
 		inline const_pointer address(const_reference ref) const noexcept { return ::std::addressof(ref); }
 		inline pointer allocate(size_type count, const void* hint = nullptr) const noexcept(false) {
@@ -1187,13 +1293,13 @@ namespace YBWLib2 {
 			this->rawallocator.Deallocate(ptr, count * sizeof(value_type));
 		}
 		inline size_type max_size() const noexcept { return this->rawallocator.GetMaxSize(); }
-		template<typename _Element_Ty, typename... _Args_Ty>
-		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
-			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		template<typename T_Element, typename... T_Args>
+		inline void construct(T_Element* ptr, T_Args&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T_Element(::std::forward<T_Args>(args)...);
 		}
-		template<typename _Element_Ty>
-		inline void destroy(_Element_Ty* ptr) {
-			ptr->~_Element_Ty();
+		template<typename T_Element>
+		inline void destroy(T_Element* ptr) {
+			ptr->~T_Element();
 		}
 		inline allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
 	};
@@ -1205,9 +1311,9 @@ namespace YBWLib2 {
 		typedef const void* const_pointer;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
-		template<typename _Rebind_Ty>
+		template<typename T_Rebind>
 		struct rebind {
-			using other = allocator_rawallocator_t<_Rebind_Ty>;
+			using other = allocator_rawallocator_t<T_Rebind>;
 		};
 		using propagate_on_container_copy_assignment = ::std::true_type;
 		using propagate_on_container_move_assignment = ::std::true_type;
@@ -1218,37 +1324,37 @@ namespace YBWLib2 {
 		inline allocator_rawallocator_t(rawallocator_t&& _rawallocator) noexcept : rawallocator(::std::move(_rawallocator)) {}
 		inline allocator_rawallocator_t(const allocator_rawallocator_t& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
 		inline allocator_rawallocator_t(allocator_rawallocator_t&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<_Rebind_From_Ty>& x) noexcept {
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t(const allocator_rawallocator_t<T_Rebind_From>& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t(allocator_rawallocator_t<T_Rebind_From>&& x) noexcept : allocator_rawallocator_t(x.rawallocator) {}
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t& operator=(const allocator_rawallocator_t<T_Rebind_From>& x) noexcept {
 			this->rawallocator = x.rawallocator;
 			return *this;
 		}
-		template<typename _Rebind_From_Ty>
-		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<_Rebind_From_Ty>&& x) noexcept {
+		template<typename T_Rebind_From>
+		inline constexpr allocator_rawallocator_t& operator=(allocator_rawallocator_t<T_Rebind_From>&& x) noexcept {
 			this->rawallocator = x.rawallocator;
 			return *this;
 		}
-		template<typename _Rebind_Ty>
-		inline constexpr operator allocator_rawallocator_t<_Rebind_Ty>() const noexcept { return allocator_rawallocator_t<_Rebind_Ty>(this->rawallocator); }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator==(const _Allocator_Ty&) const noexcept { return false; }
-		template<typename _Element_Ty>
-		inline bool operator==(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator == r.rawallocator; }
-		template<typename _Allocator_Ty>
-		inline constexpr bool operator!=(const _Allocator_Ty&) const noexcept { return true; }
-		template<typename _Element_Ty>
-		inline bool operator!=(const allocator_rawallocator_t<_Element_Ty>& r) const noexcept { return this->rawallocator != r.rawallocator; }
-		template<typename _Element_Ty, typename... _Args_Ty>
-		inline void construct(_Element_Ty* ptr, _Args_Ty&&... args) {
-			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		template<typename T_Rebind>
+		inline constexpr operator allocator_rawallocator_t<T_Rebind>() const noexcept { return allocator_rawallocator_t<T_Rebind>(this->rawallocator); }
+		template<typename T_Allocator>
+		inline constexpr bool operator==(const T_Allocator&) const noexcept { return false; }
+		template<typename T_Other>
+		inline bool operator==(const allocator_rawallocator_t<T_Other>& r) const noexcept { return this->rawallocator == r.rawallocator; }
+		template<typename T_Allocator>
+		inline constexpr bool operator!=(const T_Allocator&) const noexcept { return true; }
+		template<typename T_Other>
+		inline bool operator!=(const allocator_rawallocator_t<T_Other>& r) const noexcept { return this->rawallocator != r.rawallocator; }
+		template<typename T_Element, typename... T_Args>
+		inline void construct(T_Element* ptr, T_Args&&... args) {
+			new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T_Element(::std::forward<T_Args>(args)...);
 		}
-		template<typename _Element_Ty>
-		inline void destroy(_Element_Ty* ptr) {
-			ptr->~_Element_Ty();
+		template<typename T_Element>
+		inline void destroy(T_Element* ptr) {
+			ptr->~T_Element();
 		}
 		inline allocator_rawallocator_t select_on_container_copy_construction() const noexcept { return allocator_rawallocator_t(*this); }
 	};
@@ -1258,37 +1364,37 @@ namespace YBWLib2 {
 	/// <summary>A raw memory allocator that uses the CRT <c>malloc</c> and <c>free</c> functions provided by the CRT of YBWLib2.</summary>
 	extern YBWLIB2_API rawallocator_t* rawallocator_crt_YBWLib2;
 
-	template<const rawallocator_t* const * _Ptr_Ptr_RawAllocator>
+	template<const rawallocator_t* const * ptr_ptr_rawallocator>
 	class RawAllocatorAllocatedClass {
 	public:
-		static_assert(_Ptr_Ptr_RawAllocator);
+		static_assert(ptr_ptr_rawallocator);
 		[[nodiscard]] static inline void* operator new(size_t _size) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			return rawallocator->Allocate(_size, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 		}
 		[[nodiscard]] static inline void* operator new[](size_t _size) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			return rawallocator->Allocate(_size, __STDCPP_DEFAULT_NEW_ALIGNMENT__);
 		}
 		[[nodiscard]] static inline void* operator new(size_t _size, ::std::align_val_t _align_val) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			return rawallocator->Allocate(_size, _align_val);
 		}
 		[[nodiscard]] static inline void* operator new[](size_t _size, ::std::align_val_t _align_val) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			return rawallocator->Allocate(_size, _align_val);
 		}
 		static inline void operator delete(void* _ptr, size_t _size) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			rawallocator->Deallocate(_ptr, _size);
 		}
 		static inline void operator delete[](void* _ptr, size_t _size) noexcept {
-			const rawallocator_t* rawallocator = *_Ptr_Ptr_RawAllocator;
+			const rawallocator_t* rawallocator = *ptr_ptr_rawallocator;
 			assert(rawallocator);
 			rawallocator->Deallocate(_ptr, _size);
 		}
@@ -1304,11 +1410,11 @@ namespace YBWLib2 {
 
 	using DelegateCleanupFnptr = void (YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept;
 
-	template<unsigned int _delegateflags, typename _Return_Ty, typename... _Args_Ty>
+	template<unsigned int _delegateflags, typename T_Return, typename... T_Args>
 	struct Delegate final {
 	public:
-		using return_type = _Return_Ty;
-		using argument_tuple_type = ::std::tuple<_Args_Ty&&...>;
+		using return_type = T_Return;
+		using argument_tuple_type = ::std::tuple<T_Args&&...>;
 		static constexpr unsigned int delegateflags = _delegateflags;
 		static constexpr bool is_noexcept = delegateflags & DelegateFlags::DelegateFlag_Noexcept;
 		struct invoke_constexpr_callable_t {};
@@ -1328,21 +1434,21 @@ namespace YBWLib2 {
 		using fnptr_invoke_t =
 			::std::conditional_t<
 			is_noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(false)
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(false)
 			>;
 		using fnptr_cleanup_t = DelegateCleanupFnptr;
 		using fnptr_invoke_1contextvalue_t =
 			::std::conditional_t<
 			is_noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, _Args_Ty... args) noexcept(false)
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, T_Args... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(uintptr_t _contextvalue1, T_Args... args) noexcept(false)
 			>;
 		using fnptr_invoke_0contextvalue_t =
 			::std::conditional_t<
 			is_noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(_Args_Ty... args) noexcept,
-			return_type(YBWLIB2_CALLTYPE*)(_Args_Ty... args) noexcept(false)
+			return_type(YBWLIB2_CALLTYPE*)(T_Args... args) noexcept,
+			return_type(YBWLIB2_CALLTYPE*)(T_Args... args) noexcept(false)
 			>;
 		fnptr_invoke_t fnptr_invoke = nullptr;
 		uintptr_t contextvalue1 = 0;
@@ -1363,8 +1469,8 @@ namespace YBWLib2 {
 			uintptr_t _contextvalue1 = 0,
 			fnptr_cleanup_t _fnptr_cleanup = nullptr
 		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
-				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
+				return (*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue2))(_contextvalue1, ::std::forward<T_Args>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
@@ -1374,128 +1480,128 @@ namespace YBWLib2 {
 			fnptr_invoke_0contextvalue_t _fnptr_invoke,
 			fnptr_cleanup_t _fnptr_cleanup = nullptr
 		) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
-				(*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				return (*reinterpret_cast<decltype(_fnptr_invoke)>(_contextvalue1))(::std::forward<T_Args>(args)...);
 			};
 			this->contextvalue1 = reinterpret_cast<uintptr_t>(_fnptr_invoke);
 			this->fnptr_cleanup = _fnptr_cleanup;
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, uintptr_t, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
-				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			Delegate(invoke_observe_callable_t, T_Callable_Invoke& _callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
+				return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue2))(_contextvalue1, ::std::forward<T_Args>(args)...);
 			};
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(&_callable_invoke);
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_observe_callable_t, _Callable_Invoke_Ty& _callable_invoke) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+			Delegate(invoke_observe_callable_t, T_Callable_Invoke& _callable_invoke) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
-				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue1))(::std::forward<T_Args>(args)...);
 			};
 			this->contextvalue1 = reinterpret_cast<uintptr_t>(&_callable_invoke);
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, uintptr_t, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, uintptr_t, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
-				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2))(_contextvalue1, ::std::forward<_Args_Ty>(args)...);
+			Delegate(invoke_adopt_callable_t, T_Callable_Invoke*&& _ptr_callable_invoke, uintptr_t _contextvalue1 = 0) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
+				return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue2))(_contextvalue1, ::std::forward<T_Args>(args)...);
 			};
 			_ptr_callable_invoke = nullptr;
 			this->contextvalue1 = _contextvalue1;
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(::std::move(_ptr_callable_invoke));
 			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 				static_cast<void>(_contextvalue1);
-				delete reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue2);
+				delete reinterpret_cast<T_Callable_Invoke*>(_contextvalue2);
 			};
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_adopt_callable_t, _Callable_Invoke_Ty*&& _ptr_callable_invoke) noexcept {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+			Delegate(invoke_adopt_callable_t, T_Callable_Invoke*&& _ptr_callable_invoke) noexcept {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
-				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue1))(::std::forward<T_Args>(args)...);
 			};
 			_ptr_callable_invoke = nullptr;
 			this->contextvalue1 = reinterpret_cast<uintptr_t>(::std::move(_ptr_callable_invoke));
 			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 				static_cast<void>(_contextvalue2);
-				delete reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
+				delete reinterpret_cast<T_Callable_Invoke*>(_contextvalue1);
 			};
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename _Tuple_Args_Ctor_Callable_Invoke_Ty,
-			typename _Allocator_Callable_Invoke_Ty = ::std::allocator<_Callable_Invoke_Ty>,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename T_Tuple_Args_Ctor_Callable_Invoke,
+			typename T_Allocator_Callable_Invoke = ::std::allocator<T_Callable_Invoke>,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_construct_callable_t, _Tuple_Args_Ctor_Callable_Invoke_Ty&& _tuple_args_ctor_callable_invoke, const _Allocator_Callable_Invoke_Ty& _allocator_callable_invoke = _Allocator_Callable_Invoke_Ty())
-			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
-			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+			Delegate(invoke_construct_callable_t, T_Tuple_Args_Ctor_Callable_Invoke&& _tuple_args_ctor_callable_invoke, const T_Allocator_Callable_Invoke& _allocator_callable_invoke = T_Allocator_Callable_Invoke())
+			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<T_Tuple_Args_Ctor_Callable_Invoke>>()))) {
+			this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 				static_cast<void>(_contextvalue2);
-				return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+				return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue1))(::std::forward<T_Args>(args)...);
 			};
-			this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()));
+			this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<T_Tuple_Args_Ctor_Callable_Invoke>>()));
 			this->contextvalue2 = reinterpret_cast<uintptr_t>(&_allocator_callable_invoke);
 			this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-				_Callable_Invoke_Ty* ptr_callable_invoke = reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
-				ptr_callable_invoke->~_Callable_Invoke_Ty();
-				reinterpret_cast<const _Allocator_Callable_Invoke_Ty*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
+				T_Callable_Invoke* ptr_callable_invoke = reinterpret_cast<T_Callable_Invoke*>(_contextvalue1);
+				ptr_callable_invoke->~T_Callable_Invoke();
+				reinterpret_cast<const T_Allocator_Callable_Invoke*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
 			};
 		}
 		template<
-			typename _Callable_Invoke_Ty,
-			typename _Tuple_Args_Ctor_Callable_Invoke_Ty,
-			typename _Allocator_Callable_Invoke_Ty = ::std::allocator<_Callable_Invoke_Ty>,
-			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<_Callable_Invoke_Ty, _Args_Ty...>::type, return_type>, int>::type = 0
+			typename T_Callable_Invoke,
+			typename T_Tuple_Args_Ctor_Callable_Invoke,
+			typename T_Allocator_Callable_Invoke = ::std::allocator<T_Callable_Invoke>,
+			typename ::std::enable_if<::std::is_convertible_v<typename ::std::invoke_result<T_Callable_Invoke, T_Args...>::type, return_type>, int>::type = 0
 		>
-			Delegate(invoke_construct_callable_t, address_insensitive_callable_t, _Tuple_Args_Ctor_Callable_Invoke_Ty&& _tuple_args_ctor_callable_invoke, const _Allocator_Callable_Invoke_Ty& _allocator_callable_invoke = _Allocator_Callable_Invoke_Ty())
-			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()))) {
-			if constexpr (::std::is_object_v<_Callable_Invoke_Ty> && sizeof(_Callable_Invoke_Ty) <= sizeof(uintptr_t)) {
+			Delegate(invoke_construct_callable_t, address_insensitive_callable_t, T_Tuple_Args_Ctor_Callable_Invoke&& _tuple_args_ctor_callable_invoke, const T_Tuple_Args_Ctor_Callable_Invoke& _allocator_callable_invoke = T_Allocator_Callable_Invoke())
+			noexcept(noexcept(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<T_Tuple_Args_Ctor_Callable_Invoke>>()))) {
+			if constexpr (::std::is_object_v<T_Callable_Invoke> && sizeof(T_Callable_Invoke) <= sizeof(uintptr_t)) {
 				static_cast<void>(_allocator_callable_invoke);
-				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 					static_cast<void>(_contextvalue2);
-					return (*reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+					return (*reinterpret_cast<T_Callable_Invoke*>(&_contextvalue1))(::std::forward<T_Args>(args)...);
 				};
-				PlacementCreateTupleIndexSequenceImpl(reinterpret_cast<_Callable_Invoke_Ty*>(&this->contextvalue1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>());
+				PlacementCreateTupleIndexSequenceImpl(reinterpret_cast<T_Callable_Invoke*>(&this->contextvalue1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<T_Tuple_Args_Ctor_Callable_Invoke>>());
 				this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
 					static_cast<void>(_contextvalue2);
-					reinterpret_cast<_Callable_Invoke_Ty*>(&_contextvalue1)->~_Callable_Invoke_Ty();
+					reinterpret_cast<T_Callable_Invoke*>(&_contextvalue1)->~T_Callable_Invoke();
 				};
 			} else {
-				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, _Args_Ty... args) noexcept(is_noexcept)->return_type {
+				this->fnptr_invoke = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2, T_Args... args) noexcept(is_noexcept)->return_type {
 					static_cast<void>(_contextvalue2);
-					return (*reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1))(::std::forward<_Args_Ty>(args)...);
+					return (*reinterpret_cast<T_Callable_Invoke*>(_contextvalue1))(::std::forward<T_Args>(args)...);
 				};
-				this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<_Tuple_Args_Ctor_Callable_Invoke_Ty>>()));
+				this->contextvalue1 = reinterpret_cast<uintptr_t>(PlacementCreateTupleIndexSequenceImpl(_allocator_callable_invoke.allocate(1), ::std::move(_tuple_args_ctor_callable_invoke), ::std::make_index_sequence<::std::tuple_size_v<T_Tuple_Args_Ctor_Callable_Invoke>>()));
 				this->contextvalue2 = reinterpret_cast<uintptr_t>(&_allocator_callable_invoke);
 				this->fnptr_cleanup = [](uintptr_t _contextvalue1, uintptr_t _contextvalue2) noexcept->void {
-					_Callable_Invoke_Ty* ptr_callable_invoke = reinterpret_cast<_Callable_Invoke_Ty*>(_contextvalue1);
-					ptr_callable_invoke->~_Callable_Invoke_Ty();
-					reinterpret_cast<const _Allocator_Callable_Invoke_Ty*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
+					T_Callable_Invoke* ptr_callable_invoke = reinterpret_cast<T_Callable_Invoke*>(_contextvalue1);
+					ptr_callable_invoke->~T_Callable_Invoke();
+					reinterpret_cast<const T_Allocator_Callable_Invoke*>(_contextvalue2)->deallocate(ptr_callable_invoke, 1);
 				};
 			}
 		}
 		Delegate(const Delegate&) = delete;
 		template<
 			unsigned int _delegateflags_from,
-			typename _Return_From_Ty,
-			typename... _Args_From_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
+			typename T_Return_From,
+			typename... T_Args_From,
+			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, T_Return_From, T_Args_From...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
 		>
-			constexpr Delegate(Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>&& x) noexcept
+			constexpr Delegate(Delegate<_delegateflags_from, T_Return_From, T_Args_From...>&& x) noexcept
 			: fnptr_invoke(::std::move(x.fnptr_invoke)),
 			contextvalue1(::std::move(x.contextvalue1)),
 			contextvalue2(::std::move(x.contextvalue2)),
@@ -1517,11 +1623,11 @@ namespace YBWLib2 {
 		Delegate& operator=(const Delegate&) = delete;
 		template<
 			unsigned int _delegateflags_from,
-			typename _Return_From_Ty,
-			typename... _Args_From_Ty,
-			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
+			typename T_Return_From,
+			typename... T_Args_From,
+			typename ::std::enable_if<::std::is_convertible_v<typename Delegate<_delegateflags_from, T_Return_From, T_Args_From...>::fnptr_invoke_t, fnptr_invoke_t>, int>::type = 0
 		>
-			constexpr Delegate& operator=(Delegate<_delegateflags_from, _Return_From_Ty, _Args_From_Ty...>&& x) noexcept {
+			constexpr Delegate& operator=(Delegate<_delegateflags_from, T_Return_From, T_Args_From...>&& x) noexcept {
 			assert(this);
 			if (this->fnptr_cleanup)
 				(*this->fnptr_cleanup)(this->contextvalue1, this->contextvalue2);
@@ -1536,22 +1642,22 @@ namespace YBWLib2 {
 			return *this;
 		}
 		explicit operator bool() const noexcept { return this->fnptr_invoke; }
-		return_type YBWLIB2_CALLTYPE operator()(_Args_Ty... args) const noexcept(is_noexcept) {
+		return_type YBWLIB2_CALLTYPE operator()(T_Args... args) const noexcept(is_noexcept) {
 			assert(this && this->fnptr_invoke);
-			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<_Args_Ty>(args)...);
+			return (*this->fnptr_invoke)(this->contextvalue1, this->contextvalue2, ::std::forward<T_Args>(args)...);
 		}
 		return_type YBWLIB2_CALLTYPE operator()(use_argument_tuple_t, argument_tuple_type&& _tuple_args) noexcept(is_noexcept) {
 			return (*this)(use_argument_tuple, ::std::move(_tuple_args), ::std::make_index_sequence<::std::tuple_size_v<argument_tuple_type>>());
 		}
 	private:
 		template<
-			typename _Ty,
-			typename _Tuple_Args_Ctor_Ty,
+			typename T,
+			typename T_Tuple_Args_Ctor,
 			size_t... _index_tuple_args_ctor
 		>
-			static _Ty* PlacementCreateTupleIndexSequenceImpl(_Ty* _ptr, _Tuple_Args_Ctor_Ty&& _tuple_args_ctor, ::std::index_sequence<_index_tuple_args_ctor...>)
-			noexcept(noexcept(_Ty(::std::get<_index_tuple_args_ctor>(::std::forward<_Tuple_Args_Ctor_Ty>(_tuple_args_ctor))...))) {
-			return new (_ptr) _Ty(::std::get<_index_tuple_args_ctor>(::std::forward<_Tuple_Args_Ctor_Ty>(_tuple_args_ctor))...);
+			static T* PlacementCreateTupleIndexSequenceImpl(T* _ptr, T_Tuple_Args_Ctor&& _tuple_args_ctor, ::std::index_sequence<_index_tuple_args_ctor...>)
+			noexcept(noexcept(T(::std::get<_index_tuple_args_ctor>(::std::forward<T_Tuple_Args_Ctor>(_tuple_args_ctor))...))) {
+			return new (_ptr) T(::std::get<_index_tuple_args_ctor>(::std::forward<T_Tuple_Args_Ctor>(_tuple_args_ctor))...);
 		};
 		template<size_t... _index_tuple_args>
 		return_type YBWLIB2_CALLTYPE operator()(use_argument_tuple_t, argument_tuple_type&& _tuple_args, ::std::index_sequence<_index_tuple_args...>)
@@ -1564,103 +1670,103 @@ namespace YBWLib2 {
 #pragma endregion
 
 	/// <summary>An object for holding a pointer to another object that's placement-created in the storage of the former object.</summary>
-	template<typename _Element_Ty>
+	template<typename T_Element>
 	struct objholder_local_t final {
-		static_assert(::std::is_object_v<_Element_Ty>, "The element type is not an object type.");
-		static_assert(!::std::is_const_v<_Element_Ty>, "The element type is const-qualified.");
+		static_assert(::std::is_object_v<T_Element>, "The element type is not an object type.");
+		static_assert(!::std::is_const_v<T_Element>, "The element type is const-qualified.");
 		struct construct_obj_t {};
 		static constexpr construct_obj_t construct_obj {};
 		inline constexpr objholder_local_t() noexcept = default;
-		template<typename... _Args_Ty>
-		inline objholder_local_t(construct_obj_t, _Args_Ty&&... args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty...>) {
-			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
-			this->ptr_element = new(this->buf_element) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+		template<typename... T_Args>
+		inline objholder_local_t(construct_obj_t, T_Args&&... args) noexcept(::std::is_nothrow_constructible_v<T_Element, T_Args...>) {
+			static_assert(::std::is_constructible_v<T_Element, T_Args...>, "The element type is not constructible with the specified arguments.");
+			this->ptr_element = new(this->buf_element) T_Element(::std::forward<T_Args>(args)...);
 		}
-		template<typename _Callable_Ty>
-		inline objholder_local_t(_Callable_Ty _callable) noexcept(::std::is_nothrow_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+		template<typename T_Callable>
+		inline objholder_local_t(T_Callable _callable) noexcept(::std::is_nothrow_invocable_r_v<T_Element*, T_Callable, void*>) {
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*>, "The callable value is invalid.");
 			this->ptr_element = _callable(static_cast<void*>(this->buf_element));
 		}
-		inline objholder_local_t(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<_Element_Ty>) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+		inline objholder_local_t(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<T_Element>) {
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (x.ptr_element)
-				this->ptr_element = new(this->buf_element) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->buf_element) T_Element(*x.ptr_element);
 		}
-		inline objholder_local_t(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<_Element_Ty>) {
-			static_assert(::std::is_move_constructible_v<_Element_Ty>, "The element type is not move-constructible.");
+		inline objholder_local_t(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<T_Element>) {
+			static_assert(::std::is_move_constructible_v<T_Element>, "The element type is not move-constructible.");
 			if (x.ptr_element) {
-				this->ptr_element = new(this->buf_element) _Element_Ty(::std::move(*x.ptr_element));
-				x.ptr_element->~_Element_Ty();
+				this->ptr_element = new(this->buf_element) T_Element(::std::move(*x.ptr_element));
+				x.ptr_element->~T_Element();
 				x.ptr_element = nullptr;
 			}
 		}
 		inline ~objholder_local_t() {
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 		}
-		inline objholder_local_t& operator=(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<_Element_Ty>) {
-			static_assert(::std::is_copy_constructible_v<_Element_Ty>, "The element type is not copy-constructible.");
+		inline objholder_local_t& operator=(const objholder_local_t& x) noexcept(::std::is_nothrow_copy_constructible_v<T_Element>) {
+			static_assert(::std::is_copy_constructible_v<T_Element>, "The element type is not copy-constructible.");
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 			if (x.ptr_element) {
-				this->ptr_element = new(this->buf_element) _Element_Ty(*x.ptr_element);
+				this->ptr_element = new(this->buf_element) T_Element(*x.ptr_element);
 			}
 			return *this;
 		}
-		inline objholder_local_t& operator=(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<_Element_Ty>) {
-			static_assert(::std::is_move_constructible_v<_Element_Ty>, "The element type is not move-constructible.");
+		inline objholder_local_t& operator=(objholder_local_t&& x) noexcept(::std::is_nothrow_move_constructible_v<T_Element>) {
+			static_assert(::std::is_move_constructible_v<T_Element>, "The element type is not move-constructible.");
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 			if (x.ptr_element) {
-				this->ptr_element = new(this->buf_element) _Element_Ty(::std::move(*x.ptr_element));
-				x.ptr_element->~_Element_Ty();
+				this->ptr_element = new(this->buf_element) T_Element(::std::move(*x.ptr_element));
+				x.ptr_element->~T_Element();
 				x.ptr_element = nullptr;
 			}
 			return *this;
 		}
 		inline explicit operator bool() const noexcept { return this->ptr_element; }
-		inline _Element_Ty& operator*() const noexcept {
+		inline T_Element& operator*() const noexcept {
 			assert(this->ptr_element);
 			return *this->ptr_element;
 		}
-		inline _Element_Ty* operator->() const noexcept {
+		inline T_Element* operator->() const noexcept {
 			assert(this->ptr_element);
 			return this->ptr_element;
 		}
-		inline _Element_Ty* const& get() const noexcept { return this->ptr_element; }
-		template<typename... _Args_Ty>
-		inline void construct(construct_obj_t, _Args_Ty&&... args) noexcept(::std::is_nothrow_constructible_v<_Element_Ty, _Args_Ty...>) {
-			static_assert(::std::is_constructible_v<_Element_Ty, _Args_Ty...>, "The element type is not constructible with the specified arguments.");
+		inline T_Element* const& get() const noexcept { return this->ptr_element; }
+		template<typename... T_Args>
+		inline void construct(construct_obj_t, T_Args&&... args) noexcept(::std::is_nothrow_constructible_v<T_Element, T_Args...>) {
+			static_assert(::std::is_constructible_v<T_Element, T_Args...>, "The element type is not constructible with the specified arguments.");
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
-			this->ptr_element = new(this->buf_element) _Element_Ty(::std::forward<_Args_Ty>(args)...);
+			this->ptr_element = new(this->buf_element) T_Element(::std::forward<T_Args>(args)...);
 		}
-		template<typename _Callable_Ty>
-		inline void construct(_Callable_Ty _callable) noexcept(::std::is_nothrow_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>) {
-			static_assert(::std::is_invocable_r_v<_Element_Ty*, _Callable_Ty, void*>, "The callable value is invalid.");
+		template<typename T_Callable>
+		inline void construct(T_Callable _callable) noexcept(::std::is_nothrow_invocable_r_v<T_Element*, T_Callable, void*>) {
+			static_assert(::std::is_invocable_r_v<T_Element*, T_Callable, void*>, "The callable value is invalid.");
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 			this->ptr_element = _callable(static_cast<void*>(this->buf_element));
 		}
 		inline void destruct() noexcept {
 			if (this->ptr_element) {
-				this->ptr_element->~_Element_Ty();
+				this->ptr_element->~T_Element();
 				this->ptr_element = nullptr;
 			}
 		}
 	private:
-		_Element_Ty* ptr_element = nullptr;
-		alignas(_Element_Ty) uint8_t buf_element[sizeof(_Element_Ty)];
+		T_Element* ptr_element = nullptr;
+		alignas(T_Element) uint8_t buf_element[sizeof(T_Element)];
 	};
 
 	/// <summary>A wrapper for objects that satisfy the requirement <c>BasicLockable</c>.</summary>
@@ -1687,19 +1793,19 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<wrapper_basic_lockable_t>, "wrapper_basic_lockable_t is not standard-layout.");
 
-	template<typename _Class_BasicLockable_Ty>
-	inline wrapper_basic_lockable_t WrapBasicLockable(_Class_BasicLockable_Ty& _obj) {
+	template<typename T_Class_BasicLockable>
+	inline wrapper_basic_lockable_t WrapBasicLockable(T_Class_BasicLockable& _obj) {
 		return wrapper_basic_lockable_t(
 			[](uintptr_t context)->void {
-				_Class_BasicLockable_Ty* obj = reinterpret_cast<_Class_BasicLockable_Ty*>(context);
+				T_Class_BasicLockable* obj = reinterpret_cast<T_Class_BasicLockable*>(context);
 				obj->lock();
 			},
 			[](uintptr_t context) noexcept->void {
-				_Class_BasicLockable_Ty* obj = reinterpret_cast<_Class_BasicLockable_Ty*>(context);
+				T_Class_BasicLockable* obj = reinterpret_cast<T_Class_BasicLockable*>(context);
 				obj->unlock();
 			},
-				reinterpret_cast<uintptr_t>(&_obj)
-				);
+			reinterpret_cast<uintptr_t>(&_obj)
+		);
 	}
 
 	/// <summary>A wrapper for objects that satisfy the requirement <c>Lockable</c>.</summary>
@@ -1735,19 +1841,19 @@ namespace YBWLib2 {
 	};
 	static_assert(::std::is_standard_layout_v<wrapper_lockable_t>, "wrapper_lockable_t is not standard-layout.");
 
-	template<typename _Class_Lockable_Ty>
-	inline wrapper_lockable_t WrapLockable(_Class_Lockable_Ty& _obj) {
+	template<typename T_Class_Lockable>
+	inline wrapper_lockable_t WrapLockable(T_Class_Lockable& _obj) {
 		return wrapper_lockable_t(
 			[](uintptr_t context)->void {
-				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				T_Class_Lockable* obj = reinterpret_cast<T_Class_Lockable*>(context);
 				obj->lock();
 			},
 			[](uintptr_t context) noexcept->void {
-				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				T_Class_Lockable* obj = reinterpret_cast<T_Class_Lockable*>(context);
 				obj->unlock();
 			},
 				[](uintptr_t context)->bool {
-				_Class_Lockable_Ty* obj = reinterpret_cast<_Class_Lockable_Ty*>(context);
+				T_Class_Lockable* obj = reinterpret_cast<T_Class_Lockable*>(context);
 				return obj->try_lock();
 			},
 			reinterpret_cast<uintptr_t>(&_obj)

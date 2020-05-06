@@ -187,8 +187,8 @@ namespace YBWLib2 {
 			this->SetSint(buf_sint, size_buf_sint);
 		}
 		/// <summary>Constructs a <c>Win32DebuggingTargetAddressDiff</c> object that represents the specified integer.</summary>
-		template <typename _Int_Ty>
-		inline Win32DebuggingTargetAddressDiff(Win32Architecture _architecture, _Int_Ty value) noexcept(false) : Win32DebuggingTargetAddressDiff(_architecture) {
+		template <typename T_Int>
+		inline Win32DebuggingTargetAddressDiff(Win32Architecture _architecture, T_Int value) noexcept(false) : Win32DebuggingTargetAddressDiff(_architecture) {
 			this->SetInt(value);
 		}
 		Win32DebuggingTargetAddressDiff(const Win32DebuggingTargetAddressDiff& x) noexcept(false);
@@ -268,13 +268,13 @@ namespace YBWLib2 {
 		/// </param>
 		void GetSint(void* buf_sint_to, size_t size_buf_sint_to) const noexcept(false);
 		/// <summary>Gets the value as an integer.</summary>
-		template <typename _Int_Ty>
-		inline void GetInt(_Int_Ty& value) const noexcept(false) {
-			static_assert(::std::is_object_v<_Int_Ty>, "The specified integer type is not an object type.");
-			static_assert(::std::is_integral_v<_Int_Ty>, "The specified integer type is not integral.");
-			if constexpr (::std::is_unsigned_v<_Int_Ty>) {
+		template <typename T_Int>
+		inline void GetInt(T_Int& value) const noexcept(false) {
+			static_assert(::std::is_object_v<T_Int>, "The specified integer type is not an object type.");
+			static_assert(::std::is_integral_v<T_Int>, "The specified integer type is not integral.");
+			if constexpr (::std::is_unsigned_v<T_Int>) {
 				this->GetUint(&value, sizeof(value));
-			} else if constexpr (::std::is_signed_v<_Int_Ty>) {
+			} else if constexpr (::std::is_signed_v<T_Int>) {
 				this->GetSint(&value, sizeof(value));
 			} else {
 				static_assert(false, "The specified integer type is neither unsigned nor signed.");
@@ -300,13 +300,13 @@ namespace YBWLib2 {
 		/// <param name="size_buf_sint_from">The size (in <c>uint8_t</c>s) of the buffer pointed to by <c>buf_sint_from</c>.</param>
 		void SetSint(const void* buf_sint_from, size_t size_buf_sint_from) noexcept(false);
 		/// <summary>Sets the value to the specified integer.</summary>
-		template <typename _Int_Ty>
-		inline void SetInt(_Int_Ty value) noexcept(false) {
-			static_assert(::std::is_object_v<_Int_Ty>, "The specified integer type is not an object type.");
-			static_assert(::std::is_integral_v<_Int_Ty>, "The specified integer type is not integral.");
-			if constexpr (::std::is_unsigned_v<_Int_Ty>) {
+		template <typename T_Int>
+		inline void SetInt(T_Int value) noexcept(false) {
+			static_assert(::std::is_object_v<T_Int>, "The specified integer type is not an object type.");
+			static_assert(::std::is_integral_v<T_Int>, "The specified integer type is not integral.");
+			if constexpr (::std::is_unsigned_v<T_Int>) {
 				this->SetUint(&value, sizeof(value));
-			} else if constexpr (::std::is_signed_v<_Int_Ty>) {
+			} else if constexpr (::std::is_signed_v<T_Int>) {
 				this->SetSint(&value, sizeof(value));
 			} else {
 				static_assert(false, "The specified integer type is neither unsigned nor signed.");
@@ -401,8 +401,8 @@ namespace YBWLib2 {
 			this->SetRawCurrentProcessAddress(rawcurrentprocessaddress);
 		}
 		/// <summary>Constructs a <c>Win32DebuggingTargetAddress</c> object that represents the specified unsigned integer.</summary>
-		template <typename _Int_Ty>
-		inline Win32DebuggingTargetAddress(Win32Architecture _architecture, _Int_Ty value) noexcept(false) : Win32DebuggingTargetAddress(_architecture) {
+		template <typename T_Int>
+		inline Win32DebuggingTargetAddress(Win32Architecture _architecture, T_Int value) noexcept(false) : Win32DebuggingTargetAddress(_architecture) {
 			this->SetInt(value);
 		}
 		Win32DebuggingTargetAddress(const Win32DebuggingTargetAddress& x) noexcept(false);
@@ -458,11 +458,11 @@ namespace YBWLib2 {
 		/// </returns>
 		void* GetRawCurrentProcessAddress() const noexcept(false);
 		/// <summary>Gets the value as an integer.</summary>
-		template <typename _Int_Ty>
-		inline void GetInt(_Int_Ty& value) const noexcept(false) {
-			static_assert(::std::is_object_v<_Int_Ty>, "The specified integer type is not an object type.");
-			static_assert(::std::is_integral_v<_Int_Ty>, "The specified integer type is not integral.");
-			if constexpr (::std::is_unsigned_v<_Int_Ty>) {
+		template <typename T_Int>
+		inline void GetInt(T_Int& value) const noexcept(false) {
+			static_assert(::std::is_object_v<T_Int>, "The specified integer type is not an object type.");
+			static_assert(::std::is_integral_v<T_Int>, "The specified integer type is not integral.");
+			if constexpr (::std::is_unsigned_v<T_Int>) {
 				this->GetUint(&value, sizeof(value));
 			} else {
 				static_assert(false, "The specified integer type is not unsigned.");
@@ -499,11 +499,11 @@ namespace YBWLib2 {
 		/// </param>
 		void SetRawCurrentProcessAddress(const volatile void* rawcurrentprocessaddress) noexcept(false);
 		/// <summary>Sets the value to the specified integer.</summary>
-		template <typename _Int_Ty>
-		inline void SetInt(_Int_Ty value) noexcept(false) {
-			static_assert(::std::is_object_v<_Int_Ty>, "The specified integer type is not an object type.");
-			static_assert(::std::is_integral_v<_Int_Ty>, "The specified integer type is not integral.");
-			if constexpr (::std::is_unsigned_v<_Int_Ty>) {
+		template <typename T_Int>
+		inline void SetInt(T_Int value) noexcept(false) {
+			static_assert(::std::is_object_v<T_Int>, "The specified integer type is not an object type.");
+			static_assert(::std::is_integral_v<T_Int>, "The specified integer type is not integral.");
+			if constexpr (::std::is_unsigned_v<T_Int>) {
 				this->SetUint(&value, sizeof(value));
 			} else {
 				static_assert(false, "The specified integer type is not unsigned.");
@@ -790,8 +790,8 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Win32DebuggingTargetMemoryRegionInfo, , "ed262840-9a56-4aca-9ca3-b401fbe965d7");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Win32DebuggingTargetMemoryRegionInfo);
-		template<typename _Memory_Basic_Information_Ty>
-		inline static Win32DebuggingTargetMemoryRegionInfo FromMemoryBasicInformation(Win32Architecture architecture, const _Memory_Basic_Information_Ty& memory_basic_information) {
+		template<typename T_Memory_Basic_Information>
+		inline static Win32DebuggingTargetMemoryRegionInfo FromMemoryBasicInformation(Win32Architecture architecture, const T_Memory_Basic_Information& memory_basic_information) {
 			Win32DebuggingTargetAddress addr_base(architecture);
 			Win32DebuggingTargetAddress addr_base_alloc(architecture);
 			if constexpr (::std::is_integral_v<decltype(memory_basic_information.BaseAddress)> && ::std::is_unsigned_v<decltype(memory_basic_information.BaseAddress)>) {
@@ -1092,8 +1092,8 @@ namespace YBWLib2 {
 	public:
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_CLASS_MODULE_LOCAL(Win32DebuggingTargetExecutableModuleInfo, , "db41f044-2aef-4204-b38e-755e236ec8e1");
 		YBWLIB2_DYNAMIC_TYPE_DECLARE_IOBJECT_INLINE(Win32DebuggingTargetExecutableModuleInfo);
-		template<typename _Module_Entry_32_Ty>
-		inline static Win32DebuggingTargetExecutableModuleInfo FromModuleEntry32(Win32Architecture architecture, const _Module_Entry_32_Ty& module_entry_32) {
+		template<typename T_Module_Entry_32>
+		inline static Win32DebuggingTargetExecutableModuleInfo FromModuleEntry32(Win32Architecture architecture, const T_Module_Entry_32& module_entry_32) {
 			return Win32DebuggingTargetExecutableModuleInfo(architecture, module_entry_32);
 		}
 		explicit Win32DebuggingTargetExecutableModuleInfo(Win32Architecture _architecture) noexcept(false);
